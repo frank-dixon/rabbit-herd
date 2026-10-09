@@ -61,6 +61,8 @@ def registration_options(request, payload):
     if request.user.is_authenticated:
         user = request.user
         user_id = bytes(user.webauthn_user_handle)
+        if user.is_guest:
+            raise PasskeyError("Guest sessions cannot register a passkey.")
         user_name = user.email
         exclude = [
             PublicKeyCredentialDescriptor(id=bytes(cred.credential_id))
@@ -125,6 +127,8 @@ def verify_registration(request, credential):
             user = User(
                 email=email,
                 webauthn_user_handle=base64url_to_bytes(handle),
+                is_active=False,
+                email_confirmed=False,
             )
             user.set_unusable_password()
             try:
@@ -196,8 +200,8 @@ def verify_authentication(request, credential):
         if presented != bytes(stored.user.webauthn_user_handle):
             raise PasskeyError("The passkey could not be verified.")
 
-    if not stored.user.is_active:
-        raise PasskeyError("This account is inactive.")
+    if not stored.user.is_active or not stored.user.email_confirmed:
+        raise PasskeyError("Confirm your email before signing in.")
 
     stored.sign_count = verification.new_sign_count
     stored.save(update_fields=["sign_count"])

@@ -120,6 +120,7 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 
 STORAGES = {
     "default": {
@@ -157,6 +158,21 @@ if not DEBUG and (not WEBAUTHN_RP_ID or not WEBAUTHN_ORIGIN):
         "Set WEBAUTHN_RP_ID and WEBAUTHN_ORIGIN, or deploy where "
         "RENDER_EXTERNAL_HOSTNAME is provided."
     )
+
+DEFAULT_FROM_EMAIL = (
+    os.environ.get("DEFAULT_FROM_EMAIL", "").strip() or "Rabbit Herd <noreply@localhost>"
+)
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "").strip()
+if EMAIL_HOST:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+    EMAIL_USE_TLS = env_flag("EMAIL_USE_TLS", default=True)
+    EMAIL_USE_SSL = env_flag("EMAIL_USE_SSL", default=False)
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"

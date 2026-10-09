@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Link expired · Rabbit Herd{% endblock %}
+
+{% block content %}
+  <h1 class="text-3xl font-semibold tracking-tight">That link does not work</h1>
+  <p class="mt-4 leading-relaxed">
+    The confirmation link is invalid or has already been used.
+  </p>
+  <p class="mt-8">
+    <a class="underline" href="{% url 'signup' %}">Create an account</a>
+  </p>
+{% endblock %}

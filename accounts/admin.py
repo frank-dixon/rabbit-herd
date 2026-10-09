@@ -22,13 +22,17 @@ class UserAdmin(BaseUserAdmin):
     form = AccountUserChangeForm
     add_form = AccountUserCreationForm
     ordering = ("email",)
-    list_display = ("email", "is_staff", "is_active")
+    list_display = ("email", "is_staff", "is_active", "email_confirmed", "is_guest")
     search_fields = ("email",)
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         (
+            "Status",
+            {"fields": ("is_active", "is_guest", "email_confirmed", "email_confirmed_at")},
+        ),
+        (
             "Permissions",
-            {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")},
+            {"fields": ("is_staff", "is_superuser", "groups", "user_permissions")},
         ),
         ("Dates", {"fields": ("last_login", "date_joined")}),
     )

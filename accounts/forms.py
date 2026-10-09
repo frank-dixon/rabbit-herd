@@ -27,9 +27,21 @@ class EmailAuthenticationForm(AuthenticationForm):
         username = self.cleaned_data.get("username")
         password = self.cleaned_data.get("password")
         if username is not None and password:
+            email = username.strip().lower()
+            existing = User.objects.filter(email__iexact=email).first()
+            if (
+                existing is not None
+                and not existing.is_guest
+                and existing.check_password(password)
+                and (not existing.email_confirmed or not existing.is_active)
+            ):
+                raise ValidationError(
+                    "Confirm your email before signing in.",
+                    code="unconfirmed",
+                )
             self.user_cache = authenticate(
                 self.request,
-                username=username.strip().lower(),
+                username=email,
                 password=password,
             )
             if self.user_cache is None:
@@ -82,4 +94,6 @@ class SignupForm(forms.Form):
         return User.objects.create_user(
             email=self.cleaned_data["email"],
             password=self.cleaned_data["password1"],
+            is_active=False,
+            email_confirmed=False,
         )

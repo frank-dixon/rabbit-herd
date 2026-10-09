@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Check your email · Rabbit Herd{% endblock %}
+
+{% block content %}
+  <h1 class="text-3xl font-semibold tracking-tight">Check your email</h1>
+  <p class="mt-4 leading-relaxed">
+    A confirmation link is on its way. Open it to finish creating the account.
+  </p>
+  <p class="mt-8">
+    <a class="underline" href="{% url 'login' %}">Back to sign in</a>
+  </p>
+{% endblock %}

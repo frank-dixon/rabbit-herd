@@ -19,5 +19,9 @@ services:
         generateValue: true
       - key: DATABASE_URL
         sync: false
+      - key: DEMO_EMAIL
+        sync: false
+      - key: DEMO_PASSWORD
+        sync: false
       - key: DEFAULT_FROM_EMAIL
         value: "Rabbit Herd <noreply@example.com>"

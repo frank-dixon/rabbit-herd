@@ -7,10 +7,12 @@
   <p class="mt-4 leading-relaxed">
     A private record keeper for a small rabbitry.
   </p>
-  <p class="mt-8">
+  <div class="mt-8 flex flex-col items-start gap-3">
     <a class="underline" href="{% url 'login' %}">Sign in</a>
-  </p>
-  <p class="mt-2">
     <a class="underline" href="{% url 'signup' %}">Create an account</a>
-  </p>
+    <form method="post" action="{% url 'guest' %}">
+      {% csrf_token %}
+      <button type="submit" class="underline">Continue as a guest</button>
+    </form>
+  </div>
 {% endblock %}
