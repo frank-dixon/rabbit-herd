@@ -4,6 +4,10 @@
  * The watch and production scripts minify this file. Comments stay in
  * source so the ceremony code is readable, and they are stripped from
  * the file the browser actually downloads.
+ *
+ * Passkeys are created and checked in the browser, then posted to Django
+ * for verification. The server decides the relying party, the challenge,
+ * and whether the account exists. This file only translates bytes.
  */
 
 /**
@@ -21,6 +25,199 @@ function csrfToken() {
   return meta.getAttribute("content") || "";
 }
 
+/**
+ * WebAuthn wants ArrayBuffers. Django's library sends those bytes as
+ * base64url text so they survive JSON. Put the padding back, then decode.
+ */
+function base64urlToBuffer(value) {
+  const text = String(value).replace(/-/g, "+").replace(/_/g, "/");
+  const padded = text + "=".repeat((4 - (text.length % 4)) % 4);
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return bytes.buffer;
+}
+
+/**
+ * The authenticator returns ArrayBuffers. The server expects the same
+ * base64url alphabet it used for the challenge, without padding.
+ */
+function bufferToBase64url(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let index = 0; index < bytes.length; index += 1) {
+    binary += String.fromCharCode(bytes[index]);
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function showPasskeyError(message) {
+  const element = document.querySelector("[data-passkey-error]");
+  if (!element) {
+    return;
+  }
+  element.hidden = false;
+  element.textContent = message;
+}
+
+async function postJson(url, body) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrfToken(),
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await response.json().catch(function () {
+    return {};
+  });
+  if (!response.ok) {
+    throw new Error(data.error || "The passkey request failed.");
+  }
+  return data;
+}
+
+/**
+ * Only follow a path on this site. A passkey response must not be able to
+ * send the browser to another origin, even if the JSON is unexpected.
+ */
+function followRedirect(url) {
+  if (typeof url === "string" && url.startsWith("/") && !url.startsWith("//")) {
+    window.location.assign(url);
+    return;
+  }
+  window.location.assign("/");
+}
+
+function publicKeyCreationOptions(options) {
+  const publicKey = Object.assign({}, options, {
+    challenge: base64urlToBuffer(options.challenge),
+    user: Object.assign({}, options.user, {
+      id: base64urlToBuffer(options.user.id),
+    }),
+  });
+  if (Array.isArray(options.excludeCredentials)) {
+    publicKey.excludeCredentials = options.excludeCredentials.map(function (item) {
+      return Object.assign({}, item, { id: base64urlToBuffer(item.id) });
+    });
+  }
+  return publicKey;
+}
+
+function publicKeyRequestOptions(options) {
+  const publicKey = Object.assign({}, options, {
+    challenge: base64urlToBuffer(options.challenge),
+  });
+  if (Array.isArray(options.allowCredentials)) {
+    publicKey.allowCredentials = options.allowCredentials.map(function (item) {
+      return Object.assign({}, item, { id: base64urlToBuffer(item.id) });
+    });
+  }
+  return publicKey;
+}
+
+/**
+ * Registration and authentication return different response fields.
+ * Copy only the buffers the server knows how to verify.
+ */
+function credentialToJSON(credential) {
+  const response = {
+    clientDataJSON: bufferToBase64url(credential.response.clientDataJSON),
+  };
+  if (credential.response.attestationObject) {
+    response.attestationObject = bufferToBase64url(credential.response.attestationObject);
+    if (typeof credential.response.getTransports === "function") {
+      response.transports = credential.response.getTransports();
+    }
+  } else {
+    response.authenticatorData = bufferToBase64url(credential.response.authenticatorData);
+    response.signature = bufferToBase64url(credential.response.signature);
+    if (credential.response.userHandle) {
+      response.userHandle = bufferToBase64url(credential.response.userHandle);
+    }
+  }
+  return {
+    id: credential.id,
+    rawId: bufferToBase64url(credential.rawId),
+    type: credential.type,
+    authenticatorAttachment: credential.authenticatorAttachment,
+    clientExtensionResults: credential.getClientExtensionResults(),
+    response: response,
+  };
+}
+
+async function registerPasskey(button) {
+  if (!window.PublicKeyCredential) {
+    showPasskeyError("This browser does not support passkeys.");
+    return;
+  }
+  const body = {};
+  const emailFieldId = button.getAttribute("data-email-field");
+  if (emailFieldId) {
+    const emailField = document.getElementById(emailFieldId);
+    const email = emailField ? emailField.value.trim() : "";
+    if (!email) {
+      showPasskeyError("Enter an email address first.");
+      return;
+    }
+    body.email = email;
+  }
+  const options = await postJson("/accounts/passkey/register/options/", body);
+  const credential = await navigator.credentials.create({
+    publicKey: publicKeyCreationOptions(options),
+  });
+  const result = await postJson("/accounts/passkey/register/verify/", {
+    credential: credentialToJSON(credential),
+  });
+  followRedirect(result.redirect);
+}
+
+async function signInWithPasskey(button) {
+  if (!window.PublicKeyCredential) {
+    showPasskeyError("This browser does not support passkeys.");
+    return;
+  }
+  const options = await postJson("/accounts/passkey/login/options/", {});
+  const credential = await navigator.credentials.get({
+    publicKey: publicKeyRequestOptions(options),
+  });
+  const result = await postJson("/accounts/passkey/login/verify/", {
+    credential: credentialToJSON(credential),
+    next: button.getAttribute("data-next") || "",
+  });
+  followRedirect(result.redirect);
+}
+
+function bindPasskeys() {
+  const registerButton = document.getElementById("passkey-register");
+  if (registerButton) {
+    registerButton.addEventListener("click", function () {
+      registerPasskey(registerButton).catch(function (error) {
+        showPasskeyError(error.message || "The passkey could not be created.");
+      });
+    });
+  }
+  const loginButton = document.getElementById("passkey-login");
+  if (loginButton) {
+    loginButton.addEventListener("click", function () {
+      signInWithPasskey(loginButton).catch(function (error) {
+        showPasskeyError(error.message || "The passkey could not be used.");
+      });
+    });
+  }
+}
+
 window.rabbitHerd = {
   csrfToken,
+  base64urlToBuffer,
+  bufferToBase64url,
 };
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bindPasskeys);
+} else {
+  bindPasskeys();
+}

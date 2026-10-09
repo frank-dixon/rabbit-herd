@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}You're in · Rabbit Herd{% endblock %}
+
+{% block content %}
+  <h1 class="text-3xl font-semibold tracking-tight">You're in.</h1>
+  <p class="mt-4 leading-relaxed">Signed in as {{ user.email }}.</p>
+  <div class="mt-8 flex flex-col gap-3">
+    <button
+      type="button"
+      id="passkey-register"
+      data-authenticated="true"
+      class="rounded border border-neutral-500 bg-neutral-100 px-4 py-2 font-medium"
+    >
+      Add a passkey
+    </button>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="rounded bg-neutral-800 px-4 py-2 font-medium text-white">
+        Log out
+      </button>
+    </form>
+  </div>
+  <p class="mt-4 font-medium" data-passkey-error hidden></p>
+{% endblock %}

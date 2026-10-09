@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Create an account · Rabbit Herd{% endblock %}
+
+{% block content %}
+  <h1 class="text-3xl font-semibold tracking-tight">Create an account</h1>
+  <form class="mt-8 space-y-4" method="post" action="{% url 'signup' %}">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <ul class="space-y-1 font-medium">
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    <div>
+      <label class="block text-sm font-medium" for="{{ form.email.id_for_label }}">Email</label>
+      {{ form.email }}
+      {{ form.email.errors }}
+    </div>
+    <div>
+      <label class="block text-sm font-medium" for="{{ form.password1.id_for_label }}">Password</label>
+      {{ form.password1 }}
+      {{ form.password1.errors }}
+    </div>
+    <div>
+      <label class="block text-sm font-medium" for="{{ form.password2.id_for_label }}">Confirm password</label>
+      {{ form.password2 }}
+      {{ form.password2.errors }}
+    </div>
+    <button type="submit" class="rounded bg-neutral-800 px-4 py-2 font-medium text-white">
+      Create account
+    </button>
+  </form>
+  <button
+    type="button"
+    id="passkey-register"
+    data-email-field="{{ form.email.id_for_label }}"
+    class="mt-4 rounded border border-neutral-500 bg-neutral-100 px-4 py-2 font-medium"
+  >
+    Create a passkey instead
+  </button>
+  <p class="mt-4 font-medium" data-passkey-error hidden></p>
+  <p class="mt-8">
+    <a class="underline" href="{% url 'login' %}">Sign in</a>
+  </p>
+{% endblock %}

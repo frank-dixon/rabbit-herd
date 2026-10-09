@@ -26,8 +26,11 @@ Leave `DATABASE_URL` unset in `.env` to use a local SQLite file. Set it to a Pos
 | `DATABASE_URL` | Postgres connection string. SQLite is used only when this is unset. |
 | `ALLOWED_HOSTS` | Comma-separated host names. |
 | `CSRF_TRUSTED_ORIGINS` | Comma-separated origins, including the scheme. |
+| `WEBAUTHN_RP_ID` | Domain for passkeys, with no scheme and no port. `localhost` locally. |
+| `WEBAUTHN_RP_NAME` | Name shown by the browser when it asks for a passkey. |
+| `WEBAUTHN_ORIGIN` | Full origin you open in the browser, such as `http://localhost:8000`. |
 
-On Render, `RENDER_EXTERNAL_HOSTNAME` is set for you and is added to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`.
+On Render, `RENDER_EXTERNAL_HOSTNAME` is set for you. It is added to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`, and it is used as the passkey relying party id and origin when `WEBAUTHN_RP_ID` and `WEBAUTHN_ORIGIN` are unset.
 
 ## Deploy
 
