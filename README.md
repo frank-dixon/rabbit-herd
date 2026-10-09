@@ -34,6 +34,8 @@ With the sample demo values, sign in as `demo@example.com` after you set `DEMO_P
 | `DATABASE_URL` | Postgres connection string. SQLite is used only when this is unset. |
 | `ALLOWED_HOSTS` | Comma-separated host names. |
 | `CSRF_TRUSTED_ORIGINS` | Comma-separated origins, including the scheme. |
+| `APP_HOSTNAME` | Public host name, with no scheme and no port. Fills allowed hosts, CSRF origins, and passkeys. |
+| `RENDER_EXTERNAL_HOSTNAME` | Set by Render. Does the same job as `APP_HOSTNAME`. |
 | `WEBAUTHN_RP_ID` | Passkey domain, with no scheme and no port. `localhost` locally. |
 | `WEBAUTHN_RP_NAME` | Name the browser shows when it asks for a passkey. |
 | `WEBAUTHN_ORIGIN` | Origin you open in the browser, such as `http://localhost:8000`. |
@@ -61,6 +63,15 @@ Set these on the service:
 - `DEMO_PASSWORD`
 - `DEBUG` = `false`
 
-Render sets `RENDER_EXTERNAL_HOSTNAME` for you. That host is added to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`, and it is used as the passkey relying party id and origin when `WEBAUTHN_RP_ID` and `WEBAUTHN_ORIGIN` are left unset.
+Render sets `RENDER_EXTERNAL_HOSTNAME` for you. On any other host, set `APP_HOSTNAME` to the public name. Either value is added to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`, and it is used as the passkey relying party id and origin when `WEBAUTHN_RP_ID` and `WEBAUTHN_ORIGIN` are left unset. When both are set, `APP_HOSTNAME` is the passkey host, and both names are allowed.
+
+## Run the container
+
+```bash
+docker build -t rabbit-herd .
+docker run --env-file .env -p 8000:8000 rabbit-herd
+```
+
+Set the same variables as on Render, including `APP_HOSTNAME` when the platform does not provide `RENDER_EXTERNAL_HOSTNAME`. The container listens on `PORT`, or 8000 when `PORT` is unset.
 
 Set `EMAIL_HOST` and the other SMTP variables when you want confirmation mail delivered. Until then, those messages are written to the service logs.

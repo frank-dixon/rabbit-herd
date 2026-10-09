@@ -32,19 +32,33 @@ if not SECRET_KEY:
     else:
         raise ImproperlyConfigured("Set SECRET_KEY in the environment.")
 
-RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "").strip()
+def public_hostnames():
+    """Host names supplied by the platform, APP_HOSTNAME first."""
+    names = []
+    for name in (
+        os.environ.get("APP_HOSTNAME", ""),
+        os.environ.get("RENDER_EXTERNAL_HOSTNAME", ""),
+    ):
+        cleaned = name.strip()
+        if cleaned and cleaned not in names:
+            names.append(cleaned)
+    return names
+
+
+PUBLIC_HOSTNAMES = public_hostnames()
 
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS")
-if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+for hostname in PUBLIC_HOSTNAMES:
+    if hostname not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(hostname)
 if DEBUG and not ALLOWED_HOSTS:
     ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
-if RENDER_EXTERNAL_HOSTNAME:
-    render_origin = f"https://{RENDER_EXTERNAL_HOSTNAME}"
-    if render_origin not in CSRF_TRUSTED_ORIGINS:
-        CSRF_TRUSTED_ORIGINS.append(render_origin)
+for hostname in PUBLIC_HOSTNAMES:
+    origin = f"https://{hostname}"
+    if origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -145,18 +159,19 @@ LOGOUT_REDIRECT_URL = "index"
 WEBAUTHN_RP_NAME = os.environ.get("WEBAUTHN_RP_NAME", "").strip() or "Rabbit Herd"
 WEBAUTHN_RP_ID = os.environ.get("WEBAUTHN_RP_ID", "").strip()
 WEBAUTHN_ORIGIN = os.environ.get("WEBAUTHN_ORIGIN", "").strip()
-if not WEBAUTHN_RP_ID and RENDER_EXTERNAL_HOSTNAME:
-    WEBAUTHN_RP_ID = RENDER_EXTERNAL_HOSTNAME
-if not WEBAUTHN_ORIGIN and RENDER_EXTERNAL_HOSTNAME:
-    WEBAUTHN_ORIGIN = f"https://{RENDER_EXTERNAL_HOSTNAME}"
+primary_hostname = PUBLIC_HOSTNAMES[0] if PUBLIC_HOSTNAMES else ""
+if not WEBAUTHN_RP_ID and primary_hostname:
+    WEBAUTHN_RP_ID = primary_hostname
+if not WEBAUTHN_ORIGIN and primary_hostname:
+    WEBAUTHN_ORIGIN = f"https://{primary_hostname}"
 if DEBUG and not WEBAUTHN_RP_ID:
     WEBAUTHN_RP_ID = "localhost"
 if DEBUG and not WEBAUTHN_ORIGIN:
     WEBAUTHN_ORIGIN = "http://localhost:8000"
 if not DEBUG and (not WEBAUTHN_RP_ID or not WEBAUTHN_ORIGIN):
     raise ImproperlyConfigured(
-        "Set WEBAUTHN_RP_ID and WEBAUTHN_ORIGIN, or deploy where "
-        "RENDER_EXTERNAL_HOSTNAME is provided."
+        "Set WEBAUTHN_RP_ID and WEBAUTHN_ORIGIN, or set APP_HOSTNAME "
+        "or RENDER_EXTERNAL_HOSTNAME."
     )
 
 DEFAULT_FROM_EMAIL = (
