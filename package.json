@@ -1,0 +1,21 @@
+{
+  "name": "rabbit-herd",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "watch:css": "tailwindcss -i ./assets/input.css -o ./static/css/app.css --watch",
+    "watch:js": "esbuild assets/app.js --bundle --minify --outfile=./static/js/app.js --watch",
+    "watch": "concurrently -k \"npm run watch:css\" \"npm run watch:js\"",
+    "build:css": "tailwindcss -i ./assets/input.css -o ./static/css/app.css --minify",
+    "build:js": "esbuild assets/app.js --bundle --minify --outfile=./static/js/app.js",
+    "build": "npm run build:css && npm run build:js"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.2",
+    "concurrently": "^9.2.1",
+    "esbuild": "^0.25.11",
+    "tailwindcss": "^4.3.3"
+  }
+}
