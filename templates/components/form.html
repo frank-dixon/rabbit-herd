@@ -1,0 +1,21 @@
+{# Whole form. Pass form and submit_label. action, method, include_next, and next are optional. #}
+<form class="space-y-4" method="{{ method|default:'post' }}" {% if action %}action="{{ action }}"{% endif %}>
+  {% csrf_token %}
+  {% if include_next %}
+    <input type="hidden" name="next" value="{{ next }}">
+  {% endif %}
+  {% if form.non_field_errors %}
+    <ul class="space-y-1 text-sm font-medium">
+      {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  {% for hidden in form.hidden_fields %}
+    {{ hidden }}
+  {% endfor %}
+  {% for field in form.visible_fields %}
+    {% include "components/field.html" with field=field only %}
+  {% endfor %}
+  {% include "components/button.html" with label=submit_label type="submit" variant="primary" only %}
+</form>

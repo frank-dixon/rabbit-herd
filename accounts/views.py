@@ -23,7 +23,7 @@ from django.views.decorators.http import require_POST
 from django.views.generic import FormView
 
 from .emails import send_account_mail, send_confirmation_email
-from .forms import INPUT_CLASS, EmailAuthenticationForm, SignupForm
+from .forms import EmailAuthenticationForm, SignupForm
 from .models import User
 from .passkeys import (
     PasskeyError,
@@ -81,17 +81,15 @@ class AppLogoutView(LogoutView):
     next_page = "index"
 
 
-class StyledFormMixin:
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        for field in form.fields.values():
-            field.widget.attrs.setdefault("class", INPUT_CLASS)
-        return form
-
-
-class AppPasswordChangeView(StyledFormMixin, PasswordChangeView):
+class AppPasswordChangeView(PasswordChangeView):
     template_name = "accounts/password_change_form.html"
     success_url = reverse_lazy("password_change_done")
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields["old_password"].label = "Current password"
+        form.fields["new_password2"].label = "Confirm new password"
+        return form
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated and request.user.is_guest:
@@ -129,7 +127,7 @@ class ConfirmedPasswordResetForm(PasswordResetForm):
         return (user for user in users if user.has_usable_password())
 
 
-class AppPasswordResetView(StyledFormMixin, PasswordResetView):
+class AppPasswordResetView(PasswordResetView):
     form_class = ConfirmedPasswordResetForm
     template_name = "accounts/password_reset_form.html"
     email_template_name = "accounts/password_reset_email.txt"
@@ -141,9 +139,14 @@ class AppPasswordResetDoneView(PasswordResetDoneView):
     template_name = "accounts/password_reset_done.html"
 
 
-class AppPasswordResetConfirmView(StyledFormMixin, PasswordResetConfirmView):
+class AppPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = "accounts/password_reset_confirm.html"
     success_url = reverse_lazy("password_reset_complete")
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields["new_password2"].label = "Confirm new password"
+        return form
 
 
 class AppPasswordResetCompleteView(PasswordResetCompleteView):

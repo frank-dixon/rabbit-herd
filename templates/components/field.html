@@ -1,0 +1,23 @@
+{% load partials %}
+{# field: a Django BoundField. Renders the label, control, help text, and errors. #}
+<div class="space-y-1">
+  {% if field.field.widget.input_type == "checkbox" %}
+    <label class="flex items-center gap-2 text-sm font-medium" for="{{ field.id_for_label }}">
+      {{ field|styled_widget }}
+      <span>{{ field.label }}</span>
+    </label>
+  {% else %}
+    <label class="block text-sm font-medium" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field|styled_widget }}
+  {% endif %}
+  {% if field.help_text %}
+    <p class="text-sm text-neutral-600" id="{{ field.id_for_label }}_helptext">{{ field.help_text }}</p>
+  {% endif %}
+  {% if field.errors %}
+    <ul class="space-y-1 text-sm font-medium" id="{{ field.id_for_label }}_error">
+      {% for error in field.errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>

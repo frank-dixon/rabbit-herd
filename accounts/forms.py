@@ -6,8 +6,6 @@ from django.core.exceptions import ValidationError
 
 from .models import User
 
-INPUT_CLASS = "mt-1 w-full rounded border border-neutral-400 bg-white px-3 py-2"
-
 
 class EmailAuthenticationForm(AuthenticationForm):
     error_messages = {
@@ -20,8 +18,6 @@ class EmailAuthenticationForm(AuthenticationForm):
         username = self.fields["username"]
         username.label = "Email"
         username.widget.attrs["autocomplete"] = "username"
-        username.widget.attrs["class"] = INPUT_CLASS
-        self.fields["password"].widget.attrs["class"] = INPUT_CLASS
 
     def clean(self):
         username = self.cleaned_data.get("username")
@@ -52,23 +48,17 @@ class EmailAuthenticationForm(AuthenticationForm):
 
 class SignupForm(forms.Form):
     email = forms.EmailField(
-        widget=forms.EmailInput(
-            attrs={"autocomplete": "username", "class": INPUT_CLASS}
-        )
+        widget=forms.EmailInput(attrs={"autocomplete": "username"})
     )
     password1 = forms.CharField(
         label="Password",
         strip=False,
-        widget=forms.PasswordInput(
-            attrs={"autocomplete": "new-password", "class": INPUT_CLASS}
-        ),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
     )
     password2 = forms.CharField(
         label="Confirm password",
         strip=False,
-        widget=forms.PasswordInput(
-            attrs={"autocomplete": "new-password", "class": INPUT_CLASS}
-        ),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
     )
 
     def clean_email(self):

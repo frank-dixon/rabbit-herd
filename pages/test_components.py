@@ -1,8 +1,67 @@
+from django import forms
 from django.template.loader import render_to_string
-from django.test import SimpleTestCase, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 
 from accounts.models import User
+
+
+class SampleRecordForm(forms.Form):
+    name = forms.CharField(help_text="The rabbit's name.")
+    email = forms.EmailField()
+    password = forms.CharField(widget=forms.PasswordInput)
+    notes = forms.CharField(required=False, widget=forms.Textarea)
+    status = forms.ChoiceField(choices=[("doe", "Doe"), ("buck", "Buck")])
+    archived = forms.BooleanField(required=False, label="Archived")
+    born = forms.DateField(required=False)
+
+
+class FieldPartialTests(SimpleTestCase):
+    def test_each_control_renders_with_label_help_and_errors(self):
+        form = SampleRecordForm(data={"email": "nope", "name": ""})
+        self.assertFalse(form.is_valid())
+
+        email = render_to_string("components/field.html", {"field": form["email"]})
+        name = render_to_string("components/field.html", {"field": form["name"]})
+        password = render_to_string("components/field.html", {"field": form["password"]})
+        notes = render_to_string("components/field.html", {"field": form["notes"]})
+        status = render_to_string("components/field.html", {"field": form["status"]})
+        archived = render_to_string("components/field.html", {"field": form["archived"]})
+        born = render_to_string("components/field.html", {"field": form["born"]})
+
+        self.assertIn('type="email"', email)
+        self.assertIn("valid email", email)
+        self.assertIn("border-neutral-800", email)
+        self.assertIn("id_name_helptext", name)
+        self.assertIn("rabbit", name)
+        self.assertIn("This field is required.", name)
+        self.assertIn('type="password"', password)
+        self.assertIn("<textarea", notes)
+        self.assertIn("<select", status)
+        self.assertIn("Doe", status)
+        self.assertIn('type="checkbox"', archived)
+        self.assertIn("Archived", archived)
+        self.assertIn('type="date"', born)
+
+    def test_form_partial_includes_fields_submit_and_next(self):
+        request = RequestFactory().get("/accounts/login/")
+        html = render_to_string(
+            "components/form.html",
+            {
+                "form": SampleRecordForm(),
+                "submit_label": "Save record",
+                "include_next": True,
+                "next": "/next/",
+            },
+            request=request,
+        )
+
+        self.assertIn("Save record", html)
+        self.assertIn('type="submit"', html)
+        self.assertIn('name="next"', html)
+        self.assertIn('value="/next/"', html)
+        self.assertIn('type="checkbox"', html)
+        self.assertIn("csrfmiddlewaretoken", html)
 
 
 class ButtonPartialTests(SimpleTestCase):

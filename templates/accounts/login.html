@@ -4,28 +4,10 @@
 
 {% block content %}
   <h1 class="text-3xl font-semibold tracking-tight">Sign in</h1>
-  <form class="mt-8 space-y-4" method="post" action="{% url 'login' %}">
-    {% csrf_token %}
-    <input type="hidden" name="next" value="{{ next }}">
-    {% if form.non_field_errors %}
-      <ul class="space-y-1 font-medium">
-        {% for error in form.non_field_errors %}
-          <li>{{ error }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-    <div>
-      <label class="block text-sm font-medium" for="{{ form.username.id_for_label }}">Email</label>
-      {{ form.username }}
-      {{ form.username.errors }}
-    </div>
-    <div>
-      <label class="block text-sm font-medium" for="{{ form.password.id_for_label }}">Password</label>
-      {{ form.password }}
-      {{ form.password.errors }}
-    </div>
-    {% include "components/button.html" with label="Sign in" type="submit" variant="primary" only %}
-  </form>
+  <div class="mt-8">
+    {% url 'login' as login_url %}
+    {% include "components/form.html" with form=form submit_label="Sign in" action=login_url include_next=True %}
+  </div>
   <div class="mt-4">
     {% include "components/button.html" with label="Sign in with a passkey" variant="secondary" id="passkey-login" data_next=next only %}
   </div>
