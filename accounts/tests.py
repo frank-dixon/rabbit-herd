@@ -2,6 +2,7 @@ import json
 import re
 from unittest.mock import patch
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.core.management import call_command
@@ -155,7 +156,18 @@ class PasskeyEndpointTests(TestCase):
         body = response.json()
         self.assertTrue(body["challenge"])
         self.assertEqual(body["rp"]["name"], "Rabbit Herd")
+        self.assertEqual(body["rp"]["id"], settings.WEBAUTHN_RP_ID)
         self.assertEqual(body["user"]["name"], "frank@example.com")
+        selection = body["authenticatorSelection"]
+        self.assertEqual(selection["authenticatorAttachment"], "platform")
+        self.assertEqual(selection["residentKey"], "required")
+        self.assertIs(selection["requireResidentKey"], True)
+        self.assertEqual(selection["userVerification"], "required")
+        self.assertEqual(body["attestation"], "none")
+        self.assertEqual(
+            [item["alg"] for item in body["pubKeyCredParams"]],
+            [-7, -257],
+        )
         self.assertIn("webauthn_register_challenge", self.client.session)
 
     def test_register_options_reject_a_duplicate_email(self):
@@ -177,7 +189,11 @@ class PasskeyEndpointTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.json()["challenge"])
+        body = response.json()
+        self.assertTrue(body["challenge"])
+        self.assertEqual(body["rpId"], settings.WEBAUTHN_RP_ID)
+        self.assertEqual(body["userVerification"], "required")
+        self.assertNotIn("allowCredentials", body)
         self.assertIn("webauthn_auth_challenge", self.client.session)
 
     def test_verify_rejects_a_ceremony_that_never_started(self):

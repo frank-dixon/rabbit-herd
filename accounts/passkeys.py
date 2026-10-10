@@ -17,7 +17,10 @@ from webauthn.helpers.exceptions import (
     InvalidAuthenticationResponse,
     InvalidRegistrationResponse,
 )
+from webauthn.helpers.cose import COSEAlgorithmIdentifier
 from webauthn.helpers.structs import (
+    AttestationConveyancePreference,
+    AuthenticatorAttachment,
     AuthenticatorSelectionCriteria,
     PublicKeyCredentialDescriptor,
     ResidentKeyRequirement,
@@ -51,7 +54,11 @@ def read_json(request):
 
 
 def _selection():
+    # Platform only. With no attachment, Safari also builds a security-key
+    # request and puts residentKey on that request alone, so iOS offers a
+    # physical key or a QR code for another device instead of Face ID.
     return AuthenticatorSelectionCriteria(
+        authenticator_attachment=AuthenticatorAttachment.PLATFORM,
         resident_key=ResidentKeyRequirement.REQUIRED,
         user_verification=UserVerificationRequirement.REQUIRED,
     )
@@ -88,8 +95,15 @@ def registration_options(request, payload):
         user_id=user_id,
         user_name=user_name,
         user_display_name=user_name,
+        attestation=AttestationConveyancePreference.NONE,
         authenticator_selection=_selection(),
         exclude_credentials=exclude or None,
+        # ES256, then RS256. EdDSA (-8) is not a key iCloud Keychain can
+        # create, and it is the algorithm py_webauthn offers first.
+        supported_pub_key_algs=[
+            COSEAlgorithmIdentifier.ECDSA_SHA_256,
+            COSEAlgorithmIdentifier.RSASSA_PKCS1_v1_5_SHA_256,
+        ],
     )
     request.session[REGISTER_CHALLENGE] = bytes_to_base64url(options.challenge)
     return options_to_json_dict(options)
@@ -154,7 +168,13 @@ def authentication_options(request):
         user_verification=UserVerificationRequirement.REQUIRED,
     )
     request.session[AUTH_CHALLENGE] = bytes_to_base64url(options.challenge)
-    return options_to_json_dict(options)
+    payload = options_to_json_dict(options)
+    # py_webauthn emits allowCredentials: [] for a discoverable ceremony.
+    # Some clients treat that empty list as "no credential is allowed"
+    # and fall through to a security key. Omit it.
+    if not payload.get("allowCredentials"):
+        payload.pop("allowCredentials", None)
+    return payload
 
 
 def verify_authentication(request, credential):
