@@ -64,6 +64,19 @@ class FieldPartialTests(SimpleTestCase):
         self.assertIn("csrfmiddlewaretoken", html)
 
 
+class CardPartialTests(SimpleTestCase):
+    def test_card_renders_title_and_body(self):
+        html = render_to_string(
+            "components/card.html",
+            {"title": "Clover", "body": "A doe."},
+        )
+
+        self.assertIn("<section", html)
+        self.assertIn("Clover", html)
+        self.assertIn("A doe.", html)
+        self.assertIn("<h2", html)
+
+
 class ButtonPartialTests(SimpleTestCase):
     def test_variants_render_as_buttons_and_links(self):
         primary = render_to_string(

@@ -3,11 +3,10 @@
 {% block title %}You're in · Rabbit Herd{% endblock %}
 
 {% block content %}
-  <h1 class="text-3xl font-semibold tracking-tight">You're in.</h1>
   {% if user.is_guest %}
-    <p class="mt-4 leading-relaxed">This is a guest session.</p>
+    {% include "components/card.html" with title="You're in." body="This is a guest session." only %}
   {% else %}
-    <p class="mt-4 leading-relaxed">Signed in as {{ user.email }}.</p>
+    {% include "components/card.html" with title="You're in." body="Signed in as "|add:user.email|add:"." only %}
   {% endif %}
   <div class="mt-8 flex flex-col items-start gap-3">
     {% if not user.is_guest %}
