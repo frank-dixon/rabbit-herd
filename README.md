@@ -2,6 +2,8 @@
 
 Rabbit Herd is a private record keeper for a small rabbitry. Sign in with a passkey (Face ID, a fingerprint, or a device PIN) or with your email and password. You can also look around as a guest. A new account confirms its email before it can sign in. You can change your password, or reset it if you forget it.
 
+Signed in, you keep your own rabbits. A rabbit has a name or ear tag, a sex of doe or buck, a breed, a color, a birth date, an optional photo, and a status of breeding, growing out, sold, or culled. Archiving takes a rabbit off the active list and keeps the record. You can restore an archived rabbit. You only see your own.
+
 ## Run it locally
 
 ```bash
