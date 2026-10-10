@@ -12,22 +12,14 @@
   <div class="mt-8 flex flex-col items-start gap-3">
     {% if not user.is_guest %}
       {% if user.has_usable_password %}
-        <a class="underline" href="{% url 'password_change' %}">Change password</a>
+        {% url 'password_change' as password_change_url %}
+        {% include "components/button.html" with label="Change password" href=password_change_url variant="secondary" only %}
       {% endif %}
-      <button
-        type="button"
-        id="passkey-register"
-        data-authenticated="true"
-        class="rounded border border-neutral-500 bg-neutral-100 px-4 py-2 font-medium"
-      >
-        Add a passkey
-      </button>
+      {% include "components/button.html" with label="Add a passkey" variant="secondary" id="passkey-register" data_authenticated="true" only %}
     {% endif %}
     <form method="post" action="{% url 'logout' %}">
       {% csrf_token %}
-      <button type="submit" class="rounded bg-neutral-800 px-4 py-2 font-medium text-white">
-        Log out
-      </button>
+      {% include "components/button.html" with label="Log out" type="submit" variant="primary" only %}
     </form>
   </div>
   <p class="mt-4 font-medium" data-passkey-error hidden></p>

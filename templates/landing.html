@@ -8,11 +8,13 @@
     A private record keeper for a small rabbitry.
   </p>
   <div class="mt-8 flex flex-col items-start gap-3">
-    <a class="underline" href="{% url 'login' %}">Sign in</a>
-    <a class="underline" href="{% url 'signup' %}">Create an account</a>
+    {% url 'login' as login_url %}
+    {% url 'signup' as signup_url %}
+    {% include "components/button.html" with label="Sign in" href=login_url variant="primary" only %}
+    {% include "components/button.html" with label="Create an account" href=signup_url variant="secondary" only %}
     <form method="post" action="{% url 'guest' %}">
       {% csrf_token %}
-      <button type="submit" class="underline">Continue as a guest</button>
+      {% include "components/button.html" with label="Continue as a guest" type="submit" variant="secondary" only %}
     </form>
   </div>
 {% endblock %}

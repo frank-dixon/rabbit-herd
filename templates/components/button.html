@@ -1,0 +1,21 @@
+{# Button or link. Pass label, variant (primary, secondary, danger), href, type, disabled, id, name, value, data_next, data_email_field, data_authenticated. #}
+{% if href %}
+  <a
+    href="{{ href }}"
+    {% if id %}id="{{ id }}"{% endif %}
+    class="inline-flex rounded px-4 py-2 font-medium {% if variant == 'secondary' %}border border-neutral-500 bg-white text-neutral-800{% elif variant == 'danger' %}bg-red-800 text-white{% else %}bg-neutral-800 text-white{% endif %}{% if disabled %} pointer-events-none cursor-not-allowed opacity-50{% endif %}"
+    {% if disabled %}aria-disabled="true" tabindex="-1"{% endif %}
+  >{{ label }}</a>
+{% else %}
+  <button
+    type="{{ type|default:'button' }}"
+    {% if id %}id="{{ id }}"{% endif %}
+    {% if name %}name="{{ name }}"{% endif %}
+    {% if value %}value="{{ value }}"{% endif %}
+    {% if data_next %}data-next="{{ data_next }}"{% endif %}
+    {% if data_email_field %}data-email-field="{{ data_email_field }}"{% endif %}
+    {% if data_authenticated %}data-authenticated="{{ data_authenticated }}"{% endif %}
+    class="inline-flex rounded px-4 py-2 font-medium {% if variant == 'secondary' %}border border-neutral-500 bg-white text-neutral-800{% elif variant == 'danger' %}bg-red-800 text-white{% else %}bg-neutral-800 text-white{% endif %}{% if disabled %} cursor-not-allowed opacity-50{% endif %}"
+    {% if disabled %}disabled{% endif %}
+  >{{ label }}</button>
+{% endif %}
