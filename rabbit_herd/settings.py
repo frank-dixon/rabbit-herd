@@ -31,6 +31,8 @@ if not SECRET_KEY:
         SECRET_KEY = "dev-only-insecure-secret-key-not-for-deployment-use"
     else:
         raise ImproperlyConfigured("Set SECRET_KEY in the environment.")
+# Previous keys still verify sessions and other signatures after rotation.
+SECRET_KEY_FALLBACKS = env_list("SECRET_KEY_FALLBACKS")
 
 
 def hostname_from_env(name):

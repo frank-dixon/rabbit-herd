@@ -21,6 +21,7 @@ def load_settings(extra):
         "ALLOWED_HOSTS",
         "CSRF_TRUSTED_ORIGINS",
         "DATABASE_URL",
+        "SECRET_KEY_FALLBACKS",
     ):
         env.pop(key, None)
     env.update(extra)
@@ -33,6 +34,7 @@ print("|".join(settings.ALLOWED_HOSTS))
 print("|".join(settings.CSRF_TRUSTED_ORIGINS))
 print(settings.WEBAUTHN_RP_ID)
 print(settings.WEBAUTHN_ORIGIN)
+print("|".join(settings.SECRET_KEY_FALLBACKS))
 """
     result = subprocess.run(
         [sys.executable, "-c", script],
@@ -44,12 +46,13 @@ print(settings.WEBAUTHN_ORIGIN)
     )
     if result.returncode != 0:
         raise AssertionError(result.stderr or result.stdout)
-    allowed, origins, rp_id, origin = result.stdout.splitlines()
+    allowed, origins, rp_id, origin, fallbacks = result.stdout.splitlines()
     return {
         "allowed": allowed.split("|") if allowed else [],
         "origins": origins.split("|") if origins else [],
         "rp_id": rp_id,
         "origin": origin,
+        "fallbacks": fallbacks.split("|") if fallbacks else [],
     }
 
 
@@ -139,6 +142,18 @@ class HostnameSettingsTests(SimpleTestCase):
         self.assertEqual(settings["origins"], ["https://herd-abc123.vercel.app"])
         self.assertEqual(settings["rp_id"], "herd-abc123.vercel.app")
         self.assertEqual(settings["origin"], "https://herd-abc123.vercel.app")
+
+    def test_secret_key_fallbacks_are_split_from_the_environment(self):
+        settings = load_settings(
+            {
+                "DEBUG": "false",
+                "SECRET_KEY": "current-secret",
+                "SECRET_KEY_FALLBACKS": "old-secret, older-secret,",
+                "APP_HOSTNAME": "herd.example",
+            }
+        )
+
+        self.assertEqual(settings["fallbacks"], ["old-secret", "older-secret"])
 
 
 class LandingPageTests(TestCase):

@@ -31,6 +31,7 @@ With the sample demo values, sign in as `demo@example.com` after you set `DEMO_P
 |---|---|
 | `DEBUG` | `true` for local development. Leave unset, or set `false`, on the host. |
 | `SECRET_KEY` | Long random string. Required when `DEBUG` is off. |
+| `SECRET_KEY_FALLBACKS` | Comma-separated previous secret keys. Set these when rotating `SECRET_KEY` so existing sessions keep working. |
 | `DATABASE_URL` | Postgres connection string. SQLite is used only when this is unset. |
 | `ALLOWED_HOSTS` | Comma-separated host names. |
 | `CSRF_TRUSTED_ORIGINS` | Comma-separated origins, including the scheme. |
