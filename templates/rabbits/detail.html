@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}{{ rabbit.name }} · Rabbit Herd{% endblock %}
+
+{% block content %}
+  {% if rabbit.photo %}
+    <img class="mb-8 max-w-full" src="{{ rabbit.photo.url }}" alt="{{ rabbit.name }}">
+  {% endif %}
+  {% include "components/card.html" with title=rabbit.name body=rabbit.summary only %}
+  <div class="mt-8 flex flex-col items-start gap-3">
+    {% url 'rabbit_edit' rabbit.pk as edit_url %}
+    {% url 'rabbit_list' as list_url %}
+    {% include "components/button.html" with label="Edit" href=edit_url variant="primary" only %}
+    {% if rabbit.is_archived %}
+      <form method="post" action="{% url 'rabbit_restore' rabbit.pk %}">
+        {% csrf_token %}
+        {% include "components/button.html" with label="Restore" type="submit" variant="secondary" only %}
+      </form>
+    {% else %}
+      <form method="post" action="{% url 'rabbit_archive' rabbit.pk %}">
+        {% csrf_token %}
+        {% include "components/button.html" with label="Archive" type="submit" variant="secondary" only %}
+      </form>
+    {% endif %}
+    {% include "components/button.html" with label="Back to rabbits" href=list_url variant="secondary" only %}
+  </div>
+{% endblock %}

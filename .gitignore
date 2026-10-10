@@ -9,3 +9,4 @@ node_modules/
 static/css/
 static/js/
 staticfiles/
+media/
