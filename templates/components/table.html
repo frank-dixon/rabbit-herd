@@ -1,0 +1,25 @@
+{# columns: header labels. rows: a sequence of cell sequences. empty: message when rows is empty. #}
+<div class="overflow-x-auto border border-neutral-300 bg-white">
+  <table class="w-full border-collapse text-left">
+    <thead>
+      <tr>
+        {% for column in columns %}
+          <th class="border-b border-neutral-300 px-3 py-2 font-medium" scope="col">{{ column }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          {% for cell in row %}
+            <td class="border-b border-neutral-200 px-3 py-2">{{ cell }}</td>
+          {% endfor %}
+        </tr>
+      {% empty %}
+        <tr>
+          <td class="px-3 py-4 text-neutral-600" colspan="{{ columns|length }}">{{ empty|default:"Nothing here." }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

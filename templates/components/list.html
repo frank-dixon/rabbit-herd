@@ -1,0 +1,8 @@
+{# items: text labels. empty: message when items is empty. #}
+<ul class="divide-y divide-neutral-300 border border-neutral-300 bg-white">
+  {% for item in items %}
+    <li class="px-3 py-2">{{ item }}</li>
+  {% empty %}
+    <li class="px-3 py-2 text-neutral-600">{{ empty|default:"Nothing here." }}</li>
+  {% endfor %}
+</ul>

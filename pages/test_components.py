@@ -64,6 +64,44 @@ class FieldPartialTests(SimpleTestCase):
         self.assertIn("csrfmiddlewaretoken", html)
 
 
+class ListAndTablePartialTests(SimpleTestCase):
+    def test_list_renders_items_and_an_empty_state(self):
+        filled = render_to_string(
+            "components/list.html",
+            {"items": ["Clover", "Thistle"]},
+        )
+        empty = render_to_string(
+            "components/list.html",
+            {"items": [], "empty": "No rabbits yet."},
+        )
+
+        self.assertIn("<ul", filled)
+        self.assertIn("Clover", filled)
+        self.assertIn("Thistle", filled)
+        self.assertIn("No rabbits yet.", empty)
+        self.assertNotIn("<li class=\"px-3 py-2\">Clover", empty)
+
+    def test_table_renders_rows_and_an_empty_state(self):
+        filled = render_to_string(
+            "components/table.html",
+            {
+                "columns": ["Name", "Sex"],
+                "rows": [["Clover", "Doe"]],
+            },
+        )
+        empty = render_to_string(
+            "components/table.html",
+            {"columns": ["Name", "Sex"], "rows": [], "empty": "No rows yet."},
+        )
+
+        self.assertIn("<table", filled)
+        self.assertIn("Name", filled)
+        self.assertIn("Clover", filled)
+        self.assertIn("Doe", filled)
+        self.assertIn("No rows yet.", empty)
+        self.assertIn('colspan="2"', empty)
+
+
 class CardPartialTests(SimpleTestCase):
     def test_card_renders_title_and_body(self):
         html = render_to_string(
