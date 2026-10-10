@@ -196,6 +196,12 @@ class PasskeyEndpointTests(TestCase):
         self.assertNotIn("allowCredentials", body)
         self.assertIn("webauthn_auth_challenge", self.client.session)
 
+    def test_login_page_offers_a_saved_passkey_in_the_email_field(self):
+        response = self.client.get(reverse("login"))
+
+        self.assertContains(response, 'autocomplete="username webauthn"')
+        self.assertContains(response, 'id="passkey-login"')
+
     def test_verify_rejects_a_ceremony_that_never_started(self):
         response = self.client.post(
             reverse("passkey_login_verify"),

@@ -175,15 +175,86 @@ async function registerPasskey(button) {
   followRedirect(result.redirect);
 }
 
+/**
+ * Autofill and the button each store a challenge in the session. Only the
+ * latest one can be verified, so a newer attempt cancels the older one.
+ */
+let passkeyCeremony = 0;
+let conditionalAbort = null;
+
+function beginPasskeyCeremony() {
+  passkeyCeremony += 1;
+  if (conditionalAbort) {
+    conditionalAbort.abort();
+    conditionalAbort = null;
+  }
+  return passkeyCeremony;
+}
+
 async function signInWithPasskey(button) {
   if (!window.PublicKeyCredential) {
     showPasskeyError("This browser does not support passkeys.");
     return;
   }
+  const ceremony = beginPasskeyCeremony();
   const options = await postJson("/accounts/passkey/login/options/", {});
+  if (ceremony !== passkeyCeremony) {
+    return;
+  }
   const credential = await navigator.credentials.get({
     publicKey: publicKeyRequestOptions(options),
   });
+  if (ceremony !== passkeyCeremony) {
+    return;
+  }
+  const result = await postJson("/accounts/passkey/login/verify/", {
+    credential: credentialToJSON(credential),
+    next: button.getAttribute("data-next") || "",
+  });
+  followRedirect(result.redirect);
+}
+
+/**
+ * Conditional mediation is the passkey row in the email field's autofill,
+ * not a modal. It can start with the page. AbortError means the button
+ * took over, and a dismissed sheet is not a failed sign-in.
+ */
+async function offerPasskeyAutofill(button) {
+  if (
+    !window.PublicKeyCredential ||
+    typeof PublicKeyCredential.isConditionalMediationAvailable !== "function"
+  ) {
+    return;
+  }
+  let available = false;
+  try {
+    available = await PublicKeyCredential.isConditionalMediationAvailable();
+  } catch (error) {
+    return;
+  }
+  if (!available || passkeyCeremony !== 0) {
+    return;
+  }
+  const ceremony = beginPasskeyCeremony();
+  const controller = new AbortController();
+  conditionalAbort = controller;
+  let credential = null;
+  try {
+    const options = await postJson("/accounts/passkey/login/options/", {});
+    if (ceremony !== passkeyCeremony || controller.signal.aborted) {
+      return;
+    }
+    credential = await navigator.credentials.get({
+      mediation: "conditional",
+      signal: controller.signal,
+      publicKey: publicKeyRequestOptions(options),
+    });
+  } catch (error) {
+    return;
+  }
+  if (ceremony !== passkeyCeremony || !credential) {
+    return;
+  }
   const result = await postJson("/accounts/passkey/login/verify/", {
     credential: credentialToJSON(credential),
     next: button.getAttribute("data-next") || "",
@@ -206,6 +277,9 @@ function bindPasskeys() {
       signInWithPasskey(loginButton).catch(function (error) {
         showPasskeyError(error.message || "The passkey could not be used.");
       });
+    });
+    offerPasskeyAutofill(loginButton).catch(function (error) {
+      showPasskeyError(error.message || "The passkey could not be used.");
     });
   }
 }

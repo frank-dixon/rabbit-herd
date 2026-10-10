@@ -17,7 +17,7 @@ class EmailAuthenticationForm(AuthenticationForm):
         super().__init__(*args, **kwargs)
         username = self.fields["username"]
         username.label = "Email"
-        username.widget.attrs["autocomplete"] = "username"
+        username.widget.attrs["autocomplete"] = "username webauthn"
 
     def clean(self):
         username = self.cleaned_data.get("username")
