@@ -32,14 +32,30 @@ if not SECRET_KEY:
     else:
         raise ImproperlyConfigured("Set SECRET_KEY in the environment.")
 
+
+def hostname_from_env(name):
+    """Bare host from an environment variable. Scheme and path are dropped."""
+    value = os.environ.get(name, "").strip()
+    if "://" in value:
+        value = value.split("://", 1)[1]
+    return value.split("/", 1)[0].strip()
+
+
 def public_hostnames():
-    """Host names supplied by the platform, APP_HOSTNAME first."""
+    """Hosts that may serve the app. The first name is the passkey host.
+
+    APP_HOSTNAME wins, then the stable Vercel production host, then Render.
+    VERCEL_URL is the per-deployment host. It is allowed to answer requests,
+    and it becomes the passkey host only when nothing more stable is set.
+    """
     names = []
     for name in (
-        os.environ.get("APP_HOSTNAME", ""),
-        os.environ.get("RENDER_EXTERNAL_HOSTNAME", ""),
+        "APP_HOSTNAME",
+        "VERCEL_PROJECT_PRODUCTION_URL",
+        "RENDER_EXTERNAL_HOSTNAME",
+        "VERCEL_URL",
     ):
-        cleaned = name.strip()
+        cleaned = hostname_from_env(name)
         if cleaned and cleaned not in names:
             names.append(cleaned)
     return names
@@ -170,8 +186,8 @@ if DEBUG and not WEBAUTHN_ORIGIN:
     WEBAUTHN_ORIGIN = "http://localhost:8000"
 if not DEBUG and (not WEBAUTHN_RP_ID or not WEBAUTHN_ORIGIN):
     raise ImproperlyConfigured(
-        "Set WEBAUTHN_RP_ID and WEBAUTHN_ORIGIN, or set APP_HOSTNAME "
-        "or RENDER_EXTERNAL_HOSTNAME."
+        "Set WEBAUTHN_RP_ID and WEBAUTHN_ORIGIN, or set APP_HOSTNAME, "
+        "VERCEL_PROJECT_PRODUCTION_URL, RENDER_EXTERNAL_HOSTNAME, or VERCEL_URL."
     )
 
 DEFAULT_FROM_EMAIL = (

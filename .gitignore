@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *.sqlite3
 .env
+.env.local
+.vercel/
 node_modules/
 static/css/
 static/js/

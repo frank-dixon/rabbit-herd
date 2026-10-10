@@ -34,8 +34,10 @@ With the sample demo values, sign in as `demo@example.com` after you set `DEMO_P
 | `DATABASE_URL` | Postgres connection string. SQLite is used only when this is unset. |
 | `ALLOWED_HOSTS` | Comma-separated host names. |
 | `CSRF_TRUSTED_ORIGINS` | Comma-separated origins, including the scheme. |
-| `APP_HOSTNAME` | Public host name, with no scheme and no port. Fills allowed hosts, CSRF origins, and passkeys. |
-| `RENDER_EXTERNAL_HOSTNAME` | Set by Render. Does the same job as `APP_HOSTNAME`. |
+| `APP_HOSTNAME` | Stable public host, with no scheme and no port. When it is set, passkeys use it. It is also added to allowed hosts and CSRF origins. |
+| `VERCEL_PROJECT_PRODUCTION_URL` | Set by Vercel. The stable production host, with no scheme. Passkeys use it when `APP_HOSTNAME` is unset. |
+| `VERCEL_URL` | Set by Vercel. This deployment's host, with no scheme. It can serve that deployment. Passkeys use it only when no stable host is set. |
+| `RENDER_EXTERNAL_HOSTNAME` | Set by Render. Added to allowed hosts and CSRF origins, and used for passkeys when no stable host above is set. |
 | `WEBAUTHN_RP_ID` | Passkey domain, with no scheme and no port. `localhost` locally. |
 | `WEBAUTHN_RP_NAME` | Name the browser shows when it asks for a passkey. |
 | `WEBAUTHN_ORIGIN` | Origin you open in the browser, such as `http://localhost:8000`. |
@@ -51,19 +53,24 @@ With the sample demo values, sign in as `demo@example.com` after you set `DEMO_P
 
 `python manage.py ensure_demo_user` reads `DEMO_EMAIL` and `DEMO_PASSWORD`, creates that account if needed, and marks the email confirmed. Run it again whenever you want; it updates the same account. If either variable is missing, it leaves the database alone.
 
-## Deploy on Render
+## Deploy
 
-`render.yaml` is a free web service. Create a free Postgres database on Neon or on Render, and set `DATABASE_URL` to its connection string when Render asks. A Neon string should include `sslmode=require`.
+The app runs on Vercel's free Hobby plan. Create a free Postgres database on Neon and set `DATABASE_URL` to that connection string. A Neon string should include `sslmode=require`.
 
-Set these on the service:
+Import this repository as a Django project. Leave the install command on its default, which installs `requirements.txt`. The build command is `sh vercel-build.sh`. It compiles the stylesheet and minifies the script. Vercel then collects static files and serves them from its CDN. Leave access to System Environment Variables enabled so the build can see `VERCEL_ENV`, `VERCEL_URL`, and `VERCEL_PROJECT_PRODUCTION_URL`.
 
-- `SECRET_KEY` (the blueprint can generate one)
+Set these on the project:
+
+- `SECRET_KEY`
 - `DATABASE_URL`
+- `DEBUG` = `false`
 - `DEMO_EMAIL`
 - `DEMO_PASSWORD`
-- `DEBUG` = `false`
+- `APP_HOSTNAME` = the stable production host, with no scheme and no port
 
-Render sets `RENDER_EXTERNAL_HOSTNAME` for you. On any other host, set `APP_HOSTNAME` to the public name. Either value is added to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`, and it is used as the passkey relying party id and origin when `WEBAUTHN_RP_ID` and `WEBAUTHN_ORIGIN` are left unset. When both are set, `APP_HOSTNAME` is the passkey host, and both names are allowed.
+`APP_HOSTNAME` is the passkey host. Use the custom domain, or the production `*.vercel.app` name, so a passkey is not tied to a one-off deployment URL. When `APP_HOSTNAME` is unset, passkeys use `VERCEL_PROJECT_PRODUCTION_URL`.
+
+A production deploy, where `VERCEL_ENV` is `production`, runs `python manage.py migrate --noinput` and then `python manage.py ensure_demo_user` against `DATABASE_URL`. A failed migration fails the build. Preview builds leave the database alone. Handling a request does not migrate.
 
 ## Run the container
 
@@ -72,6 +79,6 @@ docker build -t rabbit-herd .
 docker run --env-file .env -p 8000:8000 rabbit-herd
 ```
 
-Set the same variables as on Render, including `APP_HOSTNAME` when the platform does not provide `RENDER_EXTERNAL_HOSTNAME`. The container listens on `PORT`, or 8000 when `PORT` is unset.
+Set the same variables as on Vercel, including `APP_HOSTNAME` when the platform does not provide a host name. The container listens on `PORT`, or 8000 when `PORT` is unset.
 
 Set `EMAIL_HOST` and the other SMTP variables when you want confirmation mail delivered. Until then, those messages are written to the service logs.
