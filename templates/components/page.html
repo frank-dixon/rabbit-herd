@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Rabbit Herd{% endblock %}</title>
+  {% block head %}{% endblock %}
+</head>
+<body class="flex min-h-screen flex-col bg-neutral-200 text-neutral-800 antialiased">
+  <header class="border-b border-neutral-300">
+    <div class="mx-auto flex max-w-lg items-center px-4 py-4">
+      {% block header %}
+        <a class="font-semibold" href="{% url 'index' %}">Rabbit Herd</a>
+      {% endblock %}
+    </div>
+  </header>
+  <main class="mx-auto w-full max-w-lg flex-1 px-4 py-10">
+    {% block main %}
+      {% block content %}{% endblock %}
+    {% endblock %}
+  </main>
+  <footer class="border-t border-neutral-300">
+    <div class="mx-auto max-w-lg px-4 py-4 text-sm text-neutral-700">
+      {% block footer %}{% endblock %}
+    </div>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
