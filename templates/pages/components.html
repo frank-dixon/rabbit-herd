@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Components · Rabbit Herd{% endblock %}
+
+{% block content %}
+  <h1 class="text-3xl font-semibold tracking-tight">Components</h1>
+  <p class="mt-4 leading-relaxed">
+    Every reusable partial, with the include that renders it.
+  </p>
+
+  <h2 class="mt-10 text-xl font-semibold">Buttons</h2>
+  <div class="mt-4 flex flex-col items-start gap-3">
+    {% include "components/button.html" with label="Primary" variant="primary" only %}
+    {% include "components/button.html" with label="Secondary" variant="secondary" only %}
+    {% include "components/button.html" with label="Danger" variant="danger" only %}
+    {% include "components/button.html" with label="Primary link" href="/" variant="primary" only %}
+    {% include "components/button.html" with label="Secondary link" href="/" variant="secondary" only %}
+    {% include "components/button.html" with label="Danger link" href="/" variant="danger" only %}
+    {% include "components/button.html" with label="Disabled" type="submit" disabled=True only %}
+    {% include "components/button.html" with label="Disabled link" href="/" variant="secondary" disabled=True only %}
+  </div>
+  <pre class="mt-4 overflow-x-auto text-sm">{% verbatim %}{% include "components/button.html" with label="Save" type="submit" variant="primary" only %}{% endverbatim %}</pre>
+
+  <h2 class="mt-10 text-xl font-semibold">Fields</h2>
+  <div class="mt-4 space-y-4">
+    {% include "components/field.html" with field=invalid_form.name only %}
+    {% include "components/field.html" with field=invalid_form.email only %}
+    {% include "components/field.html" with field=invalid_form.password only %}
+    {% include "components/field.html" with field=invalid_form.notes only %}
+    {% include "components/field.html" with field=invalid_form.status only %}
+    {% include "components/field.html" with field=invalid_form.archived only %}
+    {% include "components/field.html" with field=invalid_form.born only %}
+  </div>
+  <pre class="mt-4 overflow-x-auto text-sm">{% verbatim %}{% include "components/field.html" with field=form.email only %}{% endverbatim %}</pre>
+
+  <h2 class="mt-10 text-xl font-semibold">Form</h2>
+  <div class="mt-4">
+    {% include "components/form.html" with form=example_form submit_label="Save record" %}
+  </div>
+  <pre class="mt-4 overflow-x-auto text-sm">{% verbatim %}{% include "components/form.html" with form=form submit_label="Save record" %}{% endverbatim %}</pre>
+
+  <h2 class="mt-10 text-xl font-semibold">Card</h2>
+  <div class="mt-4">
+    {% include "components/card.html" with title="Clover" body="A doe born in the barn." only %}
+  </div>
+  <pre class="mt-4 overflow-x-auto text-sm">{% verbatim %}{% include "components/card.html" with title="Clover" body="A doe born in the barn." only %}{% endverbatim %}</pre>
+
+  <h2 class="mt-10 text-xl font-semibold">List</h2>
+  <div class="mt-4 space-y-4">
+    {% include "components/list.html" with items=list_items only %}
+    {% include "components/list.html" with items=empty_items empty="Nothing here." only %}
+  </div>
+  <pre class="mt-4 overflow-x-auto text-sm">{% verbatim %}{% include "components/list.html" with items=names empty="Nothing here." only %}{% endverbatim %}</pre>
+
+  <h2 class="mt-10 text-xl font-semibold">Table</h2>
+  <div class="mt-4 space-y-4">
+    {% include "components/table.html" with columns=table_columns rows=table_rows only %}
+    {% include "components/table.html" with columns=table_columns rows=empty_rows empty="No rows yet." only %}
+  </div>
+  <pre class="mt-4 overflow-x-auto text-sm">{% verbatim %}{% include "components/table.html" with columns=columns rows=rows empty="No rows yet." only %}{% endverbatim %}</pre>
+
+  <h2 class="mt-10 text-xl font-semibold">Alerts</h2>
+  <div class="mt-4 space-y-2">
+    {% include "components/alert.html" with text="Something needs attention." tags="info" only %}
+    {% include "components/alert.html" with text="Saved." tags="success" only %}
+    {% include "components/alert.html" with text="Check this." tags="warning" only %}
+    {% include "components/alert.html" with text="That failed." tags="error" only %}
+  </div>
+  <pre class="mt-4 overflow-x-auto text-sm">{% verbatim %}{% include "components/alert.html" with text=message tags=message.tags only %}{% endverbatim %}</pre>
+{% endblock %}

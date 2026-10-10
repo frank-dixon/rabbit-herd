@@ -1,6 +1,6 @@
 from django import forms
 from django.template.loader import render_to_string
-from django.test import RequestFactory, SimpleTestCase, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from accounts.models import User
@@ -62,6 +62,63 @@ class FieldPartialTests(SimpleTestCase):
         self.assertIn('value="/next/"', html)
         self.assertIn('type="checkbox"', html)
         self.assertIn("csrfmiddlewaretoken", html)
+
+
+class ComponentReferenceTests(TestCase):
+    def test_anonymous_visitors_get_a_missing_page(self):
+        response = self.client.get(reverse("components"))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_signed_in_non_staff_get_a_missing_page(self):
+        user = User.objects.create_user(
+            email="frank@example.com",
+            password="Rabbit-Herd-Pass-1",
+            is_active=True,
+            email_confirmed=True,
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("components"))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_staff_see_every_partial(self):
+        user = User.objects.create_user(
+            email="frank@example.com",
+            password="Rabbit-Herd-Pass-1",
+            is_active=True,
+            email_confirmed=True,
+            is_staff=True,
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("components"))
+
+        self.assertContains(response, "Components")
+        self.assertContains(response, "Danger")
+        self.assertContains(response, "bg-red-800")
+        self.assertContains(response, "disabled")
+        self.assertContains(response, 'aria-disabled="true"')
+        self.assertContains(response, 'type="email"')
+        self.assertContains(response, 'type="password"')
+        self.assertContains(response, 'type="checkbox"')
+        self.assertContains(response, 'type="date"')
+        self.assertContains(response, "<textarea")
+        self.assertContains(response, "<select")
+        self.assertContains(response, "valid email")
+        self.assertContains(response, "Save record")
+        self.assertContains(response, "Clover")
+        self.assertContains(response, "Nothing here.")
+        self.assertContains(response, "No rows yet.")
+        self.assertContains(response, 'role="alert"')
+        self.assertContains(response, "{% include")
+
+    @override_settings(DEBUG=True)
+    def test_debug_opens_the_page_for_anonymous_visitors(self):
+        response = self.client.get(reverse("components"))
+
+        self.assertContains(response, "Components")
 
 
 class AlertPartialTests(SimpleTestCase):
