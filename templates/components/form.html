@@ -1,5 +1,5 @@
-{# Whole form. Pass form and submit_label. action, method, include_next, and next are optional. #}
-<form class="space-y-4" method="{{ method|default:'post' }}" {% if action %}action="{{ action }}"{% endif %}>
+{# Whole form. Pass form and submit_label. action, method, enctype, include_next, and next are optional. #}
+<form class="space-y-4" method="{{ method|default:'post' }}" {% if action %}action="{{ action }}"{% endif %} {% if enctype %}enctype="{{ enctype }}"{% endif %}>
   {% csrf_token %}
   {% if include_next %}
     <input type="hidden" name="next" value="{{ next }}">
