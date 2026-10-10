@@ -8,11 +8,11 @@
 
 {% block main %}
   {% if messages %}
-    <ul class="mb-8 space-y-2">
+    <div class="mb-8 space-y-2">
       {% for message in messages %}
-        <li class="font-medium">{{ message }}</li>
+        {% include "components/alert.html" with text=message tags=message.tags only %}
       {% endfor %}
-    </ul>
+    </div>
   {% endif %}
   {% block content %}{% endblock %}
 {% endblock %}

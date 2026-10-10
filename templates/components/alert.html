@@ -1,0 +1,7 @@
+{# text: message body. tags: Django message tags, such as error or success. #}
+<div
+  class="rounded border px-3 py-2 text-sm font-medium {% if 'error' in tags %}border-red-800{% elif 'warning' in tags or 'success' in tags %}border-neutral-800{% else %}border-neutral-400{% endif %}"
+  {% if 'error' in tags %}role="alert"{% else %}role="status"{% endif %}
+>
+  {{ text }}
+</div>

@@ -64,6 +64,35 @@ class FieldPartialTests(SimpleTestCase):
         self.assertIn("csrfmiddlewaretoken", html)
 
 
+class AlertPartialTests(SimpleTestCase):
+    def test_error_and_success_alerts(self):
+        error = render_to_string(
+            "components/alert.html",
+            {"text": "That failed.", "tags": "error"},
+        )
+        success = render_to_string(
+            "components/alert.html",
+            {"text": "Saved.", "tags": "success"},
+        )
+
+        self.assertIn('role="alert"', error)
+        self.assertIn("That failed.", error)
+        self.assertIn("border-red-800", error)
+        self.assertIn('role="status"', success)
+        self.assertIn("Saved.", success)
+
+
+class MessageDisplayTests(TestCase):
+    def test_django_message_renders_as_an_alert(self):
+        self.client.post(reverse("guest"))
+        self.client.get(reverse("password_change"))
+
+        home = self.client.get(reverse("index"))
+
+        self.assertContains(home, "Guest sessions do not have a password.")
+        self.assertContains(home, 'role="alert"')
+
+
 class ListAndTablePartialTests(SimpleTestCase):
     def test_list_renders_items_and_an_empty_state(self):
         filled = render_to_string(
