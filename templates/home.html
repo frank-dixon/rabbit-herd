@@ -9,8 +9,6 @@
     {% include "components/card.html" with title="You're in." body="Signed in as "|add:user.email|add:"." only %}
   {% endif %}
   <div class="mt-8 flex flex-col items-start gap-3">
-    {% url 'rabbit_list' as rabbit_list_url %}
-    {% include "components/button.html" with label="Rabbits" href=rabbit_list_url variant="secondary" only %}
     {% if not user.is_guest %}
       {% if user.has_usable_password %}
         {% url 'password_change' as password_change_url %}
