@@ -22,12 +22,26 @@ class Breed(models.Model):
 
     name = models.CharField(max_length=80, unique=True)
     registry = models.CharField(max_length=8, choices=Registry.choices)
+    colors = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='The recognized colors, in standard order, as [{"name": ..., "hint": ...}].',
+    )
+    any_color = models.BooleanField(
+        default=False,
+        help_text="The standard recognizes so many colors that keepers type the color in.",
+    )
 
     class Meta:
         ordering = ["name"]
 
     def __str__(self):
         return self.name
+
+    @property
+    def color_names(self):
+        """The recognized color names, in standard order."""
+        return [color["name"] for color in self.colors]
 
 
 class Rabbit(models.Model):
