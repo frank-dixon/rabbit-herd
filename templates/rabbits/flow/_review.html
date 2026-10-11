@@ -1,0 +1,15 @@
+<dl class="divide-y divide-neutral-200 rounded-lg border border-neutral-300 bg-white">
+  {% for label, answer in review_rows %}
+    <div class="grid grid-cols-3 gap-2 px-3 py-2"><dt class="font-medium">{{ label }}</dt><dd class="col-span-2">{{ answer|default:"Not given" }}</dd></div>
+  {% endfor %}
+  <div class="px-3 py-2">
+    <dt class="font-medium">Relatives</dt>
+    <dd class="mt-1">
+      {% if review_relatives %}
+        <ul class="list-disc pl-5">{% for relative in review_relatives %}<li>{{ relative }}</li>{% endfor %}</ul>
+      {% else %}
+        <p class="text-neutral-600">None added</p>
+      {% endif %}
+    </dd>
+  </div>
+</dl>

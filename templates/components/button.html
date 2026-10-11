@@ -1,11 +1,11 @@
-{# Button or link. Pass label, variant (primary, secondary, danger), href, type, disabled, id, name, value, data_next, data_email_field, data_authenticated. #}
+{# Button or link. Pass label, variant (primary, secondary, danger), href, type, disabled, id, name, value, data_next, data_email_field, data_authenticated. size="large" gives a 56px tap target, grow fills a row, full spans the width, and sr_suffix adds words only screen readers hear, such as which row a Remove button belongs to. #}
 {% if href %}
   <a
     href="{{ href }}"
     {% if id %}id="{{ id }}"{% endif %}
-    class="inline-flex rounded px-4 py-2 font-medium {% if variant == 'secondary' %}border border-neutral-500 bg-white text-neutral-800{% elif variant == 'danger' %}bg-red-800 text-white{% else %}bg-neutral-800 text-white{% endif %}{% if disabled %} pointer-events-none cursor-not-allowed opacity-50{% endif %}"
+    class="inline-flex items-center justify-center {% if size == 'large' %}min-h-14 rounded-lg px-5 text-lg font-semibold{% else %}rounded px-4 py-2 font-medium{% endif %}{% if grow %} flex-1{% endif %}{% if full %} w-full{% endif %} {% if variant == 'secondary' %}border border-neutral-500 bg-white text-neutral-800{% elif variant == 'danger' %}bg-red-800 text-white{% else %}bg-neutral-800 text-white{% endif %} focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2{% if disabled %} pointer-events-none cursor-not-allowed opacity-50{% endif %}"
     {% if disabled %}aria-disabled="true" tabindex="-1"{% endif %}
-  >{{ label }}</a>
+  >{{ label }}{% if sr_suffix %}<span class="sr-only"> {{ sr_suffix }}</span>{% endif %}</a>
 {% else %}
   <button
     type="{{ type|default:'button' }}"
@@ -15,7 +15,7 @@
     {% if data_next %}data-next="{{ data_next }}"{% endif %}
     {% if data_email_field %}data-email-field="{{ data_email_field }}"{% endif %}
     {% if data_authenticated %}data-authenticated="{{ data_authenticated }}"{% endif %}
-    class="inline-flex rounded px-4 py-2 font-medium {% if variant == 'secondary' %}border border-neutral-500 bg-white text-neutral-800{% elif variant == 'danger' %}bg-red-800 text-white{% else %}bg-neutral-800 text-white{% endif %}{% if disabled %} cursor-not-allowed opacity-50{% endif %}"
+    class="inline-flex items-center justify-center {% if size == 'large' %}min-h-14 rounded-lg px-5 text-lg font-semibold{% else %}rounded px-4 py-2 font-medium{% endif %}{% if grow %} flex-1{% endif %}{% if full %} w-full{% endif %} {% if variant == 'secondary' %}border border-neutral-500 bg-white text-neutral-800{% elif variant == 'danger' %}bg-red-800 text-white{% else %}bg-neutral-800 text-white{% endif %} focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2{% if disabled %} cursor-not-allowed opacity-50{% endif %}"
     {% if disabled %}disabled{% endif %}
-  >{{ label }}</button>
+  >{{ label }}{% if sr_suffix %}<span class="sr-only"> {{ sr_suffix }}</span>{% endif %}</button>
 {% endif %}

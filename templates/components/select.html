@@ -1,0 +1,25 @@
+{# A labelled select. Pass name, label, value, errors, and options (a list of value and label pairs) or groups (a list of group label and options). Optional: placeholder, help, help_template (a template to include as the help, for help with links), large, label_class, data_role. #}
+<div>
+  <label class="{% if large %}block text-lg font-semibold text-neutral-900{% else %}block text-sm font-medium text-neutral-800{% endif %}" for="id_{{ name }}">{{ label }}</label>
+  {% if help or help_template %}<p class="mt-1 text-sm text-neutral-600" id="id_{{ name }}_help">{% if help_template %}{% include help_template %}{% else %}{{ help }}{% endif %}</p>{% endif %}
+  <select
+    class="block w-full rounded-lg border bg-white text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 {% if large %}mt-2 px-4 py-4 text-lg{% else %}mt-1 px-3 py-2{% endif %} {% if errors %}border-red-800{% else %}border-neutral-400{% endif %}"
+    id="id_{{ name }}" name="{{ name }}"
+    {% if errors %}aria-invalid="true"{% endif %}
+    {% if help or help_template or errors %}aria-describedby="{% if help or help_template %}id_{{ name }}_help{% endif %}{% if errors %}{% if help or help_template %} {% endif %}id_{{ name }}_error{% endif %}"{% endif %}
+    {% if data_role %}data-role="{{ data_role }}"{% endif %}
+  >
+    <option value="">{{ placeholder|default:"Choose…" }}</option>
+    {% for option_value, option_label in options %}
+      <option value="{{ option_value }}"{% if option_value == value %} selected{% endif %}>{{ option_label }}</option>
+    {% endfor %}
+    {% for group_label, group_options in groups %}
+      <optgroup label="{{ group_label }}">
+        {% for option_value, option_label in group_options %}
+          <option value="{{ option_value }}"{% if option_value == value %} selected{% endif %}>{{ option_label }}</option>
+        {% endfor %}
+      </optgroup>
+    {% endfor %}
+  </select>
+  {% include "components/field_errors.html" with name=name errors=errors only %}
+</div>

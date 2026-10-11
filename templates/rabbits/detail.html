@@ -7,6 +7,16 @@
     <img class="mb-8 max-w-full" src="{{ rabbit.photo.url }}" alt="{{ rabbit.name }}">
   {% endif %}
   {% include "components/card.html" with title=rabbit.name body=rabbit.summary only %}
+  {% with relatives=rabbit.relatives.all %}
+    {% if relatives %}
+      <section class="mt-4 rounded border border-neutral-300 bg-white p-4" aria-labelledby="relatives-heading">
+        <h2 class="text-lg font-semibold" id="relatives-heading">Relatives</h2>
+        <ul class="mt-2 list-disc space-y-1 pl-5">
+          {% for relative in relatives %}<li>{{ relative }}</li>{% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+  {% endwith %}
   <div class="mt-8 flex flex-col items-start gap-3">
     {% url 'rabbit_edit' rabbit.pk as edit_url %}
     {% url 'rabbit_list' as list_url %}

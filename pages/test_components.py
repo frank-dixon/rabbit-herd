@@ -260,3 +260,55 @@ class PageShellTests(TestCase):
         self.assertContains(response, "You're in.")
         self.assertContains(response, "<header")
         self.assertContains(response, "<footer")
+
+
+class CardFlowPartialTests(SimpleTestCase):
+    def test_large_button_has_a_big_target_and_a_screen_reader_suffix(self):
+        html = render_to_string(
+            "components/button.html",
+            {"label": "Remove", "sr_suffix": "relative 2", "size": "large", "type": "submit", "name": "action", "value": "remove-relative-1"},
+        )
+        self.assertIn("min-h-14", html)
+        self.assertIn('<span class="sr-only"> relative 2</span>', html)
+        self.assertIn('value="remove-relative-1"', html)
+
+    def test_error_summary_counts_and_links_each_problem(self):
+        one = render_to_string("components/error_summary.html", {"items": [{"anchor": "id_name", "message": "Add a name."}]})
+        self.assertIn("Please check one thing before continuing:", one)
+        self.assertIn('href="#id_name"', one)
+        self.assertIn('role="alert"', one)
+        two = render_to_string(
+            "components/error_summary.html",
+            {"items": [{"anchor": "a", "message": "One."}, {"anchor": "b", "message": "Two."}]},
+        )
+        self.assertIn("Please check these 2 things before continuing:", two)
+        self.assertEqual(render_to_string("components/error_summary.html", {"items": []}).strip(), "")
+
+    def test_choice_tiles_are_labelled_radios_with_hints(self):
+        html = render_to_string(
+            "components/choice_tiles.html",
+            {
+                "name": "sex",
+                "legend": "Sex",
+                "quiet": True,
+                "tiles": [
+                    {"value": "doe", "label": "Doe", "hint": "Female", "checked": True},
+                    {"value": "buck", "label": "Buck", "hint": "Male", "checked": False},
+                ],
+                "errors": ["Choose one."],
+            },
+        )
+        self.assertIn('<legend class="sr-only">Sex</legend>', html)
+        self.assertIn('for="id_sex_0"', html)
+        self.assertIn('value="doe" checked', html)
+        self.assertIn("Female", html)
+        self.assertIn('aria-describedby="id_sex_error"', html)
+
+    def test_select_marks_the_chosen_option_inside_groups(self):
+        html = render_to_string(
+            "components/select.html",
+            {"name": "purebred", "label": "Breed", "value": "2", "groups": [("ARBA recognized (2)", [("1", "Dutch"), ("2", "Rex")])], "placeholder": "Choose a breed…"},
+        )
+        self.assertIn('<optgroup label="ARBA recognized (2)">', html)
+        self.assertIn('<option value="2" selected>Rex</option>', html)
+        self.assertIn("Choose a breed…", html)
