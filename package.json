@@ -10,7 +10,8 @@
     "watch": "concurrently -k \"npm run watch:css\" \"npm run watch:js\"",
     "build:css": "tailwindcss -i ./assets/input.css -o ./static/css/app.css --minify",
     "build:js": "esbuild assets/app.js --bundle --minify --outfile=./static/js/app.js",
-    "build": "npm run build:css && npm run build:js"
+    "build": "npm run build:css && npm run build:js",
+    "test:js": "node --test assets/rabbit-flow.test.mjs"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.3.2",

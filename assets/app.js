@@ -8,7 +8,11 @@
  * Passkeys are created and checked in the browser, then posted to Django
  * for verification. The server decides the relying party, the challenge,
  * and whether the account exists. This file only translates bytes.
+ *
+ * The add-a-rabbit card flow's helpers live in rabbit-flow.mjs.
  */
+
+import { bindRabbitFlow } from "./rabbit-flow.mjs";
 
 /**
  * Read the CSRF token from the page.
@@ -290,8 +294,13 @@ window.rabbitHerd = {
   bufferToBase64url,
 };
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", bindPasskeys);
-} else {
+function start() {
   bindPasskeys();
+  bindRabbitFlow(document);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", start);
+} else {
+  start();
 }
