@@ -111,6 +111,42 @@ function bindRelationships(form) {
   refresh();
 }
 
+/** Whether the color card's description box is needed for a choice. */
+export function needsColorText(choice, other) {
+  return choice === other;
+}
+
+/** Show the description box only once Another color is chosen. Without
+ * JavaScript the box simply stays visible. */
+function bindColorChoice(form) {
+  const box = form.querySelector("[data-color-other]");
+  if (!box) {
+    return;
+  }
+  const other = box.getAttribute("data-color-other");
+  function current() {
+    const checked = form.querySelector('input[name="color_choice"]:checked');
+    const select = form.querySelector('select[name="color_choice"]');
+    return checked ? checked.value : select ? select.value : "";
+  }
+  function update(event) {
+    const show = needsColorText(current(), other);
+    box.hidden = !show;
+    if (show && event && event.target && event.target.name === "color_choice") {
+      const input = box.querySelector("input");
+      if (input) {
+        input.focus();
+      }
+    }
+  }
+  form.addEventListener("change", function (event) {
+    if (event.target && event.target.name === "color_choice") {
+      update(event);
+    }
+  });
+  update();
+}
+
 function bindAutosave(form) {
   let timer = null;
   function save() {
@@ -181,6 +217,7 @@ export function bindRabbitFlow(root) {
   }
   bindTotal(form);
   bindRelationships(form);
+  bindColorChoice(form);
   bindAutosave(form);
   placeFocus(form);
 }

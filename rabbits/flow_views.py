@@ -68,6 +68,9 @@ def next_label(slug, draft):
 
 def anchor_for(key, draft):
     """The element an error summary link jumps to."""
+    if key == "color_choice":
+        colors = flow_forms.offered_colors(flow_forms.purebred_breed(draft))
+        return "id_color_choice_0" if len(colors) <= flow_forms.COLOR_TILE_LIMIT else "id_color_choice"
     if key == "__all__":
         return "id_cross" if draft["breed_type"] == Rabbit.BreedType.CROSSBRED else "id_breed_type"
     if key in RADIO_FIELDS:
@@ -105,6 +108,62 @@ def tiles(choices, value):
     ]
 
 
+def color_context(draft, errors):
+    """What the color card shows: tiles, a select, or a text box."""
+    breed = flow_forms.purebred_breed(draft)
+    colors = flow_forms.offered_colors(breed)
+    context = {"color_error": errors.get("color", []), "color_choice_error": errors.get("color_choice", [])}
+    if not colors:
+        if breed is not None:
+            help_text = (
+                f"The {breed.name} comes in many recognized colors, so please describe the coat, "
+                "for example broken black or chestnut agouti."
+            )
+        else:
+            help_text = "Describe the coat, for example broken black or chestnut agouti."
+        context.update({"color_mode": "text", "color_help": help_text})
+        return context
+    names = [color["name"] for color in colors]
+    choice = flow_forms.color_choice(names, draft["color_choice"], draft["color"])
+    other_hint = "For a color that isn't listed. You'll describe it below."
+    if len(colors) == 1:
+        note = (
+            f"This is the only recognized color for the {breed.name}. "
+            "If yours looks different, choose Another color."
+        )
+    else:
+        note = (
+            f"These are the recognized colors for the {breed.name}. "
+            "If yours isn't listed, choose Another color."
+        )
+    context.update(
+        {
+            "color_note": note,
+            "color_breed": breed.name,
+            "color_other": choice == flow_forms.OTHER_COLOR,
+            "other_color": flow_forms.OTHER_COLOR,
+        }
+    )
+    if len(colors) <= flow_forms.COLOR_TILE_LIMIT:
+        color_tiles = [
+            {"value": color["name"], "label": color["name"], "hint": color["hint"], "checked": choice == color["name"]}
+            for color in colors
+        ]
+        color_tiles.append(
+            {"value": flow_forms.OTHER_COLOR, "label": "Another color", "hint": other_hint,
+             "checked": choice == flow_forms.OTHER_COLOR}
+        )
+        context.update({"color_mode": "tiles", "color_tiles": color_tiles, "color_single": len(colors) == 1})
+    else:
+        options = [
+            (color["name"], f"{color['name']} ({color['hint']})" if color["hint"] else color["name"])
+            for color in colors
+        ]
+        options.append((flow_forms.OTHER_COLOR, "Another color"))
+        context.update({"color_mode": "select", "color_options": options, "color_choice": choice})
+    return context
+
+
 def review_rows(draft, user):
     sexes = dict(Rabbit.Sex.choices)
     statuses = dict(Rabbit.Status.choices)
@@ -112,7 +171,7 @@ def review_rows(draft, user):
         ("Name", draft["name"].strip()),
         ("Sex", sexes.get(draft["sex"], "")),
         ("Birth date", draft["birth_date"]),
-        ("Color", draft["color"].strip()),
+        ("Color", flow.draft_color(draft)),
         ("Status", statuses.get(draft["status"], "")),
         ("Breed", flow.draft_breed_line(draft)),
     ]
@@ -164,6 +223,8 @@ def step_context(slug, draft, user, form):
         context["tiles"] = tiles(flow_forms.STATUS_CHOICES, draft["status"])
     if slug == "breed-type":
         context["tiles"] = tiles(flow_forms.BREED_TYPE_CHOICES, draft["breed_type"])
+    if slug == "color":
+        context.update(color_context(draft, errors))
     if slug == "breed":
         groups = flow_forms.breed_groups()
         total = cross_total(draft)

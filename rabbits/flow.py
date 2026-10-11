@@ -21,6 +21,8 @@ from .models import Breed, BreedShare, OutsideRabbit, Rabbit, Relative
 
 SESSION_KEY = "rabbit_draft"
 MAX_TEXT = 500
+# The draft's single-value answers, named like the inputs on the cards.
+TEXT_KEYS = ("name", "sex", "birth_date", "color_choice", "color", "status", "breed_type", "purebred")
 
 
 @dataclass(frozen=True)
@@ -38,7 +40,7 @@ STEPS = [
     Step("status", flow_forms.StatusForm, ("status",)),
     Step("breed-type", flow_forms.BreedTypeForm, ("breed_type",)),
     Step("breed", flow_forms.BreedForm, ("purebred",)),
-    Step("color", flow_forms.ColorForm, ("color",)),
+    Step("color", flow_forms.ColorForm, ("color_choice", "color")),
     Step("relatives", flow_forms.RelativesForm, optional=True),
     Step("review", None),
 ]
@@ -62,6 +64,7 @@ def empty_draft():
         "name": "",
         "sex": "",
         "birth_date": "",
+        "color_choice": "",
         "color": "",
         "status": Rabbit.Status.GROWING.value,
         "breed_type": "",
@@ -94,7 +97,7 @@ def load_draft(session):
     draft = empty_draft()
     stored = session.get(SESSION_KEY)
     if isinstance(stored, dict):
-        for key in ("name", "sex", "birth_date", "color", "status", "breed_type", "purebred"):
+        for key in TEXT_KEYS:
             if key in stored:
                 draft[key] = clean_text(stored[key])
         draft["cross"] = clean_rows(
@@ -119,7 +122,7 @@ def clear_draft(session):
 
 def form_data(draft):
     """The draft as flat form data, named like the inputs on the cards."""
-    data = {key: draft[key] for key in ("name", "sex", "birth_date", "color", "status", "breed_type", "purebred")}
+    data = {key: draft[key] for key in TEXT_KEYS}
     for index, row in enumerate(draft["cross"]):
         data[f"cross-{index}-breed"] = row["breed"]
         data[f"cross-{index}-percent"] = row["percent"]
@@ -224,6 +227,13 @@ def draft_breed_line(draft):
         rows.sort(key=lambda row: (-row[1], row[0]))
         return "Cross: " + ", ".join(f"{percent}% {name}" for name, percent in rows)
     return ""
+
+
+def draft_color(draft):
+    """The color the review card shows: the chosen recognized color, or
+    the description given for Another color or a free-text color."""
+    form = flow_forms.ColorForm(data=form_data(draft))
+    return form.cleaned_data["color"] if form.is_valid() else draft["color"].strip()
 
 
 def short_breed(text):

@@ -27,6 +27,17 @@ BIRTH_DATE_REQUIRED = "A birth date is required. Please pick one from the calend
 BIRTH_DATE_FUTURE = "The birth date can't be in the future. Please pick today or an earlier date."
 COLOR_REQUIRED = "A coat color helps tell rabbits apart, so it's required. Please describe the color."
 COLOR_TOO_LONG = "A color can be up to 80 characters. Please shorten it."
+COLOR_CHOICE_REQUIRED = (
+    "Each rabbit needs a coat color. Please choose one of the {breed} colors, "
+    "or choose Another color and describe it."
+)
+COLOR_NOT_LISTED = (
+    "That color isn't one of the recognized {breed} colors. "
+    "Please choose a color from the list, or choose Another color and describe it."
+)
+COLOR_OTHER_REQUIRED = (
+    "Another color needs a short description. Please describe the coat, for example broken black."
+)
 STATUS_REQUIRED = "Each rabbit needs a status. Please choose one."
 BREED_TYPE_REQUIRED = "Each rabbit is either purebred or crossbred. Please choose one."
 BREED_TYPE_FIRST = (
@@ -81,6 +92,11 @@ BREED_TYPE_CHOICES = [
 ]
 PARENT_SEX = {"dam": Rabbit.Sex.DOE, "sire": Rabbit.Sex.BUCK}
 
+# The color card's choice for a color that is not on the breed's list.
+OTHER_COLOR = "__other__"
+# Up to this many recognized colors show as tiles; more show as a select.
+COLOR_TILE_LIMIT = 6
+
 
 def today():
     return timezone.localdate()
@@ -98,6 +114,45 @@ def breed_groups():
     if other:
         groups.append((f"Other recognized breeds ({len(other)})", other))
     return groups
+
+
+def purebred_breed(data):
+    """The draft's purebred Breed, or None for a crossbred or no breed yet."""
+    if data.get("breed_type") != Rabbit.BreedType.PUREBRED:
+        return None
+    pk = str(data.get("purebred") or "")
+    return Breed.objects.filter(pk=int(pk)).first() if pk.isdigit() else None
+
+
+def offered_colors(breed):
+    """The colors the color card offers as choices for a breed, in standard
+    order. Empty means the card asks for free text: a crossbred, a breed
+    whose standard recognizes colors by group, or a breed with no list."""
+    if breed is None or breed.any_color:
+        return []
+    return list(breed.colors)
+
+
+def matching_color(names, text):
+    """The recognized color name that typed text spells, ignoring case."""
+    folded = text.strip().casefold()
+    return next((name for name in names if name.casefold() == folded), None)
+
+
+def color_choice(names, choice, text):
+    """The color card's current choice.
+
+    A posted choice wins. With no choice yet, typed text from before the
+    breed had a list counts as that color when it matches one, or as
+    Another color when it doesn't. A breed with one recognized color has
+    that color pre-chosen."""
+    if choice:
+        return choice
+    if text.strip():
+        return matching_color(names, text) or OTHER_COLOR
+    if len(names) == 1:
+        return names[0]
+    return ""
 
 
 def relationship_choices(rows, index):
@@ -203,15 +258,35 @@ class BirthDateForm(StepForm):
 
 
 class ColorForm(StepForm):
+    """A breed with a color list: choose one of its colors, or Another color
+    with a description. Crossbreds and any-color breeds: describe it."""
+
+    color_choice = forms.CharField(required=False)
     color = forms.CharField(required=False)
 
     def clean(self):
-        color = self.text("color")
-        if not color:
-            self.add_error("color", COLOR_REQUIRED)
-        elif len(color) > 80:
+        text = self.text("color")
+        breed = purebred_breed(self.data)
+        names = [color["name"] for color in offered_colors(breed)]
+        if not names:
+            return self.free_text(text, COLOR_REQUIRED)
+        choice = color_choice(names, self.text("color_choice"), text)
+        if choice in names:
+            return {"color": choice}
+        if choice == OTHER_COLOR:
+            cleaned = self.free_text(text, COLOR_OTHER_REQUIRED)
+            # Typing a listed color under Another color still counts as that color.
+            return {"color": matching_color(names, cleaned["color"]) or cleaned["color"]}
+        message = COLOR_NOT_LISTED if choice else COLOR_CHOICE_REQUIRED
+        self.add_error("color_choice", message.format(breed=breed.name))
+        return {"color": ""}
+
+    def free_text(self, text, required_message):
+        if not text:
+            self.add_error("color", required_message)
+        elif len(text) > 80:
             self.add_error("color", COLOR_TOO_LONG)
-        return {"color": color}
+        return {"color": text}
 
 
 class StatusForm(StepForm):

@@ -1,1 +1,13 @@
-{% include "components/text_input.html" with name="color" label="Color" value=value errors=error help="Describe the coat, for example broken black or chestnut agouti." quiet=True large=True only %}
+{% if color_mode == "text" %}
+  {% include "components/text_input.html" with name="color" label="Color" value=draft.color errors=color_error help=color_help quiet=True large=True only %}
+{% else %}
+  <p class="rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3 text-neutral-800" id="color-note">{{ color_note }}</p>
+  {% if color_mode == "tiles" %}
+    {% include "components/choice_tiles.html" with name="color_choice" legend="Color" tiles=color_tiles errors=color_choice_error quiet=True stack=color_single only %}
+  {% else %}
+    {% include "components/select.html" with name="color_choice" label=color_breed|add:" colors" value=color_choice options=color_options errors=color_choice_error placeholder="Choose a color…" large=True only %}
+  {% endif %}
+  <div data-color-other="{{ other_color }}">
+    {% include "components/text_input.html" with name="color" label="Describe the color" value=draft.color errors=color_error help="Only needed if you chose Another color. For example broken black." large=True only %}
+  </div>
+{% endif %}

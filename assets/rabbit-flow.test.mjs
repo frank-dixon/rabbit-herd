@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { crossTotal, relationshipChoices, totalText, totalTone } from "./rabbit-flow.mjs";
+import { crossTotal, needsColorText, relationshipChoices, totalText, totalTone } from "./rabbit-flow.mjs";
 
 const ALL = [
   ["dam", "Dam (mother)"],
@@ -32,4 +32,10 @@ test("a dam or sire taken on one row leaves the other rows", () => {
   assert.deepEqual(values(relationshipChoices(ALL, [""], 0)), ["dam", "sire", "sibling"]);
   // A row keeps a value it already holds.
   assert.deepEqual(values(relationshipChoices(ALL, ["dam", "dam"], 1)), ["dam", "sire", "sibling"]);
+});
+
+test("the color description box is needed only for Another color", () => {
+  assert.equal(needsColorText("__other__", "__other__"), true);
+  assert.equal(needsColorText("Creme", "__other__"), false);
+  assert.equal(needsColorText("", "__other__"), false);
 });
