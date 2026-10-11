@@ -1,7 +1,8 @@
 """The add-a-rabbit card flow: its steps, its draft, and saving.
 
 The flow asks one question per card, in this order: name, sex, birth date,
-color, status, breed type, breed, relatives (optional), and a review. It
+status, breed type, breed, color, relatives (optional), and a review. Color
+comes after the breed, so the color card can know which breed it is for. It
 has no pedigree step; the pedigree models stay unused for now.
 
 The draft is kept in the signed-in session, so it survives a refresh, a
@@ -34,10 +35,10 @@ STEPS = [
     Step("name", flow_forms.NameForm, ("name",)),
     Step("sex", flow_forms.SexForm, ("sex",)),
     Step("birth-date", flow_forms.BirthDateForm, ("birth_date",)),
-    Step("color", flow_forms.ColorForm, ("color",)),
     Step("status", flow_forms.StatusForm, ("status",)),
     Step("breed-type", flow_forms.BreedTypeForm, ("breed_type",)),
     Step("breed", flow_forms.BreedForm, ("purebred",)),
+    Step("color", flow_forms.ColorForm, ("color",)),
     Step("relatives", flow_forms.RelativesForm, optional=True),
     Step("review", None),
 ]

@@ -44,9 +44,13 @@ class CardFlowTests(TestCase):
         self.answer("name", name="Hazel")
         self.answer("sex", sex="doe")
         self.answer("birth-date", birth_date="2024-05-01")
-        self.answer("color", color="Fawn")
         self.answer("status", status="growing")
         return self.answer("breed-type", breed_type=breed_type)
+
+    def choose_breed(self, name="Holland Lop", color="Fawn"):
+        """Answer the breed card, then the color card that follows it."""
+        self.assertRedirects(self.answer("breed", purebred=breed_id(name)), step("color"))
+        return self.answer("color", color=color)
 
     def draft(self):
         return flow.load_draft(self.client.session)
@@ -113,6 +117,19 @@ class CardFlowTests(TestCase):
         page = self.client.get(step("name") + "?check=1")
         self.assertContains(page, "Each rabbit needs a name or an ear tag. Please add one.")
 
+    def test_color_comes_right_after_the_breed(self):
+        self.assertEqual(
+            flow.SLUGS,
+            ["name", "sex", "birth-date", "status", "breed-type", "breed", "color", "relatives", "review"],
+        )
+        self.walk_to_breed("purebred")
+        self.assertRedirects(self.answer("breed", purebred=breed_id("Creme d'Argent")), step("color"))
+        self.assertRedirects(self.answer("color", color="Creme"), step("relatives"))
+        # The color card waits for a breed.
+        self.client.post(reverse("rabbit_flow_restart"))
+        self.walk_to_breed("purebred")
+        self.assertRedirects(self.client.get(step("color")), step("breed") + "?check=1", fetch_redirect_response=False)
+
     def test_unknown_cards_are_missing(self):
         self.assertEqual(self.client.get(step("pedigree")).status_code, 404)
 
@@ -168,11 +185,11 @@ class CardFlowTests(TestCase):
         response = self.answer(
             "breed", **{"cross-0-breed": rex, "cross-0-percent": "70", "cross-1-breed": dutch, "cross-1-percent": "30"},
         )
-        self.assertRedirects(response, step("relatives"))
+        self.assertRedirects(response, step("color"))
 
     def test_relatives_hide_a_taken_dam_and_reject_a_second_one(self):
         self.walk_to_breed("purebred")
-        self.answer("breed", purebred=breed_id("Holland Lop"))
+        self.choose_breed()
         page = self.client.get(step("relatives"))
         self.assertContains(page, "No relatives added yet. You can add some now or skip this step.")
         self.assertContains(page, ">Skip this step<")
@@ -199,7 +216,7 @@ class CardFlowTests(TestCase):
 
     def test_the_dam_must_be_a_doe(self):
         self.walk_to_breed("purebred")
-        self.answer("breed", purebred=breed_id("Holland Lop"))
+        self.choose_breed()
         self.answer("relatives", action="add-relative")
         response = self.fails(
             "relatives", **{"relatives-0-relationship": "dam", "relatives-0-ref": f"h:{self.pepper.pk}"},
@@ -208,7 +225,7 @@ class CardFlowTests(TestCase):
 
     def test_full_entry_saves_and_clears_the_draft(self):
         self.walk_to_breed("purebred")
-        self.answer("breed", purebred=breed_id("Holland Lop"))
+        self.choose_breed()
         self.answer("relatives", action="add-relative")
         self.answer(
             "relatives",
@@ -232,7 +249,7 @@ class CardFlowTests(TestCase):
 
     def test_save_rechecks_everything_and_returns_to_the_problem(self):
         self.walk_to_breed("purebred")
-        self.answer("breed", purebred=breed_id("Holland Lop"))
+        self.choose_breed()
         self.answer("relatives", action="add-relative")
         self.answer(
             "relatives", **{"relatives-0-relationship": "dam", "relatives-0-ref": f"h:{self.juniper.pk}"},
@@ -262,7 +279,7 @@ class CardFlowTests(TestCase):
         )
         self.assertEqual(self.client.get(reverse("rabbit_flow_done", args=[theirs.pk])).status_code, 404)
         self.walk_to_breed("purebred")
-        self.answer("breed", purebred=breed_id("Holland Lop"))
+        self.choose_breed()
         self.answer("relatives", action="add-relative")
         page = self.client.get(step("relatives"))
         self.assertNotContains(page, "Theirs")
