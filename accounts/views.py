@@ -1,5 +1,6 @@
 import uuid
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import PasswordResetForm
@@ -133,6 +134,16 @@ class AppPasswordResetView(PasswordResetView):
     email_template_name = "accounts/password_reset_email.txt"
     subject_template_name = "accounts/password_reset_subject.txt"
     success_url = reverse_lazy("password_reset_done")
+
+    def form_valid(self, form):
+        host = settings.APP_HOSTNAME
+        if host:
+            self.extra_email_context = {
+                **(self.extra_email_context or {}),
+                "domain": host,
+                "protocol": "https",
+            }
+        return super().form_valid(form)
 
 
 class AppPasswordResetDoneView(PasswordResetDoneView):

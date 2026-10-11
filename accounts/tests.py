@@ -65,6 +65,30 @@ class PasswordAccountTests(TestCase):
         reused = self.client.get(path)
         self.assertEqual(reused.status_code, 400)
 
+    @override_settings(
+        APP_HOSTNAME="rabbit-herd.vercel.app",
+        DEFAULT_FROM_EMAIL="Rabbit Herd <onboarding@resend.dev>",
+    )
+    def test_confirmation_link_uses_the_https_app_host(self):
+        response = self.client.post(
+            reverse("signup"),
+            {
+                "email": "frank@example.com",
+                "password1": PASSWORD,
+                "password2": PASSWORD,
+            },
+        )
+
+        self.assertRedirects(response, reverse("signup_done"))
+        message = mail.outbox[0]
+        self.assertEqual(message.from_email, "Rabbit Herd <onboarding@resend.dev>")
+        self.assertEqual(message.to, ["frank@example.com"])
+        self.assertIn(
+            "https://rabbit-herd.vercel.app/accounts/confirm/",
+            message.body,
+        )
+        self.assertNotIn("http://testserver", message.body)
+
     def test_password_login_and_logout(self):
         make_user()
 
@@ -262,6 +286,20 @@ class AccountManagementTests(TestCase):
         self.assertRedirects(posted, reverse("password_reset_complete"))
         user.refresh_from_db()
         self.assertTrue(user.check_password(NEW_PASSWORD))
+
+    @override_settings(APP_HOSTNAME="rabbit-herd.vercel.app")
+    def test_password_reset_link_uses_the_https_app_host(self):
+        user = make_user()
+
+        response = self.client.post(reverse("password_reset"), {"email": user.email})
+
+        self.assertRedirects(response, reverse("password_reset_done"))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(
+            "https://rabbit-herd.vercel.app/accounts/password/reset/",
+            mail.outbox[0].body,
+        )
+        self.assertNotIn("http://testserver", mail.outbox[0].body)
 
     def test_password_reset_skips_unconfirmed_accounts(self):
         User.objects.create_user(

@@ -28,11 +28,24 @@ def send_account_mail(subject, body, recipient):
     ).send()
 
 
+def account_url(request, path):
+    """Absolute URL for an account link.
+
+    APP_HOSTNAME is the stable public host, so a message sent from production
+    uses https on that host. Local requests keep the host the browser used.
+    """
+    host = settings.APP_HOSTNAME
+    if host:
+        return f"https://{host}{path}"
+    return request.build_absolute_uri(path)
+
+
 def send_confirmation_email(request, user):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = email_confirmation_token.make_token(user)
-    url = request.build_absolute_uri(
-        reverse("confirm_email", kwargs={"uidb64": uid, "token": token})
+    url = account_url(
+        request,
+        reverse("confirm_email", kwargs={"uidb64": uid, "token": token}),
     )
     send_account_mail(
         "Confirm your Rabbit Herd account",

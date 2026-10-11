@@ -7,6 +7,8 @@ import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
+from .email_config import email_settings
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / ".env")
@@ -85,6 +87,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "anymail",
     "accounts",
     "rabbits",
     "pages",
@@ -197,20 +200,22 @@ if not DEBUG and (not WEBAUTHN_RP_ID or not WEBAUTHN_ORIGIN):
         "VERCEL_PROJECT_PRODUCTION_URL, RENDER_EXTERNAL_HOSTNAME, or VERCEL_URL."
     )
 
+APP_HOSTNAME = hostname_from_env("APP_HOSTNAME")
 DEFAULT_FROM_EMAIL = (
     os.environ.get("DEFAULT_FROM_EMAIL", "").strip() or "Rabbit Herd <noreply@localhost>"
 )
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
-EMAIL_HOST = os.environ.get("EMAIL_HOST", "").strip()
-if EMAIL_HOST:
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
-    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
-    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-    EMAIL_USE_TLS = env_flag("EMAIL_USE_TLS", default=True)
-    EMAIL_USE_SSL = env_flag("EMAIL_USE_SSL", default=False)
-else:
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# EMAIL_BACKEND stays in charge. Defining MAILERS would make Django ignore it,
+# including the locmem backend the tests swap in.
+_email = email_settings(os.environ)
+EMAIL_BACKEND = _email["EMAIL_BACKEND"]
+ANYMAIL = _email.get("ANYMAIL", {})
+EMAIL_HOST = _email.get("EMAIL_HOST", "")
+EMAIL_PORT = _email.get("EMAIL_PORT", 587)
+EMAIL_HOST_USER = _email.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = _email.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = _email.get("EMAIL_USE_TLS", True)
+EMAIL_USE_SSL = _email.get("EMAIL_USE_SSL", False)
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
