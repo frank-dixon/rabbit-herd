@@ -154,8 +154,12 @@ USE_I18N = True
 USE_TZ = True
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
-MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+# Uploaded files. Serverless hosts such as Vercel have a read-only app
+# directory, so default to /tmp there; Django creates the folder on first save.
+MEDIA_ROOT = Path(
+    os.environ.get("MEDIA_ROOT")
+    or ("/tmp/media" if os.environ.get("VERCEL") else BASE_DIR / "media")
+)
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
