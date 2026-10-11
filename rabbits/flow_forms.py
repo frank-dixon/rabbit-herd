@@ -1,0 +1,366 @@
+"""Step forms for the add-a-rabbit card flow, with the server-side rules.
+
+Each card in the flow asks one question. The answers live in a draft (see
+rabbits/flow.py) as the raw text people typed, and every check runs here,
+on the server, from that draft. The browser's checks only help people
+along; these decide.
+
+Messages follow one voice: plain and friendly full sentences that state
+the rule first and then say what to do. The wording matches the approved
+Prototype C, so a change here is a copy change Frank should see.
+"""
+
+import datetime
+
+from django import forms
+from django.utils import timezone
+
+from .models import Breed, OutsideRabbit, Rabbit, Relative
+
+MAX_CROSS_ROWS = 8
+MAX_RELATIVES = 12
+
+NAME_REQUIRED = "Each rabbit needs a name or an ear tag. Please add one."
+NAME_TOO_LONG = "A name or ear tag can be up to 120 characters. Please shorten it."
+SEX_REQUIRED = "Each rabbit is recorded as a doe or a buck. Please choose one."
+BIRTH_DATE_REQUIRED = "A birth date is required. Please pick one from the calendar."
+BIRTH_DATE_FUTURE = "The birth date can't be in the future. Please pick today or an earlier date."
+COLOR_REQUIRED = "A coat color helps tell rabbits apart, so it's required. Please describe the color."
+COLOR_TOO_LONG = "A color can be up to 80 characters. Please shorten it."
+STATUS_REQUIRED = "Each rabbit needs a status. Please choose one."
+BREED_TYPE_REQUIRED = "Each rabbit is either purebred or crossbred. Please choose one."
+BREED_TYPE_FIRST = (
+    "The breed choices depend on whether the rabbit is purebred or crossbred. "
+    "Please choose that first."
+)
+PUREBRED_REQUIRED = "A purebred rabbit needs a breed from the list. Please choose one."
+CROSS_BREED_REQUIRED = "Each row in the mix needs a breed. Please choose one, or clear the share."
+CROSS_BREED_REPEATED = (
+    "Each breed can be listed only once in a mix. "
+    "Please choose a different breed, or combine the shares."
+)
+CROSS_PERCENT = "Each share is a whole number from 1 to 99. Please adjust this share."
+CROSS_TWO_BREEDS = "A crossbred rabbit has at least two breeds. Please add another breed to the mix."
+CROSS_TOTAL = (
+    "The shares need to add up to exactly 100%, and right now they add up to {total}%. "
+    "Please adjust the shares."
+)
+RELATIONSHIP_REQUIRED = (
+    "Each relative needs a relationship. Please choose how this rabbit is related."
+)
+ONE_PARENT = (
+    "A rabbit can have only one {role}, and Relative {first} is already listed as the {role}. "
+    "Choose a different relationship here."
+)
+RELATIVE_REQUIRED = (
+    "Each relative needs a rabbit. Choose one from the list or add an outside rabbit."
+)
+ONE_RABBIT_PER_PLACE = (
+    "Each place holds one rabbit. Choose one from the list or add an outside rabbit, but not both."
+)
+OUTSIDE_NAME_REQUIRED = "An outside rabbit needs a name. Add a name, or clear the details."
+OUTSIDE_NAME_TOO_LONG = "An outside rabbit's name can be up to 120 characters. Please shorten it."
+OUTSIDE_DETAILS_TOO_LONG = "Details can be up to 200 characters. Please shorten them."
+RABBIT_GONE = "That rabbit is no longer in your list. Please choose again."
+WRONG_SEX = "The {role} has to be a {sex}. {name} is a {actual}, so pick a {sex} here."
+
+# Short hints shown under each tile, so a newcomer knows the terms.
+SEX_CHOICES = [
+    ("doe", "Doe", "Female"),
+    ("buck", "Buck", "Male"),
+]
+STATUS_CHOICES = [
+    ("breeding", "Breeding", "Kept for breeding."),
+    ("growing", "Growing out", "A young rabbit you're raising before deciding whether to keep it."),
+    ("sold", "Sold", "Sold to someone else."),
+    ("culled", "Culled", "Removed from the herd."),
+]
+BREED_TYPE_CHOICES = [
+    ("purebred", "Purebred", "All one breed."),
+    ("crossbred", "Crossbred", "A mix of two or more breeds, each with a share in percent."),
+]
+PARENT_SEX = {"dam": Rabbit.Sex.DOE, "sire": Rabbit.Sex.BUCK}
+
+
+def today():
+    return timezone.localdate()
+
+
+def breed_groups():
+    """Breed choices grouped the way the prototype shows them, with counts.
+    Values are breed ids as text, so they round-trip through the draft."""
+    arba, other = [], []
+    for breed in Breed.objects.order_by("name"):
+        (arba if breed.registry == Breed.Registry.ARBA else other).append((str(breed.pk), breed.name))
+    groups = []
+    if arba:
+        groups.append((f"ARBA recognized ({len(arba)})", arba))
+    if other:
+        groups.append((f"Other recognized breeds ({len(other)})", other))
+    return groups
+
+
+def relationship_choices(rows, index):
+    """Relationship choices for one relatives row.
+
+    A rabbit has one dam and one sire, so once a row takes Dam or Sire the
+    other rows stop offering it. The row's own current choice always stays,
+    so a draft that somehow holds two dams still shows what it holds, and
+    the save-time check flags it. The browser runs the same rule live.
+    """
+    taken_by = {}
+    for row_index, row in enumerate(rows):
+        relationship = row.get("relationship", "")
+        if relationship in PARENT_SEX and relationship not in taken_by:
+            taken_by[relationship] = row_index
+    own = rows[index].get("relationship", "") if index < len(rows) else ""
+    return [
+        (value, label)
+        for value, label in Relative.Relationship.choices
+        if taken_by.get(value, index) == index or value == own
+    ]
+
+
+def rabbit_ref_groups(user, exclude=None):
+    """Herd rabbits ("h:<id>") and saved outside rabbits ("o:<id>")."""
+    herd = [
+        (f"h:{rabbit.pk}", f"{rabbit.name} · {rabbit.get_sex_display()} · {rabbit.breed}")
+        for rabbit in Rabbit.objects.filter(owner=user).order_by("name", "pk")
+        if rabbit.pk != exclude
+    ]
+    outside = [
+        (f"o:{entry.pk}", entry.name + (f" · {entry.details}" if entry.details else ""))
+        for entry in OutsideRabbit.objects.filter(owner=user)
+    ]
+    groups = []
+    if herd:
+        groups.append(("In your herd", herd))
+    if outside:
+        groups.append(("Outside rabbits you've added before", outside))
+    return groups
+
+
+def resolve_ref(user, ref):
+    """The herd rabbit or outside rabbit a ref names, or None. Only the
+    user's own rabbits resolve, so a guessed id never reaches another herd."""
+    kind, _, raw_id = (ref or "").partition(":")
+    if not raw_id.isdigit():
+        return None
+    model = {"h": Rabbit, "o": OutsideRabbit}.get(kind)
+    if model is None:
+        return None
+    return model.objects.filter(owner=user, pk=int(raw_id)).first()
+
+
+class StepForm(forms.Form):
+    """Base for one card. Fields are plain text, so every rule and message
+    is ours. Error keys are field names, which are also the input names."""
+
+    def __init__(self, *args, user=None, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def text(self, name):
+        return (self.data.get(name) or "").strip()
+
+
+class NameForm(StepForm):
+    name = forms.CharField(required=False)
+
+    def clean(self):
+        name = self.text("name")
+        if not name:
+            self.add_error("name", NAME_REQUIRED)
+        elif len(name) > 120:
+            self.add_error("name", NAME_TOO_LONG)
+        return {"name": name}
+
+
+class SexForm(StepForm):
+    sex = forms.CharField(required=False)
+
+    def clean(self):
+        sex = self.text("sex")
+        if sex not in Rabbit.Sex.values:
+            self.add_error("sex", SEX_REQUIRED)
+        return {"sex": sex}
+
+
+class BirthDateForm(StepForm):
+    birth_date = forms.CharField(required=False)
+
+    def clean(self):
+        raw = self.text("birth_date")
+        try:
+            birth_date = datetime.date.fromisoformat(raw) if len(raw) == 10 else None
+        except ValueError:
+            birth_date = None
+        if birth_date is None:
+            self.add_error("birth_date", BIRTH_DATE_REQUIRED)
+        elif birth_date > today():
+            self.add_error("birth_date", BIRTH_DATE_FUTURE)
+        return {"birth_date": birth_date}
+
+
+class ColorForm(StepForm):
+    color = forms.CharField(required=False)
+
+    def clean(self):
+        color = self.text("color")
+        if not color:
+            self.add_error("color", COLOR_REQUIRED)
+        elif len(color) > 80:
+            self.add_error("color", COLOR_TOO_LONG)
+        return {"color": color}
+
+
+class StatusForm(StepForm):
+    status = forms.CharField(required=False)
+
+    def clean(self):
+        status = self.text("status")
+        if status not in Rabbit.Status.values:
+            self.add_error("status", STATUS_REQUIRED)
+        return {"status": status}
+
+
+class BreedTypeForm(StepForm):
+    breed_type = forms.CharField(required=False)
+
+    def clean(self):
+        breed_type = self.text("breed_type")
+        if breed_type not in Rabbit.BreedType.values:
+            self.add_error("breed_type", BREED_TYPE_REQUIRED)
+        return {"breed_type": breed_type}
+
+
+class BreedForm(StepForm):
+    """Purebred: one breed from the catalog. Crossbred: two or more rows of
+    breed and share, with the shares totalling exactly 100."""
+
+    breed_type = forms.CharField(required=False)
+    purebred = forms.CharField(required=False)
+
+    def __init__(self, *args, rows=2, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.rows = rows
+        for index in range(rows):
+            self.fields[f"cross-{index}-breed"] = forms.CharField(required=False)
+            self.fields[f"cross-{index}-percent"] = forms.CharField(required=False)
+
+    def clean(self):
+        breed_type = self.text("breed_type")
+        breeds = {str(pk): pk for pk in Breed.objects.values_list("pk", flat=True)}
+        if breed_type == Rabbit.BreedType.PUREBRED:
+            purebred = self.text("purebred")
+            if purebred not in breeds:
+                self.add_error("purebred", PUREBRED_REQUIRED)
+                return {}
+            return {"breed_type": breed_type, "purebred": breeds[purebred], "shares": []}
+        if breed_type != Rabbit.BreedType.CROSSBRED:
+            self.add_error(None, BREED_TYPE_FIRST)
+            return {}
+        seen = set()
+        shares = []
+        total = 0
+        for index in range(self.rows):
+            breed = self.text(f"cross-{index}-breed")
+            percent = self.text(f"cross-{index}-percent")
+            if not breed and not percent:
+                continue
+            if breed not in breeds:
+                self.add_error(f"cross-{index}-breed", CROSS_BREED_REQUIRED)
+            elif breed in seen:
+                self.add_error(f"cross-{index}-breed", CROSS_BREED_REPEATED)
+            seen.add(breed)
+            value = int(percent) if percent.isdigit() else None
+            if value is None or not 1 <= value <= 99:
+                self.add_error(f"cross-{index}-percent", CROSS_PERCENT)
+            if percent.lstrip("-").isdigit():
+                total += int(percent)
+            if breed in breeds and value:
+                shares.append((breeds[breed], value))
+        if self.used_rows() < 2:
+            self.add_error(None, CROSS_TWO_BREEDS)
+        elif total != 100:
+            self.add_error(None, CROSS_TOTAL.format(total=total))
+        return {"breed_type": breed_type, "purebred": None, "shares": shares}
+
+    def used_rows(self):
+        return sum(
+            1
+            for index in range(self.rows)
+            if self.text(f"cross-{index}-breed") or self.text(f"cross-{index}-percent")
+        )
+
+
+class RelativesForm(StepForm):
+    """Known relatives: each row is a relationship plus a herd rabbit, a
+    saved outside rabbit, or a new outside rabbit by name and details."""
+
+    def __init__(self, *args, rows=0, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.rows = rows
+        for index in range(rows):
+            for part in ("relationship", "ref", "new_name", "new_details"):
+                self.fields[f"relatives-{index}-{part}"] = forms.CharField(required=False)
+
+    def clean(self):
+        parent_seen = {}
+        relatives = []
+        for index in range(self.rows):
+            base = f"relatives-{index}"
+            relationship = self.text(f"{base}-relationship")
+            ref = self.text(f"{base}-ref")
+            new_name = self.text(f"{base}-new_name")
+            new_details = self.text(f"{base}-new_details")
+            if relationship not in Relative.Relationship.values:
+                self.add_error(f"{base}-relationship", RELATIONSHIP_REQUIRED)
+                relationship = ""
+            elif relationship in PARENT_SEX:
+                if relationship in parent_seen:
+                    self.add_error(
+                        f"{base}-relationship",
+                        ONE_PARENT.format(role=relationship, first=parent_seen[relationship]),
+                    )
+                else:
+                    parent_seen[relationship] = index + 1
+            if not ref and not new_name:
+                self.add_error(f"{base}-ref", RELATIVE_REQUIRED)
+                continue
+            if ref and new_name:
+                self.add_error(f"{base}-new_name", ONE_RABBIT_PER_PLACE)
+                continue
+            if new_details and not new_name:
+                self.add_error(f"{base}-new_name", OUTSIDE_NAME_REQUIRED)
+                continue
+            if len(new_name) > 120:
+                self.add_error(f"{base}-new_name", OUTSIDE_NAME_TOO_LONG)
+                continue
+            if len(new_details) > 200:
+                self.add_error(f"{base}-new_details", OUTSIDE_DETAILS_TOO_LONG)
+                continue
+            target = None
+            if ref:
+                target = resolve_ref(self.user, ref)
+                if target is None:
+                    self.add_error(f"{base}-ref", RABBIT_GONE)
+                    continue
+                needed = PARENT_SEX.get(relationship)
+                if needed and isinstance(target, Rabbit) and target.sex != needed:
+                    self.add_error(
+                        f"{base}-ref",
+                        WRONG_SEX.format(
+                            role=relationship, sex=needed, name=target.name, actual=target.sex
+                        ),
+                    )
+                    continue
+            relatives.append(
+                {
+                    "relationship": relationship,
+                    "target": target,
+                    "new_name": new_name,
+                    "new_details": new_details,
+                }
+            )
+        return {"relatives": relatives}

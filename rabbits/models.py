@@ -150,7 +150,7 @@ class OutsideRabbit(models.Model):
     details = models.CharField(
         max_length=200,
         blank=True,
-        help_text="Optional. Ear tag, registration number, breeder, or color.",
+        help_text="Anything that helps identify it, like an ear tag, registration number, breeder, or color.",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -177,11 +177,11 @@ class Relative(models.Model):
     class Relationship(models.TextChoices):
         DAM = "dam", "Dam (mother)"
         SIRE = "sire", "Sire (father)"
-        SIBLING = "sibling", "Full sibling"
-        HALF_SIBLING = "half_sibling", "Half sibling"
-        OFFSPRING = "offspring", "Offspring"
-        GRANDDAM = "granddam", "Granddam"
-        GRANDSIRE = "grandsire", "Grandsire"
+        SIBLING = "sibling", "Full sibling (same dam and sire)"
+        HALF_SIBLING = "half_sibling", "Half sibling (one parent in common)"
+        OFFSPRING = "offspring", "Offspring (a kit or grown young)"
+        GRANDDAM = "granddam", "Granddam (grandmother)"
+        GRANDSIRE = "grandsire", "Grandsire (grandfather)"
         GRANDOFFSPRING = "grandoffspring", "Grandchild"
         AUNT_UNCLE = "aunt_uncle", "Aunt or uncle"
         NIECE_NEPHEW = "niece_nephew", "Niece or nephew"
