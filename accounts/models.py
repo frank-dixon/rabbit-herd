@@ -40,6 +40,7 @@ class User(AbstractUser):
     is_guest = models.BooleanField(default=False)
     email_confirmed = models.BooleanField(default=False)
     email_confirmed_at = models.DateTimeField(null=True, blank=True)
+    confirmation_sent_at = models.DateTimeField(null=True, blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

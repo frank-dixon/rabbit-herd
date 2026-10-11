@@ -62,9 +62,11 @@ class SignupForm(forms.Form):
     )
 
     def clean_email(self):
+        # An existing email is not an error. The view answers with the same
+        # "check your email" page either way, so signup does not reveal which
+        # addresses have accounts.
         email = self.cleaned_data["email"].strip().lower()
-        if User.objects.filter(email__iexact=email).exists():
-            raise ValidationError("An account with that email already exists.")
+        self.existing_user = User.objects.filter(email__iexact=email).first()
         return email
 
     def clean(self):

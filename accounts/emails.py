@@ -1,9 +1,11 @@
+from datetime import timedelta
 from email.policy import SMTP
 
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.urls import reverse
 from django.utils.encoding import force_bytes
+from django.utils import timezone
 from django.utils.http import urlsafe_base64_encode
 
 from .tokens import email_confirmation_token
@@ -12,6 +14,10 @@ from .tokens import email_confirmation_token
 # confirmation link in the console. 998 is the SMTP limit, long enough for
 # the link to stay on one line.
 _PLAIN_POLICY = SMTP.clone(max_line_length=998)
+
+# A repeat signup for an unconfirmed account re-sends its link at most this
+# often, so the signup form cannot be used to flood someone's inbox.
+CONFIRMATION_RESEND_INTERVAL = timedelta(minutes=5)
 
 
 class PlainEmailMessage(EmailMessage):
@@ -55,3 +61,18 @@ def send_confirmation_email(request, user):
         ),
         user.email,
     )
+    user.confirmation_sent_at = timezone.now()
+    user.save(update_fields=["confirmation_sent_at"])
+
+
+def resend_confirmation_email(request, user):
+    """Send a fresh confirmation link unless one went out recently.
+
+    Returns True when a message was sent. The timestamp lives in the database
+    because each serverless instance has its own memory cache.
+    """
+    sent_at = user.confirmation_sent_at
+    if sent_at and timezone.now() - sent_at < CONFIRMATION_RESEND_INTERVAL:
+        return False
+    send_confirmation_email(request, user)
+    return True

@@ -1,5 +1,6 @@
 import json
 import re
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.conf import settings
@@ -362,3 +363,76 @@ class AccountManagementTests(TestCase):
             call_command("ensure_demo_user")
 
         self.assertEqual(User.objects.count(), 0)
+
+
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+class RepeatSignupTests(TestCase):
+    def signup(self, email="frank@example.com", password=PASSWORD):
+        return self.client.post(
+            reverse("signup"),
+            {"email": email, "password1": password, "password2": password},
+        )
+
+    def test_repeat_signup_resends_the_link_for_an_unconfirmed_account(self):
+        self.signup()
+        user = User.objects.get()
+        user.confirmation_sent_at = timezone.now() - timedelta(minutes=10)
+        user.save(update_fields=["confirmation_sent_at"])
+        mail.outbox.clear()
+
+        response = self.signup(email="Frank@Example.com", password=NEW_PASSWORD)
+
+        self.assertRedirects(response, reverse("signup_done"))
+        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["frank@example.com"])
+        self.assertIn("Confirm your email", mail.outbox[0].body)
+        user.refresh_from_db()
+        self.assertTrue(user.check_password(PASSWORD))
+        self.assertFalse(user.check_password(NEW_PASSWORD))
+
+        path = re.search(r"http://testserver(\S+)", mail.outbox[0].body).group(1)
+        self.assertRedirects(self.client.get(path), reverse("index"))
+        user.refresh_from_db()
+        self.assertTrue(user.email_confirmed)
+
+    def test_repeat_signup_is_rate_limited(self):
+        self.signup()
+        self.assertEqual(len(mail.outbox), 1)
+
+        response = self.signup()
+
+        self.assertRedirects(response, reverse("signup_done"))
+        self.assertEqual(len(mail.outbox), 1)
+
+        user = User.objects.get()
+        user.confirmation_sent_at = timezone.now() - timedelta(minutes=6)
+        user.save(update_fields=["confirmation_sent_at"])
+        self.signup()
+        self.assertEqual(len(mail.outbox), 2)
+
+    def test_signup_with_a_confirmed_email_looks_the_same_and_sends_nothing(self):
+        make_user()
+
+        response = self.signup(password=NEW_PASSWORD)
+
+        self.assertRedirects(response, reverse("signup_done"))
+        self.assertEqual(len(mail.outbox), 0)
+        user = User.objects.get()
+        self.assertTrue(user.check_password(PASSWORD))
+
+    def test_unknown_and_known_emails_get_the_same_page(self):
+        make_user()
+        known = self.client.post(
+            reverse("signup"),
+            {"email": "frank@example.com", "password1": PASSWORD, "password2": PASSWORD},
+            follow=True,
+        )
+        unknown = self.client.post(
+            reverse("signup"),
+            {"email": "new@example.com", "password1": PASSWORD, "password2": PASSWORD},
+            follow=True,
+        )
+        self.assertEqual(known.redirect_chain, unknown.redirect_chain)
+        self.assertContains(known, "Check your email")
+        self.assertContains(unknown, "Check your email")

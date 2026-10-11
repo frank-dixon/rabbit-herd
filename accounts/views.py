@@ -23,7 +23,11 @@ from django.utils.http import urlsafe_base64_decode
 from django.views.decorators.http import require_POST
 from django.views.generic import FormView
 
-from .emails import send_account_mail, send_confirmation_email
+from .emails import (
+    resend_confirmation_email,
+    send_account_mail,
+    send_confirmation_email,
+)
 from .forms import EmailAuthenticationForm, SignupForm
 from .models import User
 from .passkeys import (
@@ -73,8 +77,14 @@ class SignupView(FormView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        user = form.save()
-        send_confirmation_email(self.request, user)
+        existing = form.existing_user
+        if existing is None:
+            user = form.save()
+            send_confirmation_email(self.request, user)
+        elif not existing.email_confirmed and not existing.is_guest:
+            # Re-send the link, but keep the account's original password, so
+            # a stranger cannot set the password on someone else's account.
+            resend_confirmation_email(self.request, existing)
         return redirect("signup_done")
 
 
