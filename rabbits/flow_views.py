@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from . import flow, flow_forms
 from .models import Rabbit
@@ -235,6 +235,15 @@ def row_anchor(action, draft):
     if action == "add-relative":
         return f"id_relatives-{len(draft['relatives']) - 1}-relationship"
     return "id_cross" if "cross" in action else "add-relative"
+
+
+@login_required
+@require_GET
+def rabbit_flow_resume(request):
+    """The "Add a rabbit" entry point: open the card the draft was last on,
+    or the first card when there is no draft."""
+    draft = flow.load_draft(request.session)
+    return redirect(step_url(draft["step"]))
 
 
 @login_required

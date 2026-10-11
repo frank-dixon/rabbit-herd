@@ -52,22 +52,6 @@ def rabbit_detail(request, pk):
 
 
 @login_required
-def rabbit_create(request):
-    form = RabbitForm(request.POST or None, request.FILES or None)
-    if request.method == "POST" and form.is_valid():
-        rabbit = form.save(commit=False)
-        rabbit.owner = request.user
-        rabbit.save()
-        messages.success(request, f"{rabbit.name} was saved.")
-        return redirect("rabbit_detail", pk=rabbit.pk)
-    return render(
-        request,
-        "rabbits/form.html",
-        {"form": form, "heading": "Add a rabbit", "submit_label": "Save rabbit"},
-    )
-
-
-@login_required
 def rabbit_edit(request, pk):
     rabbit = owned_rabbit(request.user, pk)
     form = RabbitForm(request.POST or None, request.FILES or None, instance=rabbit)

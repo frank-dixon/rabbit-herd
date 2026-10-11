@@ -9,7 +9,7 @@
     <p class="mt-2 text-neutral-700">Breed: {{ rabbit.breed_line }}.</p>
     <div class="mt-6 flex flex-col gap-3">
       {% url 'rabbit_list' as list_url %}
-      {% url 'rabbit_flow_step' 'name' as again_url %}
+      {% url 'rabbit_create' as again_url %}
       {% include "components/button.html" with label="View the herd" href=list_url variant="primary" size="large" only %}
       {% include "components/button.html" with label="Add another rabbit" href=again_url variant="secondary" size="large" only %}
     </div>

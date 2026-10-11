@@ -62,12 +62,28 @@ class RabbitRecordTests(TestCase):
             f"{reverse('login')}?next={reverse('rabbit_list')}",
         )
 
-    def test_owner_can_add_and_edit_a_rabbit(self):
-        created = self.client.post(reverse("rabbit_create"), rabbit_fields())
-        rabbit = Rabbit.objects.get()
-        self.assertRedirects(created, reverse("rabbit_detail", args=[rabbit.pk]))
-        self.assertEqual(rabbit.owner, self.owner)
-        self.assertEqual(rabbit.name, "Clover")
+    def clover(self):
+        return Rabbit.objects.create(owner=self.owner, **rabbit_fields())
+
+    def test_add_a_rabbit_opens_the_card_flow(self):
+        listing = self.client.get(reverse("rabbit_list"))
+        self.assertContains(listing, f'href="{reverse("rabbit_create")}"')
+        self.assertRedirects(
+            self.client.get(reverse("rabbit_create")),
+            reverse("rabbit_flow_step", args=["name"]),
+        )
+        self.assertEqual(self.client.post(reverse("rabbit_create"), rabbit_fields()).status_code, 405)
+        self.assertEqual(Rabbit.objects.count(), 0)
+
+    def test_add_a_rabbit_resumes_an_unfinished_draft(self):
+        self.client.post(reverse("rabbit_flow_step", args=["name"]), {"name": "Hazel", "action": "next"})
+        self.assertRedirects(
+            self.client.get(reverse("rabbit_create")),
+            reverse("rabbit_flow_step", args=["sex"]),
+        )
+
+    def test_owner_can_edit_a_rabbit(self):
+        rabbit = self.clover()
 
         edited = self.client.post(
             reverse("rabbit_edit", args=[rabbit.pk]),
@@ -155,48 +171,52 @@ class RabbitRecordTests(TestCase):
         self.assertContains(self.client.get(reverse("rabbit_archived")), "No archived rabbits.")
 
     def test_form_rejects_a_missing_name_and_a_future_birth_date(self):
-        missing = self.client.post(reverse("rabbit_create"), rabbit_fields(name=""))
+        rabbit = self.clover()
+        edit_url = reverse("rabbit_edit", args=[rabbit.pk])
+        missing = self.client.post(edit_url, rabbit_fields(name=""))
         self.assertContains(missing, "This field is required.")
-        self.assertEqual(Rabbit.objects.count(), 0)
 
         tomorrow = (timezone.localdate() + timedelta(days=1)).isoformat()
-        future = self.client.post(reverse("rabbit_create"), rabbit_fields(birth_date=tomorrow))
+        future = self.client.post(edit_url, rabbit_fields(birth_date=tomorrow))
         self.assertContains(future, "Birth date cannot be in the future.")
-        self.assertEqual(Rabbit.objects.count(), 0)
+        rabbit.refresh_from_db()
+        self.assertEqual((rabbit.name, rabbit.birth_date.isoformat()), ("Clover", "2024-03-01"))
 
     def test_form_rejects_a_non_image_and_an_oversized_photo(self):
+        rabbit = self.clover()
+        edit_url = reverse("rabbit_edit", args=[rabbit.pk])
         text = SimpleUploadedFile("notes.png", b"not an image", content_type="image/png")
         rejected = self.client.post(
-            reverse("rabbit_create"),
+            edit_url,
             {**rabbit_fields(), "photo": text},
         )
         self.assertContains(rejected, "Upload a valid image.")
-        self.assertEqual(Rabbit.objects.count(), 0)
 
         bitmap = BytesIO()
         Image.new("RGB", (8, 8), "white").save(bitmap, format="BMP")
         wrong_type = SimpleUploadedFile("rabbit.png", bitmap.getvalue(), content_type="image/bmp")
         typed = self.client.post(
-            reverse("rabbit_create"),
+            edit_url,
             {**rabbit_fields(), "photo": wrong_type},
         )
         self.assertContains(typed, "JPEG, PNG, GIF, or WebP")
-        self.assertEqual(Rabbit.objects.count(), 0)
 
         huge = png_upload()
         huge.size = MAX_PHOTO_BYTES + 1
         oversized = RabbitForm(data=rabbit_fields(), files={"photo": huge})
         self.assertFalse(oversized.is_valid())
         self.assertIn("5 MB or smaller", oversized.errors["photo"][0])
-        self.assertEqual(Rabbit.objects.count(), 0)
+        rabbit.refresh_from_db()
+        self.assertFalse(rabbit.photo)
 
     def test_a_valid_photo_is_stored_and_served_only_when_debug_is_on(self):
+        rabbit = self.clover()
         upload = png_upload()
         response = self.client.post(
-            reverse("rabbit_create"),
+            reverse("rabbit_edit", args=[rabbit.pk]),
             {**rabbit_fields(), "photo": upload},
         )
-        rabbit = Rabbit.objects.get()
+        rabbit.refresh_from_db()
         self.assertRedirects(response, reverse("rabbit_detail", args=[rabbit.pk]))
         self.assertTrue(rabbit.photo.name.startswith(f"rabbits/{self.owner.pk}/"))
 
