@@ -353,12 +353,15 @@ def rabbit_flow_step(request, step):
         return redirect(step_url(step, check=True))
 
     draft["step"] = step
+    cleared = flow.reconcile_color(draft) if step == "color" else ""
     flow.save_draft(request.session, draft)
     form = None
     if request.GET.get("check") and flow.STEPS[flow.step_index(step)].form_class:
         form = flow.bound_form(step, draft, request.user)
         form.is_valid()
-    return render(request, "rabbits/flow/step.html", step_context(step, draft, request.user, form))
+    context = step_context(step, draft, request.user, form)
+    context["color_cleared"] = cleared
+    return render(request, "rabbits/flow/step.html", context)
 
 
 @login_required

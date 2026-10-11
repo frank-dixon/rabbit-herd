@@ -158,3 +158,99 @@ class ColorCardViewTests(TestCase):
         page = self.to_color("Holland Lop")
         self.assertContains(page, "The Holland Lop comes in many recognized colors")
         self.assertNotContains(page, 'name="color_choice"')
+
+
+class BreedChangeTests(ColorCardViewTests):
+    """After Back and a new breed, the color card keeps up."""
+
+    def change_breed(self, name):
+        self.client.post(step("color"), {"action": "back"})
+        response = self.answer("breed", purebred=breed_id(name))
+        self.assertRedirects(response, step("color"), fetch_redirect_response=False)
+        return self.client.get(step("color"))
+
+    def draft(self):
+        return flow.load_draft(self.client.session)
+
+    def test_an_unrecognized_color_is_cleared_with_a_note(self):
+        self.to_color("New Zealand")
+        self.answer("color", color_choice="Blue")
+        page = self.change_breed("Creme d'Argent")
+        self.assertContains(
+            page,
+            "Blue isn&#x27;t a recognized color for the Creme d&#x27;Argent, so it has been cleared. "
+            "Please check the color below before you go on.",
+        )
+        self.assertContains(page, 'name="color_choice" value="Creme" checked')
+        # The note shows once; a refresh is calm.
+        self.assertNotContains(self.client.get(step("color")), 'id="color-cleared"')
+        self.answer("color", color_choice="Creme")
+        self.assertEqual(self.save().color, "Creme")
+
+    def test_a_cleared_choice_on_a_list_must_be_chosen_again(self):
+        self.to_color("New Zealand")
+        self.answer("color", color_choice="Red")
+        page = self.change_breed("Dutch")
+        self.assertContains(page, "Red isn&#x27;t a recognized color for the Dutch")
+        self.assertNotContains(page, " selected>")
+        response = self.answer("color")
+        self.assertContains(self.client.get(response["Location"]), "Please choose one of the Dutch colors")
+
+    def test_a_color_the_new_breed_recognizes_stays(self):
+        self.to_color("New Zealand")
+        self.answer("color", color_choice="Blue")
+        page = self.change_breed("Dutch")
+        self.assertNotContains(page, 'id="color-cleared"')
+        self.assertContains(page, '<option value="Blue" selected>')
+
+    def test_another_color_text_is_kept(self):
+        self.to_color("New Zealand")
+        self.answer("color", color_choice=OTHER, color="Broken red")
+        page = self.change_breed("Creme d'Argent")
+        self.assertNotContains(page, 'id="color-cleared"')
+        self.assertContains(page, f'name="color_choice" value="{OTHER}" checked')
+        self.assertContains(page, 'value="Broken red"')
+        self.answer("color", color_choice=OTHER, color="Broken red")
+        self.assertEqual(self.save().color, "Broken red")
+
+    def test_leftover_text_is_kept_but_not_chosen(self):
+        self.to_color("New Zealand")
+        self.answer("color", color_choice="Blue", color="Broken red")
+        page = self.change_breed("Creme d'Argent")
+        self.assertContains(page, 'name="color_choice" value="Creme" checked')
+        self.assertNotContains(page, f'value="{OTHER}" checked')
+        self.assertContains(page, 'value="Broken red"')
+
+    def test_a_listed_color_carries_into_free_text(self):
+        self.to_color("New Zealand")
+        self.answer("color", color_choice="Blue")
+        page = self.change_breed("Holland Lop")
+        self.assertNotContains(page, 'id="color-cleared"')
+        self.assertContains(page, 'name="color" type="text" value="Blue"')
+        self.assertEqual(self.draft()["color_choice"], "")
+
+    def test_jumping_ahead_after_a_breed_change_lands_on_the_color_card(self):
+        self.to_color("New Zealand")
+        self.answer("color", color_choice="Red")
+        self.answer("relatives")
+        self.client.post(step("review"), {"action": "back"})
+        self.client.post(step("relatives"), {"action": "back"})
+        self.change_breed("Dutch")
+        response = self.client.get(step("review"))
+        self.assertRedirects(response, step("color") + "?check=1", fetch_redirect_response=False)
+
+
+class ReconcileRuleTests(FlowTestMixin, TestCase):
+    def test_reconcile(self):
+        nz, creme, lop = breed_id("New Zealand"), breed_id("Creme d'Argent"), breed_id("Holland Lop")
+        draft = self.draft(purebred=creme, color_choice="Blue", color="")
+        self.assertIn("Blue isn't a recognized color for the Creme d'Argent", flow.reconcile_color(draft))
+        self.assertEqual(draft["color_choice"], flow_forms.NO_COLOR)
+        self.assertEqual(flow.draft_color(draft), "Creme")
+        self.assertEqual(flow.reconcile_color(draft), "", "a second look changes nothing")
+        draft = self.draft(purebred=nz, color_choice=OTHER, color="Broken red")
+        self.assertEqual(flow.reconcile_color(draft), "")
+        self.assertEqual((draft["color_choice"], draft["color"]), (OTHER, "Broken red"))
+        draft = self.draft(purebred=lop, color_choice="Blue", color="")
+        self.assertEqual(flow.reconcile_color(draft), "")
+        self.assertEqual((draft["color_choice"], draft["color"]), ("", "Blue"))

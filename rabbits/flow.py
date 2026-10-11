@@ -229,6 +229,28 @@ def draft_breed_line(draft):
     return ""
 
 
+def reconcile_color(draft):
+    """Keep the color in step with the breed after a Back and a new breed.
+
+    A listed color the new breed doesn't recognize is cleared, and the note
+    to show is returned. Another color and its description always stay. When
+    the new breed takes free text, a listed color moves into the text box.
+    Returns "" when nothing needed clearing."""
+    choice = draft["color_choice"]
+    if choice in ("", flow_forms.OTHER_COLOR, flow_forms.NO_COLOR):
+        return ""
+    breed = flow_forms.purebred_breed(draft)
+    names = [color["name"] for color in flow_forms.offered_colors(breed)]
+    if not names:
+        draft["color"] = choice
+        draft["color_choice"] = ""
+        return ""
+    if choice in names:
+        return ""
+    draft["color_choice"] = flow_forms.NO_COLOR
+    return flow_forms.COLOR_CLEARED.format(color=choice, breed=breed.name)
+
+
 def draft_color(draft):
     """The color the review card shows: the chosen recognized color, or
     the description given for Another color or a free-text color."""

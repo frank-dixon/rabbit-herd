@@ -1,3 +1,6 @@
+{% if color_cleared %}
+  <p class="rounded-lg border border-amber-700 bg-amber-50 px-4 py-3 text-amber-950" role="status" id="color-cleared">{{ color_cleared }}</p>
+{% endif %}
 {% if color_mode == "text" %}
   {% include "components/text_input.html" with name="color" label="Color" value=draft.color errors=color_error help=color_help quiet=True large=True only %}
 {% else %}

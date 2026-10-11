@@ -35,6 +35,10 @@ COLOR_NOT_LISTED = (
     "That color isn't one of the recognized {breed} colors. "
     "Please choose a color from the list, or choose Another color and describe it."
 )
+COLOR_CLEARED = (
+    "{color} isn't a recognized color for the {breed}, so it has been cleared. "
+    "Please check the color below before you go on."
+)
 COLOR_OTHER_REQUIRED = (
     "Another color needs a short description. Please describe the coat, for example broken black."
 )
@@ -94,6 +98,9 @@ PARENT_SEX = {"dam": Rabbit.Sex.DOE, "sire": Rabbit.Sex.BUCK}
 
 # The color card's choice for a color that is not on the breed's list.
 OTHER_COLOR = "__other__"
+# Set when a breed change cleared the choice, so leftover text in the
+# Another color box is not mistaken for a choice.
+NO_COLOR = "__none__"
 # Up to this many recognized colors show as tiles; more show as a select.
 COLOR_TILE_LIMIT = 6
 
@@ -145,7 +152,9 @@ def color_choice(names, choice, text):
     A posted choice wins. With no choice yet, typed text from before the
     breed had a list counts as that color when it matches one, or as
     Another color when it doesn't. A breed with one recognized color has
-    that color pre-chosen."""
+    that color pre-chosen, also after a breed change cleared the choice."""
+    if choice == NO_COLOR:
+        return names[0] if len(names) == 1 else ""
     if choice:
         return choice
     if text.strip():
