@@ -277,14 +277,10 @@ def rabbit_flow_step(request, step):
             draft["step"] = flow.SLUGS[index + 1]
             flow.save_draft(request.session, draft)
             return redirect(step_url(draft["step"]))
+        # Show the problems on a plain page, so a refresh never posts again.
         draft["step"] = step
         flow.save_draft(request.session, draft)
-        return render(
-            request,
-            "rabbits/flow/step.html",
-            step_context(step, draft, request.user, form),
-            status=422,
-        )
+        return redirect(step_url(step, check=True))
 
     draft["step"] = step
     flow.save_draft(request.session, draft)

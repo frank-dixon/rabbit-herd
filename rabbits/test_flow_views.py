@@ -34,6 +34,12 @@ class CardFlowTests(TestCase):
     def answer(self, slug, **fields):
         return self.client.post(step(slug), dict(fields, action=fields.pop("action", "next")))
 
+    def fails(self, slug, **fields):
+        """Post a card that should not pass, and open the page that shows why."""
+        response = self.answer(slug, **fields)
+        self.assertRedirects(response, step(slug) + "?check=1", fetch_redirect_response=False)
+        return self.client.get(response["Location"])
+
     def walk_to_breed(self, breed_type="purebred"):
         self.answer("name", name="Hazel")
         self.answer("sex", sex="doe")
@@ -76,13 +82,13 @@ class CardFlowTests(TestCase):
         self.assertNotContains(response, 'value="back"')
 
     def test_next_checks_the_card_and_shows_the_error_summary(self):
-        response = self.answer("name", name="  ")
-        self.assertEqual(response.status_code, 422)
-        self.assertContains(response, "Please check one thing before continuing:", status_code=422)
-        self.assertContains(response, 'href="#id_name"', status_code=422)
-        self.assertContains(response, "Each rabbit needs a name or an ear tag. Please add one.", status_code=422)
-        self.assertContains(response, 'aria-invalid="true"', status_code=422)
-        self.assertContains(response, 'aria-describedby="id_name_error"', status_code=422)
+        response = self.fails("name", name="  ")
+        self.assertEqual(self.draft()["step"], "name")
+        self.assertContains(response, "Please check one thing before continuing:")
+        self.assertContains(response, 'href="#id_name"')
+        self.assertContains(response, "Each rabbit needs a name or an ear tag. Please add one.")
+        self.assertContains(response, 'aria-invalid="true"')
+        self.assertContains(response, 'aria-describedby="id_name_error"')
 
     def test_answers_carry_into_later_questions_and_survive_a_reload(self):
         self.assertRedirects(self.answer("name", name="Hazel"), step("sex"))
@@ -117,11 +123,10 @@ class CardFlowTests(TestCase):
         self.assertContains(page, 'type="date"')
         self.assertContains(page, f'max="{timezone.localdate().isoformat()}"')
         tomorrow = (timezone.localdate() + datetime.timedelta(days=1)).isoformat()
-        response = self.answer("birth-date", birth_date=tomorrow)
+        response = self.fails("birth-date", birth_date=tomorrow)
         self.assertContains(
             response,
             "The birth date can&#x27;t be in the future. Please pick today or an earlier date.",
-            status_code=422,
         )
 
     def test_purebred_shows_one_grouped_select(self):
@@ -148,7 +153,7 @@ class CardFlowTests(TestCase):
         page = self.client.get(step("breed"))
         self.assertContains(page, "Total so far: 80%. Add 20% more to reach 100%.")
         self.assertContains(page, 'value="remove-cross-2"')
-        response = self.answer(
+        response = self.fails(
             "breed",
             **{"cross-0-breed": rex, "cross-0-percent": "50", "cross-1-breed": dutch, "cross-1-percent": "30",
                "cross-2-breed": lop, "cross-2-percent": "30"},
@@ -156,9 +161,8 @@ class CardFlowTests(TestCase):
         self.assertContains(
             response,
             "The shares need to add up to exactly 100%, and right now they add up to 110%. Please adjust the shares.",
-            status_code=422,
         )
-        self.assertContains(response, "That&#x27;s 10% over, so lower a share.", status_code=422)
+        self.assertContains(response, "That&#x27;s 10% over, so lower a share.")
         self.answer("breed", action="remove-cross-2")
         self.assertEqual(len(self.draft()["cross"]), 2)
         response = self.answer(
@@ -183,7 +187,7 @@ class CardFlowTests(TestCase):
         self.assertNotIn('value="dam"', second)
         self.assertIn('value="sire"', second)
         # A crafted post still meets the server's rule and its message.
-        response = self.answer(
+        response = self.fails(
             "relatives",
             **{"relatives-0-relationship": "dam", "relatives-0-ref": f"h:{self.juniper.pk}",
                "relatives-1-relationship": "dam", "relatives-1-new_name": "Ridgeview Thistle"},
@@ -191,17 +195,16 @@ class CardFlowTests(TestCase):
         self.assertContains(
             response,
             "A rabbit can have only one dam, and Relative 1 is already listed as the dam. Choose a different relationship here.",
-            status_code=422,
         )
 
     def test_the_dam_must_be_a_doe(self):
         self.walk_to_breed("purebred")
         self.answer("breed", purebred=breed_id("Holland Lop"))
         self.answer("relatives", action="add-relative")
-        response = self.answer(
+        response = self.fails(
             "relatives", **{"relatives-0-relationship": "dam", "relatives-0-ref": f"h:{self.pepper.pk}"},
         )
-        self.assertContains(response, "The dam has to be a doe. Pepper is a buck, so pick a doe here.", status_code=422)
+        self.assertContains(response, "The dam has to be a doe. Pepper is a buck, so pick a doe here.")
 
     def test_full_entry_saves_and_clears_the_draft(self):
         self.walk_to_breed("purebred")
@@ -263,7 +266,7 @@ class CardFlowTests(TestCase):
         self.answer("relatives", action="add-relative")
         page = self.client.get(step("relatives"))
         self.assertNotContains(page, "Theirs")
-        response = self.answer(
+        response = self.fails(
             "relatives", **{"relatives-0-relationship": "dam", "relatives-0-ref": f"h:{theirs.pk}"},
         )
-        self.assertContains(response, "That rabbit is no longer in your list. Please choose again.", status_code=422)
+        self.assertContains(response, "That rabbit is no longer in your list. Please choose again.")
