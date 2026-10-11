@@ -44,6 +44,14 @@ class Breed(models.Model):
         return [color["name"] for color in self.colors]
 
 
+OFF_STANDARD_NOTE = "(not a recognized color for this breed)"
+
+
+def color_text(color, is_standard):
+    """A color for display, with a note when it is known to be off-standard."""
+    return f"{color} {OFF_STANDARD_NOTE}" if is_standard is False else color
+
+
 class Rabbit(models.Model):
     """One rabbit owned by one account. Archiving keeps the row."""
 
@@ -80,6 +88,10 @@ class Rabbit(models.Model):
         on_delete=models.PROTECT,
     )
     color = models.CharField(max_length=80)
+    # True: one of the purebred breed's recognized colors. False: described
+    # with Another color although the breed has a list. None: not checked
+    # (crossbreds, any-color breeds, older records, or a color edited by hand).
+    color_is_standard = models.BooleanField(null=True, blank=True, default=None)
     birth_date = models.DateField()
     photo = models.ImageField(upload_to=rabbit_photo_path, blank=True)
     status = models.CharField(
@@ -106,12 +118,17 @@ class Rabbit(models.Model):
 
     def summary(self):
         text = (
-            f"{self.get_sex_display()}. {self.breed}. {self.color}. "
+            f"{self.get_sex_display()}. {self.breed}. {self.color_line}. "
             f"Born {self.birth_date.isoformat()}. {self.get_status_display()}."
         )
         if self.is_archived:
             return f"Archived. {text}"
         return text
+
+    @property
+    def color_line(self):
+        """The color, marked when it is off the breed's standard."""
+        return color_text(self.color, self.color_is_standard)
 
     def breed_line(self):
         """Readable breed text built from the purebred breed or the shares."""

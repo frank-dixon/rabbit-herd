@@ -254,3 +254,71 @@ class ReconcileRuleTests(FlowTestMixin, TestCase):
         draft = self.draft(purebred=lop, color_choice="Blue", color="")
         self.assertEqual(flow.reconcile_color(draft), "")
         self.assertEqual((draft["color_choice"], draft["color"]), ("", "Blue"))
+
+
+class OffStandardMarkTests(ColorCardViewTests):
+    """Off-standard colors are marked on the review and detail pages."""
+
+    NOTE = "(not a recognized color for this breed)"
+
+    def finish(self):
+        self.answer("relatives")
+        review = self.client.get(step("review"))
+        return review, self.save()
+
+    def test_another_color_is_marked(self):
+        self.to_color("Creme d'Argent")
+        self.answer("color", color_choice=OTHER, color="Broken orange")
+        review, rabbit = self.finish()
+        self.assertContains(review, f"Broken orange {self.NOTE}")
+        self.assertIs(rabbit.color_is_standard, False)
+        self.assertEqual(rabbit.color, "Broken orange")
+        detail = self.client.get(reverse("rabbit_detail", args=[rabbit.pk]))
+        self.assertContains(detail, f"Broken orange {self.NOTE}")
+
+    def test_a_recognized_color_is_not_marked(self):
+        self.to_color("Creme d'Argent")
+        self.answer("color", color_choice="Creme")
+        review, rabbit = self.finish()
+        self.assertNotContains(review, self.NOTE)
+        self.assertIs(rabbit.color_is_standard, True)
+        self.assertNotContains(self.client.get(reverse("rabbit_detail", args=[rabbit.pk])), self.NOTE)
+
+    def test_typing_a_recognized_color_is_not_marked(self):
+        self.to_color("New Zealand")
+        self.answer("color", color_choice=OTHER, color="red")
+        review, rabbit = self.finish()
+        self.assertNotContains(review, self.NOTE)
+        self.assertEqual((rabbit.color, rabbit.color_is_standard), ("Red", True))
+
+    def test_free_text_colors_are_not_judged(self):
+        self.to_color("Holland Lop")
+        self.answer("color", color="Broken tort")
+        review, rabbit = self.finish()
+        self.assertNotContains(review, self.NOTE)
+        self.assertIsNone(rabbit.color_is_standard)
+
+    def test_editing_the_color_by_hand_drops_the_mark(self):
+        self.to_color("Creme d'Argent")
+        self.answer("color", color_choice=OTHER, color="Broken orange")
+        _, rabbit = self.finish()
+        self.client.post(reverse("rabbit_edit", args=[rabbit.pk]), {
+            "name": rabbit.name, "sex": rabbit.sex, "breed": rabbit.breed, "color": "Creme",
+            "birth_date": "2024-05-01", "status": rabbit.status,
+        })
+        rabbit.refresh_from_db()
+        self.assertEqual(rabbit.color, "Creme")
+        self.assertIsNone(rabbit.color_is_standard)
+        self.assertNotContains(self.client.get(reverse("rabbit_detail", args=[rabbit.pk])), self.NOTE)
+
+    def test_saving_other_fields_keeps_the_mark(self):
+        self.to_color("Creme d'Argent")
+        self.answer("color", color_choice=OTHER, color="Broken orange")
+        _, rabbit = self.finish()
+        self.client.post(reverse("rabbit_edit", args=[rabbit.pk]), {
+            "name": "Hazel", "sex": rabbit.sex, "breed": rabbit.breed, "color": rabbit.color,
+            "birth_date": "2024-05-01", "status": "breeding",
+        })
+        rabbit.refresh_from_db()
+        self.assertEqual(rabbit.status, "breeding")
+        self.assertIs(rabbit.color_is_standard, False)

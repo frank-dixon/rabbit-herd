@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from django.db import transaction
 
 from . import flow_forms
-from .models import Breed, BreedShare, OutsideRabbit, Rabbit, Relative
+from .models import Breed, BreedShare, OutsideRabbit, Rabbit, Relative, color_text
 
 SESSION_KEY = "rabbit_draft"
 MAX_TEXT = 500
@@ -253,9 +253,12 @@ def reconcile_color(draft):
 
 def draft_color(draft):
     """The color the review card shows: the chosen recognized color, or
-    the description given for Another color or a free-text color."""
+    the description given for Another color or a free-text color, marked
+    when it is not one of the breed's recognized colors."""
     form = flow_forms.ColorForm(data=form_data(draft))
-    return form.cleaned_data["color"] if form.is_valid() else draft["color"].strip()
+    if not form.is_valid():
+        return draft["color"].strip()
+    return color_text(form.cleaned_data["color"], form.cleaned_data["color_is_standard"])
 
 
 def short_breed(text):
@@ -292,6 +295,7 @@ def save_rabbit(draft, user):
             sex=answers["sex"],
             birth_date=answers["birth_date"],
             color=answers["color"],
+            color_is_standard=answers["color_is_standard"],
             status=answers["status"],
             breed_type=answers["breed_type"],
             purebred=purebred,

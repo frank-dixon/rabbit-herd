@@ -18,6 +18,13 @@ class RabbitForm(forms.ModelForm):
         }
         widgets = {"birth_date": forms.DateInput()}
 
+    def save(self, commit=True):
+        # The flow checked the color against the breed. A hand edit of either
+        # one means that check no longer applies.
+        if {"color", "breed"} & set(self.changed_data):
+            self.instance.color_is_standard = None
+        return super().save(commit=commit)
+
     def clean_birth_date(self):
         birth_date = self.cleaned_data["birth_date"]
         if birth_date > timezone.localdate():

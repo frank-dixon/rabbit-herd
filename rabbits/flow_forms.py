@@ -281,21 +281,23 @@ class ColorForm(StepForm):
             return self.free_text(text, COLOR_REQUIRED)
         choice = color_choice(names, self.text("color_choice"), text)
         if choice in names:
-            return {"color": choice}
+            return {"color": choice, "color_is_standard": True}
         if choice == OTHER_COLOR:
             cleaned = self.free_text(text, COLOR_OTHER_REQUIRED)
             # Typing a listed color under Another color still counts as that color.
-            return {"color": matching_color(names, cleaned["color"]) or cleaned["color"]}
+            matched = matching_color(names, cleaned["color"])
+            return {"color": matched or cleaned["color"], "color_is_standard": matched is not None}
         message = COLOR_NOT_LISTED if choice else COLOR_CHOICE_REQUIRED
         self.add_error("color_choice", message.format(breed=breed.name))
-        return {"color": ""}
+        return {"color": "", "color_is_standard": None}
 
     def free_text(self, text, required_message):
+        """Free text is not checked against a list, so its standing is unknown."""
         if not text:
             self.add_error("color", required_message)
         elif len(text) > 80:
             self.add_error("color", COLOR_TOO_LONG)
-        return {"color": text}
+        return {"color": text, "color_is_standard": None}
 
 
 class StatusForm(StepForm):
