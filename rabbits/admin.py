@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Rabbit
+from .models import Breed, Rabbit
 
 
 @admin.register(Rabbit)
@@ -12,3 +12,10 @@ class RabbitAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(Breed)
+class BreedAdmin(admin.ModelAdmin):
+    list_display = ("name", "registry")
+    list_filter = ("registry",)
+    search_fields = ("name",)

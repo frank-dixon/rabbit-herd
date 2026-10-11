@@ -13,6 +13,23 @@ def rabbit_photo_path(instance, filename):
     return f"rabbits/{instance.owner_id}/{uuid.uuid4().hex}{extension}"
 
 
+class Breed(models.Model):
+    """A rabbit breed people can pick for a purebred or part of a cross."""
+
+    class Registry(models.TextChoices):
+        ARBA = "arba", "ARBA recognized"
+        OTHER = "other", "Not ARBA recognized"
+
+    name = models.CharField(max_length=80, unique=True)
+    registry = models.CharField(max_length=8, choices=Registry.choices)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Rabbit(models.Model):
     """One rabbit owned by one account. Archiving keeps the row."""
 
