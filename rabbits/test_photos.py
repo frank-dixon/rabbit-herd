@@ -249,7 +249,7 @@ class PhotoPageTests(PhotoTestCase):
     def test_the_page_offers_an_upload(self):
         page = self.client.get(self.page())
         self.assertContains(page, 'enctype="multipart/form-data"')
-        self.assertContains(page, 'accept="image/jpeg,image/png,image/webp"')
+        self.assertContains(page, 'accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"')
         self.assertContains(page, "No photos yet.")
         self.assertContains(self.client.get(reverse("rabbit_detail", args=[self.rabbit.pk])), f'href="{self.page()}"')
 
@@ -272,7 +272,7 @@ class PhotoPageTests(PhotoTestCase):
         missing = self.client.post(self.page(), {"notes": "x"})
         self.assertContains(missing, "An upload needs a photo. Please choose one from your device.", status_code=400)
         wrong = self.send(image_bytes("GIF"), name="photo.gif")
-        self.assertContains(wrong, "A photo needs to be a JPEG, PNG or WebP image.", status_code=400)
+        self.assertContains(wrong, "A photo needs to be a JPEG, PNG, WebP or HEIC image.", status_code=400)
         long_notes = self.send(notes="x" * 501)
         self.assertContains(long_notes, "Notes can be up to 500 characters. Please shorten them.", status_code=400)
         self.assertFalse(RabbitPhoto.objects.exists())

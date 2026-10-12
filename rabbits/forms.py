@@ -40,7 +40,7 @@ class PhotoUploadForm(forms.Form):
     image = forms.FileField(
         label="Photo",
         required=False,
-        help_text="A JPEG, PNG or WebP photo, up to 10 MB. Location and camera details are removed when it's saved.",
+        help_text="A JPEG, PNG, WebP or HEIC photo, up to 10 MB. Location and camera details are removed when it's saved.",
         widget=forms.FileInput(attrs={"accept": photo_processing.ACCEPT}),
     )
     notes = forms.CharField(

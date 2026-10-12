@@ -1,5 +1,5 @@
-"""Uploads as phones and Macs really send them: MPO (iPhone multi-picture
-JPEG) and large files."""
+"""Uploads as phones and Macs really send them: HEIC named .jpeg, MPO
+(iPhone multi-picture JPEG) and large files."""
 
 import os
 from io import BytesIO
@@ -11,17 +11,28 @@ from rabbits.models import RabbitPhoto
 from rabbits.test_photos import PhotoTestCase, upload
 
 
+def heic_bytes(size=(64, 48), color="white"):
+    import pillow_heif
+
+    buffer = BytesIO()
+    pillow_heif.from_pillow(Image.new("RGB", size, color)).save(buffer, quality=60)
+    return buffer.getvalue()
+
+
 def mpo_bytes(size=(64, 48)):
     buffer = BytesIO()
     first, second = Image.new("RGB", size, "white"), Image.new("RGB", size, "black")
     first.save(buffer, format="MPO", save_all=True, append_images=[second])
     return buffer.getvalue()
 
+
+
 def noise_jpeg():
     picture = Image.frombytes("RGB", (2000, 1500), os.urandom(2000 * 1500 * 3))
     buffer = BytesIO()
     picture.save(buffer, format="JPEG", quality=95)
     return buffer.getvalue()
+
 
 class PhotoFormatTests(PhotoTestCase):
     def page(self):
@@ -34,6 +45,16 @@ class PhotoFormatTests(PhotoTestCase):
         with RabbitPhoto.objects.get().image.open("rb") as handle:
             return Image.open(BytesIO(handle.read())).format
 
+    def test_heic_named_jpeg_is_saved_as_jpeg(self):
+        response = self.send(heic_bytes(), "IMG_2299.jpeg")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.stored_format(), "JPEG")
+        self.assertTrue(RabbitPhoto.objects.get().image.name.endswith(".jpg"))
+
+    def test_heic_with_its_own_name_and_type_is_saved_as_jpeg(self):
+        self.assertEqual(self.send(heic_bytes(), "IMG_2299.HEIC", "image/heic").status_code, 302)
+        self.assertEqual(self.stored_format(), "JPEG")
+
     def test_iphone_mpo_jpeg_is_saved_as_jpeg(self):
         data = mpo_bytes()
         self.assertEqual(Image.open(BytesIO(data)).format, "MPO")
@@ -45,3 +66,7 @@ class PhotoFormatTests(PhotoTestCase):
         self.assertGreater(len(data), 2_621_440)
         self.assertEqual(self.send(data, "IMG_2299.jpeg").status_code, 302)
         self.assertEqual(self.stored_format(), "JPEG")
+
+
+    def test_the_picker_offers_heic(self):
+        self.assertContains(self.client.get(self.page()), "image/heic")

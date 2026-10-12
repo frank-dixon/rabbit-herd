@@ -1,7 +1,7 @@
 """Checking and cleaning uploaded rabbit photos.
 
 Every upload is opened with Pillow and saved again as a new file. That:
-- proves the file really is a JPEG, PNG or WebP image, whatever its name
+- proves the file really is a JPEG, PNG, WebP or HEIC image, whatever its name
   or the browser's claimed type says;
 - drops all metadata (EXIF, including GPS location, camera details, XMP,
   comments), because only the pixels are written back;
@@ -9,9 +9,9 @@ Every upload is opened with Pillow and saved again as a new file. That:
   is removed;
 - shrinks very large pictures to at most 2560 pixels on the long side.
 
-HEIC isn't accepted: Pillow can't read it without an extra package. Phones
-convert HEIC to JPEG on upload when the file picker asks for JPEG, PNG or
-WebP, which the upload form does.
+HEIC and HEIF (what iPhones and Macs save, sometimes under a .jpeg name)
+are read with pillow-heif and stored as JPEG, since browsers can't all
+show HEIC.
 """
 
 from io import BytesIO
@@ -19,18 +19,22 @@ from io import BytesIO
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from PIL import Image, ImageOps, UnidentifiedImageError
+from pillow_heif import register_heif_opener
+
+register_heif_opener()
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 MAX_SOURCE_PIXELS = 50_000_000
 MAX_EDGE = 2560
-ACCEPT = "image/jpeg,image/png,image/webp"
+ACCEPT = "image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
 FORMATS = {"JPEG": "jpg", "PNG": "png", "WEBP": "webp"}
 # Formats that are stored as one of FORMATS. MPO is the multi-picture JPEG
 # that iPhones save for portrait and some other photos; Pillow names it MPO
-# even though the file is a JPEG. Only its first picture is kept.
-SAVE_AS = {"MPO": "JPEG"}
+# even though the file is a JPEG. Only its first picture is kept. HEIF
+# (which Pillow also uses for HEIC) is converted to JPEG.
+SAVE_AS = {"MPO": "JPEG", "HEIF": "JPEG"}
 
-WRONG_TYPE = "A photo needs to be a JPEG, PNG or WebP image. Please choose a different file."
+WRONG_TYPE = "A photo needs to be a JPEG, PNG, WebP or HEIC image. Please choose a different file."
 TOO_BIG = "A photo can be up to 10 MB. Please choose a smaller file."
 UNREADABLE = "That file couldn't be opened as a photo. Please choose a different one."
 TOO_MANY_PIXELS = "That photo is too large to process. Please choose a smaller one."
