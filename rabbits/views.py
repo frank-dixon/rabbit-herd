@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 
 from . import genetics
 from .forms import GenesForm, PhotoUploadForm
-from .models import Contact, Gene, Rabbit
+from .models import Contact, Gene, Rabbit, Weight
 
 def owned_rabbits(user):
     return Rabbit.objects.filter(owner=user)
@@ -136,6 +136,20 @@ def rabbit_archived(request):
     )
 
 
+def weight_context(request, rabbit):
+    from .weights import chart
+
+    entries = list(rabbit.weights.all())
+    last_unit = entries[-1].unit if entries else request.session.get("weight_unit", Weight.Unit.LB_OZ)
+    return {
+        "weights": list(reversed(entries)),
+        "weight_chart": chart(entries, last_unit),
+        "weight_unit": last_unit,
+        "weight_units": Weight.Unit.choices,
+        "today": timezone.localdate().isoformat(),
+    }
+
+
 @login_required
 def rabbit_detail(request, pk):
     rabbit = owned_rabbit(request.user, pk)
@@ -154,6 +168,7 @@ def rabbit_detail(request, pk):
             "extra_photos": [photo for photo in photos if photo is not main],
             "photos": photos,
             "relatives": relatives,
+            **weight_context(request, rabbit),
             "contact_options": [(str(c.pk), str(c)) for c in Contact.objects.filter(owner=request.user)],
             "kindling_note": rabbit.kindling_note(relatives),
             "upload_form": PhotoUploadForm(),

@@ -1,9 +1,11 @@
 from django.urls import path
 
-from . import contact_views, adopt_views, edit_views, flow_views, photo_views, views
+from . import contact_views, weights, adopt_views, edit_views, flow_views, photo_views, views
 
 urlpatterns = [
     path("", views.rabbit_list, name="rabbit_list"),
+    path("<int:pk>/weights/", weights.weight_add, name="rabbit_weight_add"),
+    path("weights/<int:pk>/delete/", weights.weight_delete, name="rabbit_weight_delete"),
     path("<int:pk>/source/", contact_views.rabbit_source, name="rabbit_source"),
     path("archived/", views.rabbit_archived, name="rabbit_archived"),
     path("new/", flow_views.rabbit_flow_resume, name="rabbit_create"),

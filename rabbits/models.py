@@ -320,6 +320,46 @@ class Contact(models.Model):
         ) if flag]
 
 
+GRAMS_PER_OUNCE = Decimal("28.349523125")
+
+
+class Weight(models.Model):
+    """One weighing. Stored in grams; shown in the unit it was entered in."""
+
+    class Unit(models.TextChoices):
+        LB_OZ = "lb", "lb and oz"
+        KG = "kg", "kg"
+
+    rabbit = models.ForeignKey(Rabbit, related_name="weights", on_delete=models.CASCADE)
+    date = models.DateField()
+    grams = models.PositiveIntegerField()
+    unit = models.CharField(max_length=2, choices=Unit.choices, default=Unit.LB_OZ)
+    note = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["date", "pk"]
+        constraints = [models.CheckConstraint(condition=models.Q(grams__gt=0), name="weight_positive")]
+
+    def __str__(self):
+        return f"{self.rabbit} {self.date}: {self.text}"
+
+    @property
+    def text(self):
+        return weight_text(self.grams, self.unit)
+
+
+def weight_text(grams, unit):
+    """1985 g -> "4 lb 6 oz" or "1.99 kg"."""
+    if unit == Weight.Unit.KG:
+        return f"{Decimal(grams) / 1000:.2f}".rstrip("0").rstrip(".") + " kg"
+    ounces = int((Decimal(grams) / GRAMS_PER_OUNCE).quantize(Decimal("1")))
+    pounds, ounces = divmod(ounces, 16)
+    if not pounds:
+        return f"{ounces} oz"
+    return f"{pounds} lb" + (f" {ounces} oz" if ounces else "")
+
+
 class OutsideRabbit(models.Model):
     """A rabbit that is not in the herd, kept so relatives and pedigrees can
     name it. Entries are reusable across the owner's rabbits."""
