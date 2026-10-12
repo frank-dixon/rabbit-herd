@@ -14,6 +14,7 @@ are read with pillow-heif and stored as JPEG, since browsers can't all
 show HEIC.
 """
 
+import datetime
 from io import BytesIO
 
 from django.core.exceptions import ValidationError
@@ -38,6 +39,45 @@ WRONG_TYPE = "A photo needs to be a JPEG, PNG, WebP or HEIC image. Please choose
 TOO_BIG = "A photo can be up to 10 MB. Please choose a smaller file."
 UNREADABLE = "That file couldn't be opened as a photo. Please choose a different one."
 TOO_MANY_PIXELS = "That photo is too large to process. Please choose a smaller one."
+
+
+EXIF_IFD = 0x8769
+DATE_TAGS = (36867, 36868)  # DateTimeOriginal, DateTimeDigitized
+IFD0_DATETIME = 306
+
+
+def parse_exif_date(text):
+    """ "2026:03:03 14:22:01" (EXIF) or "2026-03-03" to a date, else None."""
+    text = str(text or "").strip().replace("\x00", "")
+    if len(text) < 10:
+        return None
+    try:
+        return datetime.date(int(text[0:4]), int(text[5:7]), int(text[8:10]))
+    except ValueError:
+        return None
+
+
+def read_taken_date(upload):
+    """The date a photo was taken, from DateTimeOriginal, then DateTimeDigitized,
+    then the main DateTime, read before anything is stripped. JPEG, HEIC
+    (through pillow-heif) and WebP all expose it the same way. None if absent."""
+    try:
+        upload.seek(0)
+        with Image.open(upload) as probe:
+            exif = probe.getexif()
+            inner = exif.get_ifd(EXIF_IFD) if exif else {}
+            for tag in DATE_TAGS:
+                found = parse_exif_date(inner.get(tag))
+                if found:
+                    return found
+            return parse_exif_date(exif.get(IFD0_DATETIME)) if exif else None
+    except Exception:
+        return None
+    finally:
+        try:
+            upload.seek(0)
+        except Exception:
+            pass
 
 
 def clean_photo(upload):

@@ -6,6 +6,7 @@ address reveals nothing and works for no one else. Every change is a POST
 with a CSRF token and redirects afterwards, so a refresh never repeats it.
 """
 
+import datetime
 import mimetypes
 
 from django.contrib import messages
@@ -18,7 +19,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from . import photo_processing
 from .forms import PhotoNotesForm, PhotoUploadForm
-from .models import Rabbit, RabbitPhoto
+from .models import Rabbit, RabbitPhoto, valid_taken_date
 
 
 def owned_photo(user, pk):
@@ -60,7 +61,11 @@ def rabbit_photos(request, pk):
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
             first_main = not rabbit.photos.filter(is_main=True).exists()
-            photo = RabbitPhoto(rabbit=rabbit, notes=form.cleaned_data["notes"], is_main=first_main)
+            taken = valid_taken_date(form.taken_date(), rabbit.birth_date)
+            photo = RabbitPhoto(
+                rabbit=rabbit, notes=form.cleaned_data["notes"], is_main=first_main,
+                taken_at=taken, taken_from_metadata=taken is not None,
+            )
             photo.image.save(form.cleaned_data["image"].name, form.cleaned_data["image"], save=False)
             photo.save()
         if first_main:
@@ -157,4 +162,31 @@ def photo_rotate(request, pk):
         photo.save(update_fields=["image"])
         transaction.on_commit(lambda: storage.delete(old_name))
     messages.success(request, f"The photo was rotated {direction}.")
+    return redirect(photos_url(photo.rabbit, f"photo-{photo.pk}", request))
+
+
+@login_required
+@require_POST
+def photo_date(request, pk):
+    """Set or clear the date a photo was taken. Blank clears it, so the
+    badge falls back to the upload date."""
+    photo = owned_photo(request.user, pk)
+    raw = request.POST.get("taken_at", "").strip()
+    if not raw:
+        photo.taken_at, photo.taken_from_metadata = None, False
+        photo.save(update_fields=["taken_at", "taken_from_metadata"])
+        messages.success(request, "The date was cleared. The photo shows the day it was added.")
+        return redirect(photos_url(photo.rabbit, f"photo-{photo.pk}", request))
+    try:
+        value = datetime.date.fromisoformat(raw)
+    except ValueError:
+        value = None
+    if value is None:
+        messages.error(request, "Please pick the date from the calendar.")
+    elif valid_taken_date(value, photo.rabbit.birth_date) is None:
+        messages.error(request, "A photo's date can't be in the future or before the rabbit was born.")
+    else:
+        photo.taken_at, photo.taken_from_metadata = value, False
+        photo.save(update_fields=["taken_at", "taken_from_metadata"])
+        messages.success(request, "The date was saved.")
     return redirect(photos_url(photo.rabbit, f"photo-{photo.pk}", request))

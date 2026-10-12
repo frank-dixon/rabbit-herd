@@ -27,11 +27,20 @@ class PhotoUploadForm(forms.Form):
         widget=forms.Textarea(attrs={"rows": 3, "maxlength": 500}),
     )
 
+    # Set by the browser when it had to redraw (shrink) the photo, which loses
+    # its metadata: the date it read from the original file first.
+    taken_hint = forms.CharField(required=False, widget=forms.HiddenInput)
+
     def clean_image(self):
         upload = self.cleaned_data.get("image")
         if not upload:
             raise forms.ValidationError(PHOTO_REQUIRED)
+        self.taken_at = photo_processing.read_taken_date(upload)
         return photo_processing.clean_photo(upload)
+
+    def taken_date(self):
+        """The metadata date from the file, else the browser's hint."""
+        return getattr(self, "taken_at", None) or photo_processing.parse_exif_date(self.cleaned_data.get("taken_hint"))
 
     def clean_notes(self):
         return self.cleaned_data["notes"].strip()

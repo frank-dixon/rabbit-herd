@@ -423,6 +423,14 @@ def photo_file_path(instance, filename):
     return f"rabbit-photos/{instance.rabbit.owner_id}/{uuid.uuid4().hex}{extension}"
 
 
+def valid_taken_date(value, birth_date=None, today=None):
+    """The date, or None when it's in the future or before the birth date."""
+    today = today or timezone.localdate()
+    if value is None or value > today or (birth_date and value < birth_date):
+        return None
+    return value
+
+
 class RabbitPhoto(models.Model):
     """A photo of a rabbit, with notes. At most one per rabbit is the main
     photo, the one shown on the list and at the top of the detail page."""
@@ -432,6 +440,10 @@ class RabbitPhoto(models.Model):
     notes = models.TextField(blank=True, max_length=500)
     is_main = models.BooleanField(default=False)
     uploaded_at = models.DateTimeField(default=timezone.now)
+    # Only the date the photo was taken is kept from its metadata; the rest
+    # is stripped. taken_from_metadata is False once the keeper sets it.
+    taken_at = models.DateField(null=True, blank=True)
+    taken_from_metadata = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-is_main", "uploaded_at", "pk"]
@@ -442,6 +454,25 @@ class RabbitPhoto(models.Model):
                 name="one_main_photo_per_rabbit",
             ),
         ]
+
+    @property
+    def date_badge(self):
+        """ "Taken Mar 3, 2026" when the taken date is usable, else "Added <date>"."""
+        taken = valid_taken_date(self.taken_at, self.rabbit.birth_date)
+        if taken:
+            return f"Taken {taken:%b} {taken.day}, {taken.year}"
+        added = timezone.localtime(self.uploaded_at).date()
+        return f"Added {added:%b} {added.day}, {added.year}"
+
+    @property
+    def badge_parts(self):
+        """("Taken", "Mar 3, 2026") so small tiles can drop the word."""
+        word, _, day = self.date_badge.partition(" ")
+        return word, day
+
+    @property
+    def shows_taken(self):
+        return valid_taken_date(self.taken_at, self.rabbit.birth_date) is not None
 
     def __str__(self):
         return f"Photo of {self.rabbit.name}"

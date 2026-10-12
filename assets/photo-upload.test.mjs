@@ -22,3 +22,15 @@ test("photos are redrawn when too wide or too heavy", () => {
 test("the limit stays under Vercel's 4.5 MB request cap", () => {
   assert.ok(MAX_UPLOAD_BYTES < 4.5 * 1024 * 1024);
 });
+
+import { exifDate } from "./photo-upload.mjs";
+import { readFileSync } from "node:fs";
+
+test("exifDate reads DateTimeOriginal (not the main DateTime) from a JPEG", () => {
+  const bytes = readFileSync(new URL("./fixtures/exif-2026-03-03.jpg", import.meta.url));
+  assert.equal(exifDate(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length)), "2026-03-03");
+});
+
+test("exifDate returns empty for non-JPEG bytes", () => {
+  assert.equal(exifDate(new Uint8Array([0x89, 0x50, 0x4e, 0x47]).buffer), "");
+});

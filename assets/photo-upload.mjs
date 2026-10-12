@@ -74,6 +74,64 @@ async function shrink(file) {
   }
 }
 
+/**
+ * The EXIF date a JPEG was taken ("YYYY-MM-DD"), or "". Reads
+ * DateTimeOriginal, then DateTimeDigitized, then the main DateTime. Used
+ * only when the browser redraws the photo, which drops its metadata; the
+ * server reads the date itself from files it receives untouched.
+ */
+export function exifDate(buffer) {
+  const view = new DataView(buffer);
+  if (view.byteLength < 4 || view.getUint16(0) !== 0xffd8) return "";
+  let offset = 2;
+  while (offset + 4 <= view.byteLength) {
+    const marker = view.getUint16(offset);
+    const size = view.getUint16(offset + 2);
+    if (marker === 0xffe1 && view.getUint32(offset + 4) === 0x45786966) {
+      return tiffDate(view, offset + 10);
+    }
+    if ((marker & 0xff00) !== 0xff00 || marker === 0xffda) break;
+    offset += 2 + size;
+  }
+  return "";
+}
+
+function tiffDate(view, start) {
+  try {
+    const little = view.getUint16(start) === 0x4949;
+    const u16 = (at) => view.getUint16(at, little);
+    const u32 = (at) => view.getUint32(at, little);
+    const entries = (ifd) => {
+      const found = {};
+      const count = u16(start + ifd);
+      for (let i = 0; i < count; i += 1) {
+        const at = start + ifd + 2 + i * 12;
+        found[u16(at)] = { type: u16(at + 2), count: u32(at + 4), value: u32(at + 8) };
+      }
+      return found;
+    };
+    const text = (entry) => {
+      if (!entry || entry.type !== 2 || entry.count < 10) return "";
+      let out = "";
+      for (let i = 0; i < 10; i += 1) out += String.fromCharCode(view.getUint8(start + entry.value + i));
+      return /^\d{4}:\d{2}:\d{2}$/.test(out) ? out.replace(/:/g, "-") : "";
+    };
+    const ifd0 = entries(u32(start + 4));
+    const inner = ifd0[0x8769] ? entries(ifd0[0x8769].value) : {};
+    return text(inner[0x9003]) || text(inner[0x9004]) || text(ifd0[0x0132]);
+  } catch {
+    return "";
+  }
+}
+
+async function readDate(file) {
+  try {
+    return exifDate(await file.slice(0, 256 * 1024).arrayBuffer());
+  } catch {
+    return "";
+  }
+}
+
 function showError(input, message) {
   let box = input.form.querySelector("[data-photo-error]");
   if (!box) {
@@ -99,6 +157,8 @@ export function bindPhotoUpload(root) {
       if (button) button.disabled = true;
       try {
         const original = input.files[0];
+        const hint = form.querySelector("[data-taken-hint]");
+        if (hint) hint.value = await readDate(original);
         const file = await shrink(original);
         if (file.size > MAX_UPLOAD_BYTES) {
           showError(input, TOO_BIG);
