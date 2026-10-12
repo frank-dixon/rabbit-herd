@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -31,17 +33,90 @@ def list_view_choice(request):
     return saved if saved in LIST_VIEWS else "grid"
 
 
+def breed_names(breeds):
+    """Breed names for the filter: purebred names and every breed in a cross."""
+    names = set()
+    for breed in breeds:
+        text = breed or ""
+        if text.lower().startswith("cross:"):
+            for part in text[len("cross:"):].split(","):
+                part = part.strip()
+                percent, _, name = part.partition(" ")
+                names.add(name.strip() if percent.endswith("%") and name else part)
+        elif text:
+            names.add(text.strip())
+    return sorted(name for name in names if name)
+
+
+def list_filters(request):
+    """Search and filter choices from GET. Unknown values are dropped."""
+    get = request.GET
+    sexes = dict(Rabbit.Sex.choices)
+    statuses = dict(Rabbit.Status.choices)
+    return {
+        "tab": "archived" if get.get("tab") == "archived" else "active",
+        "q": " ".join(get.get("q", "").split())[:120],
+        "sex": get.get("sex") if get.get("sex") in sexes else "",
+        "breed": get.get("breed", "").strip()[:80],
+        "status": get.get("status") if get.get("status") in statuses else "",
+    }
+
+
+def query_string(params, **changes):
+    merged = {**params, **changes}
+    if merged.get("tab") == "active":
+        merged.pop("tab")
+    return urlencode({key: value for key, value in merged.items() if value})
+
+
 @login_required
 def rabbit_list(request):
-    rabbits = list(owned_rabbits(request.user).filter(archived_at__isnull=True).prefetch_related("photos"))
+    view = list_view_choice(request)
+    filters = list_filters(request)
+    mine = owned_rabbits(request.user)
+    active = mine.filter(archived_at__isnull=True)
+    archived = mine.filter(archived_at__isnull=False)
+    rabbits = archived if filters["tab"] == "archived" else active
+    if filters["q"]:
+        rabbits = rabbits.filter(name__icontains=filters["q"])
+    if filters["sex"]:
+        rabbits = rabbits.filter(sex=filters["sex"])
+    if filters["breed"]:
+        rabbits = rabbits.filter(breed__icontains=filters["breed"])
+    if filters["status"]:
+        rabbits = rabbits.filter(status=filters["status"])
+    rabbits = list(rabbits.prefetch_related("photos"))
+    # One small query gives both tab counts and the breed filter's options.
+    herd = list(mine.values_list("breed", "archived_at"))
+    archived_count = sum(1 for _, archived_at in herd if archived_at)
+    active_count = len(herd) - archived_count
+    filtering = any(filters[key] for key in ("q", "sex", "breed", "status"))
+    noun = "archived" if filters["tab"] == "archived" else "active"
+    total = archived_count if filters["tab"] == "archived" else active_count
+    if filtering:
+        subtitle = f"{len(rabbits)} of {total} {noun} rabbit{'' if total == 1 else 's'}"
+    else:
+        subtitle = f"{total} {noun} rabbit{'' if total == 1 else 's'} in your herd"
     return render(
         request,
         "rabbits/list.html",
         {
             "rabbits": rabbits,
-            "view": list_view_choice(request),
+            "view": view,
             "wide": True,
-            "subtitle": f"{len(rabbits)} active rabbit{'' if len(rabbits) == 1 else 's'} in your herd",
+            "subtitle": subtitle,
+            "filters": filters,
+            "filtering": filtering,
+            "active_count": active_count,
+            "archived_count": archived_count,
+            "sex_options": Rabbit.Sex.choices,
+            "status_options": Rabbit.Status.choices,
+            "breed_options": breed_names(breed for breed, _ in herd),
+            "grid_qs": query_string(filters, view="grid"),
+            "list_qs": query_string(filters, view="list"),
+            "active_qs": query_string({"view": ""}, tab="active"),
+            "archived_qs": query_string({}, tab="archived"),
+            "clear_qs": query_string({}, tab=filters["tab"]),
         },
     )
 

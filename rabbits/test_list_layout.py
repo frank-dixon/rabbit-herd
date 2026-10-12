@@ -61,3 +61,54 @@ class ArchivedLayoutTests(TestCase):
         self.assertContains(page, "max-w-6xl")
         self.assertContains(page, "Archived rabbits")
         self.assertContains(page, "Restore<span class=\"sr-only\"> Clover</span>")
+
+
+class SearchFilterTests(TestCase):
+    def setUp(self):
+        from django.utils import timezone
+
+        self.user = get_user_model().objects.create_user("s@example.com", "pw-12345678")
+        self.client.force_login(self.user)
+        make = lambda **kw: Rabbit.objects.create(owner=self.user, color="Black", birth_date=date(2025, 1, 1), **kw)
+        make(name="Blackberry", sex="buck", breed="Cross: 50% Creme d'Argent, 50% New Zealand", status="breeding")
+        make(name="Lily", sex="doe", breed="New Zealand", status="sold")
+        make(name="Willow", sex="doe", breed="Rex", status="breeding")
+        make(name="Clover", sex="doe", breed="Rex", status="breeding", archived_at=timezone.now())
+
+    def names(self, **params):
+        page = self.client.get(reverse("rabbit_list"), params)
+        return page, sorted(r.name for r in page.context["rabbits"])
+
+    def test_search_and_each_filter(self):
+        self.assertEqual(self.names(q="  lil ")[1], ["Lily"])
+        self.assertEqual(self.names(sex="doe")[1], ["Lily", "Willow"])
+        self.assertEqual(self.names(status="breeding")[1], ["Blackberry", "Willow"])
+        self.assertEqual(self.names(breed="New Zealand")[1], ["Blackberry", "Lily"])
+        self.assertEqual(self.names(sex="doe", breed="New Zealand")[1], ["Lily"])
+
+    def test_breed_options_include_breeds_inside_crosses(self):
+        page, _ = self.names()
+        self.assertEqual(page.context["breed_options"], ["Creme d'Argent", "New Zealand", "Rex"])
+
+    def test_archived_tab_and_counts(self):
+        page, names = self.names(tab="archived")
+        self.assertEqual(names, ["Clover"])
+        self.assertContains(page, "Active (3)")
+        self.assertContains(page, "Archived (1)")
+        self.assertContains(page, '<input type="hidden" name="tab" value="archived">')
+
+    def test_unknown_values_are_ignored(self):
+        self.assertEqual(self.names(sex="cat", status="gone", tab="x")[1], ["Blackberry", "Lily", "Willow"])
+
+    def test_empty_results_state_and_clear_link(self):
+        page, names = self.names(q="zzz")
+        self.assertEqual(names, [])
+        self.assertContains(page, "No rabbits match these filters.")
+        self.assertContains(page, "0 of 3 active rabbits")
+
+    def test_view_toggle_keeps_filters_and_saved_view(self):
+        page, _ = self.names(sex="doe", view="list")
+        self.assertContains(page, 'href="?sex=doe&amp;view=grid"')
+        self.assertContains(page, 'data-view="list"')
+        again, _ = self.names(status="sold")
+        self.assertContains(again, 'data-view="list"')

@@ -4,14 +4,51 @@
 
 {% block content %}
   {% url 'rabbit_create' as create_url %}
-  {% url 'rabbit_archived' as archived_url %}
-  {% include "components/page_header.html" with title="Rabbits" subtitle=subtitle primary_label="+ Add a rabbit" primary_href=create_url secondary_label="Archived" secondary_href=archived_url only %}
+  {% include "components/page_header.html" with title="Rabbits" subtitle=subtitle primary_label="+ Add a rabbit" primary_href=create_url only %}
+
+  <nav class="mt-6 flex gap-1 border-b border-neutral-300" aria-label="Active or archived">
+    <a href="?{{ active_qs }}" class="-mb-px rounded-t border px-3 py-1.5 text-sm {% if filters.tab == 'active' %}border-neutral-300 border-b-neutral-200 bg-white font-medium{% else %}border-transparent text-neutral-600{% endif %}"{% if filters.tab == 'active' %} aria-current="page"{% endif %}>Active ({{ active_count }})</a>
+    <a href="?{{ archived_qs }}" class="-mb-px rounded-t border px-3 py-1.5 text-sm {% if filters.tab == 'archived' %}border-neutral-300 border-b-neutral-200 bg-white font-medium{% else %}border-transparent text-neutral-600{% endif %}"{% if filters.tab == 'archived' %} aria-current="page"{% endif %}>Archived ({{ archived_count }})</a>
+  </nav>
+
+  <form method="get" class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto] sm:items-end" role="search" aria-label="Search and filter rabbits">
+    {% if filters.tab == 'archived' %}<input type="hidden" name="tab" value="archived">{% endif %}
+    <div class="col-span-2 sm:col-span-1">
+      <label class="block text-sm font-medium text-neutral-800" for="id_q">Search by name</label>
+      <input class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2 text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900" id="id_q" name="q" type="search" value="{{ filters.q }}" autocomplete="off">
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-neutral-800" for="id_sex">Sex</label>
+      <select class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2" id="id_sex" name="sex">
+        <option value="">Any</option>
+        {% for value, label in sex_options %}<option value="{{ value }}"{% if filters.sex == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-neutral-800" for="id_status">Status</label>
+      <select class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2" id="id_status" name="status">
+        <option value="">Any</option>
+        {% for value, label in status_options %}<option value="{{ value }}"{% if filters.status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-span-2 sm:col-span-1">
+      <label class="block text-sm font-medium text-neutral-800" for="id_breed">Breed</label>
+      <select class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2 sm:max-w-[14rem]" id="id_breed" name="breed">
+        <option value="">Any</option>
+        {% for name in breed_options %}<option value="{{ name }}"{% if filters.breed == name %} selected{% endif %}>{{ name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-span-2 flex gap-2 sm:col-span-1">
+      <div class="flex flex-1 flex-col sm:flex-none">{% include "components/button.html" with label="Search" type="submit" variant="primary" only %}</div>
+      {% if filtering %}<div class="flex flex-1 flex-col sm:flex-none">{% include "components/button.html" with label="Clear" href="?"|add:clear_qs variant="secondary" only %}</div>{% endif %}
+    </div>
+  </form>
 
   {% if rabbits %}
     <nav class="mt-6 flex justify-end" aria-label="Layout">
       <div class="inline-flex overflow-hidden rounded border border-neutral-500 bg-white text-sm">
-        <a href="?view=grid" class="px-3 py-1.5 {% if view == 'grid' %}bg-neutral-800 text-white{% endif %}"{% if view == 'grid' %} aria-current="true"{% endif %}>Grid</a>
-        <a href="?view=list" class="border-l border-neutral-500 px-3 py-1.5 {% if view == 'list' %}bg-neutral-800 text-white{% endif %}"{% if view == 'list' %} aria-current="true"{% endif %}>List</a>
+        <a href="?{{ grid_qs }}" class="px-3 py-1.5 {% if view == 'grid' %}bg-neutral-800 text-white{% endif %}"{% if view == 'grid' %} aria-current="true"{% endif %}>Grid</a>
+        <a href="?{{ list_qs }}" class="border-l border-neutral-500 px-3 py-1.5 {% if view == 'list' %}bg-neutral-800 text-white{% endif %}"{% if view == 'list' %} aria-current="true"{% endif %}>List</a>
       </div>
     </nav>
 
@@ -54,6 +91,15 @@
       </ul>
     {% endif %}
   {% else %}
-    <p class="mt-8 text-neutral-600">No rabbits yet.</p>
+    {% if filtering %}
+      <div class="mt-8 rounded border border-neutral-300 bg-white p-4" data-empty="filtered">
+        <p class="font-medium">No rabbits match these filters.</p>
+        <p class="mt-1 text-neutral-600"><a class="underline" href="?{{ clear_qs }}">Clear the search and filters</a></p>
+      </div>
+    {% elif filters.tab == 'archived' %}
+      <p class="mt-8 text-neutral-600">No archived rabbits.</p>
+    {% else %}
+      <p class="mt-8 text-neutral-600">No rabbits yet.</p>
+    {% endif %}
   {% endif %}
 {% endblock %}
