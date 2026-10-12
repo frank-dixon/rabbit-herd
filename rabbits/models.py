@@ -1,3 +1,4 @@
+from datetime import date
 import uuid
 from pathlib import Path
 
@@ -171,6 +172,20 @@ class Rabbit(models.Model):
             if parts:
                 return f"Cross: {', '.join(parts)}"
         return self.breed
+
+    def age_text(self, today=None):
+        """Age such as "1 yr 9 mo", "4 mo" or "under 1 mo"."""
+        today = today or date.today()
+        months = (today.year - self.birth_date.year) * 12 + today.month - self.birth_date.month
+        if today.day < self.birth_date.day:
+            months -= 1
+        if months < 1:
+            return "under 1 mo"
+        years, months = divmod(months, 12)
+        parts = [f"{years} yr"] if years else []
+        if months:
+            parts.append(f"{months} mo")
+        return " ".join(parts)
 
     @property
     def short_breed(self):

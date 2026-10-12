@@ -384,14 +384,14 @@ class PhotoDisplayTests(PhotoTestCase):
         body = page.content.decode()
         self.assertContains(page, "Best of breed, spring show")
         self.assertContains(page, "Six weeks old")
-        self.assertLess(body.index(self.src(main)), body.index("More photos"))
-        self.assertLess(body.index("More photos"), body.index(self.src(older)))
+        self.assertLess(body.index(self.src(main)), body.index('id="gallery-heading"'))
+        self.assertLess(body.index('id="gallery-heading"'), body.index(self.src(older)))
         self.assertLess(body.index(self.src(older)), body.index(self.src(newer)))
         self.assertEqual(body.count(self.src(main)), 1)
         self.assertContains(page, "Add or manage photos")
 
     def test_detail_empty_states(self):
-        self.assertContains(self.detail(), "No photos yet. Add one on the Photos page")
+        self.assertContains(self.detail(), "No photos yet.")
         add_photo(self.rabbit, is_main=True)
         self.assertContains(self.detail(), "Only the main photo so far.")
 

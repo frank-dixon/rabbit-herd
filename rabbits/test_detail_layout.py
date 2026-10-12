@@ -1,0 +1,45 @@
+from datetime import date
+
+from django.contrib.auth import get_user_model
+from django.test import SimpleTestCase, TestCase
+from django.urls import reverse
+
+from .models import Rabbit
+
+
+class AgeTextTests(SimpleTestCase):
+    def age(self, born, today):
+        return Rabbit(birth_date=born).age_text(today=today)
+
+    def test_years_and_months(self):
+        self.assertEqual(self.age(date(2025, 1, 15), date(2026, 10, 12)), "1 yr 8 mo")
+        self.assertEqual(self.age(date(2025, 1, 15), date(2026, 10, 15)), "1 yr 9 mo")
+
+    def test_months_only_whole_years_and_newborns(self):
+        self.assertEqual(self.age(date(2026, 6, 1), date(2026, 10, 12)), "4 mo")
+        self.assertEqual(self.age(date(2024, 10, 12), date(2026, 10, 12)), "2 yr")
+        self.assertEqual(self.age(date(2026, 10, 1), date(2026, 10, 12)), "under 1 mo")
+
+
+class DetailLayoutTests(TestCase):
+    def test_header_details_list_and_short_empty_states(self):
+        user = get_user_model().objects.create_user("d@example.com", "pw-12345678")
+        self.client.force_login(user)
+        rabbit = Rabbit.objects.create(
+            owner=user, name="Speedwell", sex="buck", breed="Creme d'Argent", color="Creme",
+            status="sold", birth_date=date(2025, 1, 15),
+        )
+        page = self.client.get(reverse("rabbit_detail", args=[rabbit.pk]))
+        body = page.content.decode()
+        self.assertContains(page, "max-w-6xl")
+        self.assertContains(page, '<h1 class="break-words text-2xl font-semibold">Speedwell</h1>')
+        self.assertLess(body.index(">Edit<"), body.index(">Archive<"))
+        self.assertLess(body.index(">Archive<"), body.index(">Back to rabbits<"))
+        for label in ("Sex", "Breed", "Color", "Line", "Born", "Status"):
+            self.assertContains(page, f'<dt class="text-neutral-600">{label}</dt>')
+        self.assertContains(page, "Jan 15, 2025 · ")
+        self.assertContains(page, "No photos yet.")
+        self.assertContains(page, "No parents recorded.")
+        self.assertContains(page, "No genes recorded.")
+        self.assertContains(page, 'href="' + reverse("rabbit_genes", args=[rabbit.pk]) + '"')
+        self.assertNotContains(page, "Buck. Creme d&#x27;Argent. Creme. Born")

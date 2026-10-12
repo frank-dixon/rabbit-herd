@@ -20,7 +20,7 @@ class CarrierNoteTests(FlowTestMixin, TestCase):
     def test_the_detail_page_suggests_a_c_carrier_and_shows_parent_traits(self):
         page = self.client.get(self.detail)
         self.assertContains(page, "Probable carrier of c (albino)")
-        self.assertContains(page, "Snow · Ruby-eyed white, Ridgeview")
+        self.assertContains(page, "Ruby-eyed white · Line Ridgeview")
         self.assertContains(page, "C: c/c (known)")
 
     def test_confirm_records_c_carrier_as_probable(self):

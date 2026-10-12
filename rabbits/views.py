@@ -65,6 +65,7 @@ def rabbit_detail(request, pk):
         "rabbits/detail.html",
         {
             "rabbit": rabbit,
+            "wide": True,
             "main_photo": main,
             "extra_photos": [photo for photo in photos if photo is not main],
             "c_carrier_note": genetics.c_carrier_suggestion(rabbit),
