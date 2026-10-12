@@ -257,7 +257,7 @@ class PageShellTests(TestCase):
 
         response = self.client.get("/")
 
-        self.assertContains(response, "You're in.")
+        self.assertContains(response, "Activity</h1>")
         self.assertContains(response, "<header")
         self.assertContains(response, "<footer")
 

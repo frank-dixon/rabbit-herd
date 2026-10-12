@@ -20,11 +20,12 @@ class AppShellTests(TestCase):
             self.assertContains(page, 'aria-current="page"', msg_prefix=url)
 
     def test_only_built_sections_are_listed(self):
-        page = self.client.get(reverse("index"))
+        html = self.client.get(reverse("index")).content.decode()
+        page = html[html.index('<aside'):html.index('</aside>')] + html[html.index('data-app-tabs'):]
         for missing in ("Breeding", "Litters", "Tasks", "Pairings", "Weights", "coming soon", "Coming soon"):
-            self.assertNotContains(page, missing)
+            self.assertNotIn(missing, page)
         for label in ("Home", "Rabbits", "Add a rabbit", "Archived", "Account", "Log out"):
-            self.assertContains(page, label)
+            self.assertIn(label, page)
 
     def test_the_current_section_is_marked(self):
         page = self.client.get(reverse("rabbit_detail", args=[self.rabbit.pk])).content.decode()

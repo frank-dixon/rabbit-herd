@@ -56,8 +56,8 @@ class PasswordAccountTests(TestCase):
         confirmed = self.client.get(path)
         self.assertRedirects(confirmed, reverse("index"))
         home = self.client.get(reverse("index"))
-        self.assertContains(home, "You're in.")
-        self.assertContains(home, "frank@example.com")
+        self.assertContains(home, "Activity</h1>")
+        self.assertContains(self.client.get(reverse("account")), "frank@example.com")
         user.refresh_from_db()
         self.assertTrue(user.email_confirmed)
         self.assertTrue(user.is_active)
@@ -99,7 +99,7 @@ class PasswordAccountTests(TestCase):
         )
 
         self.assertRedirects(response, reverse("index"))
-        self.assertContains(self.client.get(reverse("index")), "You're in.")
+        self.assertContains(self.client.get(reverse("index")), "Activity</h1>")
 
         logged_out = self.client.post(reverse("logout"))
         self.assertRedirects(logged_out, reverse("index"))
@@ -156,7 +156,7 @@ class PasswordAccountTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Email or password is incorrect.")
-        self.assertNotContains(self.client.get(reverse("index")), "You're in.")
+        self.assertNotContains(self.client.get(reverse("index")), "Activity</h1>")
 
 
 class PasskeyEndpointTests(TestCase):
@@ -268,7 +268,7 @@ class AccountManagementTests(TestCase):
         self.assertRedirects(response, reverse("password_change_done"))
         user.refresh_from_db()
         self.assertTrue(user.check_password(NEW_PASSWORD))
-        self.assertContains(self.client.get(reverse("index")), "You're in.")
+        self.assertContains(self.client.get(reverse("index")), "Activity</h1>")
 
     def test_password_reset(self):
         user = make_user()
@@ -318,8 +318,8 @@ class AccountManagementTests(TestCase):
 
         self.assertRedirects(response, reverse("index"))
         home = self.client.get(reverse("index"))
-        self.assertContains(home, "You're in.")
-        self.assertContains(home, "guest session")
+        self.assertContains(home, "Activity</h1>")
+        self.assertContains(self.client.get(reverse("account")), "guest session")
         user = User.objects.get()
         self.assertTrue(user.is_guest)
         self.assertFalse(user.has_usable_password())
@@ -343,7 +343,7 @@ class AccountManagementTests(TestCase):
             {"username": user.email, "password": PASSWORD},
         )
         self.assertRedirects(response, reverse("index"))
-        self.assertContains(self.client.get(reverse("index")), "You're in.")
+        self.assertContains(self.client.get(reverse("index")), "Activity</h1>")
 
     def test_account_mail_keeps_a_long_link_on_one_line(self):
         from accounts.emails import PlainEmailMessage
