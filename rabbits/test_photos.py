@@ -253,7 +253,10 @@ class PhotoPageTests(PhotoTestCase):
         self.assertContains(page, "No photos yet.")
         # The browser shrinks big photos before upload (Vercel caps requests near 4.5 MB).
         self.assertContains(page, "data-photo-upload")
-        self.assertContains(page, "under 4 MB")
+        self.assertNotContains(page, "<textarea")
+        self.assertContains(page, f"Photos of {self.rabbit.name}</h1>")
+        self.assertContains(page, f'href="{reverse("rabbit_detail", args=[self.rabbit.pk])}"')
+        self.assertContains(page, 'name="back_to" value="photos"')
         self.assertContains(self.client.get(reverse("rabbit_detail", args=[self.rabbit.pk])), f'href="{self.page()}"')
 
     def test_the_first_upload_becomes_the_main_photo(self):
@@ -272,12 +275,12 @@ class PhotoPageTests(PhotoTestCase):
         self.assertEqual(self.rabbit.photos.count(), 2)
 
     def test_problems_are_explained(self):
-        missing = self.client.post(self.page(), {"notes": "x"})
-        self.assertContains(missing, "An upload needs a photo. Please choose one from your device.", status_code=400)
-        wrong = self.send(image_bytes("GIF"), name="photo.gif")
-        self.assertContains(wrong, "A photo needs to be a JPEG, PNG, WebP or HEIC image.", status_code=400)
+        missing = self.client.post(self.page(), {"notes": "x"}, follow=True)
+        self.assertContains(missing, "An upload needs a photo. Please choose one from your device.")
+        wrong = self.client.post(self.page(), {"image": SimpleUploadedFile("photo.gif", image_bytes("GIF"))}, follow=True)
+        self.assertContains(wrong, "A photo needs to be a JPEG, PNG, WebP or HEIC image.")
         long_notes = self.send(notes="x" * 501)
-        self.assertContains(long_notes, "Notes can be up to 500 characters. Please shorten them.", status_code=400)
+        self.assertRedirects(long_notes, self.page(), fetch_redirect_response=False)
         self.assertFalse(RabbitPhoto.objects.exists())
 
     def test_notes_can_be_changed(self):

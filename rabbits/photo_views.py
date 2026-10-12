@@ -73,15 +73,14 @@ def rabbit_photos(request, pk):
         else:
             messages.success(request, "The photo was added.")
         return redirect(photos_url(rabbit, f"photo-{photo.pk}", request))
-    if request.method == "POST" and request.POST.get("back_to") == "detail":
+    if request.method == "POST":
         for errors in form.errors.values():
             messages.error(request, errors[0])
         return redirect(photos_url(rabbit, request=request))
     return render(
         request,
         "rabbits/photos.html",
-        {"rabbit": rabbit, "photos": list(rabbit.photos.all()), "form": form},
-        status=400 if request.method == "POST" else 200,
+        {"rabbit": rabbit, "photos": list(rabbit.photos.all()), "upload_form": PhotoUploadForm(), "wide": True},
     )
 
 

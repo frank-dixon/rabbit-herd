@@ -3,54 +3,16 @@
 {% block title %}Photos of {{ rabbit.name }} · Rabbit Herd{% endblock %}
 
 {% block content %}
-  {% include "components/card.html" with title="Photos of "|add:rabbit.name body="Add photos with notes. The main photo shows on your rabbit list and at the top of the rabbit's page." only %}
-
-  <section class="mt-6 rounded border border-neutral-300 bg-white p-4" aria-labelledby="add-photo-heading">
-    <h2 class="text-lg font-semibold" id="add-photo-heading">Add a photo</h2>
-    <div class="mt-3" data-photo-upload>
-      {% include "components/form.html" with form=form submit_label="Upload photo" enctype="multipart/form-data" %}
+  {% url 'rabbit_detail' rabbit.pk as back_url %}
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <h1 class="min-w-0 break-words text-2xl font-semibold">Photos of {{ rabbit.name }}</h1>
+    <div class="flex flex-col sm:shrink-0">
+      {% include "components/button.html" with label="Back to "|add:rabbit.name href=back_url variant="secondary" only %}
     </div>
-  </section>
+  </div>
+  <p class="mt-2 text-sm text-neutral-600">The main photo shows on your rabbit list and at the top of {{ rabbit.name }}'s page. Open a photo to change its notes or date, make it main, rotate it, or remove it.</p>
 
-  <section class="mt-6" aria-labelledby="photos-heading">
-    <h2 class="text-lg font-semibold" id="photos-heading">{{ photos|length }} photo{{ photos|length|pluralize }}</h2>
-    {% if photos %}
-      <ul class="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {% for photo in photos %}
-          {% with number=forloop.counter|stringformat:"s" %}
-          <li class="rounded border border-neutral-300 bg-white p-3" id="photo-{{ photo.pk }}">
-            <img class="aspect-square w-full rounded object-cover" src="{% url 'rabbit_photo_file' photo.pk %}" alt="Photo {{ forloop.counter }} of {{ rabbit.name }}" loading="lazy">
-            <p class="mt-2 text-sm text-neutral-600">
-              {% if photo.is_main %}<span class="mr-2 rounded bg-neutral-900 px-2 py-0.5 text-xs font-semibold text-white">Main photo</span>{% endif %}
-              Added {{ photo.uploaded_at|date:"M j, Y" }}
-            </p>
-            <form class="mt-3 space-y-2" method="post" action="{% url 'rabbit_photo_notes' photo.pk %}">
-              {% csrf_token %}
-              <label class="block text-sm font-medium" for="id_notes_{{ photo.pk }}">Notes</label>
-              <textarea class="mt-1 w-full rounded border border-neutral-400 bg-white px-3 py-2" id="id_notes_{{ photo.pk }}" name="notes" rows="3" maxlength="500">{{ photo.notes }}</textarea>
-              {% include "components/button.html" with label="Save notes" type="submit" variant="secondary" sr_suffix="for photo "|add:number only %}
-            </form>
-            {% if not photo.is_main %}
-              <form class="mt-3" method="post" action="{% url 'rabbit_photo_set_main' photo.pk %}">
-                {% csrf_token %}
-                {% include "components/button.html" with label="Set as main photo" type="submit" variant="secondary" sr_suffix="(photo "|add:number|add:")" only %}
-              </form>
-            {% endif %}
-            <form class="mt-3" method="post" action="{% url 'rabbit_photo_delete' photo.pk %}" data-confirm="Delete this photo? This can't be undone.">
-              {% csrf_token %}
-              {% include "components/button.html" with label="Delete photo" type="submit" variant="danger" sr_suffix=number only %}
-            </form>
-          </li>
-          {% endwith %}
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="mt-2 text-neutral-600">No photos yet. Add the first one above, and it will become the main photo.</p>
-    {% endif %}
-  </section>
-
-  <div class="mt-8">
-    {% url 'rabbit_detail' rabbit.pk as back_url %}
-    {% include "components/button.html" with label="Back to "|add:rabbit.name href=back_url variant="secondary" only %}
+  <div class="mt-6">
+    {% include "rabbits/_photos_card.html" with back_to="photos" %}
   </div>
 {% endblock %}
