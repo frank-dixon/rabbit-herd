@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from . import genetics
-from .forms import GenesForm
+from .forms import GenesForm, PhotoUploadForm
 from .models import Gene, Rabbit
 
 def owned_rabbits(user):
@@ -144,6 +144,8 @@ def rabbit_detail(request, pk):
             "wide": True,
             "main_photo": main,
             "extra_photos": [photo for photo in photos if photo is not main],
+            "photos": photos,
+            "upload_form": PhotoUploadForm(),
             "c_carrier_note": genetics.c_carrier_suggestion(rabbit),
             "genes": rabbit.genes.all(),
             "relatives_with_genes": [

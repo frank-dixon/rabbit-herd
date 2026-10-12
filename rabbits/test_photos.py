@@ -113,7 +113,7 @@ class PhotoServingTests(PhotoTestCase):
         self.assertNotContains(detail, "main photo")
         main = add_photo(self.rabbit, is_main=True)
         detail = self.client.get(reverse("rabbit_detail", args=[self.rabbit.pk]))
-        self.assertContains(detail, f'src="{reverse("rabbit_photo_file", args=[main.pk])}"')
+        self.assertContains(detail, f'src="{reverse("rabbit_photo_file", args=[main.pk])}?v=')
 
 
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
@@ -374,9 +374,9 @@ class PhotoDisplayTests(PhotoTestCase):
         return self.client.get(reverse("rabbit_detail", args=[self.rabbit.pk]))
 
     def src(self, photo):
-        return f'src="{reverse("rabbit_photo_file", args=[photo.pk])}"'
+        return f'src="{reverse("rabbit_photo_file", args=[photo.pk])}?v='
 
-    def test_detail_shows_the_main_photo_then_a_gallery_with_notes(self):
+    def test_detail_photos_card_shows_tiles_with_main_first_and_notes(self):
         older = add_photo(self.rabbit, notes="Six weeks old")
         main = add_photo(self.rabbit, is_main=True, notes="Best of breed, spring show")
         newer = add_photo(self.rabbit)
@@ -384,16 +384,19 @@ class PhotoDisplayTests(PhotoTestCase):
         body = page.content.decode()
         self.assertContains(page, "Best of breed, spring show")
         self.assertContains(page, "Six weeks old")
-        self.assertLess(body.index(self.src(main)), body.index('id="gallery-heading"'))
-        self.assertLess(body.index('id="gallery-heading"'), body.index(self.src(older)))
-        self.assertLess(body.index(self.src(older)), body.index(self.src(newer)))
-        self.assertEqual(body.count(self.src(main)), 1)
-        self.assertContains(page, "Add or manage photos")
+        card = body[body.index('id="gallery-heading"'):]
+        tile = lambda photo: card.index(f'id="photo-{photo.pk}"')
+        self.assertLess(card.index("Add photo"), tile(main))
+        self.assertLess(tile(main), tile(older))
+        self.assertLess(tile(older), tile(newer))
+        self.assertEqual(card.count(">Main</span>"), 1)
+        self.assertEqual(card.count("Make main"), 2)
+        self.assertContains(page, 'name="back_to" value="detail"')
 
     def test_detail_empty_states(self):
         self.assertContains(self.detail(), "No photos yet.")
         add_photo(self.rabbit, is_main=True)
-        self.assertContains(self.detail(), "Only the main photo so far.")
+        self.assertNotContains(self.detail(), "No photos yet.")
 
     def test_list_cards_show_the_main_photo(self):
         main = add_photo(self.rabbit, is_main=True)
