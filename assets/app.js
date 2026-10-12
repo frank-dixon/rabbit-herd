@@ -13,6 +13,7 @@
  */
 
 import { bindRabbitFlow } from "./rabbit-flow.mjs";
+import { bindPhotoUpload } from "./photo-upload.mjs";
 
 /**
  * Read the CSRF token from the page.
@@ -297,6 +298,7 @@ window.rabbitHerd = {
 function start() {
   bindPasskeys();
   bindRabbitFlow(document);
+  bindPhotoUpload(document);
 }
 
 if (document.readyState === "loading") {

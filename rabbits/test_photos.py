@@ -251,6 +251,9 @@ class PhotoPageTests(PhotoTestCase):
         self.assertContains(page, 'enctype="multipart/form-data"')
         self.assertContains(page, 'accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"')
         self.assertContains(page, "No photos yet.")
+        # The browser shrinks big photos before upload (Vercel caps requests near 4.5 MB).
+        self.assertContains(page, "data-photo-upload")
+        self.assertContains(page, "under 4 MB")
         self.assertContains(self.client.get(reverse("rabbit_detail", args=[self.rabbit.pk])), f'href="{self.page()}"')
 
     def test_the_first_upload_becomes_the_main_photo(self):
