@@ -27,11 +27,11 @@ def table_rows(rabbits):
 
 @login_required
 def rabbit_list(request):
-    rabbits = list(owned_rabbits(request.user).filter(archived_at__isnull=True))
+    rabbits = list(owned_rabbits(request.user).filter(archived_at__isnull=True).prefetch_related("photos"))
     return render(
         request,
         "rabbits/list.html",
-        {"rabbits": rabbits, "columns": COLUMNS, "rows": table_rows(rabbits)},
+        {"rabbits": rabbits},
     )
 
 
@@ -48,7 +48,13 @@ def rabbit_archived(request):
 @login_required
 def rabbit_detail(request, pk):
     rabbit = owned_rabbit(request.user, pk)
-    return render(request, "rabbits/detail.html", {"rabbit": rabbit})
+    photos = list(rabbit.photos.all())
+    main = next((photo for photo in photos if photo.is_main), None)
+    return render(
+        request,
+        "rabbits/detail.html",
+        {"rabbit": rabbit, "main_photo": main, "extra_photos": [photo for photo in photos if photo is not main]},
+    )
 
 
 @login_required

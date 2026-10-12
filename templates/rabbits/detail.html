@@ -3,12 +3,38 @@
 {% block title %}{{ rabbit.name }} · Rabbit Herd{% endblock %}
 
 {% block content %}
-  {% with main=rabbit.main_photo %}
-    {% if main %}
-      <img class="mb-8 w-full max-w-xl rounded-lg object-cover" src="{% url 'rabbit_photo_file' main.pk %}" alt="{{ rabbit.name }}, main photo">
-    {% endif %}
-  {% endwith %}
+  {% if main_photo %}
+    <figure class="mb-6">
+      <img class="w-full max-w-xl rounded-lg object-cover" src="{% url 'rabbit_photo_file' main_photo.pk %}" alt="{{ rabbit.name }}, main photo">
+      {% if main_photo.notes %}<figcaption class="mt-2 max-w-xl text-sm text-neutral-600">{{ main_photo.notes }}</figcaption>{% endif %}
+    </figure>
+  {% endif %}
   {% include "components/card.html" with title=rabbit.name body=rabbit.summary only %}
+  {% url 'rabbit_photos' rabbit.pk as photos_url %}
+  <section class="mt-4 rounded border border-neutral-300 bg-white p-4" aria-labelledby="gallery-heading">
+    <h2 class="text-lg font-semibold" id="gallery-heading">More photos</h2>
+    {% if extra_photos %}
+      <ul class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {% for photo in extra_photos %}
+          <li>
+            <figure>
+              <a href="{% url 'rabbit_photo_file' photo.pk %}" class="block rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900">
+                <img class="aspect-square w-full rounded object-cover" src="{% url 'rabbit_photo_file' photo.pk %}" alt="Photo {{ forloop.counter }} of {{ rabbit.name }}{% if photo.notes %}: {{ photo.notes|truncatechars:80 }}{% endif %}" loading="lazy">
+              </a>
+              {% if photo.notes %}<figcaption class="mt-1 text-sm text-neutral-600">{{ photo.notes }}</figcaption>{% endif %}
+            </figure>
+          </li>
+        {% endfor %}
+      </ul>
+    {% elif main_photo %}
+      <p class="mt-2 text-neutral-600">Only the main photo so far.</p>
+    {% else %}
+      <p class="mt-2 text-neutral-600">No photos yet. Add one on the Photos page, and it will become the main photo.</p>
+    {% endif %}
+    <div class="mt-3">
+      {% include "components/button.html" with label="Add or manage photos" href=photos_url variant="secondary" only %}
+    </div>
+  </section>
   {% with relatives=rabbit.relatives.all %}
     {% if relatives %}
       <section class="mt-4 rounded border border-neutral-300 bg-white p-4" aria-labelledby="relatives-heading">
@@ -22,9 +48,7 @@
   <div class="mt-8 flex flex-col items-start gap-3">
     {% url 'rabbit_edit' rabbit.pk as edit_url %}
     {% url 'rabbit_list' as list_url %}
-    {% url 'rabbit_photos' rabbit.pk as photos_url %}
     {% include "components/button.html" with label="Edit" href=edit_url variant="primary" only %}
-    {% include "components/button.html" with label="Photos" href=photos_url variant="secondary" only %}
     {% if rabbit.is_archived %}
       <form method="post" action="{% url 'rabbit_restore' rabbit.pk %}">
         {% csrf_token %}

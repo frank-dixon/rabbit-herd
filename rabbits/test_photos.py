@@ -364,3 +364,56 @@ class SetMainPhotoTests(PhotoTestCase):
         strict = Client(enforce_csrf_checks=True)
         strict.force_login(self.owner)
         self.assertEqual(strict.post(reverse("rabbit_photo_set_main", args=[extra.pk])).status_code, 403)
+
+
+class PhotoDisplayTests(PhotoTestCase):
+    def detail(self):
+        return self.client.get(reverse("rabbit_detail", args=[self.rabbit.pk]))
+
+    def src(self, photo):
+        return f'src="{reverse("rabbit_photo_file", args=[photo.pk])}"'
+
+    def test_detail_shows_the_main_photo_then_a_gallery_with_notes(self):
+        older = add_photo(self.rabbit, notes="Six weeks old")
+        main = add_photo(self.rabbit, is_main=True, notes="Best of breed, spring show")
+        newer = add_photo(self.rabbit)
+        page = self.detail()
+        body = page.content.decode()
+        self.assertContains(page, "Best of breed, spring show")
+        self.assertContains(page, "Six weeks old")
+        self.assertLess(body.index(self.src(main)), body.index("More photos"))
+        self.assertLess(body.index("More photos"), body.index(self.src(older)))
+        self.assertLess(body.index(self.src(older)), body.index(self.src(newer)))
+        self.assertEqual(body.count(self.src(main)), 1)
+        self.assertContains(page, "Add or manage photos")
+
+    def test_detail_empty_states(self):
+        self.assertContains(self.detail(), "No photos yet. Add one on the Photos page")
+        add_photo(self.rabbit, is_main=True)
+        self.assertContains(self.detail(), "Only the main photo so far.")
+
+    def test_list_cards_show_the_main_photo(self):
+        main = add_photo(self.rabbit, is_main=True)
+        add_photo(self.rabbit)
+        plain = make_rabbit(self.owner, name="Basil")
+        add_photo(plain)  # an extra only, so no thumbnail
+        page = self.client.get(reverse("rabbit_list"))
+        self.assertContains(page, self.src(main), count=1)
+        self.assertContains(page, "Open </span>Clover")
+        self.assertContains(page, "Open </span>Basil")
+        self.assertContains(page, ">B</span>")
+
+    def test_the_list_loads_photos_in_one_query(self):
+        for number in range(5):
+            rabbit = make_rabbit(self.owner, name=f"Rabbit {number}")
+            add_photo(rabbit, is_main=True)
+            add_photo(rabbit)
+        self.client.get(reverse("rabbit_list"))  # warm the session
+        with self.assertNumQueries(4):
+            # session, user, rabbits, photos
+            self.client.get(reverse("rabbit_list"))
+
+    def test_another_keepers_list_shows_none_of_these_photos(self):
+        main = add_photo(self.rabbit, is_main=True)
+        self.client.force_login(self.stranger)
+        self.assertNotContains(self.client.get(reverse("rabbit_list")), self.src(main))
