@@ -49,6 +49,22 @@ class Breed(models.Model):
 OFF_STANDARD_NOTE = "(not a recognized color for this breed)"
 
 
+def short_breed_text(breed):
+    """Shorten "Cross: 50% A, 25% B, 25% C" to "Cross · A 50% +2 more". Other text is kept."""
+    text = (breed or "").strip()
+    if not text.lower().startswith("cross:"):
+        return text
+    parts = [part.strip() for part in text[len("cross:"):].split(",") if part.strip()]
+    if not parts:
+        return "Cross"
+    first = parts[0]
+    percent, _, name = first.partition(" ")
+    if percent.endswith("%") and name:
+        first = f"{name.strip()} {percent}"
+    more = f" +{len(parts) - 1} more" if len(parts) > 1 else ""
+    return f"Cross · {first}{more}"
+
+
 def color_text(color, is_standard):
     """A color for display, with a note when it is known to be off-standard."""
     return f"{color} {OFF_STANDARD_NOTE}" if is_standard is False else color
@@ -155,6 +171,11 @@ class Rabbit(models.Model):
             if parts:
                 return f"Cross: {', '.join(parts)}"
         return self.breed
+
+    @property
+    def short_breed(self):
+        """One-line breed for list cards: "Cross · Creme d'Argent 50% +2 more"."""
+        return short_breed_text(self.breed)
 
     def pedigree_by_position(self):
         return {
