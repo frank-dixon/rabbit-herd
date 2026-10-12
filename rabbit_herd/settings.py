@@ -166,10 +166,33 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 
+# Where uploaded photos live. PHOTO_STORAGE=s3 keeps them in a private
+# S3-compatible bucket (Supabase Storage in production), because Vercel's
+# /tmp is wiped between requests. Anything else uses the local folder above.
+# The bucket is private and no public or signed URLs are handed out: photos
+# are only ever streamed through the owner-checked photo_file view.
+PHOTO_STORAGE = os.environ.get("PHOTO_STORAGE", "").strip().lower()
+if PHOTO_STORAGE == "s3":
+    DEFAULT_STORAGE = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": os.environ["PHOTO_S3_BUCKET"],
+            "endpoint_url": os.environ["PHOTO_S3_ENDPOINT_URL"],
+            "region_name": os.environ.get("PHOTO_S3_REGION", "us-east-1"),
+            "access_key": os.environ["PHOTO_S3_ACCESS_KEY_ID"],
+            "secret_key": os.environ["PHOTO_S3_SECRET_ACCESS_KEY"],
+            "addressing_style": "path",
+            "signature_version": "s3v4",
+            "default_acl": None,
+            "querystring_auth": True,
+            "file_overwrite": False,
+        },
+    }
+else:
+    DEFAULT_STORAGE = {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+
 STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
+    "default": DEFAULT_STORAGE,
     "staticfiles": {
         "BACKEND": (
             "django.contrib.staticfiles.storage.StaticFilesStorage"
