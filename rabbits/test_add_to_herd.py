@@ -60,7 +60,9 @@ class KindlingNoteTests(TestCase):
         kit = Rabbit.objects.create(owner=user, name="Blackberry", sex="buck", breed="Rex", color="Black", birth_date=date(2026, 5, 18))
         Relative.objects.create(rabbit=kit, relationship="dam", herd_rabbit=pepper)
         url = reverse("rabbit_detail", args=[kit.pk])
-        self.assertContains(self.client.get(url), "Pepper died kindling this litter on May 18, 2026.")
+        page = self.client.get(url)
+        self.assertContains(page, "Pepper died kindling this litter on May 18, 2026.")
+        self.assertContains(page, "Dam (mother) · Deceased · May 18, 2026")
         pepper.death_cause = "Illness"
         pepper.save()
         self.assertNotContains(self.client.get(url), "died kindling this litter")
