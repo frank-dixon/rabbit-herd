@@ -301,6 +301,21 @@ class BirthDateForm(StepForm):
         return {"birth_date": birth_date}
 
 
+LINE_TOO_LONG = "A line can be up to 80 characters. Please shorten it."
+
+
+class LineForm(StepForm):
+    """The rabbit's own line or strain, such as a breeder's herd name. Optional."""
+
+    line = forms.CharField(required=False)
+
+    def clean(self):
+        line = self.text("line")
+        if len(line) > 80:
+            self.add_error("line", LINE_TOO_LONG)
+        return {"line": line}
+
+
 class ColorForm(StepForm):
     """A breed with a color list: choose one of its colors, or Another color
     with a description. Crossbreds and any-color breeds: describe it."""

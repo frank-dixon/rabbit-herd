@@ -22,7 +22,12 @@ from .models import Breed, BreedShare, Gene, OutsideRabbit, Rabbit, Relative, co
 SESSION_KEY = "rabbit_draft"
 MAX_TEXT = 500
 # The draft's single-value answers, named like the inputs on the cards.
-TEXT_KEYS = ("name", "sex", "birth_date", "color_choice", "color", "status", "breed_type", "purebred")
+TEXT_KEYS = (
+    "name", "sex", "birth_date", "color_choice", "color", "status", "breed_type", "purebred",
+    "line", "legacy_breed",
+)
+# The edit flow keeps one draft per rabbit, under this key plus the rabbit's id.
+EDIT_SESSION_KEY = "rabbit_edit_draft_{pk}"
 
 
 @dataclass(frozen=True)
@@ -46,9 +51,22 @@ STEPS = [
 ]
 SLUGS = [step.slug for step in STEPS]
 
+# Editing uses the same cards and checks, plus the rabbit's own line, and
+# an overview card instead of the review card.
+EDIT_STEPS = STEPS[:7] + [
+    Step("line", flow_forms.LineForm, ("line",), optional=True),
+    STEPS[7],
+]
+EDIT_SLUGS = [step.slug for step in EDIT_STEPS]
+STEP_BY_SLUG = {step.slug: step for step in STEPS + EDIT_STEPS}
+
 
 def step_index(slug):
     return SLUGS.index(slug)
+
+
+def edit_key(pk):
+    return EDIT_SESSION_KEY.format(pk=int(pk))
 
 
 def blank_cross_row():
@@ -73,6 +91,8 @@ def empty_draft():
         "purebred": "",
         "cross": [blank_cross_row(), blank_cross_row()],
         "relatives": [],
+        "line": "",
+        "legacy_breed": "",
         "step": SLUGS[0],
     }
 
@@ -94,10 +114,10 @@ def clean_rows(rows, blank, limit, minimum=0):
     return cleaned
 
 
-def load_draft(session):
+def load_draft(session, key=SESSION_KEY):
     """The session's draft, filled out to the full shape."""
     draft = empty_draft()
-    stored = session.get(SESSION_KEY)
+    stored = session.get(key)
     if isinstance(stored, dict):
         for key in TEXT_KEYS:
             if key in stored:
@@ -108,18 +128,22 @@ def load_draft(session):
         draft["relatives"] = clean_rows(
             stored.get("relatives"), blank_relative, flow_forms.MAX_RELATIVES
         )
-        if stored.get("step") in SLUGS:
+        if stored.get("step") in STEP_BY_SLUG:
             draft["step"] = stored["step"]
     return draft
 
 
-def save_draft(session, draft):
-    session[SESSION_KEY] = draft
+def has_draft(session, key):
+    return isinstance(session.get(key), dict)
+
+
+def save_draft(session, draft, key=SESSION_KEY):
+    session[key] = draft
     session.modified = True
 
 
-def clear_draft(session):
-    session.pop(SESSION_KEY, None)
+def clear_draft(session, key=SESSION_KEY):
+    session.pop(key, None)
 
 
 def form_data(draft):
@@ -138,7 +162,7 @@ def update_draft(draft, slug, post):
     """Copy one card's posted answers into the draft, unchecked. Only the
     fields on that card change, so a stale or crafted post cannot rewrite
     earlier answers."""
-    step = STEPS[step_index(slug)]
+    step = STEP_BY_SLUG[slug]
     for field in step.fields:
         if field in post:
             draft[field] = clean_text(post.get(field))
@@ -220,7 +244,7 @@ def merge_mix(draft):
 
 def bound_form(slug, draft, user):
     """The step's form, bound to the draft, ready to check."""
-    step = STEPS[step_index(slug)]
+    step = STEP_BY_SLUG[slug]
     kwargs = {"data": form_data(draft), "user": user}
     if slug == "breed":
         kwargs["rows"] = len(draft["cross"])
@@ -229,11 +253,12 @@ def bound_form(slug, draft, user):
     return step.form_class(**kwargs)
 
 
-def first_invalid_step(draft, user, before=None):
+def first_invalid_step(draft, user, before=None, steps=STEPS):
     """The first step whose answers do not pass, looking only at the steps
     before `before` (a slug) when it is given. None when all pass."""
-    stop = step_index(before) if before else len(STEPS)
-    for step in STEPS[:stop]:
+    slugs = [step.slug for step in steps]
+    stop = slugs.index(before) if before else len(steps)
+    for step in steps[:stop]:
         if step.form_class and not bound_form(step.slug, draft, user).is_valid():
             return step.slug
     return None
@@ -304,6 +329,35 @@ def short_breed(text):
     return text if len(text) <= 80 else text[:79] + "…"
 
 
+def save_relatives(rabbit, user, rows):
+    """Save checked relatives rows, reusing a matching outside rabbit."""
+    for row in rows:
+        target = row["target"]
+        if target is None:
+            target = (
+                OutsideRabbit.objects.filter(
+                    owner=user,
+                    name__iexact=row["new_name"],
+                    details__iexact=row["new_details"],
+                ).first()
+                or OutsideRabbit.objects.create(
+                    owner=user, name=row["new_name"], details=row["new_details"]
+                )
+            )
+        relative = Relative.objects.create(
+            rabbit=rabbit,
+            relationship=row["relationship"],
+            herd_rabbit=target if isinstance(target, Rabbit) else None,
+            outside=target if isinstance(target, OutsideRabbit) else None,
+            color=row["color"],
+            line=row["line"],
+        )
+        Gene.objects.bulk_create(
+            Gene(relative=relative, locus=locus, genotype=genotype, certainty=certainty)
+            for locus, genotype, certainty in row["genes"]
+        )
+
+
 class DraftNotReady(Exception):
     def __init__(self, slug):
         super().__init__(slug)
@@ -342,29 +396,176 @@ def save_rabbit(draft, user):
         BreedShare.objects.bulk_create(
             BreedShare(rabbit=rabbit, breed=breed, percent=percent) for breed, percent in shares
         )
-        for row in answers["relatives"]:
-            target = row["target"]
-            if target is None:
-                target = (
-                    OutsideRabbit.objects.filter(
-                        owner=user,
-                        name__iexact=row["new_name"],
-                        details__iexact=row["new_details"],
-                    ).first()
-                    or OutsideRabbit.objects.create(
-                        owner=user, name=row["new_name"], details=row["new_details"]
-                    )
-                )
-            relative = Relative.objects.create(
-                rabbit=rabbit,
-                relationship=row["relationship"],
-                herd_rabbit=target if isinstance(target, Rabbit) else None,
-                outside=target if isinstance(target, OutsideRabbit) else None,
-                color=row["color"],
-                line=row["line"],
-            )
-            Gene.objects.bulk_create(
-                Gene(relative=relative, locus=locus, genotype=genotype, certainty=certainty)
-                for locus, genotype, certainty in row["genes"]
-            )
+        save_relatives(rabbit, user, answers["relatives"])
+    return rabbit
+
+
+# Editing a saved rabbit ---------------------------------------------------
+
+
+def fold(text):
+    """Text for matching breed names: no accents, case, or extra spaces."""
+    import unicodedata
+
+    plain = unicodedata.normalize("NFKD", str(text or ""))
+    plain = "".join(char for char in plain if not unicodedata.combining(char))
+    return " ".join(plain.casefold().replace("’", "'").split())
+
+
+def match_breed(text, breeds):
+    """The Breed a legacy name spells, or None. A name cut short with "…"
+    matches when exactly one breed starts with what is left."""
+    folded = fold(text).rstrip(".… ")
+    if not folded:
+        return None
+    for breed in breeds:
+        if fold(breed.name) == folded:
+            return breed
+    if str(text).rstrip().endswith(("…", "...")) or len(folded) >= 4:
+        starts = [breed for breed in breeds if fold(breed.name).startswith(folded)]
+        if len(starts) == 1:
+            return starts[0]
+    return None
+
+
+def parse_legacy_breed(text):
+    """Read free-text breed from before the breed list: "New Zealand" or
+    "Cross: 50% Creme d'Argent, 25% Flemish Giant, 25% New Zealand".
+    Returns ("purebred", breed, []) or ("crossbred", None, [(breed, pct)])
+    or None when it can't be read with confidence. Duplicate breeds are
+    added together, and a mix that is one breed at 100% is a purebred."""
+    import re
+
+    breeds = list(Breed.objects.all())
+    text = str(text or "").strip()
+    if not text:
+        return None
+    body = re.sub(r"^\s*(cross(bred)?|mix)\s*:\s*", "", text, flags=re.IGNORECASE)
+    parts = [part.strip() for part in re.split(r"[,/+;]| and ", body) if part.strip()]
+    pattern = re.compile(r"^(\d{1,3})\s*%\s*(.+)$|^(.+?)\s*\(?(\d{1,3})\s*%\)?$")
+    shares = {}
+    order = []
+    any_percent = False
+    for part in parts:
+        found = pattern.match(part)
+        if found:
+            any_percent = True
+            percent = int(found.group(1) or found.group(4))
+            name = found.group(2) or found.group(3)
+        else:
+            percent, name = None, part
+        breed = match_breed(name, breeds)
+        if breed is None:
+            return None
+        if breed.pk not in shares:
+            order.append(breed)
+            shares[breed.pk] = 0
+        shares[breed.pk] = None if percent is None or shares[breed.pk] is None else shares[breed.pk] + percent
+    if len(order) == 1 and (not any_percent or shares[order[0].pk] == 100):
+        return (Rabbit.BreedType.PUREBRED.value, order[0], [])
+    if not any_percent or None in shares.values() or sum(shares.values()) != 100:
+        return None
+    return (Rabbit.BreedType.CROSSBRED.value, None, [(breed, shares[breed.pk]) for breed in order])
+
+
+def relative_row(relative):
+    """A saved Relative as a draft row for the relatives card."""
+    row = blank_relative()
+    row["relationship"] = relative.relationship
+    if relative.herd_rabbit_id:
+        row["ref"] = f"h:{relative.herd_rabbit_id}"
+    elif relative.outside_id:
+        row["ref"] = f"o:{relative.outside_id}"
+    row["color"] = relative.color
+    row["line"] = relative.line
+    for gene in relative.genes.all():
+        key = "other" if gene.locus == Gene.Locus.OTHER else gene.locus
+        if f"gene_{key}" in row:
+            row[f"gene_{key}"] = gene.genotype
+            row[f"cert_{key}"] = gene.certainty
+    return {key: clean_text(value) for key, value in row.items()}
+
+
+def draft_from_rabbit(rabbit):
+    """A draft filled in from a saved rabbit, ready for the edit cards.
+
+    The breed comes from the saved breed fields when they are set. A rabbit
+    from before the breed list only has free text, which is read with
+    parse_legacy_breed; when that fails the breed is left for the keeper to
+    pick, and the text is kept in legacy_breed so the cards can show it."""
+    draft = empty_draft()
+    draft.update(
+        {
+            "name": rabbit.name,
+            "sex": rabbit.sex,
+            "birth_date": rabbit.birth_date.isoformat() if rabbit.birth_date else "",
+            "color": rabbit.color,
+            "status": rabbit.status,
+            "line": rabbit.line,
+            "step": EDIT_SLUGS[0],
+        }
+    )
+    shares = [(share.breed, share.percent) for share in rabbit.breed_shares.select_related("breed")]
+    if rabbit.breed_type == Rabbit.BreedType.PUREBRED and rabbit.purebred_id:
+        parsed = (Rabbit.BreedType.PUREBRED.value, rabbit.purebred, [])
+    elif rabbit.breed_type == Rabbit.BreedType.CROSSBRED and shares:
+        parsed = (Rabbit.BreedType.CROSSBRED.value, None, shares)
+    else:
+        parsed = parse_legacy_breed(rabbit.breed)
+    if parsed is None:
+        draft["legacy_breed"] = clean_text(rabbit.breed)
+    else:
+        breed_type, purebred, parts = parsed
+        draft["breed_type"] = breed_type
+        if purebred is not None:
+            draft["purebred"] = str(purebred.pk)
+        if parts:
+            draft["cross"] = [{"breed": str(breed.pk), "percent": str(pct)} for breed, pct in parts]
+            while len(draft["cross"]) < 2:
+                draft["cross"].append(blank_cross_row())
+    relatives = rabbit.relatives.select_related("herd_rabbit", "outside").prefetch_related("genes")
+    draft["relatives"] = [relative_row(relative) for relative in relatives][: flow_forms.MAX_RELATIVES]
+    # Show a listed color as chosen, as the color card would.
+    names = [color["name"] for color in flow_forms.offered_colors(flow_forms.purebred_breed(draft))]
+    match = flow_forms.matching_color(names, rabbit.color) if names else None
+    if match:
+        draft["color_choice"], draft["color"] = match, ""
+    for row in draft["relatives"]:
+        values = flow_forms.parent_color_values(flow_forms.purebred_breed(draft))
+        found = flow_forms.matching_color(values, row["color"]) if values else None
+        if found:
+            row["color_choice"], row["color"] = found, ""
+    return draft
+
+
+SELF_RELATIVE = "A rabbit can't be its own relative. Please choose a different rabbit."
+
+
+def update_rabbit(draft, user, rabbit):
+    """Check every edit card again and save the changes to the rabbit, its
+    breed shares, and its relatives in one transaction. Raises DraftNotReady
+    with the first card that fails."""
+    with transaction.atomic():
+        rabbit = Rabbit.objects.select_for_update().get(pk=rabbit.pk, owner=user)
+        answers = {}
+        for step in EDIT_STEPS:
+            form = bound_form(step.slug, draft, user)
+            if not form.is_valid():
+                raise DraftNotReady(step.slug)
+            answers.update(form.cleaned_data)
+        if any(row["target"] == rabbit for row in answers["relatives"]):
+            raise DraftNotReady("relatives")
+        purebred = Breed.objects.get(pk=answers["purebred"]) if answers["purebred"] else None
+        shares = [(Breed.objects.get(pk=pk), percent) for pk, percent in answers["shares"]]
+        for field in ("name", "sex", "birth_date", "color", "color_is_standard", "status", "breed_type", "line"):
+            setattr(rabbit, field, answers[field])
+        rabbit.purebred = purebred
+        rabbit.breed = short_breed(breed_line(purebred, shares))
+        rabbit.save()
+        rabbit.breed_shares.all().delete()
+        BreedShare.objects.bulk_create(
+            BreedShare(rabbit=rabbit, breed=breed, percent=percent) for breed, percent in shares
+        )
+        rabbit.relatives.all().delete()
+        save_relatives(rabbit, user, answers["relatives"])
     return rabbit
