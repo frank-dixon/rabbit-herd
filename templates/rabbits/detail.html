@@ -64,10 +64,10 @@
         <h2 class="text-lg font-semibold" id="relatives-heading">Parents and relatives</h2>
         {% if kindling_note %}<p class="mt-2 text-sm text-neutral-600" data-kindling-note>{{ kindling_note }}</p>{% endif %}
         {% if relatives %}
-          <ul class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <ul class="mt-3 grid grid-cols-1 gap-3">
             {% for relative in relatives %}
               <li>
-                {% if relative.herd_rabbit %}<a href="{% url 'rabbit_detail' relative.herd_rabbit.pk %}" class="flex h-full items-center gap-3 rounded border border-neutral-200 p-3 hover:border-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900">{% else %}<div class="flex h-full items-center gap-3 rounded border border-neutral-200 p-3">{% endif %}
+                {% if relative.herd_rabbit %}<a href="{% url 'rabbit_detail' relative.herd_rabbit.pk %}" class="flex h-full items-start gap-3 rounded border border-neutral-200 p-3 hover:border-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900">{% else %}<div class="flex h-full items-start gap-3 rounded border border-neutral-200 p-3">{% endif %}
                   {% with main=relative.herd_rabbit.main_photo %}
                     {% include "rabbits/_rabbit_thumb.html" with rabbit=relative.other main=main size_class="h-12 w-12 shrink-0 rounded text-lg" only %}
                   {% endwith %}
