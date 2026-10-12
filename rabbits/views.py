@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -81,7 +82,7 @@ def rabbit_list(request):
     archived = mine.filter(archived_at__isnull=False)
     rabbits = {"archived": archived, "deceased": deceased}.get(filters["tab"], active)
     if filters["q"]:
-        rabbits = rabbits.filter(name__icontains=filters["q"])
+        rabbits = rabbits.filter(Q(name__icontains=filters["q"]) | Q(tattoo__iexact=filters["q"]) | Q(tattoo__icontains=filters["q"]))
     if filters["sex"]:
         rabbits = rabbits.filter(sex=filters["sex"])
     if filters["breed"]:

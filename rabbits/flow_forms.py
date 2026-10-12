@@ -86,6 +86,8 @@ BREED_TYPE_FIRST = (
 )
 PUREBRED_REQUIRED = "A purebred rabbit needs a breed from the list. Please choose one."
 CROSS_BREED_REQUIRED = "Each row in the mix needs a breed. Please choose one, or clear the share."
+TATTOO_TOO_LONG = "An ear tattoo can be up to 20 characters. Please shorten it."
+TATTOO_TAKEN = "{name} already has the ear tattoo {tattoo}. Each tattoo can be used once in your herd."
 CROSS_BREED_REPEATED = (
     "Each breed can be listed only once in a mix. "
     "Please choose a different breed, or combine the shares."
@@ -272,6 +274,8 @@ class StepForm(forms.Form):
 
 class NameForm(StepForm):
     name = forms.CharField(required=False)
+    tattoo = forms.CharField(required=False)
+    self_pk = forms.CharField(required=False)
 
     def clean(self):
         name = self.text("name")
@@ -279,7 +283,18 @@ class NameForm(StepForm):
             self.add_error("name", NAME_REQUIRED)
         elif len(name) > 120:
             self.add_error("name", NAME_TOO_LONG)
-        return {"name": name}
+        tattoo = " ".join(self.text("tattoo").split())
+        if len(tattoo) > 20:
+            self.add_error("tattoo", TATTOO_TOO_LONG)
+        elif tattoo and self.user is not None:
+            others = Rabbit.objects.filter(owner=self.user, tattoo__iexact=tattoo)
+            own = self.text("self_pk")
+            if own.isdigit():
+                others = others.exclude(pk=int(own))
+            taken = others.first()
+            if taken:
+                self.add_error("tattoo", TATTOO_TAKEN.format(tattoo=tattoo, name=taken.name))
+        return {"name": name, "tattoo": tattoo}
 
 
 class SexForm(StepForm):

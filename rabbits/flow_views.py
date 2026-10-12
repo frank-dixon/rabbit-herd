@@ -185,7 +185,7 @@ def review_rows(draft, user):
     sexes = dict(Rabbit.Sex.choices)
     statuses = dict(Rabbit.Status.choices)
     rows = [
-        ("Name", draft["name"].strip()),
+        ("Name", draft["name"].strip() + (f" · ear tattoo {draft['tattoo'].strip()}" if draft["tattoo"].strip() else "")),
         ("Sex", sexes.get(draft["sex"], "")),
         ("Birth date", draft["birth_date"]),
         ("Color", flow.draft_color(draft)),
@@ -235,6 +235,8 @@ def step_context(slug, draft, user, form, exclude=None):
         "errors": errors,
         "value": data.get(slug.replace("-", "_"), ""),
         "error": errors.get(slug.replace("-", "_"), []),
+        "tattoo_value": data.get("tattoo", ""),
+        "tattoo_error": errors.get("tattoo", []),
         "today": flow_forms.today().isoformat(),
         "draft": draft,
         "form_action": step_url(slug),

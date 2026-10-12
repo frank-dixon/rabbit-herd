@@ -96,6 +96,9 @@ class Rabbit(models.Model):
         CROSSBRED = "crossbred", "Crossbred"
 
     name = models.CharField(max_length=120)
+    tattoo = models.CharField(
+        max_length=20, blank=True, help_text="The ear tattoo ID. Unique within your herd when set."
+    )
     sex = models.CharField(max_length=8, choices=Sex.choices)
     # A short, readable breed line. The add-a-rabbit flows fill it from the
     # purebred breed or the crossbred shares; the plain form takes it as text.
@@ -154,6 +157,12 @@ class Rabbit(models.Model):
         ordering = ["name", "pk"]
         indexes = [
             models.Index(fields=["owner", "archived_at"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                "owner", models.functions.Upper("tattoo"),
+                condition=~models.Q(tattoo=""), name="one_tattoo_per_owner",
+            ),
         ]
 
     def __str__(self):

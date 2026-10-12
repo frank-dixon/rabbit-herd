@@ -1,1 +1,4 @@
 {% include "components/text_input.html" with name="name" label="Name or ear tag" value=value errors=error quiet=True large=True only %}
+<div class="mt-5">
+  {% include "components/text_input.html" with name="tattoo" label="Ear tattoo (optional)" help="The ID tattooed in the left ear, if it has one." value=tattoo_value errors=tattoo_error autocomplete="off" only %}
+</div>

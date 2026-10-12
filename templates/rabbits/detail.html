@@ -50,6 +50,7 @@
         <dt class="text-neutral-600">Color</dt><dd class="break-words">{{ rabbit.color_line }}</dd>
         <dt class="text-neutral-600">Line</dt><dd class="break-words">{{ rabbit.line|default:"—" }}</dd>
         <dt class="text-neutral-600">Born</dt><dd>{{ rabbit.birth_date|date:"M j, Y" }} · {{ rabbit.age_text }}</dd>
+        {% if rabbit.tattoo %}<dt class="text-neutral-600">Ear tattoo</dt><dd class="break-words" data-tattoo>{{ rabbit.tattoo }}</dd>{% endif %}
         <dt class="text-neutral-600">Status</dt><dd>{{ rabbit.get_status_display }}</dd>
         <dt class="text-neutral-600">Location</dt><dd class="break-words" data-location>{% if rabbit.location %}{{ rabbit.location.name }}{% else %}<span class="text-neutral-600">Not set</span>{% endif %} · <a class="text-sm underline" href="#location">Change</a></dd>
         {% if rabbit.is_deceased and rabbit.death_date or rabbit.is_deceased and rabbit.death_cause %}
