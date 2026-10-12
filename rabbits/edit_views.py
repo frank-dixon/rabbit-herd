@@ -99,15 +99,10 @@ def rabbit_edit(request, pk):
     })
 
 
-def next_card(slug, draft, user):
-    """Where Done goes: the breed after a breed type, the color after a
-    breed (both depend on what came before), any card that no longer
-    passes, or back to the overview."""
-    follow = {"breed-type": "breed", "breed": "color"}.get(slug)
-    if follow:
-        return follow, False
-    blocked = flow.first_invalid_step(draft, user, steps=flow.EDIT_STEPS)
-    return (blocked, True) if blocked else (None, False)
+def blocked_card(draft, user):
+    """The first card that no longer passes after a change (a new breed type
+    can leave the breed or color card out of date), or None."""
+    return flow.first_invalid_step(draft, user, steps=flow.EDIT_STEPS)
 
 
 @login_required
@@ -143,10 +138,16 @@ def rabbit_edit_step(request, pk, step):
                 messages.error(request, flow.SELF_RELATIVE)
                 return redirect(card_url(rabbit.pk, step))
         if form.is_valid():
+            # Done saves this card to the draft and goes back to the summary,
+            # never on to another card. If the change left another card out
+            # of date, the summary says which; Save also sends people there.
             flow.save_draft(request.session, draft, key)
-            target, check = next_card(step, draft, request.user)
-            if target:
-                return redirect(card_url(rabbit.pk, target, check=check))
+            blocked = blocked_card(draft, request.user)
+            if blocked:
+                messages.error(
+                    request,
+                    f"Your change means the {LABELS.get(blocked, blocked)} card needs another look before you save.",
+                )
             return redirect("rabbit_edit", pk=rabbit.pk)
         flow.save_draft(request.session, draft, key)
         return redirect(card_url(rabbit.pk, step, check=True))

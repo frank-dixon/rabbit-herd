@@ -78,8 +78,32 @@ class EditFlowTests(FlowTestMixin, TestCase):
             "cross-0-breed": nz, "cross-0-percent": "50", "cross-1-breed": nz, "cross-1-percent": "50",
             "cross-2-breed": "", "cross-2-percent": "", "action": "next",
         })
-        self.assertRedirects(done, self.card("color"))
+        self.assertRedirects(done, self.overview, fetch_redirect_response=False)
         self.assertContains(self.client.get(self.card("color")), "recognized colors for the New Zealand")
+
+    def test_done_on_any_card_saves_it_and_returns_to_the_summary(self):
+        draft = flow.load_draft({flow.edit_key(self.juniper.pk): flow.draft_from_rabbit(self.juniper)}, flow.edit_key(self.juniper.pk))
+        changes = {"name": {"name": "June"}, "line": {"line": "Hollow Creek"}}
+        for slug in flow.EDIT_SLUGS:
+            data = flow.form_data(draft) | changes.get(slug, {}) | {"action": "next"}
+            if slug == "relatives":
+                data["relatives-count"] = "0"
+            done = self.client.post(self.card(slug), data)
+            self.assertRedirects(done, self.overview, fetch_redirect_response=False, msg_prefix=slug)
+        page = self.client.get(self.overview)
+        self.assertContains(page, "June")
+        self.assertContains(page, "Hollow Creek")
+        self.juniper.refresh_from_db()
+        self.assertEqual(self.juniper.name, "Juniper", "Done keeps changes in the draft until Save")
+
+    def test_done_with_a_problem_stays_on_the_card(self):
+        done = self.client.post(self.card("name"), {"name": "", "action": "next"})
+        self.assertRedirects(done, self.card("name") + "?check=1", fetch_redirect_response=False)
+
+    def test_done_that_leaves_another_card_out_of_date_says_so_on_the_summary(self):
+        done = self.client.post(self.card("breed-type"), {"breed_type": "purebred", "action": "next"}, follow=True)
+        self.assertRedirects(done, self.overview)
+        self.assertContains(done, "Your change means the Breed card needs another look before you save.")
 
     def test_unreadable_legacy_breed_asks_for_the_breed(self):
         self.pepper.breed = "barn mix"
