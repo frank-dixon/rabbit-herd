@@ -50,6 +50,28 @@ class EditFlowTests(FlowTestMixin, TestCase):
         self.assertEqual(self.juniper.breed_shares.count(), 2)
         self.assertNotIn(flow.edit_key(self.juniper.pk), self.client.session)
 
+    def test_a_generational_mix_with_fractional_shares_saves(self):
+        from decimal import Decimal
+
+        card = self.client.get(self.card("breed"))
+        self.assertContains(card, 'step="0.01"')
+        self.assertContains(card, 'inputmode="decimal"')
+        self.client.post(self.card("breed"), {
+            "cross-0-breed": pk("Creme d'Argent"), "cross-0-percent": "75",
+            "cross-1-breed": pk("Flemish Giant"), "cross-1-percent": "12.5",
+            "cross-2-breed": pk("New Zealand"), "cross-2-percent": "12.5", "action": "next",
+        })
+        self.assertContains(self.client.get(self.overview), "Cross: 75% Creme d&#x27;Argent, 12.5% Flemish Giant, 12.5% New Zealand")
+        self.client.post(self.overview, {"action": "save"})
+        self.juniper.refresh_from_db()
+        self.assertEqual(
+            sorted(self.juniper.breed_shares.values_list("percent", flat=True)),
+            [Decimal("12.5"), Decimal("12.5"), Decimal("75")],
+        )
+        self.assertContains(self.client.get(reverse("rabbit_detail", args=[self.juniper.pk])), "12.5% Flemish Giant")
+        again = self.client.get(self.card("breed"))
+        self.assertContains(again, 'value="12.5"')
+
     def test_one_breed_at_100_becomes_purebred_and_the_color_card_follows(self):
         nz = pk("New Zealand")
         done = self.client.post(self.card("breed"), {

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from datetime import date
 import uuid
 from pathlib import Path
@@ -171,7 +172,7 @@ class Rabbit(models.Model):
             return self.purebred.name
         if self.breed_type == self.BreedType.CROSSBRED:
             shares = self.breed_shares.select_related("breed").order_by("-percent", "breed__name")
-            parts = [f"{share.percent}% {share.breed.name}" for share in shares]
+            parts = [f"{share_text(share.percent)}% {share.breed.name}" for share in shares]
             if parts:
                 return f"Cross: {', '.join(parts)}"
         return self.breed
@@ -229,24 +230,53 @@ class Rabbit(models.Model):
         }
 
 
+SHARE_PATTERN = r"^-?\d+(\.\d+)?$"
+
+
+def share_number(text):
+    """Any plain number typed as a share, as a Decimal (for the running
+    total), or None when it isn't a number."""
+    import re
+    from decimal import Decimal
+
+    text = str(text if text is not None else "").strip()
+    return Decimal(text) if re.match(SHARE_PATTERN, text) else None
+
+
+def parse_share(text):
+    """A valid share: more than 0 and less than 100, with at most two
+    decimal places (so 12.5 and 6.25 work for generational mixes)."""
+    value = share_number(text)
+    if value is None or not 0 < value < 100 or value != value.quantize(Decimal("0.01")):
+        return None
+    return value.quantize(Decimal("0.01"))
+
+
+def share_text(value):
+    """12.50 -> "12.5", 50.00 -> "50"."""
+    value = Decimal(value).quantize(Decimal("0.01"))
+    text = f"{value:f}"
+    return text.rstrip("0").rstrip(".") if "." in text else text
+
+
 class BreedShare(models.Model):
     """One breed's percentage in a crossbred rabbit. Shares total 100."""
 
     rabbit = models.ForeignKey(Rabbit, related_name="breed_shares", on_delete=models.CASCADE)
     breed = models.ForeignKey(Breed, related_name="shares", on_delete=models.PROTECT)
-    percent = models.PositiveSmallIntegerField()
+    percent = models.DecimalField(max_digits=4, decimal_places=2)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["rabbit", "breed"], name="one_share_per_breed"),
             models.CheckConstraint(
-                condition=models.Q(percent__gte=1) & models.Q(percent__lte=99),
-                name="share_percent_1_to_99",
+                condition=models.Q(percent__gt=0) & models.Q(percent__lt=100),
+                name="share_percent_between_0_and_100",
             ),
         ]
 
     def __str__(self):
-        return f"{self.percent}% {self.breed}"
+        return f"{share_text(self.percent)}% {self.breed}"
 
 
 class OutsideRabbit(models.Model):

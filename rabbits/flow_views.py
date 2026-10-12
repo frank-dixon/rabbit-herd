@@ -8,6 +8,8 @@ posts twice. The script in assets/ only adds a live total, hides a taken
 dam or sire as people choose, and saves typing as it happens.
 """
 
+from decimal import Decimal
+
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -15,7 +17,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
 from . import flow, flow_forms
-from .models import Rabbit
+from .models import Rabbit, share_number, share_text
 
 RADIO_FIELDS = {"sex", "status", "breed_type"}
 
@@ -82,11 +84,12 @@ def anchor_for(key, draft):
 
 
 def total_text(total):
+    total = Decimal(total)
     if total == 100:
         return "Total: 100%. The mix adds up."
     if total < 100:
-        return f"Total so far: {total}%. Add {100 - total}% more to reach 100%."
-    return f"Total so far: {total}%. That's {total - 100}% over, so lower a share."
+        return f"Total so far: {share_text(total)}%. Add {share_text(100 - total)}% more to reach 100%."
+    return f"Total so far: {share_text(total)}%. That's {share_text(total - 100)}% over, so lower a share."
 
 
 def total_tone(total):
@@ -96,11 +99,11 @@ def total_tone(total):
 
 
 def cross_total(draft):
-    total = 0
+    total = Decimal(0)
     for row in draft["cross"]:
-        value = row["percent"].strip()
-        if value.lstrip("-").isdigit():
-            total += int(value)
+        value = share_number(row["percent"])
+        if value is not None:
+            total += value
     return total
 
 

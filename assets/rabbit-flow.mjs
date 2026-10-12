@@ -21,12 +21,21 @@ const TOTAL_TONES = {
 const PARENTS = ["dam", "sire"];
 const AUTOSAVE_DELAY_MS = 600;
 
-/** Sum the shares, counting only whole numbers, like the server does. */
+/**
+ * Sum the shares, counting only plain numbers, like the server does. Adds in
+ * hundredths so 75 + 12.5 + 12.5 is exactly 100 (no float drift).
+ */
 export function crossTotal(values) {
-  return values.reduce(function (sum, value) {
+  const hundredths = values.reduce(function (sum, value) {
     const text = String(value).trim();
-    return /^-?\d+$/.test(text) ? sum + Number(text) : sum;
+    return /^-?\d+(\.\d+)?$/.test(text) ? sum + Math.round(Number(text) * 100) : sum;
   }, 0);
+  return hundredths / 100;
+}
+
+/** 12.5 -> "12.5", 50 -> "50", 33.333 -> "33.33". */
+export function shareText(value) {
+  return String(Math.round(value * 100) / 100);
 }
 
 export function totalText(total) {
@@ -34,9 +43,9 @@ export function totalText(total) {
     return "Total: 100%. The mix adds up.";
   }
   if (total < 100) {
-    return "Total so far: " + total + "%. Add " + (100 - total) + "% more to reach 100%.";
+    return "Total so far: " + shareText(total) + "%. Add " + shareText(100 - total) + "% more to reach 100%.";
   }
-  return "Total so far: " + total + "%. That's " + (total - 100) + "% over, so lower a share.";
+  return "Total so far: " + shareText(total) + "%. That's " + shareText(total - 100) + "% over, so lower a share.";
 }
 
 export function totalTone(total) {

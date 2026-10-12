@@ -119,7 +119,7 @@ class BreedStepTests(FlowTestMixin, TestCase):
         lop = breed_id("Mini Lop")
         self.assertEqual(self.errors("breed", self.cross((rex, "50"), (dutch, "25"), (lop, "25"))), {})
 
-    def test_a_cross_needs_two_different_breeds_with_whole_shares(self):
+    def test_a_cross_needs_two_different_breeds_with_valid_shares(self):
         rex, dutch = breed_id("Rex"), breed_id("Dutch")
         self.assertEqual(
             self.errors("breed", self.cross((rex, "50"))),
@@ -130,15 +130,25 @@ class BreedStepTests(FlowTestMixin, TestCase):
             repeated["cross-1-breed"],
             ["Each breed can be listed only once in a mix. Please choose a different breed, or combine the shares."],
         )
-        for bad in ("0", "100", "12.5", "-5", "ten"):
+        for bad in ("0", "100", "12.555", "-5", "ten", "0.00"):
             errors = self.errors("breed", self.cross((rex, bad), (dutch, "50")))
             self.assertEqual(
                 errors["cross-0-percent"],
-                ["Each share is a whole number from 1 to 99. Please adjust this share."],
+                ["Each share is a number more than 0 and less than 100, with up to two decimals (like 12.5 or 6.25). Please adjust this share."],
                 bad,
             )
         missing = self.errors("breed", self.cross(("", "50"), (dutch, "50")))
         self.assertEqual(missing["cross-0-breed"], ["Each row in the mix needs a breed. Please choose one, or clear the share."])
+
+    def test_generational_mixes_take_fractional_shares(self):
+        rex, dutch, lop = breed_id("Rex"), breed_id("Dutch"), breed_id("Mini Lop")
+        self.assertEqual(self.errors("breed", self.cross((rex, "75"), (dutch, "12.5"), (lop, "12.5"))), {})
+        self.assertEqual(self.errors("breed", self.cross((rex, "87.5"), (dutch, "6.25"), (lop, "6.25"))), {})
+        short = self.errors("breed", self.cross((rex, "75"), (dutch, "12.5"), (lop, "12.49")))
+        self.assertEqual(
+            short["__all__"],
+            ["The shares need to add up to exactly 100%, and right now they add up to 99.99%. Please adjust the shares."],
+        )
 
     def test_empty_rows_are_ignored(self):
         rex, dutch = breed_id("Rex"), breed_id("Dutch")
@@ -333,11 +343,14 @@ class MergeMixTests(FlowTestMixin, TestCase):
         self.assertEqual(draft["cross"], [{"breed": rex, "percent": "50"}, {"breed": dutch, "percent": "50"}])
         self.assertEqual(self.errors("breed", draft), {})
 
-    def test_rows_without_a_whole_share_are_left_for_the_form(self):
+    def test_rows_without_a_valid_share_are_left_for_the_form(self):
         rex = breed_id("Rex")
         draft = self.cross((rex, "50"), (rex, "ten"))
         flow.merge_mix(draft)
         self.assertEqual(len(draft["cross"]), 2)
+        halves = self.cross((rex, "12.5"), (breed_id("Dutch"), "75"), (rex, "12.5"))
+        flow.merge_mix(halves)
+        self.assertEqual(halves["cross"][0], {"breed": rex, "percent": "25"})
 
     def test_a_purebred_draft_is_untouched(self):
         draft = self.draft()

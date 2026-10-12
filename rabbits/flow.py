@@ -13,11 +13,12 @@ and every step is checked again, in one transaction, right before saving.
 """
 
 from dataclasses import dataclass
+from decimal import Decimal
 
 from django.db import transaction
 
 from . import flow_forms
-from .models import Breed, BreedShare, Gene, OutsideRabbit, Rabbit, Relative, color_text
+from .models import Breed, BreedShare, Gene, OutsideRabbit, Rabbit, Relative, color_text, parse_share, share_text
 
 SESSION_KEY = "rabbit_draft"
 MAX_TEXT = 500
@@ -222,15 +223,15 @@ def merge_mix(draft):
     first = {}
     for row in draft["cross"]:
         breed, percent = row["breed"].strip(), row["percent"].strip()
-        if breed and breed in first and percent.isdigit() and first[breed]["percent"].strip().isdigit():
+        if breed and breed in first and parse_share(percent) is not None and parse_share(first[breed]["percent"]) is not None:
             target = first[breed]
-            target["percent"] = str(int(target["percent"]) + int(percent))
+            target["percent"] = share_text(parse_share(target["percent"]) + parse_share(percent))
             continue
         if breed and breed not in first:
             first[breed] = row
         merged.append(row)
     used = [row for row in merged if row["breed"].strip() or row["percent"].strip()]
-    if len(used) == 1 and used[0]["percent"].strip() == "100":
+    if len(used) == 1 and used[0]["percent"].strip() in ("100", "100.0", "100.00"):
         breed = used[0]["breed"].strip()
         if breed.isdigit() and Breed.objects.filter(pk=int(breed)).exists():
             # One breed at 100% is a purebred: record it that way, so the
@@ -275,7 +276,7 @@ def breed_line(purebred, shares):
     if purebred is not None:
         return purebred.name
     parts = sorted(shares, key=lambda share: (-share[1], share[0].name))
-    return "Cross: " + ", ".join(f"{percent}% {breed.name}" for breed, percent in parts)
+    return "Cross: " + ", ".join(f"{share_text(percent)}% {breed.name}" for breed, percent in parts)
 
 
 def draft_breed_line(draft):
@@ -285,12 +286,12 @@ def draft_breed_line(draft):
         return names.get(draft["purebred"], "")
     if draft["breed_type"] == Rabbit.BreedType.CROSSBRED:
         rows = [
-            (names[row["breed"]], int(row["percent"]))
+            (names[row["breed"]], parse_share(row["percent"]))
             for row in draft["cross"]
-            if row["breed"] in names and row["percent"].isdigit()
+            if row["breed"] in names and parse_share(row["percent"]) is not None
         ]
         rows.sort(key=lambda row: (-row[1], row[0]))
-        return "Cross: " + ", ".join(f"{percent}% {name}" for name, percent in rows)
+        return "Cross: " + ", ".join(f"{share_text(percent)}% {name}" for name, percent in rows)
     return ""
 
 
@@ -447,7 +448,7 @@ def parse_legacy_breed(text):
         return None
     body = re.sub(r"^\s*(cross(bred)?|mix)\s*:\s*", "", text, flags=re.IGNORECASE)
     parts = [part.strip() for part in re.split(r"[,/+;]| and ", body) if part.strip()]
-    pattern = re.compile(r"^(\d{1,3})\s*%\s*(.+)$|^(.+?)\s*\(?(\d{1,3})\s*%\)?$")
+    pattern = re.compile(r"^(\d{1,3}(?:\.\d{1,2})?)\s*%\s*(.+)$|^(.+?)\s*\(?(\d{1,3}(?:\.\d{1,2})?)\s*%\)?$")
     shares = {}
     order = []
     any_percent = False
@@ -455,7 +456,7 @@ def parse_legacy_breed(text):
         found = pattern.match(part)
         if found:
             any_percent = True
-            percent = int(found.group(1) or found.group(4))
+            percent = Decimal(found.group(1) or found.group(4))
             name = found.group(2) or found.group(3)
         else:
             percent, name = None, part
@@ -528,7 +529,7 @@ def draft_from_rabbit(rabbit):
         if purebred is not None:
             draft["purebred"] = str(purebred.pk)
         if parts:
-            draft["cross"] = [{"breed": str(breed.pk), "percent": str(pct)} for breed, pct in parts]
+            draft["cross"] = [{"breed": str(breed.pk), "percent": share_text(pct)} for breed, pct in parts]
             while len(draft["cross"]) < 2:
                 draft["cross"].append(blank_cross_row())
     relatives = rabbit.relatives.select_related("herd_rabbit", "outside").prefetch_related("genes")

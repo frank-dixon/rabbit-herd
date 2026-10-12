@@ -11,8 +11,11 @@ const ALL = [
 ];
 const values = (choices) => choices.map((choice) => choice[0]);
 
-test("the total counts whole numbers only, like the server", () => {
-  assert.equal(crossTotal(["60", " 30 ", "", "12.5", "ten"]), 90);
+test("the total counts plain numbers, fractions included, like the server", () => {
+  assert.equal(crossTotal(["60", " 30 ", "", "12.5", "ten"]), 102.5);
+  assert.equal(crossTotal(["75", "12.5", "12.5"]), 100);
+  assert.equal(crossTotal(["33.33", "33.33", "33.34"]), 100);
+  assert.equal(totalText(crossTotal(["75", "12.5", "12.49"])), "Total so far: 99.99%. Add 0.01% more to reach 100%.");
   assert.equal(crossTotal(["-5", "50"]), 45);
 });
 

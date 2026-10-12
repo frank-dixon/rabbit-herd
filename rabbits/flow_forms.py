@@ -11,11 +11,12 @@ Prototype C, so a change here is a copy change Frank should see.
 """
 
 import datetime
+from decimal import Decimal
 
 from django import forms
 from django.utils import timezone
 
-from .models import Breed, Gene, OutsideRabbit, Rabbit, Relative
+from .models import Breed, Gene, OutsideRabbit, Rabbit, Relative, parse_share, share_number, share_text
 
 MAX_CROSS_ROWS = 8
 MAX_RELATIVES = 12
@@ -89,7 +90,7 @@ CROSS_BREED_REPEATED = (
     "Each breed can be listed only once in a mix. "
     "Please choose a different breed, or combine the shares."
 )
-CROSS_PERCENT = "Each share is a whole number from 1 to 99. Please adjust this share."
+CROSS_PERCENT = "Each share is a number more than 0 and less than 100, with up to two decimals (like 12.5 or 6.25). Please adjust this share."
 CROSS_TWO_BREEDS = "A crossbred rabbit has at least two breeds. Please add another breed to the mix."
 CROSS_TOTAL = (
     "The shares need to add up to exactly 100%, and right now they add up to {total}%. "
@@ -430,7 +431,7 @@ class BreedForm(StepForm):
             return {}
         seen = set()
         shares = []
-        total = 0
+        total = Decimal(0)
         for index in range(self.rows):
             breed = self.text(f"cross-{index}-breed")
             percent = self.text(f"cross-{index}-percent")
@@ -441,17 +442,17 @@ class BreedForm(StepForm):
             elif breed in seen:
                 self.add_error(f"cross-{index}-breed", CROSS_BREED_REPEATED)
             seen.add(breed)
-            value = int(percent) if percent.isdigit() else None
-            if value is None or not 1 <= value <= 99:
+            value = parse_share(percent)
+            if value is None:
                 self.add_error(f"cross-{index}-percent", CROSS_PERCENT)
-            if percent.lstrip("-").isdigit():
-                total += int(percent)
+            if share_number(percent) is not None:
+                total += share_number(percent)
             if breed in breeds and value:
                 shares.append((breeds[breed], value))
         if self.used_rows() < 2:
             self.add_error(None, CROSS_TWO_BREEDS)
         elif total != 100:
-            self.add_error(None, CROSS_TOTAL.format(total=total))
+            self.add_error(None, CROSS_TOTAL.format(total=share_text(total)))
         return {"breed_type": breed_type, "purebred": None, "shares": shares}
 
     def used_rows(self):
