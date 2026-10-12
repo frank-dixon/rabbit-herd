@@ -20,5 +20,6 @@ urlpatterns = [
     path("<int:pk>/genes/", views.rabbit_genes, name="rabbit_genes"),
     path("<int:pk>/c-carrier/", views.rabbit_c_carrier, name="rabbit_c_carrier"),
     path("<int:pk>/archive/", views.rabbit_archive, name="rabbit_archive"),
+    path("<int:pk>/delete/", views.rabbit_delete, name="rabbit_delete"),
     path("<int:pk>/restore/", views.rabbit_restore, name="rabbit_restore"),
 ]

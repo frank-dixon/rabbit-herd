@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.db import transaction
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -143,3 +144,43 @@ def rabbit_restore(request, pk):
         rabbit.save(update_fields=["archived_at", "updated_at"])
     messages.success(request, f"{rabbit.name} was restored.")
     return redirect("rabbit_detail", pk=rabbit.pk)
+
+
+def delete_phrase(rabbit):
+    return f"delete {rabbit.name}"
+
+
+def delete_phrase_matches(rabbit, typed):
+    """Case-insensitive, with outer and repeated inner spaces ignored."""
+    def tidy(text):
+        return " ".join(str(text or "").split()).casefold()
+    return tidy(typed) == tidy(delete_phrase(rabbit))
+
+
+@login_required
+def rabbit_delete(request, pk):
+    """Delete a rabbit for good once its owner types "delete <name>".
+    GET shows the confirm page, which also works without JavaScript."""
+    rabbit = owned_rabbit(request.user, pk)
+    error = ""
+    typed = ""
+    if request.method == "POST":
+        typed = request.POST.get("confirm", "")
+        if delete_phrase_matches(rabbit, typed):
+            name = rabbit.name
+            files = [(photo.image.storage, photo.image.name) for photo in rabbit.photos.all() if photo.image.name]
+            with transaction.atomic():
+                rabbit.delete()
+                for storage, file_name in files:
+                    transaction.on_commit(lambda s=storage, n=file_name: s.delete(n))
+            messages.success(request, f"{name} was deleted.")
+            return redirect("rabbit_list")
+        error = f"Type “{delete_phrase(rabbit)}” exactly to delete {rabbit.name}."
+    response = render(
+        request,
+        "rabbits/delete.html",
+        {"rabbit": rabbit, "phrase": delete_phrase(rabbit), "typed": typed, "error": error, "wide": True},
+    )
+    if error:
+        response.status_code = 400
+    return response

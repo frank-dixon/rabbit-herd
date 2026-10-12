@@ -24,9 +24,15 @@
           {% include "components/button.html" with label="Archive" type="submit" variant="secondary" only %}
         </form>
       {% endif %}
+      {% url 'rabbit_delete' rabbit.pk as delete_url %}
+      <a href="{{ delete_url }}" data-delete-open="delete-dialog" class="inline-flex items-center justify-center rounded border border-neutral-500 bg-white px-4 py-2 font-medium text-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2">Delete</a>
       {% include "components/button.html" with label="Back to rabbits" href=list_url variant="secondary" only %}
     </div>
   </div>
+  <dialog id="delete-dialog" class="m-auto w-[calc(100%-2rem)] max-w-md rounded border border-neutral-300 bg-white p-5 text-neutral-800 backdrop:bg-neutral-900/50" aria-labelledby="delete-dialog-title">
+    <h2 class="text-lg font-semibold" id="delete-dialog-title">Delete {{ rabbit.name }}?</h2>
+    <div class="mt-2">{% include "rabbits/_delete_form.html" with field_id="id_delete_confirm" phrase="delete "|add:rabbit.name typed="" error="" js=True %}</div>
+  </dialog>
 
   <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
     <section class="flex flex-col overflow-hidden rounded border border-neutral-300 bg-white sm:flex-row lg:flex-col" aria-label="Details">

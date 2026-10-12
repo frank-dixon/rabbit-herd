@@ -14,6 +14,7 @@
 
 import { bindRabbitFlow } from "./rabbit-flow.mjs";
 import { bindPhotoUpload } from "./photo-upload.mjs";
+import { bindDeleteDialog } from "./delete-dialog.mjs";
 
 /**
  * Read the CSRF token from the page.
@@ -299,6 +300,7 @@ function start() {
   bindPasskeys();
   bindRabbitFlow(document);
   bindPhotoUpload(document);
+  bindDeleteDialog(document);
 }
 
 if (document.readyState === "loading") {

@@ -1,0 +1,19 @@
+{# The typed "delete <name>" check, shared by the confirm page and the detail page's dialog. rabbit, phrase, typed, error, field_id, js (button starts disabled; script enables it). #}
+<form method="post" action="{% url 'rabbit_delete' rabbit.pk %}" data-delete-form data-phrase="{{ phrase }}">
+  {% csrf_token %}
+  <p class="text-neutral-700">This removes {{ rabbit.name }}, its photos, genes and relatives links for good. To keep the record instead, archive it.</p>
+  <label class="mt-4 block font-medium" for="{{ field_id }}">Type '{{ phrase }}' to confirm</label>
+  <input class="mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 {% if error %}border-red-800{% else %}border-neutral-400{% endif %}"
+    id="{{ field_id }}" name="confirm" type="text" value="{{ typed }}" autocomplete="off" autocapitalize="off" spellcheck="false" data-delete-input
+    {% if error %}aria-invalid="true" aria-describedby="{{ field_id }}_error"{% endif %}>
+  {% if error %}<p class="mt-1 text-sm font-medium text-red-800" id="{{ field_id }}_error">{{ error }}</p>{% endif %}
+  <div class="mt-5 flex flex-col gap-2 sm:flex-row-reverse sm:justify-start">
+    {% include "components/button.html" with label="Delete "|add:rabbit.name type="submit" variant="danger" disabled=js only %}
+    {% if js %}
+      <button type="button" class="inline-flex items-center justify-center rounded border border-neutral-500 bg-white px-4 py-2 font-medium text-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2" data-delete-close>Cancel</button>
+    {% else %}
+      {% url 'rabbit_detail' rabbit.pk as detail_url %}
+      {% include "components/button.html" with label="Cancel" href=detail_url variant="secondary" only %}
+    {% endif %}
+  </div>
+</form>
