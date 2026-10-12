@@ -11,6 +11,7 @@ ICONS = {
     "archived": "M3 5h18v4H3zM5 9v10h14V9M10 13h4",
     "contacts": "M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20a6 6 0 0 1 12 0M16 11a3 3 0 1 0 0-6M18 20h4a6 6 0 0 0-5-5.9",
     "locations": "M4 4h16v16H4zM4 12h16M12 4v16",
+    "pairings": "M8 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM16 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
     "more": "M5 12h.01M12 12h.01M19 12h.01",
     "account": "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0",
 }
@@ -28,6 +29,8 @@ def active_key(request):
         return "rabbits"
     if path.startswith("/locations/"):
         return "locations"
+    if path.startswith("/pairings/"):
+        return "pairings"
     if path.startswith("/contacts/"):
         return "contacts"
     if path.startswith("/account/") or path.startswith("/accounts/password"):
@@ -46,6 +49,7 @@ def app_nav(request):
         ("add", "Add a rabbit", reverse("rabbit_create")),
         ("archived", "Archived", reverse("rabbit_list") + "?tab=archived"),
         ("locations", "Locations", reverse("location_list")),
+        ("pairings", "Pairings", reverse("pairing_list")),
         ("contacts", "Contacts", reverse("contact_list")),
         ("account", "Account", reverse("account")),
     ]

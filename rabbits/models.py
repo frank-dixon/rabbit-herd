@@ -667,3 +667,19 @@ class Gene(models.Model):
 
     def __str__(self):
         return f"{self.locus}: {self.genotype} ({self.get_certainty_display().lower()})"
+
+
+class Pairing(models.Model):
+    """A planned or done doe x buck pairing from the keeper's own herd."""
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="pairings", on_delete=models.CASCADE)
+    doe = models.ForeignKey(Rabbit, related_name="pairings_as_doe", on_delete=models.CASCADE)
+    buck = models.ForeignKey(Rabbit, related_name="pairings_as_buck", on_delete=models.CASCADE)
+    notes = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+
+    def __str__(self):
+        return f"{self.doe.name} × {self.buck.name}"
