@@ -342,6 +342,8 @@ def rabbit_flow_step(request, step):
                 return redirect(step_url(not_ready.slug, check=True))
             flow.clear_draft(request.session)
             return redirect("rabbit_flow_done", pk=rabbit.pk)
+        if step == "breed":
+            flow.merge_mix(draft)
         form = flow.bound_form(step, draft, request.user)
         if form.is_valid():
             draft["step"] = flow.SLUGS[index + 1]

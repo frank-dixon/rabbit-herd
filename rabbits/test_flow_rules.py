@@ -318,3 +318,29 @@ class SaveTests(FlowTestMixin, TestCase):
 
     def test_a_long_mix_is_shortened_for_the_list(self):
         self.assertEqual(len(flow.short_breed("x" * 120)), 80)
+
+
+class MergeMixTests(FlowTestMixin, TestCase):
+    def cross(self, *rows):
+        draft = self.draft(breed_type="crossbred", purebred="")
+        draft["cross"] = [{"breed": breed, "percent": percent} for breed, percent in rows]
+        return draft
+
+    def test_repeated_breeds_are_added_together(self):
+        rex, dutch = breed_id("Rex"), breed_id("Dutch")
+        draft = self.cross((rex, "25"), (dutch, "50"), (rex, "25"))
+        flow.merge_mix(draft)
+        self.assertEqual(draft["cross"], [{"breed": rex, "percent": "50"}, {"breed": dutch, "percent": "50"}])
+        self.assertEqual(self.errors("breed", draft), {})
+
+    def test_rows_without_a_whole_share_are_left_for_the_form(self):
+        rex = breed_id("Rex")
+        draft = self.cross((rex, "50"), (rex, "ten"))
+        flow.merge_mix(draft)
+        self.assertEqual(len(draft["cross"]), 2)
+
+    def test_a_purebred_draft_is_untouched(self):
+        draft = self.draft()
+        before = [dict(row) for row in draft["cross"]]
+        flow.merge_mix(draft)
+        self.assertEqual(draft["cross"], before)

@@ -180,6 +180,29 @@ def apply_row_action(draft, action):
     return False
 
 
+def merge_mix(draft):
+    """Fold repeated breeds in a crossbred mix into one row by adding their
+    shares, so "50% New Zealand" twice becomes "100% New Zealand" instead of
+    an error. The first row for a breed keeps its place. Rows whose share is
+    not a whole number are left alone, so the form can point at them."""
+    if draft["breed_type"] != Rabbit.BreedType.CROSSBRED:
+        return
+    merged = []
+    first = {}
+    for row in draft["cross"]:
+        breed, percent = row["breed"].strip(), row["percent"].strip()
+        if breed and breed in first and percent.isdigit() and first[breed]["percent"].strip().isdigit():
+            target = first[breed]
+            target["percent"] = str(int(target["percent"]) + int(percent))
+            continue
+        if breed and breed not in first:
+            first[breed] = row
+        merged.append(row)
+    while len(merged) < 2:
+        merged.append(blank_cross_row())
+    draft["cross"] = merged
+
+
 def bound_form(slug, draft, user):
     """The step's form, bound to the draft, ready to check."""
     step = STEPS[step_index(slug)]

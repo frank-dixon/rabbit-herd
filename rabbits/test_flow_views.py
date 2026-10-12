@@ -187,6 +187,18 @@ class CardFlowTests(TestCase):
         )
         self.assertRedirects(response, step("color"))
 
+    def test_a_repeated_breed_in_the_mix_is_added_together(self):
+        self.walk_to_breed("crossbred")
+        rex, dutch = breed_id("Rex"), breed_id("Dutch")
+        self.answer("breed", action="add-cross")
+        response = self.answer(
+            "breed",
+            **{"cross-0-breed": rex, "cross-0-percent": "25", "cross-1-breed": dutch, "cross-1-percent": "50",
+               "cross-2-breed": rex, "cross-2-percent": "25"},
+        )
+        self.assertRedirects(response, step("color"))
+        self.assertEqual(self.draft()["cross"], [{"breed": rex, "percent": "50"}, {"breed": dutch, "percent": "50"}])
+
     def test_relatives_hide_a_taken_dam_and_reject_a_second_one(self):
         self.walk_to_breed("purebred")
         self.choose_breed()
