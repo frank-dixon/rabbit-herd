@@ -16,6 +16,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
+from . import photo_processing
 from .forms import PhotoNotesForm, PhotoUploadForm
 from .models import Rabbit, RabbitPhoto
 
@@ -24,7 +25,12 @@ def owned_photo(user, pk):
     return get_object_or_404(RabbitPhoto.objects.select_related("rabbit"), pk=pk, rabbit__owner=user)
 
 
-def photos_url(rabbit, anchor=""):
+def photos_url(rabbit, anchor="", request=None):
+    """Where a photo change goes back to: the Photos page, or the Photos card
+    on the rabbit's page when the form sent back_to=detail. Only those two
+    fixed places are allowed, so this can't be used to redirect elsewhere."""
+    if request is not None and request.POST.get("back_to") == "detail":
+        return reverse("rabbit_detail", args=[rabbit.pk]) + "#photos"
     url = reverse("rabbit_photos", args=[rabbit.pk])
     return f"{url}#{anchor}" if anchor else url
 
@@ -61,7 +67,11 @@ def rabbit_photos(request, pk):
             messages.success(request, f"The photo was added. It's {rabbit.name}'s main photo, since it's the first one.")
         else:
             messages.success(request, "The photo was added.")
-        return redirect(photos_url(rabbit, f"photo-{photo.pk}"))
+        return redirect(photos_url(rabbit, f"photo-{photo.pk}", request))
+    if request.method == "POST" and request.POST.get("back_to") == "detail":
+        for errors in form.errors.values():
+            messages.error(request, errors[0])
+        return redirect(photos_url(rabbit, request=request))
     return render(
         request,
         "rabbits/photos.html",
@@ -81,7 +91,7 @@ def photo_notes(request, pk):
         messages.success(request, "The notes were saved.")
     else:
         messages.error(request, form.errors["notes"][0])
-    return redirect(photos_url(photo.rabbit, f"photo-{photo.pk}"))
+    return redirect(photos_url(photo.rabbit, f"photo-{photo.pk}", request))
 
 
 @login_required
@@ -107,7 +117,7 @@ def photo_delete(request, pk):
         messages.success(request, "The photo was deleted. The oldest remaining photo is now the main photo.")
     else:
         messages.success(request, "The photo was deleted.")
-    return redirect(photos_url(rabbit))
+    return redirect(photos_url(rabbit, request=request))
 
 
 @login_required
@@ -123,4 +133,28 @@ def photo_set_main(request, pk):
             photo.is_main = True
             photo.save(update_fields=["is_main"])
     messages.success(request, f"This is now {photo.rabbit.name}'s main photo.")
-    return redirect(photos_url(photo.rabbit, f"photo-{photo.pk}"))
+    return redirect(photos_url(photo.rabbit, f"photo-{photo.pk}", request))
+
+
+@login_required
+@require_POST
+def photo_rotate(request, pk):
+    """Turn a photo a quarter turn left or right, saved as a new file so
+    browsers don't keep showing the old one from cache."""
+    photo = owned_photo(request.user, pk)
+    direction = request.POST.get("direction")
+    if direction not in ("left", "right"):
+        messages.error(request, "Choose left or right to rotate the photo.")
+        return redirect(photos_url(photo.rabbit, f"photo-{photo.pk}", request))
+    old_name, storage = photo.image.name, photo.image.storage
+    try:
+        new_file = photo_processing.rotate_photo(photo.image, direction)
+    except (OSError, ValueError):
+        messages.error(request, "That photo couldn't be rotated.")
+        return redirect(photos_url(photo.rabbit, f"photo-{photo.pk}", request))
+    with transaction.atomic():
+        photo.image.save(new_file.name, new_file, save=False)
+        photo.save(update_fields=["image"])
+        transaction.on_commit(lambda: storage.delete(old_name))
+    messages.success(request, f"The photo was rotated {direction}.")
+    return redirect(photos_url(photo.rabbit, f"photo-{photo.pk}", request))

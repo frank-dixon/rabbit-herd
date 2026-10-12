@@ -82,3 +82,22 @@ def clean_photo(upload):
             picture = picture.convert("RGBA" if "A" in picture.getbands() else "RGB")
         picture.save(output, format="WEBP", quality=88)
     return ContentFile(output.getvalue(), name=f"photo.{FORMATS[fmt]}")
+
+
+def rotate_photo(field_file, direction):
+    """A quarter-turn copy of a stored photo as a ContentFile, in the same format."""
+    with field_file.open("rb") as handle:
+        with Image.open(handle) as source:
+            source.load()
+            fmt = SAVE_AS.get(source.format, source.format)
+            if fmt not in FORMATS:
+                fmt = "JPEG"
+            turned = source.transpose(Image.Transpose.ROTATE_90 if direction == "left" else Image.Transpose.ROTATE_270)
+    output = BytesIO()
+    if fmt == "JPEG":
+        if turned.mode not in ("RGB", "L"):
+            turned = turned.convert("RGB")
+        turned.save(output, format="JPEG", quality=88, optimize=True)
+    else:
+        turned.save(output, format=fmt)
+    return ContentFile(output.getvalue(), name=f"photo.{FORMATS[fmt]}")
