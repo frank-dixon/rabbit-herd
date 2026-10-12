@@ -35,8 +35,10 @@ class RabbitListLayoutTests(TestCase):
         self.assertContains(page, 'href="?view=grid"')
         again = self.client.get(reverse("rabbit_list"))
         self.assertEqual(again.context["view"], "list")
-        # The grid is still in the page for phones and tablets, hidden on desktop.
-        self.assertContains(again, "lg:grid-cols-4 lg:hidden")
+        # The saved choice applies at every screen size: no grid behind it.
+        self.assertNotContains(again, 'data-view="grid"')
+        self.assertNotContains(again, "lg:hidden")
+        self.assertContains(again, "›")
         back = self.client.get(reverse("rabbit_list"), {"view": "grid"})
         self.assertNotContains(back, 'data-view="list"')
 
