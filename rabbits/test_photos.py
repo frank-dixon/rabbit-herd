@@ -324,3 +324,43 @@ class PhotoPageTests(PhotoTestCase):
         self.assertEqual(strict.post(reverse("rabbit_photo_delete", args=[photo.pk])).status_code, 403)
         self.assertEqual(strict.post(self.page(), {"image": upload(jpeg_with_location())}).status_code, 403)
         self.assertTrue(RabbitPhoto.objects.filter(pk=photo.pk).exists())
+
+
+class SetMainPhotoTests(PhotoTestCase):
+    def set_main(self, photo):
+        return self.client.post(reverse("rabbit_photo_set_main", args=[photo.pk]))
+
+    def test_a_photo_can_become_the_main_photo(self):
+        old_main = add_photo(self.rabbit, is_main=True)
+        extra = add_photo(self.rabbit)
+        page = reverse("rabbit_photos", args=[self.rabbit.pk])
+        self.assertContains(self.client.get(page), f'action="{reverse("rabbit_photo_set_main", args=[extra.pk])}"')
+        self.assertNotContains(self.client.get(page), f'action="{reverse("rabbit_photo_set_main", args=[old_main.pk])}"')
+        response = self.set_main(extra)
+        self.assertRedirects(response, f"{page}#photo-{extra.pk}", fetch_redirect_response=False)
+        self.assertContains(self.client.get(page), "This is now Clover&#x27;s main photo.")
+        old_main.refresh_from_db()
+        extra.refresh_from_db()
+        self.assertTrue(extra.is_main)
+        self.assertFalse(old_main.is_main)
+        self.assertEqual(self.rabbit.main_photo, extra)
+
+    def test_without_a_main_photo_any_photo_can_become_it(self):
+        photo = add_photo(self.rabbit)
+        self.set_main(photo)
+        photo.refresh_from_db()
+        self.assertTrue(photo.is_main)
+        self.set_main(photo)
+        self.assertEqual(self.rabbit.photos.filter(is_main=True).count(), 1)
+
+    def test_only_the_owner_with_a_post(self):
+        main = add_photo(self.rabbit, is_main=True)
+        extra = add_photo(self.rabbit)
+        self.assertEqual(self.client.get(reverse("rabbit_photo_set_main", args=[extra.pk])).status_code, 405)
+        self.client.force_login(self.stranger)
+        self.assertEqual(self.set_main(extra).status_code, 404)
+        main.refresh_from_db()
+        self.assertTrue(main.is_main)
+        strict = Client(enforce_csrf_checks=True)
+        strict.force_login(self.owner)
+        self.assertEqual(strict.post(reverse("rabbit_photo_set_main", args=[extra.pk])).status_code, 403)

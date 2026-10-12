@@ -108,3 +108,19 @@ def photo_delete(request, pk):
     else:
         messages.success(request, "The photo was deleted.")
     return redirect(photos_url(rabbit))
+
+
+@login_required
+@require_POST
+def photo_set_main(request, pk):
+    """Make this photo the rabbit's main photo, and the old main an extra."""
+    photo = owned_photo(request.user, pk)
+    with transaction.atomic():
+        # Lock the rabbit so two quick taps can't leave two main photos.
+        Rabbit.objects.select_for_update().get(pk=photo.rabbit_id)
+        photo.rabbit.photos.filter(is_main=True).exclude(pk=photo.pk).update(is_main=False)
+        if not photo.is_main:
+            photo.is_main = True
+            photo.save(update_fields=["is_main"])
+    messages.success(request, f"This is now {photo.rabbit.name}'s main photo.")
+    return redirect(photos_url(photo.rabbit, f"photo-{photo.pk}"))

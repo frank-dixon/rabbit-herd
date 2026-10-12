@@ -12,6 +12,7 @@ urlpatterns = [
     path("photos/<int:pk>/", photo_views.photo_file, name="rabbit_photo_file"),
     path("photos/<int:pk>/notes/", photo_views.photo_notes, name="rabbit_photo_notes"),
     path("photos/<int:pk>/delete/", photo_views.photo_delete, name="rabbit_photo_delete"),
+    path("photos/<int:pk>/main/", photo_views.photo_set_main, name="rabbit_photo_set_main"),
     path("<int:pk>/photos/", photo_views.rabbit_photos, name="rabbit_photos"),
     path("<int:pk>/", views.rabbit_detail, name="rabbit_detail"),
     path("<int:pk>/edit/", views.rabbit_edit, name="rabbit_edit"),
