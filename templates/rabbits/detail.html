@@ -3,9 +3,11 @@
 {% block title %}{{ rabbit.name }} · Rabbit Herd{% endblock %}
 
 {% block content %}
-  {% if rabbit.photo %}
-    <img class="mb-8 max-w-full" src="{{ rabbit.photo.url }}" alt="{{ rabbit.name }}">
-  {% endif %}
+  {% with main=rabbit.main_photo %}
+    {% if main %}
+      <img class="mb-8 w-full max-w-xl rounded-lg object-cover" src="{% url 'rabbit_photo_file' main.pk %}" alt="{{ rabbit.name }}, main photo">
+    {% endif %}
+  {% endwith %}
   {% include "components/card.html" with title=rabbit.name body=rabbit.summary only %}
   {% with relatives=rabbit.relatives.all %}
     {% if relatives %}

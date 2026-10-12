@@ -3,10 +3,12 @@ from pathlib import Path
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 def rabbit_photo_path(instance, filename):
-    """Store a photo under the owner, with a generated name."""
+    """Upload path of the old single Rabbit.photo field. Kept because
+    migration 0001 refers to it; new photos use photo_file_path."""
     extension = Path(filename).suffix.lower()
     if extension not in {".jpg", ".jpeg", ".png", ".gif", ".webp"}:
         extension = ""
@@ -93,7 +95,6 @@ class Rabbit(models.Model):
     # (crossbreds, any-color breeds, older records, or a color edited by hand).
     color_is_standard = models.BooleanField(null=True, blank=True, default=None)
     birth_date = models.DateField()
-    photo = models.ImageField(upload_to=rabbit_photo_path, blank=True)
     status = models.CharField(
         max_length=16,
         choices=Status.choices,
@@ -129,6 +130,11 @@ class Rabbit(models.Model):
     def color_line(self):
         """The color, marked when it is off the breed's standard."""
         return color_text(self.color, self.color_is_standard)
+
+    @property
+    def main_photo(self):
+        """The photo marked as main, or None. Uses prefetched photos when present."""
+        return next((photo for photo in self.photos.all() if photo.is_main), None)
 
     def breed_line(self):
         """Readable breed text built from the purebred breed or the shares."""
@@ -313,3 +319,37 @@ class PedigreeEntry(models.Model):
 
     def __str__(self):
         return f"{position_label(self.position)}: {self.ancestor}"
+
+
+def photo_file_path(instance, filename):
+    """A random name under the owner's folder. The name a keeper's phone gave
+    the file is never kept, and photos are only served through an owner
+    check (rabbits.photo_views), never straight from storage."""
+    extension = Path(filename).suffix.lower()
+    if extension not in {".jpg", ".jpeg", ".png", ".webp"}:
+        extension = ""
+    return f"rabbit-photos/{instance.rabbit.owner_id}/{uuid.uuid4().hex}{extension}"
+
+
+class RabbitPhoto(models.Model):
+    """A photo of a rabbit, with notes. At most one per rabbit is the main
+    photo, the one shown on the list and at the top of the detail page."""
+
+    rabbit = models.ForeignKey(Rabbit, related_name="photos", on_delete=models.CASCADE)
+    image = models.ImageField(upload_to=photo_file_path)
+    notes = models.TextField(blank=True, max_length=500)
+    is_main = models.BooleanField(default=False)
+    uploaded_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-is_main", "uploaded_at", "pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["rabbit"],
+                condition=models.Q(is_main=True),
+                name="one_main_photo_per_rabbit",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Photo of {self.rabbit.name}"

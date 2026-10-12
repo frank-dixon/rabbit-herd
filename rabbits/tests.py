@@ -1,17 +1,13 @@
 import tempfile
 from datetime import timedelta
-from io import BytesIO
 from pathlib import Path
 
 from django.contrib.admin.sites import site
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
-from PIL import Image
 
 from accounts.models import User
-from rabbits.forms import MAX_PHOTO_BYTES, RabbitForm
 from rabbits.models import Rabbit
 
 MEDIA_ROOT = Path(tempfile.mkdtemp())
@@ -24,12 +20,6 @@ def make_user(email):
         is_active=True,
         email_confirmed=True,
     )
-
-
-def png_upload(name="rabbit.png", content_type="image/png"):
-    buffer = BytesIO()
-    Image.new("RGB", (8, 8), "white").save(buffer, format="PNG")
-    return SimpleUploadedFile(name, buffer.getvalue(), content_type=content_type)
 
 
 def rabbit_fields(**overrides):
@@ -181,55 +171,6 @@ class RabbitRecordTests(TestCase):
         self.assertContains(future, "Birth date cannot be in the future.")
         rabbit.refresh_from_db()
         self.assertEqual((rabbit.name, rabbit.birth_date.isoformat()), ("Clover", "2024-03-01"))
-
-    def test_form_rejects_a_non_image_and_an_oversized_photo(self):
-        rabbit = self.clover()
-        edit_url = reverse("rabbit_edit", args=[rabbit.pk])
-        text = SimpleUploadedFile("notes.png", b"not an image", content_type="image/png")
-        rejected = self.client.post(
-            edit_url,
-            {**rabbit_fields(), "photo": text},
-        )
-        self.assertContains(rejected, "Upload a valid image.")
-
-        bitmap = BytesIO()
-        Image.new("RGB", (8, 8), "white").save(bitmap, format="BMP")
-        wrong_type = SimpleUploadedFile("rabbit.png", bitmap.getvalue(), content_type="image/bmp")
-        typed = self.client.post(
-            edit_url,
-            {**rabbit_fields(), "photo": wrong_type},
-        )
-        self.assertContains(typed, "JPEG, PNG, GIF, or WebP")
-
-        huge = png_upload()
-        huge.size = MAX_PHOTO_BYTES + 1
-        oversized = RabbitForm(data=rabbit_fields(), files={"photo": huge})
-        self.assertFalse(oversized.is_valid())
-        self.assertIn("5 MB or smaller", oversized.errors["photo"][0])
-        rabbit.refresh_from_db()
-        self.assertFalse(rabbit.photo)
-
-    def test_a_valid_photo_is_stored_and_served_only_when_debug_is_on(self):
-        rabbit = self.clover()
-        upload = png_upload()
-        response = self.client.post(
-            reverse("rabbit_edit", args=[rabbit.pk]),
-            {**rabbit_fields(), "photo": upload},
-        )
-        rabbit.refresh_from_db()
-        self.assertRedirects(response, reverse("rabbit_detail", args=[rabbit.pk]))
-        self.assertTrue(rabbit.photo.name.startswith(f"rabbits/{self.owner.pk}/"))
-
-        detail = self.client.get(reverse("rabbit_detail", args=[rabbit.pk]))
-        self.assertContains(detail, rabbit.photo.url)
-
-        hidden = self.client.get(rabbit.photo.url)
-        self.assertEqual(hidden.status_code, 404)
-
-        with override_settings(DEBUG=True):
-            shown = self.client.get(rabbit.photo.url)
-        self.assertEqual(shown.status_code, 200)
-        self.assertIn(shown["Content-Type"], {"image/png", "image/jpeg"})
 
     def test_admin_cannot_delete_a_rabbit(self):
         self.assertFalse(site._registry[Rabbit].has_delete_permission(None))

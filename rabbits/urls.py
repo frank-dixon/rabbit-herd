@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import flow_views, views
+from . import flow_views, photo_views, views
 
 urlpatterns = [
     path("", views.rabbit_list, name="rabbit_list"),
@@ -9,6 +9,7 @@ urlpatterns = [
     path("new/restart/", flow_views.rabbit_flow_restart, name="rabbit_flow_restart"),
     path("new/added/<int:pk>/", flow_views.rabbit_flow_done, name="rabbit_flow_done"),
     path("new/<slug:step>/", flow_views.rabbit_flow_step, name="rabbit_flow_step"),
+    path("photos/<int:pk>/", photo_views.photo_file, name="rabbit_photo_file"),
     path("<int:pk>/", views.rabbit_detail, name="rabbit_detail"),
     path("<int:pk>/edit/", views.rabbit_edit, name="rabbit_edit"),
     path("<int:pk>/archive/", views.rabbit_archive, name="rabbit_archive"),

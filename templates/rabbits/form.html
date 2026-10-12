@@ -3,9 +3,9 @@
 {% block title %}{{ heading }} · Rabbit Herd{% endblock %}
 
 {% block content %}
-  {% include "components/card.html" with title=heading body="Name or ear tag, sex, breed, color, birth date, status, and an optional photo." only %}
+  {% include "components/card.html" with title=heading body="Name or ear tag, sex, breed, color, birth date, and status. Photos are on the rabbit's Photos page." only %}
   <div class="mt-8">
-    {% include "components/form.html" with form=form submit_label=submit_label enctype="multipart/form-data" %}
+    {% include "components/form.html" with form=form submit_label=submit_label %}
   </div>
   <div class="mt-4">
     {% if rabbit %}
