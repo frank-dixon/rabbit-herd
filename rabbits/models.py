@@ -190,6 +190,22 @@ class Rabbit(models.Model):
             parts.append(f"{months} mo")
         return " ".join(parts)
 
+    def kindling_note(self, relatives=None):
+        """ "Pepper died kindling this litter on May 18, 2026" when the herd
+        dam's date of death is this rabbit's birth date and the cause says so."""
+        rows = relatives if relatives is not None else self.relatives.select_related("herd_rabbit")
+        for row in rows:
+            dam = row.herd_rabbit if row.relationship == "dam" else None
+            if (
+                dam is not None
+                and dam.death_date
+                and dam.death_date == self.birth_date
+                and dam.death_cause.strip().casefold() == "died kindling"
+            ):
+                day = dam.death_date
+                return f"{dam.name} died kindling this litter on {day:%B} {day.day}, {day.year}."
+        return ""
+
     @property
     def is_deceased(self):
         return self.status == self.Status.DECEASED

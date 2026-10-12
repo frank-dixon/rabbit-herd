@@ -49,3 +49,21 @@ class AddToHerdTests(TestCase):
     def test_other_keepers_get_404(self):
         self.client.force_login(get_user_model().objects.create_user("x@example.com", "pw-12345678"))
         self.assertEqual(self.client.post(self.url, {"sex": "doe", "birth_date": "2024-02-01"}).status_code, 404)
+
+
+class KindlingNoteTests(TestCase):
+    def test_note_when_the_dam_died_kindling_on_the_birth_date(self):
+        user = get_user_model().objects.create_user("k@example.com", "pw-12345678")
+        self.client.force_login(user)
+        pepper = Rabbit.objects.create(owner=user, name="Pepper", sex="doe", breed="Rex", color="Castor", birth_date=date(2024, 1, 1),
+                                       status="deceased", death_date=date(2026, 5, 18), death_cause="Died kindling")
+        kit = Rabbit.objects.create(owner=user, name="Blackberry", sex="buck", breed="Rex", color="Black", birth_date=date(2026, 5, 18))
+        Relative.objects.create(rabbit=kit, relationship="dam", herd_rabbit=pepper)
+        url = reverse("rabbit_detail", args=[kit.pk])
+        self.assertContains(self.client.get(url), "Pepper died kindling this litter on May 18, 2026.")
+        pepper.death_cause = "Illness"
+        pepper.save()
+        self.assertNotContains(self.client.get(url), "died kindling this litter")
+        pepper.death_cause, pepper.death_date = "Died kindling", date(2026, 5, 19)
+        pepper.save()
+        self.assertNotContains(self.client.get(url), "died kindling this litter")

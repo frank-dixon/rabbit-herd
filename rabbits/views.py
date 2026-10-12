@@ -139,6 +139,9 @@ def rabbit_archived(request):
 @login_required
 def rabbit_detail(request, pk):
     rabbit = owned_rabbit(request.user, pk)
+    relatives = list(
+        rabbit.relatives.select_related("herd_rabbit", "outside").prefetch_related("herd_rabbit__photos")
+    )
     photos = list(rabbit.photos.all())
     main = next((photo for photo in photos if photo.is_main), None)
     return render(
@@ -150,9 +153,8 @@ def rabbit_detail(request, pk):
             "main_photo": main,
             "extra_photos": [photo for photo in photos if photo is not main],
             "photos": photos,
-            "relatives": list(
-                rabbit.relatives.select_related("herd_rabbit", "outside").prefetch_related("herd_rabbit__photos")
-            ),
+            "relatives": relatives,
+            "kindling_note": rabbit.kindling_note(relatives),
             "upload_form": PhotoUploadForm(),
             "c_carrier_note": genetics.c_carrier_suggestion(rabbit),
             "genes": rabbit.genes.all(),
