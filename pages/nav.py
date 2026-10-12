@@ -9,6 +9,7 @@ ICONS = {
     "rabbits": "M4 5h16M4 12h16M4 19h16",
     "add": "M12 5v14M5 12h14",
     "archived": "M3 5h18v4H3zM5 9v10h14V9M10 13h4",
+    "contacts": "M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20a6 6 0 0 1 12 0M16 11a3 3 0 1 0 0-6M18 20h4a6 6 0 0 0-5-5.9",
     "account": "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0",
 }
 
@@ -23,6 +24,8 @@ def active_key(request):
         return "archived"
     if path.startswith("/rabbits/"):
         return "rabbits"
+    if path.startswith("/contacts/"):
+        return "contacts"
     if path.startswith("/account/") or path.startswith("/accounts/password"):
         return "account"
     return ""
@@ -38,6 +41,7 @@ def app_nav(request):
         ("rabbits", "Rabbits", reverse("rabbit_list")),
         ("add", "Add a rabbit", reverse("rabbit_create")),
         ("archived", "Archived", reverse("rabbit_list") + "?tab=archived"),
+        ("contacts", "Contacts", reverse("contact_list")),
         ("account", "Account", reverse("account")),
     ]
     return {

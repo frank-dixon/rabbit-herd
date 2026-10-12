@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 
 from . import genetics
 from .forms import GenesForm, PhotoUploadForm
-from .models import Gene, Rabbit
+from .models import Contact, Gene, Rabbit
 
 def owned_rabbits(user):
     return Rabbit.objects.filter(owner=user)
@@ -154,6 +154,7 @@ def rabbit_detail(request, pk):
             "extra_photos": [photo for photo in photos if photo is not main],
             "photos": photos,
             "relatives": relatives,
+            "contact_options": [(str(c.pk), str(c)) for c in Contact.objects.filter(owner=request.user)],
             "kindling_note": rabbit.kindling_note(relatives),
             "upload_form": PhotoUploadForm(),
             "c_carrier_note": genetics.c_carrier_suggestion(rabbit),

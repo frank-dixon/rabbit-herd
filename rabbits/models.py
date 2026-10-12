@@ -131,6 +131,14 @@ class Rabbit(models.Model):
     death_date = models.DateField(null=True, blank=True)
     death_cause = models.CharField(max_length=120, blank=True)
     archived_at = models.DateTimeField(null=True, blank=True)
+    source = models.ForeignKey(
+        "Contact",
+        related_name="rabbits_from",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="The breeder or rabbitry this rabbit came from.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -277,6 +285,39 @@ class BreedShare(models.Model):
 
     def __str__(self):
         return f"{share_text(self.percent)}% {self.breed}"
+
+
+class Contact(models.Model):
+    """A person or rabbitry the keeper deals with: buyers, breeders, stud owners."""
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="contacts", on_delete=models.CASCADE)
+    name = models.CharField(max_length=120)
+    rabbitry = models.CharField(max_length=120, blank=True)
+    phone = models.CharField(max_length=40, blank=True)
+    email = models.EmailField(blank=True)
+    location = models.CharField(max_length=120, blank=True)
+    notes = models.TextField(max_length=2000, blank=True)
+    is_buyer = models.BooleanField(default=False)
+    is_breeder = models.BooleanField(default=False)
+    is_stud_owner = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name", "pk"]
+
+    def __str__(self):
+        return f"{self.name} ({self.rabbitry})" if self.rabbitry else self.name
+
+    @property
+    def place(self):
+        """What reads after "at": the rabbitry, or the person's name."""
+        return self.rabbitry or self.name
+
+    @property
+    def roles(self):
+        return [label for flag, label in (
+            (self.is_buyer, "Buyer"), (self.is_breeder, "Breeder"), (self.is_stud_owner, "Stud owner"),
+        ) if flag]
 
 
 class OutsideRabbit(models.Model):

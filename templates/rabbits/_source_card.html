@@ -1,0 +1,19 @@
+{# Where the rabbit came from: a contact (breeder or rabbitry), picked from the owner's contacts. #}
+<section class="rounded border border-neutral-300 bg-white p-4" id="source" aria-labelledby="source-heading">
+  <h2 class="text-lg font-semibold" id="source-heading">Came from</h2>
+  {% if rabbit.source %}
+    <p class="mt-2" data-source><a class="font-medium underline" href="{% url 'contact_detail' rabbit.source.pk %}">{{ rabbit.source.name }}</a>{% if rabbit.source.rabbitry %} · {{ rabbit.source.rabbitry }}{% endif %}</p>
+  {% else %}
+    <p class="mt-2 text-neutral-600">Not recorded.</p>
+  {% endif %}
+  {% if contact_options %}
+    <form class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end" method="post" action="{% url 'rabbit_source' rabbit.pk %}">
+      {% csrf_token %}
+      <div class="min-w-0 flex-1">
+        {% include "components/select.html" with name="source" label="Breeder or rabbitry" options=contact_options value=rabbit.source_id|stringformat:"s" placeholder="Not recorded" only %}
+      </div>
+      {% include "components/button.html" with label="Save" sr_suffix="where it came from" type="submit" variant="secondary" only %}
+    </form>
+  {% endif %}
+  <p class="mt-3 text-sm"><a class="underline" href="{% url 'contact_create' %}">Add a contact</a></p>
+</section>
