@@ -4,8 +4,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from . import genetics
 from .forms import RabbitForm
-from .models import Rabbit
+from .models import Gene, Rabbit
 
 COLUMNS = ["Name", "Sex", "Breed", "Status"]
 
@@ -53,8 +54,42 @@ def rabbit_detail(request, pk):
     return render(
         request,
         "rabbits/detail.html",
-        {"rabbit": rabbit, "main_photo": main, "extra_photos": [photo for photo in photos if photo is not main]},
+        {
+            "rabbit": rabbit,
+            "main_photo": main,
+            "extra_photos": [photo for photo in photos if photo is not main],
+            "c_carrier_note": genetics.c_carrier_suggestion(rabbit),
+            "genes": rabbit.genes.all(),
+            "relatives_with_genes": [
+                (relative, list(relative.genes.all()))
+                for relative in rabbit.relatives.select_related("herd_rabbit", "outside")
+                if relative.genes.exists()
+            ],
+        },
     )
+
+
+@login_required
+@require_POST
+def rabbit_c_carrier(request, pk):
+    """Confirm the suggested 'probable carrier of c' note, which records
+    C/c as probable, or remove it so it stops showing."""
+    rabbit = owned_rabbit(request.user, pk)
+    if genetics.c_carrier_suggestion(rabbit):
+        if request.POST.get("action") == "confirm":
+            Gene.objects.create(
+                rabbit=rabbit,
+                locus=Gene.Locus.C,
+                genotype="C/c",
+                certainty=Gene.Certainty.PROBABLE,
+                note="From a c/c (albino) parent.",
+            )
+            messages.success(request, f"{rabbit.name} is now recorded as a probable carrier of c.")
+        elif request.POST.get("action") == "remove":
+            rabbit.c_carrier_dismissed = True
+            rabbit.save(update_fields=["c_carrier_dismissed", "updated_at"])
+            messages.success(request, "The note was removed.")
+    return redirect("rabbit_detail", pk=rabbit.pk)
 
 
 @login_required

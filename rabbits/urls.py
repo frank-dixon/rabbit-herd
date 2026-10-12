@@ -16,6 +16,7 @@ urlpatterns = [
     path("<int:pk>/photos/", photo_views.rabbit_photos, name="rabbit_photos"),
     path("<int:pk>/", views.rabbit_detail, name="rabbit_detail"),
     path("<int:pk>/edit/", views.rabbit_edit, name="rabbit_edit"),
+    path("<int:pk>/c-carrier/", views.rabbit_c_carrier, name="rabbit_c_carrier"),
     path("<int:pk>/archive/", views.rabbit_archive, name="rabbit_archive"),
     path("<int:pk>/restore/", views.rabbit_restore, name="rabbit_restore"),
 ]

@@ -267,7 +267,9 @@ class Relative(models.Model):
         return self.herd_rabbit or self.outside
 
     def __str__(self):
-        return f"{self.get_relationship_display()}: {self.other}"
+        text = f"{self.get_relationship_display()}: {self.other}"
+        traits = ", ".join(part for part in (self.color, self.line) if part)
+        return f"{text} · {traits}" if traits else text
 
 
 def pedigree_positions(generations=3):

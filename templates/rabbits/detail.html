@@ -45,6 +45,7 @@
       </section>
     {% endif %}
   {% endwith %}
+  {% include "rabbits/_genetics.html" %}
   <div class="mt-8 flex flex-col items-start gap-3">
     {% url 'rabbit_edit' rabbit.pk as edit_url %}
     {% url 'rabbit_list' as list_url %}
