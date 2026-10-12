@@ -298,27 +298,27 @@ class OffStandardMarkTests(ColorCardViewTests):
         self.assertNotContains(review, self.NOTE)
         self.assertIsNone(rabbit.color_is_standard)
 
-    def test_editing_the_color_by_hand_drops_the_mark(self):
+    def test_editing_to_a_listed_color_clears_the_mark(self):
         self.to_color("Creme d'Argent")
         self.answer("color", color_choice=OTHER, color="Broken orange")
         _, rabbit = self.finish()
-        self.client.post(reverse("rabbit_edit", args=[rabbit.pk]), {
-            "name": rabbit.name, "sex": rabbit.sex, "breed": rabbit.breed, "color": "Creme",
-            "birth_date": "2024-05-01", "status": rabbit.status,
+        self.client.post(reverse("rabbit_edit_step", args=[rabbit.pk, "color"]), {
+            "color_choice": "Creme", "color": "", "action": "next",
         })
+        self.client.post(reverse("rabbit_edit", args=[rabbit.pk]), {"action": "save"})
         rabbit.refresh_from_db()
         self.assertEqual(rabbit.color, "Creme")
-        self.assertIsNone(rabbit.color_is_standard)
+        self.assertIs(rabbit.color_is_standard, True)
         self.assertNotContains(self.client.get(reverse("rabbit_detail", args=[rabbit.pk])), self.NOTE)
 
     def test_saving_other_fields_keeps_the_mark(self):
         self.to_color("Creme d'Argent")
         self.answer("color", color_choice=OTHER, color="Broken orange")
         _, rabbit = self.finish()
-        self.client.post(reverse("rabbit_edit", args=[rabbit.pk]), {
-            "name": "Hazel", "sex": rabbit.sex, "breed": rabbit.breed, "color": rabbit.color,
-            "birth_date": "2024-05-01", "status": "breeding",
+        self.client.post(reverse("rabbit_edit_step", args=[rabbit.pk, "status"]), {
+            "status": "breeding", "action": "next",
         })
+        self.client.post(reverse("rabbit_edit", args=[rabbit.pk]), {"action": "save"})
         rabbit.refresh_from_db()
         self.assertEqual(rabbit.status, "breeding")
         self.assertIs(rabbit.color_is_standard, False)

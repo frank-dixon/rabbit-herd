@@ -75,10 +75,10 @@ class RabbitRecordTests(TestCase):
     def test_owner_can_edit_a_rabbit(self):
         rabbit = self.clover()
 
-        edited = self.client.post(
-            reverse("rabbit_edit", args=[rabbit.pk]),
-            rabbit_fields(name="Clover 2", status=Rabbit.Status.SOLD),
-        )
+        card = lambda slug: reverse("rabbit_edit_step", args=[rabbit.pk, slug])
+        self.client.post(card("name"), {"name": "Clover 2", "action": "next"})
+        self.client.post(card("status"), {"status": Rabbit.Status.SOLD, "action": "next"})
+        edited = self.client.post(reverse("rabbit_edit", args=[rabbit.pk]), {"action": "save"})
         self.assertRedirects(edited, reverse("rabbit_detail", args=[rabbit.pk]))
         rabbit.refresh_from_db()
         self.assertEqual(rabbit.name, "Clover 2")
@@ -162,13 +162,15 @@ class RabbitRecordTests(TestCase):
 
     def test_form_rejects_a_missing_name_and_a_future_birth_date(self):
         rabbit = self.clover()
-        edit_url = reverse("rabbit_edit", args=[rabbit.pk])
-        missing = self.client.post(edit_url, rabbit_fields(name=""))
-        self.assertContains(missing, "This field is required.")
+        card = lambda slug: reverse("rabbit_edit_step", args=[rabbit.pk, slug])
+        missing = self.client.post(card("name"), {"name": "", "action": "next"}, follow=True)
+        self.assertContains(missing, "Each rabbit needs a name or an ear tag.")
 
         tomorrow = (timezone.localdate() + timedelta(days=1)).isoformat()
-        future = self.client.post(edit_url, rabbit_fields(birth_date=tomorrow))
-        self.assertContains(future, "Birth date cannot be in the future.")
+        future = self.client.post(card("birth-date"), {"birth_date": tomorrow, "action": "next"}, follow=True)
+        self.assertContains(future, "The birth date can&#x27;t be in the future.")
+        saved = self.client.post(reverse("rabbit_edit", args=[rabbit.pk]), {"action": "save"})
+        self.assertRedirects(saved, card("name") + "?check=1")
         rabbit.refresh_from_db()
         self.assertEqual((rabbit.name, rabbit.birth_date.isoformat()), ("Clover", "2024-03-01"))
 

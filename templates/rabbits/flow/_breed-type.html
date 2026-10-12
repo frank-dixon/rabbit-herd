@@ -1,1 +1,4 @@
+{% if editing and draft.legacy_breed and not draft.breed_type %}
+  <p class="rounded-lg border border-amber-400 bg-amber-50 p-3 text-neutral-800" id="legacy-breed">This rabbit's breed was saved as "{{ draft.legacy_breed }}", which doesn't match the breed list. Please choose purebred or crossbred, then pick the breed.</p>
+{% endif %}
 {% include "components/choice_tiles.html" with name="breed_type" legend="Breed type" tiles=tiles errors=error quiet=True only %}

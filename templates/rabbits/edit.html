@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ rabbit.name }} · Rabbit Herd{% endblock %}
+
+{% block content %}
+  <div class="pb-28">
+    <section class="space-y-5 rounded-2xl border border-neutral-300 bg-white p-5 shadow-sm">
+      <h1 class="text-2xl font-semibold leading-snug tracking-tight focus:outline-none" tabindex="-1" id="question">Edit {{ rabbit.name }}</h1>
+      <p class="-mt-3 text-neutral-600">Choose Change next to anything you want to update. Nothing is saved until you press Save changes.</p>
+      {% if legacy_breed %}
+        <p class="rounded-lg border border-amber-400 bg-amber-50 p-3 text-neutral-800">The breed was saved as "{{ legacy_breed }}", which doesn't match the breed list. <a class="font-semibold underline" href="{{ legacy_url }}">Pick the breed</a> so the right colors are offered.</p>
+      {% endif %}
+      {% if pending %}<p class="text-sm text-neutral-700">You have changes that aren't saved yet.</p>{% endif %}
+      <dl class="divide-y divide-neutral-200 rounded-lg border border-neutral-300 bg-white">
+        {% for row in rows %}
+          <div class="grid grid-cols-[7rem_1fr_auto] items-start gap-2 px-3 py-3">
+            <dt class="font-medium">{{ row.label }}</dt>
+            <dd>{% if row.entries %}<ul class="space-y-1">{% for entry in row.entries %}<li>{{ entry }}</li>{% endfor %}</ul>{% else %}{{ row.answer|default:"Not given" }}{% endif %}</dd>
+            <dd><a class="font-medium underline focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900" href="{{ row.url }}" id="change-{{ row.slug }}">Change<span class="sr-only"> {{ row.label|lower }}</span></a></dd>
+          </div>
+        {% endfor %}
+      </dl>
+    </section>
+    <div class="fixed inset-x-0 bottom-0 z-10 border-t border-neutral-300 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
+      <form class="mx-auto flex max-w-md gap-3" method="post" action="{{ overview_url }}">
+        {% csrf_token %}
+        {% include "components/button.html" with label="Cancel" type="submit" name="action" value="discard" variant="secondary" size="large" only %}
+        {% include "components/button.html" with label="Save changes" type="submit" name="action" value="save" variant="primary" size="large" grow=True only %}
+      </form>
+    </div>
+  </div>
+{% endblock %}

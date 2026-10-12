@@ -49,12 +49,15 @@ def question(slug, draft):
         return f"Which breed is {who}?"
     if slug == "relatives":
         return f"Do you know any of {who}'s relatives?"
+    if slug == "line":
+        return f"Which line is {who} from?"
     return f"Please check {who}'s details"
 
 
 HINTS = {
     "name": "Use whatever you go by to tell this rabbit apart.",
     "review": "If something needs changing, use Back to return to it.",
+    "line": "Optional. The line or strain, such as a breeder's herd name, to tell same-breed lines apart.",
 }
 
 
@@ -195,10 +198,10 @@ def review_rows(draft, user):
     return rows, relatives
 
 
-def step_context(slug, draft, user, form):
+def step_context(slug, draft, user, form, exclude=None):
     errors = {key: list(messages) for key, messages in (form.errors.items() if form else [])}
     data = flow.form_data(draft)
-    index = flow.step_index(slug)
+    index = flow.SLUGS.index(slug) if slug in flow.SLUGS else 0
     count = len(flow.STEPS)
     context = {
         "slug": slug,
@@ -219,6 +222,8 @@ def step_context(slug, draft, user, form):
         "error": errors.get(slug.replace("-", "_"), []),
         "today": flow_forms.today().isoformat(),
         "draft": draft,
+        "form_action": step_url(slug),
+        "back_label": "Back",
     }
     if slug == "sex":
         context["tiles"] = tiles(flow_forms.SEX_CHOICES, draft["sex"])
@@ -260,7 +265,7 @@ def step_context(slug, draft, user, form):
             }
         )
     if slug == "relatives":
-        ref_groups = flow_forms.rabbit_ref_groups(user)
+        ref_groups = flow_forms.rabbit_ref_groups(user, exclude=exclude)
         breed = flow_forms.purebred_breed(draft)
         parent_colors = flow_forms.parent_color_options(breed)
         context.update(

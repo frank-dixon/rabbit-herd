@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from . import genetics
-from .forms import GenesForm, RabbitForm
+from .forms import GenesForm
 from .models import Gene, Rabbit
 
 COLUMNS = ["Name", "Sex", "Breed", "Status"]
@@ -90,26 +90,6 @@ def rabbit_c_carrier(request, pk):
             rabbit.save(update_fields=["c_carrier_dismissed", "updated_at"])
             messages.success(request, "The note was removed.")
     return redirect("rabbit_detail", pk=rabbit.pk)
-
-
-@login_required
-def rabbit_edit(request, pk):
-    rabbit = owned_rabbit(request.user, pk)
-    form = RabbitForm(request.POST or None, request.FILES or None, instance=rabbit)
-    if request.method == "POST" and form.is_valid():
-        rabbit = form.save()
-        messages.success(request, f"{rabbit.name} was saved.")
-        return redirect("rabbit_detail", pk=rabbit.pk)
-    return render(
-        request,
-        "rabbits/form.html",
-        {
-            "form": form,
-            "rabbit": rabbit,
-            "heading": "Edit rabbit",
-            "submit_label": "Save changes",
-        },
-    )
 
 
 @login_required

@@ -70,5 +70,5 @@ class GenesPageTests(FlowTestMixin, TestCase):
         self.assertEqual(self.client.get(self.url).status_code, 404)
 
     def test_the_edit_page_has_the_line(self):
-        edit = reverse("rabbit_edit", args=[self.juniper.pk])
+        edit = reverse("rabbit_edit_step", args=[self.juniper.pk, "line"])
         self.assertContains(self.client.get(edit), 'name="line"')
