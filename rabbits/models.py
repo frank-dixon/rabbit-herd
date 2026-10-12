@@ -100,6 +100,15 @@ class Rabbit(models.Model):
         choices=Status.choices,
         default=Status.BREEDING,
     )
+    line = models.CharField(
+        max_length=80,
+        blank=True,
+        help_text="The line or strain, such as a breeder's herd name, to tell same-breed lines apart.",
+    )
+    c_carrier_dismissed = models.BooleanField(
+        default=False,
+        help_text="The keeper removed the suggested 'probable carrier of c (albino)' note.",
+    )
     archived_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -242,6 +251,11 @@ class Relative(models.Model):
         on_delete=models.CASCADE,
     )
 
+    color = models.CharField(
+        max_length=80, blank=True, help_text="The relative's color variety, such as ruby-eyed white."
+    )
+    line = models.CharField(max_length=80, blank=True, help_text="The relative's line or strain.")
+
     class Meta:
         ordering = ["relationship", "pk"]
         constraints = [
@@ -353,3 +367,50 @@ class RabbitPhoto(models.Model):
 
     def __str__(self):
         return f"Photo of {self.rabbit.name}"
+
+
+class Gene(models.Model):
+    """A known or probable genotype at one locus, for a herd rabbit or for a
+    relative as recorded on a rabbit (such as its dam). "Other" holds free
+    text for anything outside the standard loci."""
+
+    class Locus(models.TextChoices):
+        A = "A", "A (agouti)"
+        B = "B", "B (brown)"
+        C = "C", "C (color, albino)"
+        D = "D", "D (dilute)"
+        E = "E", "E (extension)"
+        EN = "En", "En (broken)"
+        OTHER = "other", "Other genes"
+
+    class Certainty(models.TextChoices):
+        KNOWN = "known", "Known"
+        PROBABLE = "probable", "Probable"
+
+    rabbit = models.ForeignKey(
+        Rabbit, related_name="genes", null=True, blank=True, on_delete=models.CASCADE
+    )
+    relative = models.ForeignKey(
+        Relative, related_name="genes", null=True, blank=True, on_delete=models.CASCADE
+    )
+    locus = models.CharField(max_length=8, choices=Locus.choices)
+    genotype = models.CharField(max_length=200, help_text="For example c/c, or En/en.")
+    certainty = models.CharField(
+        max_length=8, choices=Certainty.choices, default=Certainty.PROBABLE
+    )
+    note = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        ordering = ["pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(rabbit__isnull=False, relative__isnull=True)
+                | models.Q(rabbit__isnull=True, relative__isnull=False),
+                name="gene_has_one_owner",
+            ),
+            models.UniqueConstraint(fields=["rabbit", "locus"], name="one_gene_per_rabbit_locus"),
+            models.UniqueConstraint(fields=["relative", "locus"], name="one_gene_per_relative_locus"),
+        ]
+
+    def __str__(self):
+        return f"{self.locus}: {self.genotype} ({self.get_certainty_display().lower()})"
