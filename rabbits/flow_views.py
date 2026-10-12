@@ -167,6 +167,16 @@ def color_context(draft, errors):
     return context
 
 
+def status_text(draft, statuses):
+    """The status for the review and edit summary, with the death details."""
+    text = statuses.get(draft["status"], "")
+    if draft["status"] == Rabbit.Status.DECEASED:
+        details = [part for part in (draft["death_date"].strip(), draft["death_cause"].strip()) if part]
+        if details:
+            text += " · " + ", ".join(details)
+    return text
+
+
 def review_rows(draft, user):
     sexes = dict(Rabbit.Sex.choices)
     statuses = dict(Rabbit.Status.choices)
@@ -175,7 +185,7 @@ def review_rows(draft, user):
         ("Sex", sexes.get(draft["sex"], "")),
         ("Birth date", draft["birth_date"]),
         ("Color", flow.draft_color(draft)),
-        ("Status", statuses.get(draft["status"], "")),
+        ("Status", status_text(draft, statuses)),
         ("Breed", flow.draft_breed_line(draft)),
     ]
     labels = dict(flow_forms.Relative.Relationship.choices)
@@ -230,6 +240,12 @@ def step_context(slug, draft, user, form, exclude=None):
         context["tiles"] = tiles(flow_forms.SEX_CHOICES, draft["sex"])
     if slug == "status":
         context["tiles"] = tiles(flow_forms.STATUS_CHOICES, draft["status"])
+        context.update({
+            "death_causes": flow_forms.DEATH_CAUSES,
+            "death_date_error": errors.get("death_date", []),
+            "death_cause_error": errors.get("death_cause", []),
+            "is_deceased": draft["status"] == Rabbit.Status.DECEASED,
+        })
     if slug == "breed-type":
         context["tiles"] = tiles(flow_forms.BREED_TYPE_CHOICES, draft["breed_type"])
     if slug == "color":

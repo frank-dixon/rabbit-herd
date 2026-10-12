@@ -359,3 +359,26 @@ class MergeMixTests(FlowTestMixin, TestCase):
         draft = self.cross(("999999", "100"))
         flow.merge_mix(draft)
         self.assertEqual(draft["breed_type"], "crossbred")
+
+
+class StatusDeathTests(__import__("django.test").test.SimpleTestCase):
+    def clean(self, **data):
+        from .flow_forms import StatusForm
+        form = StatusForm(data={"birth_date": "2024-01-01", **data}, user=None)
+        form.is_valid()
+        return form
+
+    def test_deceased_keeps_date_and_cause(self):
+        import datetime
+        form = self.clean(status="deceased", death_date="2026-05-18", death_cause=" Died kindling ")
+        self.assertEqual(form.cleaned_data["death_date"], datetime.date(2026, 5, 18))
+        self.assertEqual(form.cleaned_data["death_cause"], "Died kindling")
+
+    def test_other_statuses_clear_them(self):
+        form = self.clean(status="sold", death_date="2026-05-18", death_cause="Illness")
+        self.assertEqual((form.cleaned_data["death_date"], form.cleaned_data["death_cause"]), (None, ""))
+
+    def test_bad_dates_are_refused(self):
+        self.assertIn("death_date", self.clean(status="deceased", death_date="2023-01-01").errors)
+        self.assertIn("death_date", self.clean(status="deceased", death_date="2999-01-01").errors)
+        self.assertIn("death_date", self.clean(status="deceased", death_date="nope").errors)

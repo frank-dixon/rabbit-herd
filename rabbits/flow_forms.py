@@ -124,7 +124,13 @@ STATUS_CHOICES = [
     ("growing", "Growing out", "A young rabbit you're raising before deciding whether to keep it."),
     ("sold", "Sold", "Sold to someone else."),
     ("culled", "Culled", "Removed from the herd."),
+    ("deceased", "Deceased", "Died. You can add the date and cause."),
 ]
+DEATH_CAUSES = ["Died kindling", "Illness", "Injury", "Culled", "Unknown"]
+DEATH_DATE_INVALID = "Please pick the date of death from the calendar, or leave it blank."
+DEATH_DATE_FUTURE = "The date of death can't be in the future."
+DEATH_BEFORE_BIRTH = "The date of death can't be before the birth date."
+DEATH_CAUSE_TOO_LONG = "Please keep the cause to 120 characters or fewer."
 BREED_TYPE_CHOICES = [
     ("purebred", "Purebred", "All one breed. Parents of the same breed in different colors still make a purebred."),
     ("crossbred", "Crossbred", "A mix of two or more different breeds, each with a share in percent."),
@@ -351,13 +357,39 @@ class ColorForm(StepForm):
 
 
 class StatusForm(StepForm):
+    """Status, plus an optional date and cause of death for Deceased.
+    Any other status clears the date and cause."""
+
     status = forms.CharField(required=False)
+    death_date = forms.CharField(required=False)
+    death_cause = forms.CharField(required=False)
 
     def clean(self):
         status = self.text("status")
         if status not in Rabbit.Status.values:
             self.add_error("status", STATUS_REQUIRED)
-        return {"status": status}
+        if status != Rabbit.Status.DECEASED:
+            return {"status": status, "death_date": None, "death_cause": ""}
+        raw = self.text("death_date")
+        death_date = None
+        if raw:
+            try:
+                death_date = datetime.date.fromisoformat(raw)
+            except ValueError:
+                self.add_error("death_date", DEATH_DATE_INVALID)
+        if death_date:
+            try:
+                born = datetime.date.fromisoformat(self.text("birth_date"))
+            except ValueError:
+                born = None
+            if death_date > today():
+                self.add_error("death_date", DEATH_DATE_FUTURE)
+            elif born and death_date < born:
+                self.add_error("death_date", DEATH_BEFORE_BIRTH)
+        cause = self.text("death_cause")
+        if len(cause) > 120:
+            self.add_error("death_cause", DEATH_CAUSE_TOO_LONG)
+        return {"status": status, "death_date": death_date, "death_cause": cause}
 
 
 class BreedTypeForm(StepForm):

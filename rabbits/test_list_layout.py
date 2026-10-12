@@ -112,3 +112,30 @@ class SearchFilterTests(TestCase):
         self.assertContains(page, 'data-view="list"')
         again, _ = self.names(status="sold")
         self.assertContains(again, 'data-view="list"')
+
+
+class DeceasedTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user("dead@example.com", "pw-12345678")
+        self.client.force_login(self.user)
+        self.pepper = Rabbit.objects.create(
+            owner=self.user, name="Pepper", sex="doe", breed="Rex", color="Black", birth_date=date(2024, 1, 1),
+            status="deceased", death_date=date(2026, 5, 18), death_cause="Died kindling",
+        )
+        Rabbit.objects.create(owner=self.user, name="Blackberry", sex="buck", breed="Rex", color="Black", birth_date=date(2026, 5, 18))
+
+    def names(self, **params):
+        return sorted(r.name for r in self.client.get(reverse("rabbit_list"), params).context["rabbits"])
+
+    def test_deceased_leave_active_and_get_their_own_tab(self):
+        self.assertEqual(self.names(), ["Blackberry"])
+        self.assertEqual(self.names(tab="deceased"), ["Pepper"])
+        page = self.client.get(reverse("rabbit_list"), {"tab": "deceased"})
+        self.assertContains(page, "Deceased (1)")
+        self.assertContains(page, "Active (1)")
+        self.assertContains(page, "Deceased · May 18, 2026")
+
+    def test_detail_tag_and_died_row(self):
+        page = self.client.get(reverse("rabbit_detail", args=[self.pepper.pk]))
+        self.assertContains(page, "Deceased · May 18, 2026")
+        self.assertContains(page, "May 18, 2026 · Died kindling")

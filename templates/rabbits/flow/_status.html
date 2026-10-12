@@ -1,1 +1,17 @@
 {% include "components/choice_tiles.html" with name="status" legend="Status" tiles=tiles errors=error quiet=True only %}
+{# Shown only for Deceased once script runs; without script it stays visible with a hint. #}
+<fieldset class="space-y-3 rounded border border-neutral-200 px-3 py-2" data-death-fields>
+  <legend class="px-1 text-sm font-semibold text-neutral-800">Date and cause of death (optional)</legend>
+  <p class="text-sm text-neutral-600" data-nojs-only>Only used when the status is Deceased.</p>
+  {% include "components/text_input.html" with name="death_date" label="Date of death" type="date" value=draft.death_date errors=death_date_error max=today only %}
+  <div>
+    <label class="block text-sm font-medium text-neutral-800" for="id_death_cause">Cause</label>
+    <p class="mt-1 text-sm text-neutral-600" id="id_death_cause_help">Pick one or describe it.</p>
+    <input class="mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 {% if death_cause_error %}border-red-800{% else %}border-neutral-400{% endif %}" id="id_death_cause" name="death_cause" type="text" value="{{ draft.death_cause }}" list="death-causes" maxlength="120" autocomplete="off" aria-describedby="id_death_cause_help{% if death_cause_error %} id_death_cause_error{% endif %}">
+    <datalist id="death-causes">{% for cause in death_causes %}<option value="{{ cause }}"></option>{% endfor %}</datalist>
+    {% include "components/field_errors.html" with name="death_cause" errors=death_cause_error only %}
+    <div class="mt-2 flex flex-wrap gap-2" data-cause-picks hidden>
+      {% for cause in death_causes %}<button type="button" class="rounded-full border border-neutral-400 px-3 py-1 text-sm" data-cause="{{ cause }}">{{ cause }}</button>{% endfor %}
+    </div>
+  </div>
+</fieldset>

@@ -83,6 +83,7 @@ class Rabbit(models.Model):
         GROWING = "growing", "Growing out"
         SOLD = "sold", "Sold"
         CULLED = "culled", "Culled"
+        DECEASED = "deceased", "Deceased"
 
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -126,6 +127,8 @@ class Rabbit(models.Model):
         default=False,
         help_text="The keeper removed the suggested 'probable carrier of c (albino)' note.",
     )
+    death_date = models.DateField(null=True, blank=True)
+    death_cause = models.CharField(max_length=120, blank=True)
     archived_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -186,6 +189,17 @@ class Rabbit(models.Model):
         if months:
             parts.append(f"{months} mo")
         return " ".join(parts)
+
+    @property
+    def is_deceased(self):
+        return self.status == self.Status.DECEASED
+
+    @property
+    def status_tag(self):
+        """Status for tags: "Deceased · May 18, 2026" when the date is known."""
+        if self.is_deceased and self.death_date:
+            return f"Deceased · {self.death_date:%b} {self.death_date.day}, {self.death_date.year}"
+        return self.get_status_display()
 
     @property
     def short_breed(self):

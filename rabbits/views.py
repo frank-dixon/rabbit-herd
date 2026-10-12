@@ -54,7 +54,7 @@ def list_filters(request):
     sexes = dict(Rabbit.Sex.choices)
     statuses = dict(Rabbit.Status.choices)
     return {
-        "tab": "archived" if get.get("tab") == "archived" else "active",
+        "tab": get.get("tab") if get.get("tab") in ("archived", "deceased") else "active",
         "q": " ".join(get.get("q", "").split())[:120],
         "sex": get.get("sex") if get.get("sex") in sexes else "",
         "breed": get.get("breed", "").strip()[:80],
@@ -74,9 +74,11 @@ def rabbit_list(request):
     view = list_view_choice(request)
     filters = list_filters(request)
     mine = owned_rabbits(request.user)
-    active = mine.filter(archived_at__isnull=True)
+    live = mine.filter(archived_at__isnull=True)
+    active = live.exclude(status=Rabbit.Status.DECEASED)
+    deceased = live.filter(status=Rabbit.Status.DECEASED)
     archived = mine.filter(archived_at__isnull=False)
-    rabbits = archived if filters["tab"] == "archived" else active
+    rabbits = {"archived": archived, "deceased": deceased}.get(filters["tab"], active)
     if filters["q"]:
         rabbits = rabbits.filter(name__icontains=filters["q"])
     if filters["sex"]:
@@ -87,12 +89,13 @@ def rabbit_list(request):
         rabbits = rabbits.filter(status=filters["status"])
     rabbits = list(rabbits.prefetch_related("photos"))
     # One small query gives both tab counts and the breed filter's options.
-    herd = list(mine.values_list("breed", "archived_at"))
-    archived_count = sum(1 for _, archived_at in herd if archived_at)
-    active_count = len(herd) - archived_count
+    herd = list(mine.values_list("breed", "archived_at", "status"))
+    archived_count = sum(1 for _, archived_at, _ in herd if archived_at)
+    deceased_count = sum(1 for _, archived_at, status in herd if not archived_at and status == Rabbit.Status.DECEASED)
+    active_count = len(herd) - archived_count - deceased_count
     filtering = any(filters[key] for key in ("q", "sex", "breed", "status"))
-    noun = "archived" if filters["tab"] == "archived" else "active"
-    total = archived_count if filters["tab"] == "archived" else active_count
+    noun = filters["tab"]
+    total = {"archived": archived_count, "deceased": deceased_count}.get(filters["tab"], active_count)
     if filtering:
         subtitle = f"{len(rabbits)} of {total} {noun} rabbit{'' if total == 1 else 's'}"
     else:
@@ -109,9 +112,11 @@ def rabbit_list(request):
             "filtering": filtering,
             "active_count": active_count,
             "archived_count": archived_count,
+            "deceased_count": deceased_count,
+            "deceased_qs": query_string({}, tab="deceased"),
             "sex_options": Rabbit.Sex.choices,
             "status_options": Rabbit.Status.choices,
-            "breed_options": breed_names(breed for breed, _ in herd),
+            "breed_options": breed_names(breed for breed, _, _ in herd),
             "grid_qs": query_string(filters, view="grid"),
             "list_qs": query_string(filters, view="list"),
             "active_qs": query_string({"view": ""}, tab="active"),

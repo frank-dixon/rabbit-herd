@@ -24,7 +24,7 @@ MAX_TEXT = 500
 # The draft's single-value answers, named like the inputs on the cards.
 TEXT_KEYS = (
     "name", "sex", "birth_date", "color_choice", "color", "status", "breed_type", "purebred",
-    "line", "legacy_breed",
+    "line", "legacy_breed", "death_date", "death_cause",
 )
 # The edit flow keeps one draft per rabbit, under this key plus the rabbit's id.
 EDIT_SESSION_KEY = "rabbit_edit_draft_{pk}"
@@ -42,7 +42,7 @@ STEPS = [
     Step("name", flow_forms.NameForm, ("name",)),
     Step("sex", flow_forms.SexForm, ("sex",)),
     Step("birth-date", flow_forms.BirthDateForm, ("birth_date",)),
-    Step("status", flow_forms.StatusForm, ("status",)),
+    Step("status", flow_forms.StatusForm, ("status", "death_date", "death_cause")),
     Step("breed-type", flow_forms.BreedTypeForm, ("breed_type",)),
     Step("breed", flow_forms.BreedForm, ("purebred",)),
     Step("color", flow_forms.ColorForm, ("color_choice", "color")),
@@ -93,6 +93,8 @@ def empty_draft():
         "relatives": [],
         "line": "",
         "legacy_breed": "",
+        "death_date": "",
+        "death_cause": "",
         "step": SLUGS[0],
     }
 
@@ -390,6 +392,8 @@ def save_rabbit(draft, user):
             color=answers["color"],
             color_is_standard=answers["color_is_standard"],
             status=answers["status"],
+            death_date=answers["death_date"],
+            death_cause=answers["death_cause"],
             breed_type=answers["breed_type"],
             purebred=purebred,
             breed=short_breed(breed_line(purebred, shares)),
@@ -504,6 +508,8 @@ def draft_from_rabbit(rabbit):
             "color": rabbit.color,
             "status": rabbit.status,
             "line": rabbit.line,
+            "death_date": rabbit.death_date.isoformat() if rabbit.death_date else "",
+            "death_cause": rabbit.death_cause,
             "step": EDIT_SLUGS[0],
         }
     )
@@ -559,7 +565,7 @@ def update_rabbit(draft, user, rabbit):
             raise DraftNotReady("relatives")
         purebred = Breed.objects.get(pk=answers["purebred"]) if answers["purebred"] else None
         shares = [(Breed.objects.get(pk=pk), percent) for pk, percent in answers["shares"]]
-        for field in ("name", "sex", "birth_date", "color", "color_is_standard", "status", "breed_type", "line"):
+        for field in ("name", "sex", "birth_date", "color", "color_is_standard", "status", "death_date", "death_cause", "breed_type", "line"):
             setattr(rabbit, field, answers[field])
         rabbit.purebred = purebred
         rabbit.breed = short_breed(breed_line(purebred, shares))
