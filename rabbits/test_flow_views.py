@@ -199,6 +199,18 @@ class CardFlowTests(TestCase):
         self.assertRedirects(response, step("color"))
         self.assertEqual(self.draft()["cross"], [{"breed": rex, "percent": "50"}, {"breed": dutch, "percent": "50"}])
 
+    def test_willow_new_zealand_twice_becomes_a_purebred_new_zealand(self):
+        self.walk_to_breed("crossbred")
+        nz = breed_id("New Zealand")
+        response = self.answer(
+            "breed", **{"cross-0-breed": nz, "cross-0-percent": "50", "cross-1-breed": nz, "cross-1-percent": "50"},
+        )
+        self.assertRedirects(response, step("color"))
+        draft = self.draft()
+        self.assertEqual((draft["breed_type"], draft["purebred"]), ("purebred", nz))
+        self.assertContains(self.client.get(step("color")), "recognized colors for the New Zealand")
+        self.assertContains(self.client.get(step("breed")), "Which breed is Hazel?")
+
     def test_relatives_hide_a_taken_dam_and_reject_a_second_one(self):
         self.walk_to_breed("purebred")
         self.choose_breed()

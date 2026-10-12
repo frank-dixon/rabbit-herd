@@ -181,7 +181,10 @@ def apply_row_action(draft, action):
 
 
 def merge_mix(draft):
-    """Fold repeated breeds in a crossbred mix into one row by adding their
+    """Tidy a crossbred mix when people press Next.
+
+    A mix that comes to one breed at 100% is a purebred of that breed, and
+    is recorded as one. Otherwise, fold repeated breeds in a crossbred mix into one row by adding their
     shares, so "50% New Zealand" twice becomes "100% New Zealand" instead of
     an error. The first row for a breed keeps its place. Rows whose share is
     not a whole number are left alone, so the form can point at them."""
@@ -198,6 +201,16 @@ def merge_mix(draft):
         if breed and breed not in first:
             first[breed] = row
         merged.append(row)
+    used = [row for row in merged if row["breed"].strip() or row["percent"].strip()]
+    if len(used) == 1 and used[0]["percent"].strip() == "100":
+        breed = used[0]["breed"].strip()
+        if breed.isdigit() and Breed.objects.filter(pk=int(breed)).exists():
+            # One breed at 100% is a purebred: record it that way, so the
+            # color card offers that breed's colors.
+            draft["breed_type"] = Rabbit.BreedType.PUREBRED.value
+            draft["purebred"] = breed
+            draft["cross"] = [blank_cross_row(), blank_cross_row()]
+            return
     while len(merged) < 2:
         merged.append(blank_cross_row())
     draft["cross"] = merged

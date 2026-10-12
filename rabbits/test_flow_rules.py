@@ -344,3 +344,18 @@ class MergeMixTests(FlowTestMixin, TestCase):
         before = [dict(row) for row in draft["cross"]]
         flow.merge_mix(draft)
         self.assertEqual(draft["cross"], before)
+
+    def test_one_breed_at_100_is_a_purebred(self):
+        nz = breed_id("New Zealand")
+        for rows in (((nz, "50"), (nz, "50")), ((nz, "100"), ("", ""))):
+            draft = self.cross(*rows)
+            flow.merge_mix(draft)
+            self.assertEqual(draft["breed_type"], "purebred")
+            self.assertEqual(draft["purebred"], nz)
+            self.assertEqual(draft["cross"], [flow.blank_cross_row(), flow.blank_cross_row()])
+            self.assertEqual(self.errors("breed", draft), {})
+
+    def test_an_unknown_breed_at_100_stays_for_the_form(self):
+        draft = self.cross(("999999", "100"))
+        flow.merge_mix(draft)
+        self.assertEqual(draft["breed_type"], "crossbred")
