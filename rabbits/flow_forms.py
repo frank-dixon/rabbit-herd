@@ -91,8 +91,8 @@ STATUS_CHOICES = [
     ("culled", "Culled", "Removed from the herd."),
 ]
 BREED_TYPE_CHOICES = [
-    ("purebred", "Purebred", "All one breed."),
-    ("crossbred", "Crossbred", "A mix of two or more breeds, each with a share in percent."),
+    ("purebred", "Purebred", "All one breed. Parents of the same breed in different colors still make a purebred."),
+    ("crossbred", "Crossbred", "A mix of two or more different breeds, each with a share in percent."),
 ]
 PARENT_SEX = {"dam": Rabbit.Sex.DOE, "sire": Rabbit.Sex.BUCK}
 

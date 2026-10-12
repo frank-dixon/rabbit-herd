@@ -211,6 +211,11 @@ class CardFlowTests(TestCase):
         self.assertContains(self.client.get(step("color")), "recognized colors for the New Zealand")
         self.assertContains(self.client.get(step("breed")), "Which breed is Hazel?")
 
+    def test_the_cards_explain_that_same_breed_parents_make_a_purebred(self):
+        page = self.walk_to_breed("crossbred")
+        self.assertContains(self.client.get(step("breed-type")), "Parents of the same breed in different colors still make a purebred.")
+        self.assertContains(self.client.get(step("breed")), "Color goes on the next card, not here.")
+
     def test_relatives_hide_a_taken_dam_and_reject_a_second_one(self):
         self.walk_to_breed("purebred")
         self.choose_breed()
