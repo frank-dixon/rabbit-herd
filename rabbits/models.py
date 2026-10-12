@@ -291,6 +291,9 @@ class Relative(models.Model):
         max_length=80, blank=True, help_text="The relative's color variety, such as ruby-eyed white."
     )
     line = models.CharField(max_length=80, blank=True, help_text="The relative's line or strain.")
+    breed = models.CharField(
+        max_length=80, blank=True, help_text="An outside relative's breed. Herd rabbits use their own breed."
+    )
 
     class Meta:
         ordering = ["relationship", "pk"]
@@ -301,6 +304,13 @@ class Relative(models.Model):
     @property
     def other(self):
         return self.herd_rabbit or self.outside
+
+    @property
+    def breed_text(self):
+        """A herd rabbit's own breed in short form, else the recorded breed."""
+        if self.herd_rabbit_id:
+            return self.herd_rabbit.short_breed
+        return self.breed
 
     def __str__(self):
         text = f"{self.get_relationship_display()}: {self.other}"

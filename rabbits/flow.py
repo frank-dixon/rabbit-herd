@@ -351,6 +351,7 @@ def save_relatives(rabbit, user, rows):
             outside=target if isinstance(target, OutsideRabbit) else None,
             color=row["color"],
             line=row["line"],
+            breed=row.get("breed", "") if not isinstance(target, Rabbit) else "",
         )
         Gene.objects.bulk_create(
             Gene(relative=relative, locus=locus, genotype=genotype, certainty=certainty)
@@ -478,6 +479,7 @@ def relative_row(relative):
         row["ref"] = f"o:{relative.outside_id}"
     row["color"] = relative.color
     row["line"] = relative.line
+    row["breed"] = relative.breed
     for gene in relative.genes.all():
         key = "other" if gene.locus == Gene.Locus.OTHER else gene.locus
         if f"gene_{key}" in row:

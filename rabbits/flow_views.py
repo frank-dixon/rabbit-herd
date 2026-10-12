@@ -191,7 +191,8 @@ def review_rows(draft, user):
             name = target.name + (f" ({target.details})" if target.details else "")
         else:
             continue
-        traits = [part for part in (row["color"].strip() or row["color_choice"], row["line"].strip()) if part]
+        outside_breed = "" if isinstance(target, Rabbit) else row.get("breed", "").strip()
+        traits = [part for part in (outside_breed, row["color"].strip() or row["color_choice"], row["line"].strip()) if part]
         if traits:
             name += " · " + ", ".join(traits)
         relatives.append(f"{labels.get(row['relationship'], 'Relative')}: {name}")
@@ -323,6 +324,8 @@ def trait_context(number, row, errors, parent_colors, breed):
         "color_choice_name": f"{base}-color_choice",
         "color_name": f"{base}-color",
         "line_name": f"{base}-line",
+        "breed_name": f"{base}-breed",
+        "breed_error": errors.get(f"{base}-breed", []),
         "parent_colors": parent_colors,
         "color_help": (
             f"Choose one of the {breed.name}'s colors, or describe it."

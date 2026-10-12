@@ -330,7 +330,8 @@ class ParentTraitsTests(CardFlowTests):
         self.answer("relatives", action="add-relative")
         self.answer("relatives", action="add-relative")
         page = self.client.get(step("relatives"))
-        self.assertContains(page, "Color and line (optional)")
+        self.assertContains(page, "Breed, color and line (optional)")
+        self.assertContains(page, "Breed (outside rabbits)")
         self.assertContains(page, "Genes they carry (optional)")
         self.assertContains(page, '<option value="Ruby-eyed white">White (ruby-eyed white)</option>', html=True)
         self.assertContains(page, "Choose one of the New Zealand&#x27;s colors, or describe it.")
@@ -338,15 +339,16 @@ class ParentTraitsTests(CardFlowTests):
             "relatives",
             **{"relatives-0-relationship": "dam", "relatives-0-new_name": "Snow",
                "relatives-0-color_choice": "Ruby-eyed white", "relatives-0-line": "Ridgeview",
+               "relatives-0-breed": "Florida White",
                "relatives-0-gene_C": "c/c", "relatives-0-cert_C": "known",
                "relatives-1-relationship": "sire", "relatives-1-new_name": "Domino",
                "relatives-1-color": "Broken black", "relatives-1-gene_En": "En/en"},
         )
         self.assertRedirects(response, step("review"))
-        self.assertContains(self.client.get(step("review")), "Snow · Ruby-eyed white, Ridgeview")
+        self.assertContains(self.client.get(step("review")), "Snow · Florida White, Ruby-eyed white, Ridgeview")
         self.client.post(step("review"), {"action": "next"})
         dam = Relative.objects.get(relationship="dam")
-        self.assertEqual((dam.color, dam.line), ("Ruby-eyed white", "Ridgeview"))
+        self.assertEqual((dam.color, dam.line, dam.breed), ("Ruby-eyed white", "Ridgeview", "Florida White"))
         self.assertEqual([(g.locus, g.genotype, g.certainty) for g in dam.genes.all()], [("C", "c/c", "known")])
         sire = Relative.objects.get(relationship="sire")
         self.assertEqual(sire.color, "Broken black")

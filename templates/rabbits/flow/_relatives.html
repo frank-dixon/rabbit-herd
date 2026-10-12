@@ -19,7 +19,8 @@
             </div>
           </details>
           <fieldset class="space-y-3 rounded border border-neutral-200 px-3 py-2">
-            <legend class="px-1 text-sm font-semibold text-neutral-800">Color and line (optional)</legend>
+            <legend class="px-1 text-sm font-semibold text-neutral-800">Breed, color and line (optional)</legend>
+            {% include "components/text_input.html" with name=item.breed_name label="Breed (outside rabbits)" value=item.row.breed errors=item.breed_error help="Herd rabbits show their own breed, so this is only for rabbits outside your herd." only %}
             {% if item.parent_colors %}
               {% include "components/select.html" with name=item.color_choice_name label="Color" value=item.row.color_choice options=item.parent_colors errors=item.color_choice_error placeholder="Choose a color…" help=item.color_help only %}
               {% include "components/text_input.html" with name=item.color_name label="Or describe the color" value=item.row.color errors=item.color_error only %}

@@ -28,7 +28,7 @@ RELATIVE_COLOR_NOT_LISTED = "Please choose one of the listed colors, or describe
 
 def trait_parts():
     """The optional color, line, and gene inputs on each relative row."""
-    parts = ["color_choice", "color", "line"]
+    parts = ["color_choice", "color", "line", "breed"]
     for locus in GENE_LOCI:
         parts += [f"gene_{locus}", f"cert_{locus}"]
     return parts + ["gene_other", "cert_other"]
@@ -514,8 +514,8 @@ class RelativesForm(StepForm):
                 color = choice
             else:
                 self.add_error(f"{base}-color_choice", RELATIVE_COLOR_NOT_LISTED)
-        for part in ("color", "line"):
-            value = color if part == "color" else self.text(f"{base}-line")
+        for part in ("color", "line", "breed"):
+            value = color if part == "color" else self.text(f"{base}-{part}")
             if len(value) > 80:
                 self.add_error(f"{base}-{part}", TRAIT_TOO_LONG)
         genes = []
@@ -533,4 +533,9 @@ class RelativesForm(StepForm):
             if certainty not in Gene.Certainty.values:
                 certainty = Gene.Certainty.PROBABLE
             genes.append((locus, genotype, certainty))
-        return {"color": color, "line": self.text(f"{base}-line"), "genes": genes}
+        return {
+            "color": color,
+            "line": self.text(f"{base}-line"),
+            "breed": self.text(f"{base}-breed"),
+            "genes": genes,
+        }
