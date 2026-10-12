@@ -2,13 +2,13 @@ from django import forms
 from django.utils import timezone
 
 from . import photo_processing
-from .models import Rabbit
+from .models import Gene, Rabbit
 
 
 class RabbitForm(forms.ModelForm):
     class Meta:
         model = Rabbit
-        fields = ["name", "sex", "breed", "color", "birth_date", "status"]
+        fields = ["name", "sex", "breed", "color", "line", "birth_date", "status"]
         labels = {"name": "Name or ear tag"}
         help_texts = {
             "name": "A name or an ear tag.",
@@ -69,3 +69,45 @@ class PhotoNotesForm(forms.Form):
 
     def clean_notes(self):
         return self.cleaned_data["notes"].strip()
+
+
+class GenesForm(forms.Form):
+    """A rabbit's own genes: a genotype per standard locus plus free-text
+    Other, each known or probable. A blank genotype clears that locus."""
+
+    def __init__(self, *args, rabbit, **kwargs):
+        self.rabbit = rabbit
+        current = {gene.locus: gene for gene in rabbit.genes.all()}
+        initial = {}
+        for locus, label in Gene.Locus.choices:
+            gene = current.get(locus)
+            initial[f"gene_{locus}"] = gene.genotype if gene else ""
+            initial[f"cert_{locus}"] = gene.certainty if gene else Gene.Certainty.PROBABLE
+        super().__init__(*args, initial=initial, **kwargs)
+        for locus, label in Gene.Locus.choices:
+            limit = 200 if locus == Gene.Locus.OTHER else 40
+            self.fields[f"gene_{locus}"] = forms.CharField(
+                label=label, max_length=limit, required=False,
+                help_text="Free text, for example Vienna carrier." if locus == Gene.Locus.OTHER else "For example C/c.",
+            )
+            self.fields[f"cert_{locus}"] = forms.ChoiceField(
+                label=f"{locus if locus != Gene.Locus.OTHER else 'Other'}: known or probable",
+                choices=Gene.Certainty.choices,
+                required=False,
+            )
+
+    def save(self):
+        for locus, _ in Gene.Locus.choices:
+            genotype = self.cleaned_data[f"gene_{locus}"].strip()
+            certainty = self.cleaned_data[f"cert_{locus}"] or Gene.Certainty.PROBABLE
+            existing = self.rabbit.genes.filter(locus=locus).first()
+            if not genotype:
+                if existing:
+                    existing.delete()
+                continue
+            if existing:
+                if (existing.genotype, existing.certainty) != (genotype, certainty):
+                    existing.genotype, existing.certainty = genotype, certainty
+                    existing.save()
+            else:
+                Gene.objects.create(rabbit=self.rabbit, locus=locus, genotype=genotype, certainty=certainty)

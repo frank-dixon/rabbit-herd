@@ -3,7 +3,7 @@
 {% block title %}{{ heading }} · Rabbit Herd{% endblock %}
 
 {% block content %}
-  {% include "components/card.html" with title=heading body="Name or ear tag, sex, breed, color, birth date, and status. Photos are on the rabbit's Photos page." only %}
+  {% include "components/card.html" with title=heading body=intro|default:"Name or ear tag, sex, breed, color, line, birth date, and status. Photos are on the rabbit's Photos page, and genes on its Genes page." only %}
   <div class="mt-8">
     {% include "components/form.html" with form=form submit_label=submit_label %}
   </div>

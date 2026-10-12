@@ -43,3 +43,32 @@ class CarrierNoteTests(FlowTestMixin, TestCase):
         self.client.force_login(self.other)
         self.assertEqual(self.client.post(self.action, {"action": "confirm"}).status_code, 404)
         self.assertFalse(self.juniper.genes.exists())
+
+
+class GenesPageTests(FlowTestMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.user)
+        self.url = reverse("rabbit_genes", args=[self.juniper.pk])
+
+    def test_genes_save_update_and_clear_without_javascript(self):
+        self.assertContains(self.client.get(self.url), "Genes Juniper carries")
+        self.client.post(self.url, {"gene_C": "C/c", "cert_C": "known", "gene_other": "Vienna carrier"})
+        self.assertEqual(
+            sorted((g.locus, g.genotype, g.certainty) for g in self.juniper.genes.all()),
+            [("C", "C/c", "known"), ("other", "Vienna carrier", "probable")],
+        )
+        self.client.post(self.url, {"gene_C": "C/c", "cert_C": "probable"})
+        self.assertEqual([(g.locus, g.certainty) for g in self.juniper.genes.all()], [("C", "probable")])
+        self.assertContains(self.client.get(reverse("rabbit_detail", args=[self.juniper.pk])), "C: C/c (probable)")
+
+    def test_too_long_genotype_is_refused_and_others_cannot_open_it(self):
+        response = self.client.post(self.url, {"gene_C": "x" * 41})
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(self.juniper.genes.exists())
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+
+    def test_the_edit_page_has_the_line(self):
+        edit = reverse("rabbit_edit", args=[self.juniper.pk])
+        self.assertContains(self.client.get(edit), 'name="line"')

@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from . import genetics
-from .forms import RabbitForm
+from .forms import GenesForm, RabbitForm
 from .models import Gene, Rabbit
 
 COLUMNS = ["Name", "Sex", "Breed", "Status"]
@@ -108,6 +108,27 @@ def rabbit_edit(request, pk):
             "rabbit": rabbit,
             "heading": "Edit rabbit",
             "submit_label": "Save changes",
+        },
+    )
+
+
+@login_required
+def rabbit_genes(request, pk):
+    rabbit = owned_rabbit(request.user, pk)
+    form = GenesForm(request.POST or None, rabbit=rabbit)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, f"{rabbit.name}'s genes were saved.")
+        return redirect("rabbit_detail", pk=rabbit.pk)
+    return render(
+        request,
+        "rabbits/form.html",
+        {
+            "form": form,
+            "rabbit": rabbit,
+            "heading": f"Genes {rabbit.name} carries",
+            "intro": "Optional. Write a genotype like C/c or En/en, and mark it known (for example from test litters) or probable. Leave a box empty to clear it.",
+            "submit_label": "Save genes",
         },
     )
 
