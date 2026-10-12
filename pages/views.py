@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.http import Http404
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 from .forms import ComponentExampleForm
@@ -9,6 +10,12 @@ def index(request):
     if request.user.is_authenticated:
         return render(request, "home.html")
     return render(request, "landing.html")
+
+
+@login_required
+def account(request):
+    """Who is signed in, password and passkey, and log out."""
+    return render(request, "pages/account.html")
 
 
 def components(request):

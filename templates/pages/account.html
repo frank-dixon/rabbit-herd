@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Account · Rabbit Herd{% endblock %}
+
+{% block content %}
+  {% if user.is_guest %}
+    {% include "components/card.html" with title="Account" body="This is a guest session." only %}
+  {% else %}
+    {% include "components/card.html" with title="Account" body="Signed in as "|add:user.email|add:"." only %}
+  {% endif %}
+  <div class="mt-8 flex flex-col items-start gap-3">
+    {% url 'rabbit_list' as rabbit_list_url %}
+    {% include "components/button.html" with label="Rabbits" href=rabbit_list_url variant="secondary" only %}
+    {% if not user.is_guest %}
+      {% if user.has_usable_password %}
+        {% url 'password_change' as password_change_url %}
+        {% include "components/button.html" with label="Change password" href=password_change_url variant="secondary" only %}
+      {% endif %}
+      {% include "components/button.html" with label="Add a passkey" variant="secondary" id="passkey-register" data_authenticated="true" only %}
+    {% endif %}
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      {% include "components/button.html" with label="Log out" type="submit" variant="primary" only %}
+    </form>
+  </div>
+  <p class="mt-4 font-medium" data-passkey-error hidden></p>
+{% endblock %}

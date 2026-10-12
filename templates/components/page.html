@@ -7,23 +7,33 @@
   {% block head %}{% endblock %}
 </head>
 <body class="flex min-h-screen flex-col bg-neutral-200 text-neutral-800 antialiased">
-  <header class="border-b border-neutral-300">
+  {% if app_nav %}
+  <div class="flex min-h-screen flex-1">
+    {% include "components/app_rail.html" %}
+    <div class="flex min-w-0 flex-1 flex-col">
+  {% endif %}
+  <header class="border-b border-neutral-300{% if app_nav %} md:hidden{% endif %}">
     <div class="mx-auto flex {% if wide %}max-w-6xl{% else %}max-w-lg{% endif %} items-center px-4 py-4">
       {% block header %}
         <a class="font-semibold" href="{% url 'index' %}">Rabbit Herd</a>
       {% endblock %}
     </div>
   </header>
-  <main class="mx-auto w-full {% if wide %}max-w-6xl{% else %}max-w-lg{% endif %} flex-1 px-4 py-10">
+  <main class="mx-auto w-full {% if wide %}max-w-6xl{% else %}max-w-lg{% endif %} flex-1 px-4 py-10{% if app_nav %} pb-24 md:pb-10{% endif %}">
     {% block main %}
       {% block content %}{% endblock %}
     {% endblock %}
   </main>
-  <footer class="border-t border-neutral-300">
+  <footer class="border-t border-neutral-300{% if app_nav %} hidden md:block{% endif %}">
     <div class="mx-auto {% if wide %}max-w-6xl{% else %}max-w-lg{% endif %} px-4 py-4 text-sm text-neutral-700">
       {% block footer %}{% endblock %}
     </div>
   </footer>
+  {% if app_nav %}
+    </div>
+  </div>
+  {% block tabs %}{% include "components/app_tabs.html" %}{% endblock %}
+  {% endif %}
   {% block scripts %}{% endblock %}
 </body>
 </html>
