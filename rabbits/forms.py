@@ -1,6 +1,7 @@
 from django import forms
 from django.utils import timezone
 
+from . import photo_processing
 from .models import Rabbit
 
 
@@ -26,3 +27,45 @@ class RabbitForm(forms.ModelForm):
         if birth_date > timezone.localdate():
             raise forms.ValidationError("Birth date cannot be in the future.")
         return birth_date
+
+
+PHOTO_REQUIRED = "An upload needs a photo. Please choose one from your device."
+NOTES_TOO_LONG = "Notes can be up to 500 characters. Please shorten them."
+
+
+class PhotoUploadForm(forms.Form):
+    """One photo, with optional notes. The file is checked and cleaned by
+    rabbits.photo_processing, so what is stored is a fresh copy."""
+
+    image = forms.FileField(
+        label="Photo",
+        required=False,
+        help_text="A JPEG, PNG or WebP photo, up to 10 MB. Location and camera details are removed when it's saved.",
+        widget=forms.FileInput(attrs={"accept": photo_processing.ACCEPT}),
+    )
+    notes = forms.CharField(
+        label="Notes",
+        required=False,
+        max_length=500,
+        error_messages={"max_length": NOTES_TOO_LONG},
+        help_text="Optional. For example, the date, the show, or what the photo shows.",
+        widget=forms.Textarea(attrs={"rows": 3, "maxlength": 500}),
+    )
+
+    def clean_image(self):
+        upload = self.cleaned_data.get("image")
+        if not upload:
+            raise forms.ValidationError(PHOTO_REQUIRED)
+        return photo_processing.clean_photo(upload)
+
+    def clean_notes(self):
+        return self.cleaned_data["notes"].strip()
+
+
+class PhotoNotesForm(forms.Form):
+    notes = forms.CharField(
+        required=False, max_length=500, error_messages={"max_length": NOTES_TOO_LONG}
+    )
+
+    def clean_notes(self):
+        return self.cleaned_data["notes"].strip()
