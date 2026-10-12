@@ -1,0 +1,13 @@
+{# Page title on the left, actions on the right (stacked full width on phones). title, subtitle, primary_label/primary_href, secondary_label/secondary_href. #}
+<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+  <div class="min-w-0">
+    <h1 class="text-2xl font-semibold">{{ title }}</h1>
+    {% if subtitle %}<p class="mt-1 text-neutral-600">{{ subtitle }}</p>{% endif %}
+  </div>
+  {% if primary_label or secondary_label %}
+    <div class="flex flex-col gap-2 sm:flex-row sm:shrink-0">
+      {% if secondary_label %}{% include "components/button.html" with label=secondary_label href=secondary_href variant="secondary" only %}{% endif %}
+      {% if primary_label %}{% include "components/button.html" with label=primary_label href=primary_href variant="primary" only %}{% endif %}
+    </div>
+  {% endif %}
+</div>
