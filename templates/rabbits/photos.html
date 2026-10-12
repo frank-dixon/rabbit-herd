@@ -5,7 +5,10 @@
 {% block content %}
   {% url 'rabbit_detail' rabbit.pk as back_url %}
   <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-    <h1 class="min-w-0 break-words text-2xl font-semibold">Photos of {{ rabbit.name }}</h1>
+    <div class="flex min-w-0 items-start gap-3" data-page-thumb>
+      {% include "rabbits/_page_thumb.html" with rabbit=rabbit only %}
+      <h1 class="min-w-0 break-words text-2xl font-semibold">Photos of {{ rabbit.name }}</h1>
+    </div>
     <div class="flex flex-col sm:shrink-0">
       {% include "components/button.html" with label="Back to "|add:rabbit.name href=back_url variant="secondary" only %}
     </div>

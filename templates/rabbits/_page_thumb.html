@@ -1,0 +1,4 @@
+{# A rabbit's main photo as a small square beside a page title, cropped with object-cover and served through the owner-checked photo view. With no photo it is the same initial square the relative cards use. Pass rabbit, and optionally size_class. #}
+{% with main=rabbit.main_photo %}
+  {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class=size_class|default:"h-12 w-12 shrink-0 rounded text-lg" only %}
+{% endwith %}

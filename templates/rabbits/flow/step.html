@@ -5,7 +5,10 @@
 {% block content %}
   <div class="max-w-2xl pb-28">
     {% if editing %}
-      <p class="text-sm text-neutral-600"><a class="underline" href="{{ overview_url }}">Editing {{ editing.name }}</a> · Change this card, then press {{ next_label }}.</p>
+      <div class="flex items-start gap-3" data-page-thumb>
+        {% include "rabbits/_page_thumb.html" with rabbit=editing size_class="h-10 w-10 shrink-0 rounded text-base" only %}
+        <p class="min-w-0 text-sm text-neutral-600"><a class="underline" href="{{ overview_url }}">Editing {{ editing.name }}</a> · Change this card, then press {{ next_label }}.</p>
+      </div>
     {% else %}
     <div class="flex items-center gap-3" aria-hidden="true">
       <div class="h-1.5 flex-1 rounded-full bg-neutral-300"><div class="h-1.5 rounded-full bg-neutral-900" style="width: {{ percent }}%"></div></div>

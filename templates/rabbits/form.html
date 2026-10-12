@@ -3,6 +3,12 @@
 {% block title %}{{ heading }} · Rabbit Herd{% endblock %}
 
 {% block content %}
+  {% if rabbit %}
+    <div class="mb-4 flex items-start gap-3" data-page-thumb>
+      {% include "rabbits/_page_thumb.html" with rabbit=rabbit only %}
+      <p class="min-w-0 pt-3 text-sm text-neutral-600">{{ rabbit.name }}</p>
+    </div>
+  {% endif %}
   {% include "components/card.html" with title=heading body=intro|default:"Name or ear tag, sex, breed, color, line, birth date, and status. Photos are on the rabbit's Photos page, and genes on its Genes page." only %}
   <div class="mt-8">
     {% include "components/form.html" with form=form submit_label=submit_label %}
