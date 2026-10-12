@@ -10,6 +10,7 @@ dam or sire as people choose, and saves typing as it happens.
 
 from decimal import Decimal
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -417,6 +418,10 @@ def rabbit_flow_step(request, step):
             flow.merge_mix(draft)
         form = flow.bound_form(step, draft, request.user)
         if form.is_valid():
+            if step == "relatives":
+                filled = flow.prefill_breed_from_parents(draft, form.cleaned_data["relatives"])
+                if filled:
+                    messages.info(request, f"The breed was filled in from the parents: {filled}. You can change it on the breed cards.")
             draft["step"] = flow.SLUGS[index + 1]
             flow.save_draft(request.session, draft)
             return redirect(step_url(draft["step"]))

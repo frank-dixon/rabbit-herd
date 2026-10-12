@@ -120,11 +120,11 @@ class CardFlowTests(TestCase):
     def test_color_comes_right_after_the_breed(self):
         self.assertEqual(
             flow.SLUGS,
-            ["name", "sex", "birth-date", "status", "breed-type", "breed", "color", "relatives", "review"],
+            ["name", "sex", "birth-date", "relatives", "status", "breed-type", "breed", "color", "review"],
         )
         self.walk_to_breed("purebred")
         self.assertRedirects(self.answer("breed", purebred=breed_id("Creme d'Argent")), step("color"))
-        self.assertRedirects(self.answer("color", color="Creme"), step("relatives"))
+        self.assertRedirects(self.answer("color", color="Creme"), step("review"))
         # The color card waits for a breed.
         self.client.post(reverse("rabbit_flow_restart"))
         self.walk_to_breed("purebred")
@@ -344,7 +344,7 @@ class ParentTraitsTests(CardFlowTests):
                "relatives-1-relationship": "sire", "relatives-1-new_name": "Domino",
                "relatives-1-color": "Broken black", "relatives-1-gene_En": "En/en"},
         )
-        self.assertRedirects(response, step("review"))
+        self.assertRedirects(response, step("status"))
         self.assertContains(self.client.get(step("review")), "Snow · Florida White, Ruby-eyed white, Ridgeview")
         self.client.post(step("review"), {"action": "next"})
         dam = Relative.objects.get(relationship="dam")

@@ -121,8 +121,8 @@ class ColorCardViewTests(TestCase):
         self.assertContains(page, f'name="color_choice" value="{OTHER}"')
         self.assertContains(page, "Another color")
         self.assertContains(page, "grid-cols-1")
-        self.assertRedirects(self.answer("color", color_choice="Creme"), step("relatives"))
-        self.answer("relatives")
+        # Parents come right after the basics, so color is the last card before review.
+        self.assertRedirects(self.answer("color", color_choice="Creme"), step("review"))
         review = self.client.get(step("review"))
         self.assertContains(review, "Creme")
         self.assertEqual(self.save().color, "Creme")

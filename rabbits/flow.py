@@ -43,20 +43,21 @@ STEPS = [
     Step("name", flow_forms.NameForm, ("name",)),
     Step("sex", flow_forms.SexForm, ("sex",)),
     Step("birth-date", flow_forms.BirthDateForm, ("birth_date",)),
+    # Parents and relatives come right after the basics, so the breed cards
+    # can start from what the parents are.
+    Step("relatives", flow_forms.RelativesForm, optional=True),
     Step("status", flow_forms.StatusForm, ("status", "death_date", "death_cause")),
     Step("breed-type", flow_forms.BreedTypeForm, ("breed_type",)),
     Step("breed", flow_forms.BreedForm, ("purebred",)),
     Step("color", flow_forms.ColorForm, ("color_choice", "color")),
-    Step("relatives", flow_forms.RelativesForm, optional=True),
     Step("review", None),
 ]
 SLUGS = [step.slug for step in STEPS]
 
 # Editing uses the same cards and checks, plus the rabbit's own line, and
 # an overview card instead of the review card.
-EDIT_STEPS = STEPS[:7] + [
+EDIT_STEPS = STEPS[:8] + [
     Step("line", flow_forms.LineForm, ("line",), optional=True),
-    STEPS[7],
 ]
 EDIT_SLUGS = [step.slug for step in EDIT_STEPS]
 STEP_BY_SLUG = {step.slug: step for step in STEPS + EDIT_STEPS}
@@ -578,3 +579,53 @@ def update_rabbit(draft, user, rabbit):
         rabbit.relatives.all().delete()
         save_relatives(rabbit, user, answers["relatives"])
     return rabbit
+
+
+def parent_mix(row):
+    """A parent's breed as {breed pk: Decimal share}, or None if unknown."""
+    target = row.get("target")
+    if isinstance(target, Rabbit):
+        if target.breed_type == Rabbit.BreedType.PUREBRED and target.purebred_id:
+            return {target.purebred_id: Decimal(100)}
+        shares = {share.breed_id: Decimal(share.percent) for share in target.breed_shares.all()}
+        if shares:
+            return shares
+        text = target.breed
+    else:
+        text = row.get("breed", "")
+    parsed = parse_legacy_breed(text)
+    if parsed is None:
+        return None
+    kind, breed, parts = parsed
+    if kind == Rabbit.BreedType.PUREBRED:
+        return {breed.pk: Decimal(100)}
+    return {part.pk: Decimal(pct) for part, pct in parts}
+
+
+def prefill_breed_from_parents(draft, rows):
+    """When the breed isn't answered yet and both the dam's and the sire's
+    breeds are known, start the breed cards from them: the same breed on
+    both sides is a purebred, otherwise each parent gives half its mix.
+    Returns the breed line it filled in, or "" when it left things alone."""
+    if draft["breed_type"]:
+        return ""
+    parents = {row["relationship"]: row for row in rows if row["relationship"] in ("dam", "sire")}
+    if set(parents) != {"dam", "sire"}:
+        return ""
+    mixes = [parent_mix(parents["dam"]), parent_mix(parents["sire"])]
+    if None in mixes:
+        return ""
+    combined = {}
+    for mix in mixes:
+        for pk, pct in mix.items():
+            combined[pk] = combined.get(pk, Decimal(0)) + pct / 2
+    if any(pct != pct.quantize(Decimal("0.01")) for pct in combined.values()):
+        return ""
+    if len(combined) == 1:
+        draft["breed_type"] = Rabbit.BreedType.PUREBRED.value
+        draft["purebred"] = str(next(iter(combined)))
+    else:
+        draft["breed_type"] = Rabbit.BreedType.CROSSBRED.value
+        order = sorted(combined, key=lambda pk: -combined[pk])
+        draft["cross"] = [{"breed": str(pk), "percent": share_text(combined[pk])} for pk in order]
+    return draft_breed_line(draft)

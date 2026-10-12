@@ -54,17 +54,16 @@ def overview_rows(draft, user, rabbit):
     breed_types = dict(Rabbit.BreedType.choices)
     answers = [
         ("name", values["Name"]), ("sex", values["Sex"]), ("birth-date", values["Birth date"]),
-        ("status", values["Status"]), ("breed-type", breed_types.get(draft["breed_type"], "")),
+        ("relatives", None), ("status", values["Status"]), ("breed-type", breed_types.get(draft["breed_type"], "")),
         ("breed", values["Breed"]), ("color", values["Color"]), ("line", draft["line"].strip()),
     ]
-    out = [
-        {"slug": slug, "label": LABELS[slug], "answer": answer, "url": card_url(rabbit.pk, slug)}
-        for slug, answer in answers
-    ]
-    out.append({
-        "slug": "relatives", "label": "Relatives", "answer": "None added", "entries": relatives,
-        "url": card_url(rabbit.pk, "relatives"),
-    })
+    out = []
+    for slug, answer in answers:
+        if slug == "relatives":
+            out.append({"slug": slug, "label": LABELS[slug], "answer": "None added", "entries": relatives,
+                        "url": card_url(rabbit.pk, slug)})
+        else:
+            out.append({"slug": slug, "label": LABELS[slug], "answer": answer, "url": card_url(rabbit.pk, slug)})
     return out
 
 
@@ -138,6 +137,10 @@ def rabbit_edit_step(request, pk, step):
                 messages.error(request, flow.SELF_RELATIVE)
                 return redirect(card_url(rabbit.pk, step))
         if form.is_valid():
+            if step == "relatives":
+                filled = flow.prefill_breed_from_parents(draft, form.cleaned_data["relatives"])
+                if filled:
+                    messages.info(request, f"The breed was filled in from the parents: {filled}. You can change it on the breed cards.")
             # Done saves this card to the draft and goes back to the summary,
             # never on to another card. If the change left another card out
             # of date, the summary says which; Save also sends people there.
