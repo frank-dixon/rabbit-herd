@@ -95,6 +95,7 @@ def rabbit_edit(request, pk):
         "legacy_breed": legacy,
         "legacy_url": card_url(rabbit.pk, "breed-type"),
         "pending": pending,
+        "wide": True,
     })
 
 
@@ -166,5 +167,6 @@ def rabbit_edit_step(request, pk, step):
         "next_label": "Done",
         "hint": context["hint"] if step != "review" else "",
         "color_cleared": cleared,
+        "wide": True,
     })
     return render(request, "rabbits/flow/step.html", context)

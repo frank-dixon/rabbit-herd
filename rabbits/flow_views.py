@@ -412,6 +412,7 @@ def rabbit_flow_step(request, step):
         form.is_valid()
     context = step_context(step, draft, request.user, form)
     context["color_cleared"] = cleared
+    context["wide"] = True
     return render(request, "rabbits/flow/step.html", context)
 
 
@@ -425,4 +426,4 @@ def rabbit_flow_restart(request):
 @login_required
 def rabbit_flow_done(request, pk):
     rabbit = get_object_or_404(Rabbit, owner=request.user, pk=pk)
-    return render(request, "rabbits/flow/done.html", {"rabbit": rabbit})
+    return render(request, "rabbits/flow/done.html", {"rabbit": rabbit, "wide": True})

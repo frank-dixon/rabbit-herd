@@ -3,7 +3,7 @@
 {% block title %}{{ question }} · {% if editing %}Edit {{ editing.name }}{% else %}Add a rabbit{% endif %} · Rabbit Herd{% endblock %}
 
 {% block content %}
-  <div class="pb-28">
+  <div class="max-w-2xl pb-28">
     {% if editing %}
       <p class="text-sm text-neutral-600"><a class="underline" href="{{ overview_url }}">Editing {{ editing.name }}</a> · Change this card, then press {{ next_label }}.</p>
     {% else %}
@@ -24,11 +24,12 @@
         {% include "rabbits/flow/_"|add:slug|add:".html" %}
       </section>
       <div class="fixed inset-x-0 bottom-0 z-10 border-t border-neutral-300 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
-        <div class="mx-auto flex max-w-md gap-3">
+        {# Primary first: on the left on phones, on the far right on wider screens. #}
+        <div class="mx-auto flex max-w-6xl gap-3 sm:flex-row-reverse sm:px-4" data-action-row>
+          <div class="flex flex-1 sm:flex-none">{% include "components/button.html" with label=next_label type="submit" name="action" value="next" variant="primary" size="large" full=True only %}</div>
           {% if has_back %}
-            {% include "components/button.html" with label=back_label type="submit" name="action" value="back" variant="secondary" size="large" only %}
+            <div class="flex sm:flex-none">{% include "components/button.html" with label=back_label type="submit" name="action" value="back" variant="secondary" size="large" full=True only %}</div>
           {% endif %}
-          {% include "components/button.html" with label=next_label type="submit" name="action" value="next" variant="primary" size="large" grow=True only %}
         </div>
       </div>
     </form>
