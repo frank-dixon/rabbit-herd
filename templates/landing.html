@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Rabbit Herd{% endblock %}
+{% block title %}{{ app_name }}{% endblock %}
 
 {% block content %}
-  {% include "components/card.html" with title="Rabbit Herd" body="A private record keeper for a small rabbitry." only %}
+  {% include "components/card.html" with title=app_name body="A private record keeper for a small rabbitry." only %}
   <div class="mt-8 flex flex-col items-start gap-3">
     {% url 'login' as login_url %}
     {% url 'signup' as signup_url %}

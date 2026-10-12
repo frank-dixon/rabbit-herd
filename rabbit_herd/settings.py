@@ -117,10 +117,15 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "pages.nav.app_nav",
+                "pages.nav.app_name",
             ],
         },
     },
 ]
+
+# The name people see in the app, page titles and emails. The code, URLs and
+# hosting services keep the rabbit-herd name.
+APP_NAME = "Bramble Burrow"
 
 WSGI_APPLICATION = "rabbit_herd.wsgi.application"
 ASGI_APPLICATION = "rabbit_herd.asgi.application"

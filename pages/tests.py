@@ -161,5 +161,5 @@ class LandingPageTests(TestCase):
         response = self.client.get("/")
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Rabbit Herd")
+        self.assertContains(response, "Bramble Burrow")
         self.assertContains(response, "private record keeper")

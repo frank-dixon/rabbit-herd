@@ -1,7 +1,13 @@
 """The app shell's menu: a side menu on tablet and desktop, bottom tabs on
 phones. Only built sections are listed; nothing points at work not done yet."""
 
+from django.conf import settings
 from django.urls import reverse
+
+
+def app_name(request):
+    """The user-facing app name, from settings.APP_NAME."""
+    return {"app_name": settings.APP_NAME}
 
 # Outline icons, 24x24, drawn with currentColor (no new colors).
 ICONS = {

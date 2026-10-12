@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ question }} · {% if editing %}Edit {{ editing.name }}{% else %}Add a rabbit{% endif %} · Rabbit Herd{% endblock %}
+{% block title %}{{ question }} · {% if editing %}Edit {{ editing.name }}{% else %}Add a rabbit{% endif %} · {{ app_name }}{% endblock %}
 
 {% block content %}
   <div class="max-w-2xl pb-28">

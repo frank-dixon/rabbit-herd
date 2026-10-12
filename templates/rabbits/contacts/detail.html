@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ contact.name }} · Rabbit Herd{% endblock %}
+{% block title %}{{ contact.name }} · {{ app_name }}{% endblock %}
 
 {% block content %}
   {% url 'contact_edit' contact.pk as edit_url %}

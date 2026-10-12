@@ -1,6 +1,6 @@
 {# Side menu for tablet (icons over short labels) and desktop (full labels). Hidden on phones, which get the bottom tabs. #}
 <aside class="sticky top-0 hidden h-screen shrink-0 flex-col border-r border-neutral-300 bg-neutral-100 md:flex md:w-20 lg:w-56" aria-label="App">
-  <a class="hidden px-4 pt-5 pb-3 font-semibold lg:block" href="{% url 'index' %}">Rabbit Herd</a>
+  <a class="hidden px-4 pt-5 pb-3 font-semibold lg:block" href="{% url 'index' %}">{{ app_name }}</a>
   <nav class="flex flex-col gap-1 px-2 pt-3 lg:pt-1" aria-label="Main">
     {% for item in app_nav %}
       <a href="{{ item.url }}" class="flex flex-col items-center gap-1 rounded border px-1 py-2 text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 lg:flex-row lg:gap-3 lg:px-3 lg:text-sm {% if item.key == 'add' %}lg:mb-2 lg:justify-center lg:border-neutral-900 lg:bg-neutral-900 lg:py-2.5 lg:font-semibold lg:text-white lg:hover:bg-neutral-700 {% endif %}{% if item.active %}border-neutral-300 bg-white font-semibold text-neutral-900{% else %}border-transparent text-neutral-700 hover:bg-white{% endif %}"{% if item.active %} aria-current="page"{% endif %}>

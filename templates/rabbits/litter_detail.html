@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Litter · {{ litter.pairing }} · Rabbit Herd{% endblock %}
+{% block title %}Litter · {{ litter.pairing }} · {{ app_name }}{% endblock %}
 
 {% block content %}
   {% url 'pairing_detail' litter.pairing.pk as pairing_url %}

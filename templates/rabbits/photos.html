@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Photos of {{ rabbit.name }} · Rabbit Herd{% endblock %}
+{% block title %}Photos of {{ rabbit.name }} · {{ app_name }}{% endblock %}
 
 {% block content %}
   {% url 'rabbit_detail' rabbit.pk as back_url %}
