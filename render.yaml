@@ -24,4 +24,4 @@ services:
       - key: DEMO_PASSWORD
         sync: false
       - key: DEFAULT_FROM_EMAIL
-        value: "Rabbit Herd <noreply@example.com>"
+        value: "Bramble Burrow <noreply@example.com>"

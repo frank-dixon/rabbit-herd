@@ -215,7 +215,7 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "index"
 LOGOUT_REDIRECT_URL = "index"
 
-WEBAUTHN_RP_NAME = os.environ.get("WEBAUTHN_RP_NAME", "").strip() or "Rabbit Herd"
+WEBAUTHN_RP_NAME = os.environ.get("WEBAUTHN_RP_NAME", "").strip() or APP_NAME
 WEBAUTHN_RP_ID = os.environ.get("WEBAUTHN_RP_ID", "").strip()
 WEBAUTHN_ORIGIN = os.environ.get("WEBAUTHN_ORIGIN", "").strip()
 primary_hostname = PUBLIC_HOSTNAMES[0] if PUBLIC_HOSTNAMES else ""
@@ -235,7 +235,7 @@ if not DEBUG and (not WEBAUTHN_RP_ID or not WEBAUTHN_ORIGIN):
 
 APP_HOSTNAME = hostname_from_env("APP_HOSTNAME")
 DEFAULT_FROM_EMAIL = (
-    os.environ.get("DEFAULT_FROM_EMAIL", "").strip() or "Rabbit Herd <noreply@localhost>"
+    os.environ.get("DEFAULT_FROM_EMAIL", "").strip() or f"{APP_NAME} <noreply@localhost>"
 )
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 # EMAIL_BACKEND stays in charge. Defining MAILERS would make Django ignore it,

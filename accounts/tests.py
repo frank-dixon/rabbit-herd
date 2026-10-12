@@ -45,6 +45,8 @@ class PasswordAccountTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, ["frank@example.com"])
         self.assertIn("Confirm your email", mail.outbox[0].body)
+        self.assertEqual(mail.outbox[0].subject, "Confirm your Bramble Burrow account")
+        self.assertIn("creating your Bramble Burrow account", mail.outbox[0].body)
 
         blocked = self.client.post(
             reverse("login"),
@@ -180,7 +182,7 @@ class PasskeyEndpointTests(TestCase):
         self.assertEqual(response.status_code, 200)
         body = response.json()
         self.assertTrue(body["challenge"])
-        self.assertEqual(body["rp"]["name"], "Rabbit Herd")
+        self.assertEqual(body["rp"]["name"], "Bramble Burrow")
         self.assertEqual(body["rp"]["id"], settings.WEBAUTHN_RP_ID)
         self.assertEqual(body["user"]["name"], "frank@example.com")
         selection = body["authenticatorSelection"]
@@ -350,8 +352,8 @@ class AccountManagementTests(TestCase):
 
         url = "http://127.0.0.1:8000/accounts/password/reset/" + ("a" * 48) + "/"
         rendered = PlainEmailMessage(
-            subject="Reset your Rabbit Herd password",
-            body=f"Reset the password for your Rabbit Herd account:\n\n{url}\n",
+            subject="Reset your Bramble Burrow password",
+            body=f"Reset the password for your Bramble Burrow account:\n\n{url}\n",
             to=["frank@example.com"],
         ).message().as_string()
 

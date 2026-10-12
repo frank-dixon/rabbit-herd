@@ -146,6 +146,7 @@ class AppPasswordResetView(PasswordResetView):
     success_url = reverse_lazy("password_reset_done")
 
     def form_valid(self, form):
+        self.extra_email_context = {**(self.extra_email_context or {}), "app_name": settings.APP_NAME}
         host = settings.APP_HOSTNAME
         if host:
             self.extra_email_context = {

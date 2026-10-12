@@ -54,9 +54,9 @@ def send_confirmation_email(request, user):
         reverse("confirm_email", kwargs={"uidb64": uid, "token": token}),
     )
     send_account_mail(
-        "Confirm your Rabbit Herd account",
+        f"Confirm your {settings.APP_NAME} account",
         (
-            "Confirm your email to finish creating your Rabbit Herd account.\n\n"
+            f"Confirm your email to finish creating your {settings.APP_NAME} account.\n\n"
             f"{url}\n"
         ),
         user.email,

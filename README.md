@@ -1,6 +1,6 @@
-# Rabbit Herd
+# Bramble Burrow
 
-Rabbit Herd is a private record keeper for a small rabbitry. Sign in with a passkey (Face ID, a fingerprint, or a device PIN) or with your email and password. You can also look around as a guest. A new account confirms its email before it can sign in. You can change your password, or reset it if you forget it.
+Bramble Burrow is a private record keeper for a small rabbitry. Sign in with a passkey (Face ID, a fingerprint, or a device PIN) or with your email and password. You can also look around as a guest. A new account confirms its email before it can sign in. You can change your password, or reset it if you forget it.
 
 Signed in, you keep your own rabbits. A rabbit has a name or ear tag, a sex of doe or buck, a breed, a color, a birth date, optional photos, and a status of breeding, growing out, sold, or culled. Archiving takes a rabbit off the active list and keeps the record. You can restore an archived rabbit. You only see your own.
 
@@ -80,7 +80,7 @@ Set these on the project:
 - `APP_HOSTNAME` = the stable production host, with no scheme and no port
 - `EMAIL_PROVIDER` = `resend`
 - `RESEND_API_KEY` = a Resend API key with sending access
-- `DEFAULT_FROM_EMAIL` = `Rabbit Herd <onboarding@resend.dev>` until a domain is verified, then an address on that domain
+- `DEFAULT_FROM_EMAIL` = `Bramble Burrow <onboarding@resend.dev>` until a domain is verified, then an address on that domain
 
 `APP_HOSTNAME` is the passkey host, and confirmation and password-reset links use `https://` plus that host. Use the custom domain, or the production `*.vercel.app` name, so a passkey is not tied to a one-off deployment URL. When `APP_HOSTNAME` is unset, passkeys use `VERCEL_PROJECT_PRODUCTION_URL`, and those email links use the host of the request instead.
 
