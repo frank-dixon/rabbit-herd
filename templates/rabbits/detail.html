@@ -78,7 +78,9 @@
                       <span class="block text-sm text-neutral-600">{% if relative.color %}{{ relative.color }}{% endif %}{% if relative.color and relative.line %} · {% endif %}{% if relative.line %}Line {{ relative.line }}{% endif %}</span>
                     {% endif %}
                   </span>
-                {% if relative.herd_rabbit %}</a>{% else %}</div>{% endif %}
+                {% if relative.herd_rabbit %}</a>{% else %}
+                  <a class="ml-auto shrink-0 self-start text-sm underline" href="{% url 'relative_add_to_herd' relative.pk %}">Add to my herd<span class="sr-only">: {{ relative.other.name }}</span></a>
+                </div>{% endif %}
               </li>
             {% endfor %}
           </ul>

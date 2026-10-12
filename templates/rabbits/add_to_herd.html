@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Add {{ relative.outside.name }} to your herd · Rabbit Herd{% endblock %}
+
+{% block content %}
+  <h1 class="break-words text-2xl font-semibold">Add {{ relative.outside.name }} to your herd</h1>
+  <p class="mt-1 text-neutral-600">{{ relative.get_relationship_display }} of {{ relative.rabbit.name }}. The name, breed, color, line and genes are copied over, and every link to this outside rabbit moves to the new herd record.</p>
+  <section class="mt-6 max-w-2xl rounded border border-neutral-300 bg-white p-4">
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      {% include "components/select.html" with name="sex" label="Sex" value=sex options=sex_options errors=errors.sex placeholder="Choose…" only %}
+      {% include "components/text_input.html" with name="birth_date" label="Birth date" type="date" value=birth_date errors=errors.birth_date max=today help="Your best guess is fine. You can change it later." only %}
+      <div class="flex flex-col gap-2 sm:flex-row-reverse sm:justify-start">
+        {% include "components/button.html" with label="Add to my herd" type="submit" variant="primary" only %}
+        {% url 'rabbit_detail' relative.rabbit.pk as back_url %}
+        {% include "components/button.html" with label="Cancel" href=back_url variant="secondary" only %}
+      </div>
+    </form>
+  </section>
+{% endblock %}
