@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from django.db import transaction
 
 from . import flow_forms
-from .models import Breed, BreedShare, OutsideRabbit, Rabbit, Relative, color_text
+from .models import Breed, BreedShare, Gene, OutsideRabbit, Rabbit, Relative, color_text
 
 SESSION_KEY = "rabbit_draft"
 MAX_TEXT = 500
@@ -56,7 +56,9 @@ def blank_cross_row():
 
 
 def blank_relative():
-    return {"relationship": "", "ref": "", "new_name": "", "new_details": ""}
+    row = {"relationship": "", "ref": "", "new_name": "", "new_details": ""}
+    row.update(flow_forms.blank_traits())
+    return row
 
 
 def empty_draft():
@@ -353,10 +355,16 @@ def save_rabbit(draft, user):
                         owner=user, name=row["new_name"], details=row["new_details"]
                     )
                 )
-            Relative.objects.create(
+            relative = Relative.objects.create(
                 rabbit=rabbit,
                 relationship=row["relationship"],
                 herd_rabbit=target if isinstance(target, Rabbit) else None,
                 outside=target if isinstance(target, OutsideRabbit) else None,
+                color=row["color"],
+                line=row["line"],
+            )
+            Gene.objects.bulk_create(
+                Gene(relative=relative, locus=locus, genotype=genotype, certainty=certainty)
+                for locus, genotype, certainty in row["genes"]
             )
     return rabbit

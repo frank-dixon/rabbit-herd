@@ -188,6 +188,9 @@ def review_rows(draft, user):
             name = target.name + (f" ({target.details})" if target.details else "")
         else:
             continue
+        traits = [part for part in (row["color"].strip() or row["color_choice"], row["line"].strip()) if part]
+        if traits:
+            name += " · " + ", ".join(traits)
         relatives.append(f"{labels.get(row['relationship'], 'Relative')}: {name}")
     return rows, relatives
 
@@ -258,6 +261,8 @@ def step_context(slug, draft, user, form):
         )
     if slug == "relatives":
         ref_groups = flow_forms.rabbit_ref_groups(user)
+        breed = flow_forms.purebred_breed(draft)
+        parent_colors = flow_forms.parent_color_options(breed)
         context.update(
             {
                 "ref_groups": ref_groups,
@@ -278,6 +283,7 @@ def step_context(slug, draft, user, form):
                         "new_name_error": errors.get(f"relatives-{number}-new_name", []),
                         "new_details_error": errors.get(f"relatives-{number}-new_details", []),
                         "open_new": bool(row["new_name"] or row["new_details"]),
+                        **trait_context(number, row, errors, parent_colors, breed),
                     }
                     for number, row in enumerate(draft["relatives"])
                 ],
@@ -287,6 +293,44 @@ def step_context(slug, draft, user, form):
     if slug == "review":
         context["review_rows"], context["review_relatives"] = review_rows(draft, user)
     return context
+
+
+CERTAINTY_OPTIONS = [("known", "Known"), ("probable", "Probable")]
+LOCUS_LABELS = dict(flow_forms.Gene.Locus.choices)
+
+
+def trait_context(number, row, errors, parent_colors, breed):
+    """The 'Color and line' part and the 'Genes they carry' part of one
+    relative row, with each input's name, value, and errors."""
+    base = f"relatives-{number}"
+    genes = [
+        {
+            "label": LOCUS_LABELS[locus],
+            "name": f"{base}-gene_{locus}",
+            "cert_name": f"{base}-cert_{locus}",
+            "value": row[f"gene_{locus}"],
+            "cert": row[f"cert_{locus}"] or "probable",
+            "error": errors.get(f"{base}-gene_{locus}", []),
+        }
+        for locus in flow_forms.GENE_LOCI + ["other"]
+    ]
+    return {
+        "color_choice_name": f"{base}-color_choice",
+        "color_name": f"{base}-color",
+        "line_name": f"{base}-line",
+        "parent_colors": parent_colors,
+        "color_help": (
+            f"Choose one of the {breed.name}'s colors, or describe it."
+            if parent_colors
+            else "Describe the coat, for example ruby-eyed white or broken black."
+        ),
+        "color_choice_error": errors.get(f"{base}-color_choice", []),
+        "color_error": errors.get(f"{base}-color", []),
+        "line_error": errors.get(f"{base}-line", []),
+        "genes": genes,
+        "certainty_options": CERTAINTY_OPTIONS,
+        "open_genes": any(gene["value"] or gene["error"] for gene in genes),
+    }
 
 
 def row_anchor(action, draft):

@@ -15,10 +15,45 @@ import datetime
 from django import forms
 from django.utils import timezone
 
-from .models import Breed, OutsideRabbit, Rabbit, Relative
+from .models import Breed, Gene, OutsideRabbit, Rabbit, Relative
 
 MAX_CROSS_ROWS = 8
 MAX_RELATIVES = 12
+GENE_LOCI = [value for value in Gene.Locus.values if value != Gene.Locus.OTHER]
+TRAIT_TOO_LONG = "Please keep this to 80 characters or fewer."
+GENE_TOO_LONG = "Please keep each genotype to 40 characters or fewer, for example c/c."
+OTHER_GENES_TOO_LONG = "Please keep other genes to 200 characters or fewer."
+RELATIVE_COLOR_NOT_LISTED = "Please choose one of the listed colors, or describe the color instead."
+
+
+def trait_parts():
+    """The optional color, line, and gene inputs on each relative row."""
+    parts = ["color_choice", "color", "line"]
+    for locus in GENE_LOCI:
+        parts += [f"gene_{locus}", f"cert_{locus}"]
+    return parts + ["gene_other", "cert_other"]
+
+
+def parent_color_options(breed):
+    """The breed's colors as (value, label) for a relative's color. A white
+    the standard calls ruby-eyed is stored as "Ruby-eyed white", so the
+    albino check can read it."""
+    options = []
+    for color in offered_colors(breed):
+        hint = color.get("hint", "")
+        if hint.casefold() == "ruby-eyed white":
+            options.append(("Ruby-eyed white", f"{color['name']} (ruby-eyed white)"))
+        else:
+            options.append((color["name"], color["name"]))
+    return options
+
+
+def parent_color_values(breed):
+    return [value for value, _ in parent_color_options(breed)]
+
+
+def blank_traits():
+    return {part: "" for part in trait_parts()}
 
 NAME_REQUIRED = "Each rabbit needs a name or an ear tag. Please add one."
 NAME_TOO_LONG = "A name or ear tag can be up to 120 characters. Please shorten it."
@@ -388,7 +423,7 @@ class RelativesForm(StepForm):
         super().__init__(*args, **kwargs)
         self.rows = rows
         for index in range(rows):
-            for part in ("relationship", "ref", "new_name", "new_details"):
+            for part in ("relationship", "ref", "new_name", "new_details", *trait_parts()):
                 self.fields[f"relatives-{index}-{part}"] = forms.CharField(required=False)
 
     def clean(self):
@@ -447,6 +482,40 @@ class RelativesForm(StepForm):
                     "target": target,
                     "new_name": new_name,
                     "new_details": new_details,
+                    **self.traits(base),
                 }
             )
         return {"relatives": relatives}
+
+    def traits(self, base):
+        """The row's optional color, line, and genes. The color is the
+        description when one is typed, else the color chosen from the
+        breed's list. A genotype without a certainty counts as probable."""
+        names = parent_color_values(purebred_breed(self.data))
+        choice = self.text(f"{base}-color_choice")
+        color = self.text(f"{base}-color")
+        if not color and choice:
+            if choice in names:
+                color = choice
+            else:
+                self.add_error(f"{base}-color_choice", RELATIVE_COLOR_NOT_LISTED)
+        for part in ("color", "line"):
+            value = color if part == "color" else self.text(f"{base}-line")
+            if len(value) > 80:
+                self.add_error(f"{base}-{part}", TRAIT_TOO_LONG)
+        genes = []
+        for locus in GENE_LOCI + ["other"]:
+            genotype = self.text(f"{base}-gene_{locus}")
+            if not genotype:
+                continue
+            limit = 200 if locus == "other" else 40
+            if len(genotype) > limit:
+                self.add_error(
+                    f"{base}-gene_{locus}", OTHER_GENES_TOO_LONG if locus == "other" else GENE_TOO_LONG
+                )
+                continue
+            certainty = self.text(f"{base}-cert_{locus}")
+            if certainty not in Gene.Certainty.values:
+                certainty = Gene.Certainty.PROBABLE
+            genes.append((locus, genotype, certainty))
+        return {"color": color, "line": self.text(f"{base}-line"), "genes": genes}

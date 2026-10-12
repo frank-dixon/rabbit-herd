@@ -18,6 +18,28 @@
               {% include "components/text_input.html" with name=item.new_details_name label="Details (optional)" value=item.row.new_details errors=item.new_details_error help="Anything that helps identify it, like an ear tag, registration number, breeder, or color." only %}
             </div>
           </details>
+          <fieldset class="space-y-3 rounded border border-neutral-200 px-3 py-2">
+            <legend class="px-1 text-sm font-semibold text-neutral-800">Color and line (optional)</legend>
+            {% if item.parent_colors %}
+              {% include "components/select.html" with name=item.color_choice_name label="Color" value=item.row.color_choice options=item.parent_colors errors=item.color_choice_error placeholder="Choose a color…" help=item.color_help only %}
+              {% include "components/text_input.html" with name=item.color_name label="Or describe the color" value=item.row.color errors=item.color_error only %}
+            {% else %}
+              {% include "components/text_input.html" with name=item.color_name label="Color" value=item.row.color errors=item.color_error help=item.color_help only %}
+            {% endif %}
+            {% include "components/text_input.html" with name=item.line_name label="Line or strain" value=item.row.line errors=item.line_error help="For example the breeder's herd name, to tell same-breed lines apart." only %}
+          </fieldset>
+          <details class="rounded border border-dashed border-neutral-300 px-3 py-2"{% if item.open_genes %} open{% endif %}>
+            <summary class="cursor-pointer text-sm font-medium text-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900">Genes they carry (optional)</summary>
+            <p class="mt-2 text-sm text-neutral-600">Write a genotype like c/c or En/en, and mark whether it's known (for example from test litters) or probable.</p>
+            <div class="mt-2 space-y-3">
+              {% for gene in item.genes %}
+                <div class="grid grid-cols-[1fr_auto] items-end gap-2">
+                  {% include "components/text_input.html" with name=gene.name label=gene.label value=gene.value errors=gene.error only %}
+                  {% include "components/select.html" with name=gene.cert_name label="Known or probable" value=gene.cert options=item.certainty_options placeholder="Choose…" only %}
+                </div>
+              {% endfor %}
+            </div>
+          </details>
         </li>
       {% endfor %}
     </ul>

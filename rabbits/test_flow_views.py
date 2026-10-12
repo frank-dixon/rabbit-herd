@@ -316,3 +316,48 @@ class CardFlowTests(TestCase):
             "relatives", **{"relatives-0-relationship": "dam", "relatives-0-ref": f"h:{theirs.pk}"},
         )
         self.assertContains(response, "That rabbit is no longer in your list. Please choose again.")
+
+
+class ParentTraitsTests(CardFlowTests):
+    def test_willow_records_each_parents_color_line_and_genes(self):
+        from .models import Gene, Relative
+
+        self.walk_to_breed("purebred")
+        nz = breed_id("New Zealand")
+        self.assertRedirects(self.answer("breed", purebred=nz), step("color"))
+        self.answer("color", color_choice="Broken")
+        self.answer("relatives", action="add-relative")
+        self.answer("relatives", action="add-relative")
+        page = self.client.get(step("relatives"))
+        self.assertContains(page, "Color and line (optional)")
+        self.assertContains(page, "Genes they carry (optional)")
+        self.assertContains(page, '<option value="Ruby-eyed white">White (ruby-eyed white)</option>', html=True)
+        self.assertContains(page, "Choose one of the New Zealand&#x27;s colors, or describe it.")
+        response = self.answer(
+            "relatives",
+            **{"relatives-0-relationship": "dam", "relatives-0-new_name": "Snow",
+               "relatives-0-color_choice": "Ruby-eyed white", "relatives-0-line": "Ridgeview",
+               "relatives-0-gene_C": "c/c", "relatives-0-cert_C": "known",
+               "relatives-1-relationship": "sire", "relatives-1-new_name": "Domino",
+               "relatives-1-color": "Broken black", "relatives-1-gene_En": "En/en"},
+        )
+        self.assertRedirects(response, step("review"))
+        self.assertContains(self.client.get(step("review")), "Snow · Ruby-eyed white, Ridgeview")
+        self.client.post(step("review"), {"action": "next"})
+        dam = Relative.objects.get(relationship="dam")
+        self.assertEqual((dam.color, dam.line), ("Ruby-eyed white", "Ridgeview"))
+        self.assertEqual([(g.locus, g.genotype, g.certainty) for g in dam.genes.all()], [("C", "c/c", "known")])
+        sire = Relative.objects.get(relationship="sire")
+        self.assertEqual(sire.color, "Broken black")
+        self.assertEqual(sire.genes.get().certainty, Gene.Certainty.PROBABLE)
+
+    def test_a_color_not_on_the_breeds_list_is_refused(self):
+        self.walk_to_breed("purebred")
+        self.answer("breed", purebred=breed_id("New Zealand"))
+        self.answer("color", color_choice="Broken")
+        self.answer("relatives", action="add-relative")
+        page = self.fails(
+            "relatives", **{"relatives-0-relationship": "dam", "relatives-0-new_name": "Snow",
+                            "relatives-0-color_choice": "Plaid"},
+        )
+        self.assertContains(page, "Please choose one of the listed colors, or describe the color instead.")
