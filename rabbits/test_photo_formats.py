@@ -1,9 +1,12 @@
 """Uploads as phones and Macs really send them: HEIC named .jpeg, MPO
-(iPhone multi-picture JPEG) and large files."""
+(iPhone multi-picture JPEG), large files, and a post built from the
+rendered form itself."""
 
 import os
+from html.parser import HTMLParser
 from io import BytesIO
 
+from django.test import Client
 from django.urls import reverse
 from PIL import Image
 
@@ -32,6 +35,24 @@ def noise_jpeg():
     buffer = BytesIO()
     picture.save(buffer, format="JPEG", quality=95)
     return buffer.getvalue()
+
+
+class _FormFinder(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.forms, self._current = [], None
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "form":
+            self._current = {"attrs": attrs, "inputs": []}
+            self.forms.append(self._current)
+        elif self._current is not None and tag in ("input", "textarea"):
+            self._current["inputs"].append((tag, attrs))
+
+    def handle_endtag(self, tag):
+        if tag == "form":
+            self._current = None
 
 
 class PhotoFormatTests(PhotoTestCase):
@@ -67,6 +88,28 @@ class PhotoFormatTests(PhotoTestCase):
         self.assertEqual(self.send(data, "IMG_2299.jpeg").status_code, 302)
         self.assertEqual(self.stored_format(), "JPEG")
 
+    def test_the_rendered_form_posts_the_file(self):
+        self.client = Client(enforce_csrf_checks=True)
+        self.client.force_login(self.owner)
+        page = self.client.get(self.page())
+        finder = _FormFinder()
+        finder.feed(page.content.decode())
+        upload_forms = [f for f in finder.forms if any(a.get("type") == "file" for _, a in f["inputs"])]
+        self.assertEqual(len(upload_forms), 1)
+        form = upload_forms[0]
+        self.assertEqual(form["attrs"].get("enctype"), "multipart/form-data")
+        self.assertEqual(form["attrs"].get("method"), "post")
+        action = form["attrs"].get("action") or self.page()
+        fields = {}
+        for tag, attrs in form["inputs"]:
+            if attrs.get("type") == "file":
+                fields[attrs["name"]] = upload(heic_bytes(), "IMG_2299.jpeg")
+            elif attrs.get("name"):
+                fields[attrs["name"]] = attrs.get("value", "")
+        self.assertIn("csrfmiddlewaretoken", fields)
+        response = self.client.post(action, fields)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.stored_format(), "JPEG")
 
     def test_the_picker_offers_heic(self):
         self.assertContains(self.client.get(self.page()), "image/heic")
