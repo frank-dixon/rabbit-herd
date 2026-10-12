@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 
 from . import genetics
 from .forms import GenesForm, PhotoUploadForm
-from .models import Contact, Gene, Rabbit, Weight
+from .models import Contact, Gene, Location, Rabbit, Weight
 
 def owned_rabbits(user):
     return Rabbit.objects.filter(owner=user)
@@ -59,6 +59,7 @@ def list_filters(request):
         "sex": get.get("sex") if get.get("sex") in sexes else "",
         "breed": get.get("breed", "").strip()[:80],
         "status": get.get("status") if get.get("status") in statuses else "",
+        "location": get.get("location", "") if get.get("location", "").isdigit() or get.get("location") == "none" else "",
     }
 
 
@@ -87,13 +88,17 @@ def rabbit_list(request):
         rabbits = rabbits.filter(breed__icontains=filters["breed"])
     if filters["status"]:
         rabbits = rabbits.filter(status=filters["status"])
+    if filters["location"] == "none":
+        rabbits = rabbits.filter(location__isnull=True)
+    elif filters["location"]:
+        rabbits = rabbits.filter(location_id=int(filters["location"]))
     rabbits = list(rabbits.prefetch_related("photos"))
     # One small query gives both tab counts and the breed filter's options.
     herd = list(mine.values_list("breed", "archived_at", "status"))
     archived_count = sum(1 for _, archived_at, _ in herd if archived_at)
     deceased_count = sum(1 for _, archived_at, status in herd if not archived_at and status == Rabbit.Status.DECEASED)
     active_count = len(herd) - archived_count - deceased_count
-    filtering = any(filters[key] for key in ("q", "sex", "breed", "status"))
+    filtering = any(filters[key] for key in ("q", "sex", "breed", "status", "location"))
     noun = filters["tab"]
     total = {"archived": archived_count, "deceased": deceased_count}.get(filters["tab"], active_count)
     if filtering:
@@ -115,6 +120,7 @@ def rabbit_list(request):
             "deceased_count": deceased_count,
             "deceased_qs": query_string({}, tab="deceased"),
             "sex_options": Rabbit.Sex.choices,
+            "location_options": location_options(request.user),
             "status_options": Rabbit.Status.choices,
             "breed_options": breed_names(breed for breed, _, _ in herd),
             "grid_qs": query_string(filters, view="grid"),
@@ -134,6 +140,11 @@ def rabbit_archived(request):
         "rabbits/archived.html",
         {"rabbits": rabbits, "wide": True},
     )
+
+
+def location_options(user):
+    options = [(str(pk), name) for pk, name in Location.objects.filter(owner=user).values_list("pk", "name")]
+    return options + [("none", "No location")] if options else []
 
 
 def weight_context(request, rabbit):
@@ -169,6 +180,7 @@ def rabbit_detail(request, pk):
             "photos": photos,
             "relatives": relatives,
             **weight_context(request, rabbit),
+            "location_choices": location_options(request.user)[:-1],
             "contact_options": [(str(c.pk), str(c)) for c in Contact.objects.filter(owner=request.user)],
             "kindling_note": rabbit.kindling_note(relatives),
             "upload_form": PhotoUploadForm(),

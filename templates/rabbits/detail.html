@@ -51,6 +51,7 @@
         <dt class="text-neutral-600">Line</dt><dd class="break-words">{{ rabbit.line|default:"—" }}</dd>
         <dt class="text-neutral-600">Born</dt><dd>{{ rabbit.birth_date|date:"M j, Y" }} · {{ rabbit.age_text }}</dd>
         <dt class="text-neutral-600">Status</dt><dd>{{ rabbit.get_status_display }}</dd>
+        <dt class="text-neutral-600">Location</dt><dd class="break-words" data-location>{% if rabbit.location %}{{ rabbit.location.name }}{% else %}<span class="text-neutral-600">Not set</span>{% endif %} · <a class="text-sm underline" href="#location">Change</a></dd>
         {% if rabbit.is_deceased and rabbit.death_date or rabbit.is_deceased and rabbit.death_cause %}
           <dt class="text-neutral-600">Died</dt><dd class="break-words">{% if rabbit.death_date %}{{ rabbit.death_date|date:"M j, Y" }}{% endif %}{% if rabbit.death_date and rabbit.death_cause %} · {% endif %}{{ rabbit.death_cause }}</dd>
         {% endif %}
@@ -91,6 +92,8 @@
       </section>
 
       {% include "rabbits/_weights_card.html" %}
+
+      {% include "rabbits/_location_card.html" %}
 
       {% include "rabbits/_source_card.html" %}
 

@@ -131,6 +131,14 @@ class Rabbit(models.Model):
     death_date = models.DateField(null=True, blank=True)
     death_cause = models.CharField(max_length=120, blank=True)
     archived_at = models.DateTimeField(null=True, blank=True)
+    location = models.ForeignKey(
+        "Location",
+        related_name="rabbits",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="The cage, hutch or pen this rabbit is in.",
+    )
     source = models.ForeignKey(
         "Contact",
         related_name="rabbits_from",
@@ -285,6 +293,22 @@ class BreedShare(models.Model):
 
     def __str__(self):
         return f"{share_text(self.percent)}% {self.breed}"
+
+
+class Location(models.Model):
+    """A cage, hutch, pen or barn row where rabbits live."""
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="locations", on_delete=models.CASCADE)
+    name = models.CharField(max_length=80)
+    notes = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name", "pk"]
+        constraints = [models.UniqueConstraint(fields=["owner", "name"], name="one_location_name_per_owner")]
+
+    def __str__(self):
+        return self.name
 
 
 class Contact(models.Model):

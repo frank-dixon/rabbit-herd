@@ -3,6 +3,15 @@
 {% block title %}Account · Rabbit Herd{% endblock %}
 
 {% block content %}
+  {% if app_more %}
+    <nav class="mb-6 md:hidden" aria-label="More sections">
+      <ul class="flex flex-col divide-y divide-neutral-200 overflow-hidden rounded border border-neutral-300 bg-white">
+        {% for item in app_more %}
+          <li><a class="flex items-center gap-3 p-3 hover:bg-neutral-100" href="{{ item.url }}">{% include "components/icon.html" with d=item.icon only %}<span class="font-medium">{{ item.label }}</span></a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+  {% endif %}
   {% if user.is_guest %}
     {% include "components/card.html" with title="Account" body="This is a guest session." only %}
   {% else %}
