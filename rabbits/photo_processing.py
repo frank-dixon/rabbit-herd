@@ -25,6 +25,10 @@ MAX_SOURCE_PIXELS = 50_000_000
 MAX_EDGE = 2560
 ACCEPT = "image/jpeg,image/png,image/webp"
 FORMATS = {"JPEG": "jpg", "PNG": "png", "WEBP": "webp"}
+# Formats that are stored as one of FORMATS. MPO is the multi-picture JPEG
+# that iPhones save for portrait and some other photos; Pillow names it MPO
+# even though the file is a JPEG. Only its first picture is kept.
+SAVE_AS = {"MPO": "JPEG"}
 
 WRONG_TYPE = "A photo needs to be a JPEG, PNG or WebP image. Please choose a different file."
 TOO_BIG = "A photo can be up to 10 MB. Please choose a smaller file."
@@ -41,7 +45,7 @@ def clean_photo(upload):
     try:
         upload.seek(0)
         with Image.open(upload) as probe:
-            fmt = probe.format
+            fmt = SAVE_AS.get(probe.format, probe.format)
             width, height = probe.size
             if fmt not in FORMATS:
                 raise ValidationError(WRONG_TYPE)
