@@ -150,6 +150,14 @@ class Rabbit(models.Model):
         on_delete=models.SET_NULL,
         help_text="The breeder or rabbitry this rabbit came from.",
     )
+    litter = models.ForeignKey(
+        "Litter",
+        related_name="kits",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="The litter this rabbit was born in, when it was added from one.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -683,3 +691,59 @@ class Pairing(models.Model):
 
     def __str__(self):
         return f"{self.doe.name} × {self.buck.name}"
+
+
+class Litter(models.Model):
+    """A breeding from a pairing: the breed date gives the palpate, nest box
+    and due dates; after kindling it records kits born, losses and survivors."""
+
+    PALPATE_DAY = 12
+    NEST_BOX_DAY = 28
+    DUE_DAY = 31
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="litters", on_delete=models.CASCADE)
+    pairing = models.ForeignKey(Pairing, related_name="litters", on_delete=models.CASCADE)
+    bred_on = models.DateField()
+    palpated = models.BooleanField(default=False)
+    nest_box_in = models.BooleanField(default=False)
+    kindled_on = models.DateField(null=True, blank=True)
+    born_alive = models.PositiveSmallIntegerField(null=True, blank=True)
+    born_dead = models.PositiveSmallIntegerField(default=0)
+    died_after = models.PositiveSmallIntegerField(default=0, help_text="Kits lost after birth.")
+    notes = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-bred_on", "-pk"]
+
+    def __str__(self):
+        return f"{self.pairing} · bred {self.bred_on:%b} {self.bred_on.day}"
+
+    def day(self, n):
+        from datetime import timedelta
+
+        return self.bred_on + timedelta(days=n)
+
+    @property
+    def due_on(self):
+        return self.day(self.DUE_DAY)
+
+    @property
+    def survivors(self):
+        if self.born_alive is None:
+            return None
+        return max(self.born_alive - self.died_after, 0)
+
+    def tasks(self):
+        """The automatic dates, each with whether it is done."""
+        kindled = self.kindled_on is not None
+        return [
+            {"key": "palpate", "label": "Palpate", "day": self.PALPATE_DAY, "date": self.day(self.PALPATE_DAY),
+             "done": self.palpated or kindled},
+            {"key": "nest_box", "label": "Put the nest box in", "day": self.NEST_BOX_DAY,
+             "date": self.day(self.NEST_BOX_DAY), "done": self.nest_box_in or kindled},
+            {"key": "due", "label": "Due to kindle", "day": self.DUE_DAY, "date": self.due_on, "done": kindled},
+        ]
+
+    def next_task(self):
+        return next((task for task in self.tasks() if not task["done"]), None)

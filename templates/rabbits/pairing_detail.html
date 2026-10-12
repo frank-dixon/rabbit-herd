@@ -20,6 +20,25 @@
         <button type="submit" class="inline-flex items-center justify-center rounded px-4 py-2 font-medium bg-red-800 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2">Remove pairing</button>
       </form>
     </section>
-    {% block litters %}{% endblock %}
+    <section class="scroll-mt-4 rounded border border-neutral-300 bg-white p-4" id="litters" aria-labelledby="litters-heading">
+      <h2 class="text-lg font-semibold" id="litters-heading">Litters</h2>
+      {% if litters %}
+        <ul class="mt-3 flex flex-col divide-y divide-neutral-200 rounded border border-neutral-300" data-litters>
+          {% for litter in litters %}
+            <li><a class="block p-3 text-sm hover:bg-neutral-50" href="{% url 'litter_detail' litter.pk %}">
+              <span class="block font-semibold">Bred {{ litter.bred_on|date:"M j, Y" }}</span>
+              <span class="block text-neutral-600">{% if litter.kindled_on %}Kindled {{ litter.kindled_on|date:"M j" }} · {{ litter.survivors }} surviving{% else %}Due {{ litter.due_on|date:"M j, Y" }}{% endif %}</span>
+            </a></li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="mt-2 text-sm text-neutral-600">No litters from this pairing yet.</p>
+      {% endif %}
+      <form class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end" method="post" action="{% url 'litter_create' pairing.pk %}">
+        {% csrf_token %}
+        {% include "components/text_input.html" with name="bred_on" label="Breed date" type="date" value=today|date:"Y-m-d" help="Palpate on day 12, nest box on day 28, due on day 31." only %}
+        {% include "components/button.html" with label="Start a litter" type="submit" variant="primary" only %}
+      </form>
+    </section>
   </div>
 {% endblock %}

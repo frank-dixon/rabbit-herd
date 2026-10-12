@@ -126,7 +126,10 @@ def pairing_list(request):
 @login_required
 def pairing_detail(request, pk):
     pairing = get_object_or_404(Pairing.objects.select_related("doe", "buck"), owner=request.user, pk=pk)
-    context = {"pairing": pairing, "warnings": inbreeding_warnings(pairing.doe, pairing.buck), "wide": True}
+    from django.utils import timezone
+
+    context = {"pairing": pairing, "warnings": inbreeding_warnings(pairing.doe, pairing.buck), "wide": True,
+               "litters": pairing.litters.all(), "today": timezone.localdate()}
     return render(request, "rabbits/pairing_detail.html", context)
 
 
