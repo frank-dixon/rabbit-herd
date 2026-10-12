@@ -3,22 +3,31 @@
 {% block title %}Archived rabbits · Rabbit Herd{% endblock %}
 
 {% block content %}
-  {% include "components/card.html" with title="Archived rabbits" body="These records stay in your herd." only %}
-  <div class="mt-8">
-    {% url 'rabbit_list' as list_url %}
-    {% include "components/button.html" with label="Active rabbits" href=list_url variant="secondary" only %}
-  </div>
-  <div class="mt-8">
-    {% include "components/table.html" with columns=columns rows=rows empty="No archived rabbits." only %}
-  </div>
-  <div class="mt-4 flex flex-col items-start gap-3">
-    {% for rabbit in rabbits %}
-      {% url 'rabbit_detail' rabbit.pk as detail_url %}
-      {% include "components/button.html" with label="Open "|add:rabbit.name href=detail_url variant="secondary" only %}
-      <form method="post" action="{% url 'rabbit_restore' rabbit.pk %}">
-        {% csrf_token %}
-        {% include "components/button.html" with label="Restore "|add:rabbit.name type="submit" variant="primary" only %}
-      </form>
-    {% endfor %}
-  </div>
+  {% url 'rabbit_list' as list_url %}
+  {% include "components/page_header.html" with title="Archived rabbits" subtitle="These records stay in your herd." secondary_label="Active rabbits" secondary_href=list_url only %}
+  {% if rabbits %}
+    <ul class="mt-6 flex flex-col divide-y divide-neutral-200 overflow-hidden rounded border border-neutral-300 bg-white">
+      {% for rabbit in rabbits %}
+        <li class="flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
+          {% with main=rabbit.main_photo %}
+            {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="hidden h-[72px] w-[72px] shrink-0 rounded text-2xl sm:flex" only %}
+          {% endwith %}
+          <div class="min-w-0 flex-1">
+            <p class="break-words text-lg font-semibold">{{ rabbit.name }}</p>
+            <p class="text-sm text-neutral-600">{{ rabbit.get_sex_display }} · {{ rabbit.short_breed }} · {{ rabbit.get_status_display }}</p>
+          </div>
+          <div class="flex flex-col gap-2 sm:flex-row sm:shrink-0">
+            {% url 'rabbit_detail' rabbit.pk as detail_url %}
+            {% include "components/button.html" with label="Open" sr_suffix=rabbit.name href=detail_url variant="secondary" only %}
+            <form method="post" action="{% url 'rabbit_restore' rabbit.pk %}" class="flex flex-col">
+              {% csrf_token %}
+              {% include "components/button.html" with label="Restore" sr_suffix=rabbit.name type="submit" variant="primary" only %}
+            </form>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="mt-8 text-neutral-600">No archived rabbits.</p>
+  {% endif %}
 {% endblock %}

@@ -8,9 +8,6 @@ from . import genetics
 from .forms import GenesForm
 from .models import Gene, Rabbit
 
-COLUMNS = ["Name", "Sex", "Breed", "Status"]
-
-
 def owned_rabbits(user):
     return Rabbit.objects.filter(owner=user)
 
@@ -19,11 +16,18 @@ def owned_rabbit(user, pk):
     return get_object_or_404(owned_rabbits(user), pk=pk)
 
 
-def table_rows(rabbits):
-    return [
-        [rabbit.name, rabbit.get_sex_display(), rabbit.breed, rabbit.get_status_display()]
-        for rabbit in rabbits
-    ]
+LIST_VIEWS = ("grid", "list")
+LIST_VIEW_SESSION_KEY = "rabbit_list_view"
+
+
+def list_view_choice(request):
+    """Grid or list for the rabbit list. ?view= sets it and the session remembers it."""
+    asked = request.GET.get("view")
+    if asked in LIST_VIEWS:
+        request.session[LIST_VIEW_SESSION_KEY] = asked
+        return asked
+    saved = request.session.get(LIST_VIEW_SESSION_KEY)
+    return saved if saved in LIST_VIEWS else "grid"
 
 
 @login_required
@@ -32,17 +36,22 @@ def rabbit_list(request):
     return render(
         request,
         "rabbits/list.html",
-        {"rabbits": rabbits},
+        {
+            "rabbits": rabbits,
+            "view": list_view_choice(request),
+            "wide": True,
+            "subtitle": f"{len(rabbits)} active rabbit{'' if len(rabbits) == 1 else 's'} in your herd",
+        },
     )
 
 
 @login_required
 def rabbit_archived(request):
-    rabbits = list(owned_rabbits(request.user).filter(archived_at__isnull=False))
+    rabbits = list(owned_rabbits(request.user).filter(archived_at__isnull=False).prefetch_related("photos"))
     return render(
         request,
         "rabbits/archived.html",
-        {"rabbits": rabbits, "columns": COLUMNS, "rows": table_rows(rabbits)},
+        {"rabbits": rabbits, "wide": True},
     )
 
 

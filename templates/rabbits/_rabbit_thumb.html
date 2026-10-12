@@ -1,0 +1,6 @@
+{# rabbit, main (photo or None), size_class: classes for the box. Letter placeholder when there is no photo. #}
+{% if main %}
+  <img class="{{ size_class }} object-cover" src="{% url 'rabbit_photo_file' main.pk %}" alt="" loading="lazy">
+{% else %}
+  <span class="{{ size_class }} flex items-center justify-center bg-neutral-100 font-semibold text-neutral-500" aria-hidden="true">{{ rabbit.name|first|upper }}</span>
+{% endif %}
