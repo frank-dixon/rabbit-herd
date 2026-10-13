@@ -71,7 +71,7 @@
         {% else %}
           <p class="mt-2 text-neutral-600">No parents recorded.</p>
         {% endif %}
-        <p class="mt-3 text-sm"><a class="underline" href="{% url 'rabbit_pedigree' rabbit.pk %}" data-pedigree-link>Printable pedigree</a></p>
+        <p class="mt-3">{% url 'rabbit_pedigree' rabbit.pk as pedigree_url %}{% include "components/button.html" with label="View pedigree" href=pedigree_url variant="secondary" only %}</p>
       </section>
 
       {% include "rabbits/_weights_card.html" %}

@@ -42,3 +42,20 @@ export function bindAddSheets(doc) {
     if (field) focusSmooth(field);
   });
 }
+
+/** "…" menus (<details data-more-menu>): close on outside click and on Esc. */
+export function bindMoreMenus(doc) {
+  doc.addEventListener("click", (event) => {
+    doc.querySelectorAll("details[data-more-menu][open]").forEach((menu) => {
+      if (!menu.contains(event.target)) menu.open = false;
+    });
+  });
+  doc.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    doc.querySelectorAll("details[data-more-menu][open]").forEach((menu) => {
+      menu.open = false;
+      const summary = menu.querySelector("summary");
+      if (summary) summary.focus();
+    });
+  });
+}
