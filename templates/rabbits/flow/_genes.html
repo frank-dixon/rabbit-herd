@@ -8,6 +8,7 @@
 <fieldset class="grid gap-4 sm:grid-cols-2" data-gene-grid>
   <legend class="sr-only">Genotype at each locus</legend>
   {% for row in gene_rows %}
+    {% if row.patterns %}<div class="sm:col-span-2" data-gene-row="{{ row.locus }}">{% include "rabbits/flow/_pattern_picker.html" with row=row only %}</div>{% else %}
     <div data-gene-row="{{ row.locus }}">
       <label class="block text-sm font-medium text-neutral-800" for="id_{{ row.name }}">{{ row.label }}</label>
       <select class="mt-1 block w-full rounded-lg border bg-white px-3 py-2.5 font-mono text-base text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent {% if row.error %}border-red-800{% else %}border-neutral-400{% endif %}"
@@ -18,7 +19,7 @@
       </select>
       <p class="mt-1 text-xs text-neutral-600{% if not row.auto %} hidden{% endif %}" id="id_{{ row.name }}_filled" data-gene-filled>Filled from color</p>
       {% include "components/field_errors.html" with name=row.name errors=row.error only %}
-    </div>
+    </div>{% endif %}
   {% endfor %}
 </fieldset>
 <div data-gene-row="other">

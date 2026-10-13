@@ -1,0 +1,25 @@
+{% comment %}The En locus as a Solid / Broken / Charlie picker. Plain radios named like the dropdown they replace,
+so it works without JavaScript; each card names its genotype. row: a genes_context row with patterns.{% endcomment %}
+<fieldset class="sm:col-span-2" data-gene="En" data-pattern-picker aria-describedby="id_{{ row.name }}_filled{% if row.error %} id_{{ row.name }}_error{% endif %}">
+  <legend class="block text-sm font-medium text-neutral-800">En · Pattern</legend>
+  <div class="mt-1 grid grid-cols-2 gap-2 sm:grid-cols-4">
+    {% for choice in row.patterns %}
+      <label class="group relative flex cursor-pointer flex-col gap-1 rounded-lg border border-neutral-300 bg-white p-2.5 transition-colors duration-150 hover:border-neutral-500 has-[:checked]:border-accent has-[:checked]:ring-1 has-[:checked]:ring-accent has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent" data-pattern="{{ choice.key }}">
+        <input class="sr-only" type="radio" name="{{ row.name }}" value="{{ choice.value }}"{% if choice.checked %} checked{% endif %}{% if choice.help %} aria-describedby="pattern-{{ choice.key }}-help"{% endif %}>
+        <span class="flex items-center gap-2">
+          <svg class="h-7 w-10 shrink-0 rounded border border-neutral-300" viewBox="0 0 40 28" aria-hidden="true">
+            {% if choice.key == "solid" %}<rect width="40" height="28" fill="currentColor" class="text-neutral-700"/>
+            {% elif choice.key == "broken" %}<rect width="40" height="28" fill="#fff"/><g class="text-neutral-700" fill="currentColor"><ellipse cx="9" cy="8" rx="7" ry="5"/><ellipse cx="27" cy="17" rx="9" ry="6"/><circle cx="15" cy="22" r="3"/></g>
+            {% elif choice.key == "charlie" %}<rect width="40" height="28" fill="#fff"/><g class="text-neutral-700" fill="currentColor"><ellipse cx="8" cy="6" rx="3" ry="2.5"/><circle cx="31" cy="20" r="1.6"/></g>
+            {% else %}<rect width="40" height="28" fill="none"/><path d="M14 14h12" stroke="currentColor" class="text-neutral-400" stroke-width="2" stroke-linecap="round"/>{% endif %}
+          </svg>
+          <span class="text-sm font-semibold text-neutral-900">{{ choice.label }}</span>
+        </span>
+        {% if choice.genotype %}<span class="font-mono text-xs text-neutral-600">{{ choice.genotype }}</span>{% endif %}
+        {% if choice.help %}<span class="text-xs leading-snug text-neutral-600" id="pattern-{{ choice.key }}-help">{{ choice.help }}</span>{% endif %}
+      </label>
+    {% endfor %}
+  </div>
+  <p class="mt-1 text-xs text-neutral-600{% if not row.auto %} hidden{% endif %}" id="id_{{ row.name }}_filled" data-gene-filled>Filled from color</p>
+  {% include "components/field_errors.html" with name=row.name errors=row.error only %}
+</fieldset>

@@ -241,6 +241,25 @@ export function refillGenes(values, auto, suggestions) {
   return { values: nextValues, auto: nextAuto };
 }
 
+/** A gene field's value: a select or input, or a radio group (the pattern picker). */
+export function geneValue(field) {
+  if (field.tagName !== "FIELDSET") return field.value;
+  const on = field.querySelector("input[type=radio]:checked");
+  return on ? on.value : "";
+}
+
+/** Set a gene field. On the pattern picker a filled "En_" lands on Broken. */
+export function setGeneValue(field, value) {
+  if (field.tagName !== "FIELDSET") { field.value = value; return; }
+  const radios = Array.from(field.querySelectorAll("input[type=radio]"));
+  let target = radios.find(function (r) { return r.value === value; });
+  if (!target && value && value.indexOf("En") === 0 && value !== "EnEn") {
+    const label = field.querySelector('[data-pattern="broken"] input');
+    if (label) { label.value = value; target = label; }
+  }
+  if (target) target.checked = true;
+}
+
 /** Live fill on the genes card when the eye color changes. */
 function bindGeneFill(form) {
   const data = document.getElementById("gene-suggestions");
@@ -258,7 +277,7 @@ function bindGeneFill(form) {
   }
   function show(auto) {
     fields.forEach(function (field) {
-      const hint = field.parentElement.querySelector("[data-gene-filled]");
+      const hint = field.tagName === "FIELDSET" ? field.querySelector("[data-gene-filled]") : field.parentElement.querySelector("[data-gene-filled]");
       if (hint) {
         hint.classList.toggle("hidden", !(field.getAttribute("data-gene") in auto));
       }
@@ -266,25 +285,26 @@ function bindGeneFill(form) {
   }
   eye.addEventListener("change", function () {
     const values = {};
-    fields.forEach(function (field) { values[field.getAttribute("data-gene")] = field.value; });
+    fields.forEach(function (field) { values[field.getAttribute("data-gene")] = geneValue(field); });
     const result = refillGenes(values, parseAuto(hidden.value), byEye[eye.value] || {});
     fields.forEach(function (field) {
       const value = result.values[field.getAttribute("data-gene")];
       if (field.tagName === "SELECT" && value && !Array.from(field.options).some(function (o) { return o.value === value; })) {
         return;
       }
-      field.value = value;
+      setGeneValue(field, value);
     });
     hidden.value = autoText(result.auto, loci);
     show(result.auto);
   });
   form.addEventListener("change", function (event) {
-    const locus = event.target.getAttribute && event.target.getAttribute("data-gene");
+    const owner = event.target.closest && event.target.closest("[data-gene]");
+    const locus = owner && owner.getAttribute("data-gene");
     if (!locus) {
       return;
     }
     const auto = parseAuto(hidden.value);
-    if (locus in auto && auto[locus] !== event.target.value) {
+    if (locus in auto && auto[locus] !== geneValue(owner)) {
       delete auto[locus];
       hidden.value = autoText(auto, loci);
       show(auto);

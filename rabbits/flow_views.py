@@ -383,6 +383,29 @@ def trait_context(number, row, errors, parent_colors, breed):
     }
 
 
+PATTERNS = [
+    ("solid", "Solid", "enen", "One colour all over, no white spotting."),
+    ("broken", "Broken", "Enen", "Coloured patches on white, 10 to 50% colour."),
+    ("charlie", "Charlie", "EnEn", "Mostly white, with a light nose and ear marking."),
+]
+
+
+def pattern_choices(value):
+    """The Solid, Broken and Charlie picker for the En locus. A broken coat
+    is En/en (Charlies are told apart by their markings), so each pattern
+    names one genotype; a recorded "En_" stays on the Broken choice."""
+    out = [{"key": "none", "label": "Not recorded", "value": "", "genotype": "", "help": "", "checked": not value}]
+    for key, label, genotype, help_text in PATTERNS:
+        if key == "broken" and value == "En_":
+            genotype = value
+        out.append({"key": key, "label": label, "value": genotype, "genotype": genotype,
+                    "help": help_text, "checked": value == genotype})
+    known = {choice["value"] for choice in out}
+    if value and value not in known:
+        out.append({"key": "recorded", "label": "As recorded", "value": value, "genotype": value, "help": "", "checked": True})
+    return out
+
+
 def genes_context(draft, user, errors):
     """The genes card: an eye color select, a dropdown per locus with the
     filled ones marked, and the suggestions for each eye color so the
@@ -404,6 +427,7 @@ def genes_context(draft, user, errors):
             "options": options,
             "auto": locus in auto,
             "error": errors.get(f"gene_{locus}", []),
+            "patterns": pattern_choices(value) if locus == "En" else None,
         })
     by_eye = {eye: flow.gene_suggestions(draft, user, eye=eye) for eye in [""] + [e for e, _ in gene_fill.EYE_COLORS]}
     breed = flow_forms.purebred_breed(draft)
