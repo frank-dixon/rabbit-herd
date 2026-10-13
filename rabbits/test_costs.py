@@ -47,7 +47,7 @@ class CostTests(TestCase):
         self.assertEqual(feed.amount, Decimal("30.00"))
         rabbit_page = self.client.get(reverse("rabbit_detail", args=[self.doe.pk]))
         self.assertContains(rabbit_page, "Ivermectin")
-        self.assertContains(rabbit_page, f"/costs/?rabbit={self.doe.pk}#add")
+        self.assertContains(rabbit_page, f"/costs/?rabbit={self.doe.pk}&amp;new=1#add")
         self.assertContains(self.client.get(reverse("litter_detail", args=[self.litter.pk])), "Nest box")
         prefilled = self.client.get(self.url + f"?litter={self.litter.pk}")
         self.assertContains(prefilled, f'<option value="{self.litter.pk}" selected')

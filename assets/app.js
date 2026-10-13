@@ -35,6 +35,7 @@ import { bindPrefetch } from "./prefetch.mjs";
 import { bindScrollSpy } from "./scrollspy.mjs";
 import { bindRabbitInline } from "./rabbit-inline.mjs";
 import { bindSegmented } from "./segmented.mjs";
+import { bindAddSheets } from "./add-sheet.mjs";
 import { focusSmooth, reducedMotion } from "./motion.mjs";
 
 /**
@@ -354,6 +355,7 @@ function start() {
   bindScrollSpy(document, window);
   bindRabbitInline(document, window);
   bindSegmented(document);
+  bindAddSheets(document);
   // Arriving to log a weight (a swipe or the Log weight button): focus the entry.
   if (new URLSearchParams(window.location.search).has("weigh")) {
     const weigh = document.querySelector('#weights form[action$="/weights/"] input:not([type=hidden]):not([type=date])');

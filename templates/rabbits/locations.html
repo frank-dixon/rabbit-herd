@@ -4,16 +4,19 @@
 
 {% block content %}
   {% url 'rabbit_list' as list_url %}
-  {% include "components/page_header.html" with title="Locations" subtitle="Cages, hutches and pens. Set a rabbit's location on its page." only %}
-  <section class="mt-6 ruled pt-4" aria-labelledby="add-location-heading">
+  {% include "components/page_header.html" with title="Locations" primary_label="New location" primary_href="?new=1#new-location" subtitle="Cages, hutches and pens. Set a rabbit's location on its page." only %}
+  <details class="add-sheet" id="new-location" data-add-sheet{% if request.GET.new or errors %} open{% endif %}>
+    <summary class="hidden">New location</summary>
+    <section class="mt-6 ruled pt-4" aria-labelledby="add-location-heading">
     <h2 class="text-base font-semibold" id="add-location-heading">Add a location</h2>
     <form class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] sm:items-end" method="post">
       {% csrf_token %}
       {% include "components/text_input.html" with name="name" label="Name" only %}
       {% include "components/text_input.html" with name="notes" label="Notes (optional)" only %}
-      {% include "components/button.html" with label="Add location" type="submit" variant="primary" only %}
+      <div class="flex items-center gap-3">{% include "components/button.html" with label="Add location" type="submit" variant="primary" only %}<a class="text-sm text-muted underline hover:text-ink" href="{{ request.path }}" data-sheet-close>Cancel</a></div>
     </form>
   </section>
+  </details>
   {% if locations %}
     <ul class="mt-4 flex flex-col divide-y divide-neutral-200 overflow-hidden rounded border border-neutral-300 bg-white" data-locations>
       {% for location in locations %}
@@ -40,6 +43,6 @@
     </ul>
     {% if unplaced %}<p class="mt-3 text-sm text-neutral-600"><a class="underline" href="{{ list_url }}?location=none">{{ unplaced }} rabbit{{ unplaced|pluralize }} with no location</a></p>{% endif %}
   {% else %}
-    <p class="mt-4 text-neutral-600">No locations yet. Add your cages or hutches above.</p>
+    <p class="mt-4 text-neutral-600">No locations yet. Add your cages or hutches with New location.</p>
   {% endif %}
 {% endblock %}

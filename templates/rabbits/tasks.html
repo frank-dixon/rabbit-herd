@@ -3,8 +3,10 @@
 {% block title %}Tasks · {{ app_name }}{% endblock %}
 
 {% block content %}<span data-refreshable hidden></span>
-  {% include "components/page_header.html" with title="Tasks" subtitle="Your to-dos and litter dates, soonest first." only %}
-  <section class="mt-6 ruled pt-4" aria-labelledby="add-task-heading">
+  {% include "components/page_header.html" with title="Tasks" primary_label="New task" primary_href="?new=1#new-task" subtitle="Your to-dos and litter dates, soonest first." only %}
+  <details class="add-sheet" id="new-task" data-add-sheet{% if request.GET.new or errors %} open{% endif %}>
+    <summary class="hidden">New task</summary>
+    <section class="mt-6 ruled pt-4" aria-labelledby="add-task-heading">
     <h2 class="text-base font-semibold" id="add-task-heading">Add a task</h2>
     <form class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:items-end xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]" method="post">
       {% csrf_token %}
@@ -12,9 +14,10 @@
       {% include "components/text_input.html" with name="due_on" label="Due" type="date" value=values.due_on errors=errors.due_on only %}
       {% include "components/select.html" with name="rabbit" label="Rabbit (optional)" options=rabbit_options value=values.rabbit placeholder="No rabbit" only %}
       {% include "rabbits/_repeat_fields.html" %}
-      {% include "components/button.html" with label="Add task" type="submit" variant="primary" only %}
+      <div class="flex items-center gap-3">{% include "components/button.html" with label="Add task" type="submit" variant="primary" only %}<a class="text-sm text-muted underline hover:text-ink" href="{{ request.path }}" data-sheet-close>Cancel</a></div>
     </form>
   </section>
+  </details>
   <section class="mt-6" aria-labelledby="open-heading">
     <h2 class="text-base font-semibold" id="open-heading">To do</h2>
     {% if items %}
@@ -22,7 +25,7 @@
         {% for item in items %}{% include "rabbits/_task_item.html" with item=item next="/tasks/" csrf_token=csrf_token only %}{% endfor %}
       </ul>
     {% else %}
-{% include "components/empty.html" with title="Nothing to do." text="Litter dates and follow-ups show up here on their own. Add your own above." kind="tasks" icon=ui_icons.tasks compact=True only %}
+{% include "components/empty.html" with title="Nothing to do." text="Litter dates and follow-ups show up here on their own. Add your own with New task." kind="tasks" icon=ui_icons.tasks compact=True only %}
     {% endif %}
   </section>
   {% if done %}
