@@ -67,7 +67,7 @@ class AppShellTests(TestCase):
             page = self.client.get(url, follow=True)
             self.assertNotContains(page, "data-app-tabs", msg_prefix=url)
             self.assertContains(page, 'aria-label="App"', msg_prefix=url)
-            self.assertContains(page, "md:left-20 lg:left-56", msg_prefix=url)
+            self.assertContains(page, "md:static", msg_prefix=url)  # Inline actions from tablet up.
 
     def test_signed_out_pages_have_no_shell(self):
         self.client.logout()

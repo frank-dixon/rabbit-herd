@@ -4,8 +4,8 @@
   <div class="flex items-center gap-2 max-lg:flex-col">
     <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-semibold text-accent" aria-hidden="true">{{ display|first|upper }}</span>
     <span class="hidden min-w-0 flex-1 lg:block">
-      <span class="block truncate text-sm font-semibold text-ink">{{ display }}</span>
-      {% if display != user.email %}<span class="block truncate text-xs text-muted">{{ user.email }}</span>{% endif %}
+      <span class="block overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-ink">{{ display }}</span>
+      {% if display != user.email %}<span class="block overflow-hidden text-ellipsis whitespace-nowrap text-xs text-muted">{{ user.email }}</span>{% endif %}
     </span>
     <a href="{% url 'app_menu' %}" class="mo-press grid h-9 w-9 shrink-0 place-items-center rounded-md text-muted hover:bg-surface hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-haspopup="menu" aria-expanded="false" aria-controls="account-menu" data-account-button>
       {% include "components/icon.html" with d=app_settings_icon class="h-5 w-5" only %}<span class="sr-only">Account menu</span>
