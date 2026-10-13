@@ -28,6 +28,7 @@ import { bindUndoRemove } from "./undo-remove.mjs";
 import { bindSwipe } from "./swipe.mjs";
 import { bindWeighIn } from "./weigh-in.mjs";
 import { bindPullRefresh } from "./ptr.mjs";
+import { bindPrefetch } from "./prefetch.mjs";
 
 /**
  * Read the CSRF token from the page.
@@ -327,6 +328,7 @@ function start() {
   bindSwipe(document, window);
   bindWeighIn(document, window);
   bindPullRefresh(document, window);
+  bindPrefetch(document, window);
   // Arriving to log a weight (a swipe or the Log weight button): focus the entry.
   if (new URLSearchParams(window.location.search).has("weigh")) {
     const weigh = document.querySelector('#weights form[action$="/weights/"] input:not([type=hidden]):not([type=date])');

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load photos %}
 
 {% block title %}{{ rabbit.name }} · {{ app_name }}{% endblock %}
 
@@ -38,7 +39,7 @@
     <section class="flex flex-col overflow-hidden rounded border border-neutral-300 bg-white sm:flex-row lg:flex-col" aria-label="Details">
       <figure class="sm:w-2/5 sm:shrink-0 lg:w-full">
         {% if main_photo %}
-          <img class="aspect-[4/3] w-full object-cover sm:h-full lg:h-auto" src="{% url 'rabbit_photo_file' main_photo.pk %}?v={{ main_photo.image.name|slice:'-12:' }}" alt="{{ rabbit.name }}, main photo">
+          <img class="aspect-[4/3] w-full object-cover sm:h-full lg:h-auto" {% photo_src main_photo "(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" %} alt="{{ rabbit.name }}, main photo" fetchpriority="high" decoding="async">
           {% if main_photo.notes %}<figcaption class="px-4 pt-2 text-sm text-neutral-600">{{ main_photo.notes }}</figcaption>{% endif %}
         {% else %}
           <span class="flex aspect-[4/3] w-full items-center justify-center bg-neutral-100 text-5xl font-semibold text-neutral-500 sm:h-full lg:h-auto" aria-hidden="true">{{ rabbit.name|first|upper }}</span>

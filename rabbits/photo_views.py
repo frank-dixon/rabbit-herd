@@ -18,6 +18,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
 from . import photo_processing
+from .renditions import delete_renditions, rendition
 from .forms import PhotoNotesForm, PhotoUploadForm
 from .models import Rabbit, RabbitPhoto, valid_taken_date
 
@@ -40,15 +41,20 @@ def photos_url(rabbit, anchor="", request=None):
 @require_GET
 def photo_file(request, pk):
     photo = owned_photo(request.user, pk)
+    name = photo.image.name
+    width = request.GET.get("w", "")
+    if width.isdigit():
+        name = rendition(photo.image, int(width)) or name
     try:
-        handle = photo.image.open("rb")
+        handle = photo.image.storage.open(name, "rb")
     except (FileNotFoundError, OSError):
         raise Http404("This photo's file is missing.")
-    content_type = mimetypes.guess_type(photo.image.name)[0] or "application/octet-stream"
+    content_type = mimetypes.guess_type(name)[0] or "application/octet-stream"
     if not content_type.startswith("image/"):
         content_type = "application/octet-stream"
     response = FileResponse(handle, content_type=content_type)
-    response["Cache-Control"] = "private, max-age=3600"
+    # The URL carries a version from the file name, so it can be kept long.
+    response["Cache-Control"] = "private, max-age=2592000, immutable" if request.GET.get("v") else "private, max-age=3600"
     response["Content-Disposition"] = "inline"
     return response
 
@@ -116,7 +122,7 @@ def photo_delete(request, pk):
             if replacement:
                 replacement.is_main = True
                 replacement.save(update_fields=["is_main"])
-    transaction.on_commit(lambda: storage.delete(name))
+    transaction.on_commit(lambda: (storage.delete(name), delete_renditions(storage, name)))
     if replacement:
         messages.success(request, "The photo was deleted. The oldest remaining photo is now the main photo.")
     else:
@@ -159,7 +165,7 @@ def photo_rotate(request, pk):
     with transaction.atomic():
         photo.image.save(new_file.name, new_file, save=False)
         photo.save(update_fields=["image"])
-        transaction.on_commit(lambda: storage.delete(old_name))
+        transaction.on_commit(lambda: (storage.delete(old_name), delete_renditions(storage, old_name)))
     messages.success(request, f"The photo was rotated {direction}.")
     return redirect(photos_url(photo.rabbit, f"photo-{photo.pk}", request))
 
