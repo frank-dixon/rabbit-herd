@@ -884,3 +884,60 @@ class Expense(models.Model):
         if self.weight_lb:
             return (self.amount / self.weight_lb).quantize(Decimal("0.01"))
         return None
+
+
+class WaitlistEntry(models.Model):
+    """A buyer waiting for a rabbit of a given breed, sex and color."""
+
+    class Sex(models.TextChoices):
+        ANY = "", "Either"
+        DOE = "doe", "Doe"
+        BUCK = "buck", "Buck"
+
+    class Status(models.TextChoices):
+        WAITING = "waiting", "Waiting"
+        OFFERED = "offered", "Offered a rabbit"
+        DONE = "done", "Sold"
+        CANCELLED = "cancelled", "Cancelled"
+
+    OPEN = (Status.WAITING, Status.OFFERED)
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="waitlist", on_delete=models.CASCADE)
+    buyer = models.CharField(max_length=120)
+    reach = models.CharField(max_length=160, blank=True, help_text="Phone, email or how to reach them.")
+    requested_on = models.DateField()
+    breed = models.CharField(max_length=80, blank=True)
+    sex = models.CharField(max_length=4, choices=Sex.choices, blank=True)
+    color = models.CharField(max_length=80, blank=True)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.WAITING)
+    deposit = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    rabbit = models.ForeignKey(Rabbit, related_name="waitlist_entries", null=True, blank=True, on_delete=models.SET_NULL,
+                               help_text="The rabbit offered or sold to them.")
+    notes = models.TextField(max_length=1000, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["requested_on", "pk"]
+
+    def __str__(self):
+        return f"{self.buyer} · {self.wants}"
+
+    @property
+    def wants(self):
+        sex = self.get_sex_display().lower() if self.sex else ""
+        if not (self.color or self.breed):
+            return f"Any {sex or 'rabbit'}"
+        return " ".join(part for part in (self.color, self.breed, sex) if part)
+
+    def matches(self, rabbits):
+        """Rabbits that fit the request: same sex when given, breed and color contained when given."""
+        found = []
+        for rabbit in rabbits:
+            if self.sex and rabbit.sex != self.sex:
+                continue
+            if self.breed and self.breed.casefold() not in rabbit.breed.casefold():
+                continue
+            if self.color and self.color.casefold() not in rabbit.color.casefold():
+                continue
+            found.append(rabbit)
+        return found
