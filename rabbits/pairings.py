@@ -131,12 +131,12 @@ def pairing_detail(request, pk):
         owner=request.user, pk=pk)
     from django.utils import timezone
 
+    doe_pairs, buck_pairs = color_odds.recorded(pairing.doe), color_odds.recorded(pairing.buck)
     context = {"pairing": pairing, "warnings": inbreeding_warnings(pairing.doe, pairing.buck), "wide": True,
                "litters": pairing.litters.all(), "today": timezone.localdate(),
                "odds": color_odds.predict(pairing.doe, pairing.buck),
-               "hidden_notes": genetics.pairing_notes(
-                   pairing.doe.name, color_odds.recorded(pairing.doe),
-                   pairing.buck.name, color_odds.recorded(pairing.buck))}
+               "hidden_notes": genetics.pairing_notes(pairing.doe.name, doe_pairs, pairing.buck.name, buck_pairs),
+               "differing": color_odds.differing(doe_pairs, buck_pairs)}
     return render(request, "rabbits/pairing_detail.html", context)
 
 

@@ -60,6 +60,9 @@
       {% if odds.probable %}
         <p class="mt-2 text-sm text-neutral-600">Uses probable, not confirmed, genes for {{ odds.probable|join:" and " }}.</p>
       {% endif %}
+      {% if differing %}
+        <p class="mt-3 text-sm" data-differing><span class="font-semibold">Genes that differ:</span> {% for locus, doe_g, buck_g in differing %}<span class="inline-block whitespace-nowrap font-mono">{{ locus }} {{ doe_g }} × {{ buck_g }}</span>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+      {% endif %}
       {% if hidden_notes %}
         <h3 class="mt-4 text-sm font-semibold">Hidden genes</h3>
         <ul class="mt-1 space-y-1 text-sm" data-hidden-notes>

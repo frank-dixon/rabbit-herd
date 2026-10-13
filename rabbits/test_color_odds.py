@@ -178,3 +178,23 @@ class EyeColorTests(TestCase):
         self.assertEqual(rows["Himalayan (black points)"]["eyes"], "Pink-tinged")
         page = self.client.get(reverse("pairing_detail", args=[pairing.pk]))
         self.assertContains(page, "Pink-tinged eyes")
+
+
+class DifferingTests(TestCase):
+    def test_differing_loci(self):
+        rows = color_odds.differing({"A": ("a", "a"), "B": ("b", "B"), "C": ("C", "c")},
+                                    {"A": ("A", "a"), "B": ("B", "b"), "D": ("d", "d")})
+        self.assertEqual(rows, [("A", "a/a", "A/a")])
+
+    def test_shown_on_pairing(self):
+        owner = user("differ@example.com")
+        self.client.force_login(owner)
+        base = {"owner": owner, "breed": "Rex", "color": "Black", "birth_date": datetime.date(2025, 1, 1)}
+        doe = Rabbit.objects.create(name="Juno", sex="doe", **base)
+        buck = Rabbit.objects.create(name="Atlas", sex="buck", **base)
+        Gene.objects.create(rabbit=doe, locus="D", genotype="D/d", certainty="known")
+        Gene.objects.create(rabbit=buck, locus="D", genotype="d/d", certainty="known")
+        pairing = Pairing.objects.create(owner=owner, doe=doe, buck=buck)
+        page = self.client.get(reverse("pairing_detail", args=[pairing.pk]))
+        self.assertContains(page, "Genes that differ")
+        self.assertContains(page, "D D/d × d/d")

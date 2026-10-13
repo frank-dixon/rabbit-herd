@@ -208,6 +208,17 @@ def recorded(rabbit):
     return out
 
 
+def differing(doe_pairs, buck_pairs):
+    """[(locus, doe genotype, buck genotype)] for loci recorded on both
+    parents with different genotypes, in locus order."""
+    rows = []
+    for locus in SERIES:
+        doe, buck = doe_pairs.get(locus), buck_pairs.get(locus)
+        if doe and buck and order(locus, doe) != order(locus, buck):
+            rows.append((locus, genotype_text(order(locus, doe)), genotype_text(order(locus, buck))))
+    return rows
+
+
 def _genes(rabbit):
     return {gene.locus: gene for gene in rabbit.genes.all() if gene.locus != Gene.Locus.OTHER}
 
