@@ -2,7 +2,7 @@
 
 {% block title %}Today · {{ app_name }}{% endblock %}
 
-{% block content %}
+{% block content %}<span data-refreshable hidden></span>
   {% url 'rabbit_list' as list_url %}
   <div class="mx-auto max-w-2xl">
     <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Today</h1>

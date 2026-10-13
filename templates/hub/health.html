@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Health · {{ app_name }}{% endblock %}
-{% block content %}
+{% block content %}<span data-refreshable hidden></span>
   <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Health</h1>
   <p class="mt-0.5 text-sm text-muted">Every health note across the herd.</p>
   {% if notes %}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Shows · {{ app_name }}{% endblock %}
-{% block content %}
+{% block content %}<span data-refreshable hidden></span>
   <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Shows</h1>
   <p class="mt-0.5 text-sm text-muted">Results across the herd, newest first.</p>
   {% if entries %}

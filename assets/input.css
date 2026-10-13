@@ -180,3 +180,19 @@ html[data-menu-open] .app-scrim { opacity: 1; pointer-events: auto; }
 @keyframes wk-out { to { opacity: 0; transform: translateX(-24px); } }
 @keyframes wk-in { from { opacity: 0; transform: translateX(24px); } }
 @media (prefers-reduced-motion: reduce) { ::view-transition-old(weigh-card), ::view-transition-new(weigh-card) { animation-name: mo-fade-out, mo-fade-in; } }
+
+/* Pull to refresh. */
+.ptr { position: fixed; z-index: 60; left: 50%; top: calc(env(safe-area-inset-top) + 3.5rem); width: 36px; height: 36px; margin-left: -18px; border-radius: 999px; display: grid; place-items: center; background: var(--surface); color: var(--muted); border: 1px solid var(--line); box-shadow: 0 4px 14px rgb(0 0 0 / 0.12); pointer-events: none; --pull: 0px; opacity: min(1, calc(var(--pull) / 30px)); transform: translateY(calc(var(--pull) - 40px)); transition: transform var(--dur-2) var(--ease-out), opacity var(--dur-2) var(--ease-out), color var(--dur-1); }
+.ptr svg { width: 18px; height: 18px; transform: rotate(calc(var(--pull) * 3)); }
+.ptr.is-pulling { transition: color var(--dur-1); }
+.ptr.is-armed, .ptr.is-loading { color: var(--accent); }
+.ptr.is-loading svg { animation: ptr-spin 700ms linear infinite; }
+@keyframes ptr-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ptr.is-loading svg { animation-duration: 2s; } }
+
+/* Offline banner: pinned under the header, impossible to miss, quiet in tone. */
+.net-banner { position: sticky; top: 3.5rem; z-index: 15; display: flex; align-items: flex-start; gap: 0.625rem; margin: -1.5rem -1rem 1.5rem; padding: 0.625rem 1rem; background: var(--second-soft); color: var(--second-ink); border-bottom: 1px solid color-mix(in oklab, var(--second) 35%, transparent); font-size: 0.875rem; font-weight: 500; line-height: 1.35; }
+.net-banner[hidden] { display: none; }
+.net-banner::before { content: ""; flex: none; width: 1rem; height: 1rem; margin-top: 0.1rem; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M2 8.8a15 15 0 0 1 4.2-2.6M10.7 5.1A15 15 0 0 1 22 8.8M5 12.5a10 10 0 0 1 5.2-2.6M16.8 11.4c.8.3 1.5.7 2.2 1.1M8.5 16a5 5 0 0 1 7 0M12 20h.01M3 3l18 18'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M2 8.8a15 15 0 0 1 4.2-2.6M10.7 5.1A15 15 0 0 1 22 8.8M5 12.5a10 10 0 0 1 5.2-2.6M16.8 11.4c.8.3 1.5.7 2.2 1.1M8.5 16a5 5 0 0 1 7 0M12 20h.01M3 3l18 18'/%3E%3C/svg%3E") center / contain no-repeat; }
+@media (min-width: 768px) { .net-banner { margin: -2.5rem -2rem 2rem; padding-inline: 2rem; } }
+html:has([data-refreshable]) { overscroll-behavior-y: contain; }

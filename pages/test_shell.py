@@ -76,3 +76,21 @@ class AppShellTests(TestCase):
             self.assertNotContains(page, 'aria-label="App"')
             self.assertNotContains(page, "data-app-tabs")
         self.assertRedirects(self.client.get(reverse("account")), reverse("login") + "?next=/settings/")
+
+
+class PullRefreshTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(email="ptr@example.com", password="x-strong-Pass-1")
+        self.client.force_login(self.user)
+        self.rabbit = Rabbit.objects.create(owner=self.user, name="Pepper", sex="doe", birth_date="2024-03-10")
+
+    def test_today_and_lists_can_refresh(self):
+        for name in ("index", "rabbit_list", "litter_list", "task_list", "contact_list", "weights_hub"):
+            self.assertContains(self.client.get(reverse(name)), "data-refreshable", msg_prefix=name)
+
+    def test_detail_and_forms_do_not(self):
+        for url in (reverse("rabbit_detail", args=[self.rabbit.pk]), reverse("account")):
+            self.assertNotContains(self.client.get(url), "data-refreshable")
+
+    def test_offline_banner_is_in_every_page(self):
+        self.assertContains(self.client.get(reverse("index")), 'class="net-banner" role="status" data-connection-status')

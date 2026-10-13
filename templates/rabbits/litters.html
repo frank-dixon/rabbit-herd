@@ -2,7 +2,7 @@
 
 {% block title %}Litters · {{ app_name }}{% endblock %}
 
-{% block content %}
+{% block content %}<span data-refreshable hidden></span>
   {% url 'pairing_list' as pairings_url %}
   {% include "components/page_header.html" with title="Litters" subtitle="Start a litter from a pairing. Dates for palpating, the nest box and kindling are set for you." primary_label="Pairings" primary_href=pairings_url only %}
   <section class="mt-6" aria-labelledby="open-heading">

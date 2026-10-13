@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block main %}
-  <p class="mb-6 rounded border border-neutral-400 bg-white px-3 py-2 text-sm font-medium" role="status" data-connection-status data-print-hide hidden></p>
+  <p class="net-banner" role="status" data-connection-status data-print-hide hidden></p>
   {% if messages %}
     {% for message in messages %}{% if message.level_tag == "error" %}
       <div class="mb-6" data-print-hide>{% include "components/alert.html" with text=message tags=message.tags only %}</div>
