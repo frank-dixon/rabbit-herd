@@ -82,3 +82,18 @@ class MergeHerdTests(TestCase):
         self.export.write_text(json.dumps({"not": "a list"}))
         with self.assertRaises(CommandError):
             self.merge()
+
+    def test_include_demo_merges_demo_users_and_their_rabbits(self):
+        self.merge("--include-demo")
+        demo = User.objects.get(email="demo@example.com")
+        self.assertEqual(list(Rabbit.objects.filter(owner=demo).values_list("name", flat=True)), ["Demo Bun"])
+
+    def test_natural_key_export_is_a_clear_error(self):
+        from django.core.management.base import CommandError
+
+        call_command("dumpdata", "accounts", "rabbits", output=str(self.export), verbosity=0,
+                     use_natural_foreign_keys=True, use_natural_primary_keys=True)
+        before = self.snapshot()
+        with self.assertRaisesMessage(CommandError, "natural keys"):
+            self.merge()
+        self.assertEqual(self.snapshot(), before)

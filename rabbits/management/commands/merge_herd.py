@@ -9,7 +9,7 @@ tattoo; a litter is dam + sire + bred date; a weight is rabbit + date + grams;
 a photo is the hash of its file). Foreign keys are remapped to the matching
 target rows. An exact duplicate is skipped. A match whose other fields differ
 is a conflict: the target keeps its values and the difference is reported,
-never overwritten. Demo users (email starting "demo") are left out. With
+never overwritten. Demo users (email starting "demo") are left out unless --include-demo. With
 --dry-run nothing is written and the same report is printed."""
 
 import hashlib
@@ -56,8 +56,13 @@ def is_demo(fields):
     return str(fields.get("email", "")).lower().startswith("demo")
 
 
+class NaturalKeyExport(Exception):
+    pass
+
+
 class Merger:
-    def __init__(self, rows, source_media=None, dry_run=False, log=print):
+    def __init__(self, rows, source_media=None, dry_run=False, log=print, include_demo=False):
+        self.include_demo = include_demo
         self.rows = rows
         self.media = source_media
         self.dry = dry_run
@@ -163,7 +168,8 @@ class Merger:
         for label in sorted(set(by_label) - known):
             if not label.startswith(("auth.", "contenttypes.", "sessions.", "admin.")):
                 self.log(f"skip {label}: not merged ({len(by_label[label])} rows)")
-        demo_users = {row["pk"] for row in by_label.get("accounts.user", []) if is_demo(row["fields"])}
+        self.check_plain_keys(by_label)
+        demo_users = set() if self.include_demo else {row["pk"] for row in by_label.get("accounts.user", []) if is_demo(row["fields"])}
         for label, key in SPEC:
             if label not in by_label:
                 continue
@@ -175,6 +181,20 @@ class Merger:
             if mapped is not None and not self.dry:
                 self.model(label).objects.filter(pk=target_pk).update(**{field.attname: mapped})
         return self.report()
+
+    def check_plain_keys(self, by_label):
+        """Natural-key exports (dumpdata --natural-primary/--natural-foreign) can't be merged; say so clearly."""
+        for label, _ in SPEC:
+            model = self.model(label)
+            relations = [f.name for f in model._meta.get_fields() if f.is_relation and f.concrete]
+            for row in by_label.get(label, []):
+                fields = row.get("fields", {})
+                if "pk" not in row or any(isinstance(fields.get(n), list) and any(isinstance(v, list) for v in fields[n])
+                                          or (isinstance(fields.get(n), list) and not model._meta.get_field(n).many_to_many)
+                                          for n in relations if n in fields):
+                    raise NaturalKeyExport(
+                        f"{label} uses natural keys. Re-export without --natural-primary/--natural-foreign: "
+                        "python manage.py dumpdata accounts rabbits > export.json")
 
     def merge_row(self, model, label, key, row, demo_users):
         fields = dict(row["fields"])
@@ -202,7 +222,7 @@ class Merger:
                     return
                 values[field.name] = target
             else:
-                values[field.name] = raw
+                values[field.name] = field.to_python(raw)  # e.g. BinaryField arrives base64
         if label == "rabbits.rabbitphoto":
             values["#hash"] = self.file_hash_source(fields.get("image"))
         existing = self.find_target(model, values, key)
@@ -263,8 +283,10 @@ class Command(BaseCommand):
         parser.add_argument("export", help="dumpdata JSON file")
         parser.add_argument("--dry-run", action="store_true")
         parser.add_argument("--source-media", help="MEDIA_ROOT of the source, to copy and hash photos")
+        parser.add_argument("--include-demo", action="store_true",
+                            help="also merge demo users (email starting 'demo') and everything they own")
 
-    def handle(self, export, dry_run=False, source_media=None, **options):
+    def handle(self, export, dry_run=False, source_media=None, include_demo=False, **options):
         try:
             with open(export) as handle:
                 rows = json.load(handle)
@@ -272,9 +294,12 @@ class Command(BaseCommand):
             raise CommandError(f"Can't read {export}: {error}")
         if not isinstance(rows, list):
             raise CommandError("Expected a dumpdata JSON list.")
-        merger = Merger(rows, source_media=source_media, dry_run=dry_run, log=self.stdout.write)
+        merger = Merger(rows, source_media=source_media, dry_run=dry_run, log=self.stdout.write, include_demo=include_demo)
         with transaction.atomic():
-            report = merger.run()
+            try:
+                report = merger.run()
+            except NaturalKeyExport as error:
+                raise CommandError(str(error))
             if dry_run:
                 transaction.set_rollback(True)
         self.stdout.write(report)
