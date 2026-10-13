@@ -8,8 +8,8 @@
   {% if kits %}
     <nav class="mt-6 flex justify-end" aria-label="Line up photos by">
       <div class="inline-flex overflow-hidden rounded border border-neutral-500 bg-white text-sm">
-        <a href="?by=age" class="px-3 py-1.5 {% if by == 'age' %}bg-neutral-800 text-white{% endif %}"{% if by == 'age' %} aria-current="true"{% endif %}>By age</a>
-        <a href="?by=date" class="border-l border-neutral-500 px-3 py-1.5 {% if by == 'date' %}bg-neutral-800 text-white{% endif %}"{% if by == 'date' %} aria-current="true"{% endif %}>By date</a>
+        <a href="?by=age" class="px-3 py-1.5 {% if by == 'age' %}bg-accent text-on-accent hover:bg-accent/90{% endif %}"{% if by == 'age' %} aria-current="true"{% endif %}>By age</a>
+        <a href="?by=date" class="border-l border-neutral-500 px-3 py-1.5 {% if by == 'date' %}bg-accent text-on-accent hover:bg-accent/90{% endif %}"{% if by == 'date' %} aria-current="true"{% endif %}>By date</a>
       </div>
     </nav>
     {% if rows %}

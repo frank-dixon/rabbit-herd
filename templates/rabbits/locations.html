@@ -5,8 +5,8 @@
 {% block content %}
   {% url 'rabbit_list' as list_url %}
   {% include "components/page_header.html" with title="Locations" subtitle="Cages, hutches and pens. Set a rabbit's location on its page." only %}
-  <section class="mt-6 rounded border border-neutral-300 bg-white p-4" aria-labelledby="add-location-heading">
-    <h2 class="text-lg font-semibold" id="add-location-heading">Add a location</h2>
+  <section class="mt-6 ruled pt-4" aria-labelledby="add-location-heading">
+    <h2 class="text-base font-semibold" id="add-location-heading">Add a location</h2>
     <form class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] sm:items-end" method="post">
       {% csrf_token %}
       {% include "components/text_input.html" with name="name" label="Name" only %}
@@ -29,10 +29,10 @@
             <summary class="cursor-pointer text-sm text-neutral-600 underline">Rename or remove<span class="sr-only"> {{ location.name }}</span></summary>
             <form class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto_auto] sm:items-end" method="post" action="{% url 'location_edit' location.pk %}">
               {% csrf_token %}
-              <div><label class="block text-sm font-medium text-neutral-800" for="loc-{{ location.pk }}-name">Name</label><input class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2 text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900" id="loc-{{ location.pk }}-name" name="name" value="{{ location.name }}" autocomplete="off"></div>
-              <div><label class="block text-sm font-medium text-neutral-800" for="loc-{{ location.pk }}-notes">Notes</label><input class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2 text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900" id="loc-{{ location.pk }}-notes" name="notes" value="{{ location.notes }}" autocomplete="off"></div>
+              <div><label class="block text-sm font-medium text-neutral-800" for="loc-{{ location.pk }}-name">Name</label><input class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2 text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" id="loc-{{ location.pk }}-name" name="name" value="{{ location.name }}" autocomplete="off"></div>
+              <div><label class="block text-sm font-medium text-neutral-800" for="loc-{{ location.pk }}-notes">Notes</label><input class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2 text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" id="loc-{{ location.pk }}-notes" name="notes" value="{{ location.notes }}" autocomplete="off"></div>
               {% include "components/button.html" with label="Save" type="submit" name="action" value="save" variant="secondary" only %}
-              <button type="submit" name="action" value="delete" formnovalidate class="inline-flex items-center justify-center rounded px-4 py-2 font-medium bg-red-800 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2">Remove</button>
+              <button type="submit" name="action" value="delete" formnovalidate class="inline-flex items-center justify-center rounded px-4 py-2 font-medium border border-line bg-surface text-danger hover:border-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">Remove</button>
             </form>
           </details>
         </li>

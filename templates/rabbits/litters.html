@@ -6,7 +6,7 @@
   {% url 'pairing_list' as pairings_url %}
   {% include "components/page_header.html" with title="Litters" subtitle="Start a litter from a pairing. Dates for palpating, the nest box and kindling are set for you." primary_label="Pairings" primary_href=pairings_url only %}
   <section class="mt-6" aria-labelledby="open-heading">
-    <h2 class="text-lg font-semibold" id="open-heading">Expecting</h2>
+    <h2 class="text-base font-semibold" id="open-heading">Expecting</h2>
     {% if open %}
       <ul class="mt-2 flex flex-col divide-y divide-neutral-200 overflow-hidden rounded border border-neutral-300 bg-white" data-open-litters>
         {% for litter in open %}{% with task=litter.next_task %}
@@ -23,7 +23,7 @@
   </section>
   {% if kindled %}
     <section class="mt-6" aria-labelledby="kindled-heading">
-      <h2 class="text-lg font-semibold" id="kindled-heading">Kindled</h2>
+      <h2 class="text-base font-semibold" id="kindled-heading">Kindled</h2>
       <ul class="mt-2 flex flex-col divide-y divide-neutral-200 overflow-hidden rounded border border-neutral-300 bg-white">
         {% for litter in kindled %}
           <li><a class="block p-3 hover:bg-neutral-50" href="{% url 'litter_detail' litter.pk %}">

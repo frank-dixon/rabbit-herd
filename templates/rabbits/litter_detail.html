@@ -6,8 +6,8 @@
   {% url 'pairing_detail' litter.pairing.pk as pairing_url %}
   {% include "components/page_header.html" with title=litter.pairing|stringformat:"s" subtitle=subtitle secondary_label="Back to pairing" secondary_href=pairing_url only %}
   <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-    <section class="scroll-mt-4 rounded border border-neutral-300 bg-white p-4" id="dates" aria-labelledby="dates-heading">
-      <h2 class="text-lg font-semibold" id="dates-heading">Dates</h2>
+    <section class="scroll-mt-4 ruled pt-4" id="dates" aria-labelledby="dates-heading">
+      <h2 class="text-base font-semibold" id="dates-heading">Dates</h2>
       <p class="mt-1 text-sm text-neutral-600">Bred {{ litter.bred_on|date:"l, M j, Y" }}.</p>
       <ul class="mt-3 flex flex-col divide-y divide-neutral-200 rounded border border-neutral-300" data-tasks>
         {% for task in tasks %}
@@ -26,8 +26,8 @@
         {% endfor %}
       </ul>
     </section>
-    <section class="scroll-mt-4 rounded border border-neutral-300 bg-white p-4" id="kindling" aria-labelledby="kindling-heading">
-      <h2 class="text-lg font-semibold" id="kindling-heading">Kindling</h2>
+    <section class="scroll-mt-4 ruled pt-4" id="kindling" aria-labelledby="kindling-heading">
+      <h2 class="text-base font-semibold" id="kindling-heading">Kindling</h2>
       {% if litter.kindled_on %}
         <dl class="mt-3 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm" data-kindling>
           <dt class="text-neutral-600">Kindled</dt><dd>{{ litter.kindled_on|date:"M j, Y" }}</dd>
@@ -51,8 +51,8 @@
         </form>
       </details>
     </section>
-    <section class="scroll-mt-4 rounded border border-neutral-300 bg-white p-4 lg:col-span-2" id="kits" aria-labelledby="kits-heading">
-      <h2 class="text-lg font-semibold" id="kits-heading">Kits in your herd</h2>
+    <section class="scroll-mt-4 ruled pt-4 lg:col-span-2" id="kits" aria-labelledby="kits-heading">
+      <h2 class="text-base font-semibold" id="kits-heading">Kits in your herd</h2>
       {% if kits %}
         <ul class="mt-3 flex flex-col divide-y divide-neutral-200 rounded border border-neutral-300" data-kits>
           {% for kit in kits %}<li class="flex flex-wrap items-start justify-between gap-2 p-3 text-sm"><span class="min-w-0"><a class="font-semibold underline" href="{% url 'rabbit_detail' kit.pk %}">{{ kit.name }}</a> · {{ kit.get_sex_display }}{% if kit.tattoo %} · {{ kit.tattoo }}{% endif %} · {{ kit.short_breed }}{% if kit.latest_cull.reason %}<span class="mt-1 block break-words text-neutral-600" data-kit-cull-reason>{{ kit.latest_cull.reason|truncatechars:140 }}</span>{% endif %}</span>{% if kit.latest_cull %}<a class="shrink-0 rounded-full border border-neutral-400 px-2 py-0.5 text-xs font-medium" href="{% url 'rabbit_detail' kit.pk %}#culling" data-kit-decision="{{ kit.latest_cull.decision }}">{{ kit.latest_cull.get_decision_display }} · {{ kit.latest_cull.date|date:"M j" }}</a>{% else %}<a class="shrink-0 text-xs text-neutral-600 underline" href="{% url 'rabbit_detail' kit.pk %}#culling">Evaluate<span class="sr-only"> {{ kit.name }}</span></a>{% endif %}</li>{% endfor %}
@@ -79,6 +79,6 @@
   </div>
   <form class="mt-4" method="post" action="{% url 'litter_delete' litter.pk %}">
     {% csrf_token %}
-    <button type="submit" class="inline-flex items-center justify-center rounded px-4 py-2 font-medium bg-red-800 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2">Remove litter</button>
+    <button type="submit" class="inline-flex items-center justify-center rounded px-4 py-2 font-medium border border-line bg-surface text-danger hover:border-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">Remove litter</button>
   </form>
 {% endblock %}

@@ -5,19 +5,19 @@
 {% block content %}
   <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between" data-print-hide>
     <div class="min-w-0">
-      <h1 class="break-words text-2xl font-semibold">Pedigree: {{ rabbit.name }}</h1>
+      <h1 class="break-words text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Pedigree: {{ rabbit.name }}</h1>
       <p class="mt-1 text-neutral-600">{{ known }} of 14 ancestors recorded. Built from parents and pedigree entries, following herd rabbits upward.</p>
     </div>
     <div class="flex flex-col gap-2 sm:flex-row">
       {% url 'rabbit_detail' rabbit.pk as detail_url %}
       {% include "components/button.html" with label="Back to rabbit" href=detail_url variant="secondary" only %}
-      <button type="button" class="inline-flex items-center justify-center rounded px-4 py-2 font-medium bg-neutral-800 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-2" onclick="window.print()">Print</button>
+      <button type="button" class="inline-flex items-center justify-center rounded px-4 py-2 font-medium bg-accent text-on-accent hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2" onclick="window.print()">Print</button>
     </div>
   </div>
 
-  <section class="mt-6 rounded border border-neutral-300 bg-white p-4 print:mt-0 print:border-0 print:p-0" aria-labelledby="subject-heading" data-pedigree>
+  <section class="mt-6 ruled pt-4 print:mt-0 print:border-0 print:p-0" aria-labelledby="subject-heading" data-pedigree>
     <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-neutral-300 pb-2">
-      <h2 class="text-lg font-semibold" id="subject-heading">{{ rabbit.name }}{% if rabbit.tattoo %} · {{ rabbit.tattoo }}{% endif %}</h2>
+      <h2 class="text-base font-semibold" id="subject-heading">{{ rabbit.name }}{% if rabbit.tattoo %} · {{ rabbit.tattoo }}{% endif %}</h2>
       <p class="text-sm text-neutral-600">{{ app_name }} pedigree</p>
     </div>
     <dl class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3 print:grid-cols-6">

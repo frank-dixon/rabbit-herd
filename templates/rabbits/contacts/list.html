@@ -14,7 +14,7 @@
     <ul class="mt-4 flex flex-col divide-y divide-neutral-200 overflow-hidden rounded border border-neutral-300 bg-white" data-contacts>
       {% for contact in contacts %}
         <li>
-          <a class="flex flex-col gap-1 p-3 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-neutral-900 sm:flex-row sm:items-start sm:justify-between" href="{% url 'contact_detail' contact.pk %}">
+          <a class="flex flex-col gap-1 p-3 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent sm:flex-row sm:items-start sm:justify-between" href="{% url 'contact_detail' contact.pk %}">
             <span class="min-w-0">
               <span class="block break-words font-semibold">{{ contact.name }}</span>
               {% if contact.rabbitry or contact.location %}<span class="block break-words text-sm text-neutral-600">{{ contact.rabbitry }}{% if contact.rabbitry and contact.location %} · {% endif %}{{ contact.location }}</span>{% endif %}

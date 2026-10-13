@@ -32,7 +32,7 @@ class DetailLayoutTests(TestCase):
         page = self.client.get(reverse("rabbit_detail", args=[rabbit.pk]))
         body = page.content.decode()
         self.assertContains(page, "max-w-6xl")
-        self.assertContains(page, '<h1 class="break-words text-2xl font-semibold">Speedwell</h1>')
+        self.assertContains(page, '<h1 class="break-words text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Speedwell</h1>')
         self.assertLess(body.index(">Edit<"), body.index(">Archive<"))
         self.assertLess(body.index(">Archive<"), body.index(">Back to rabbits<"))
         for label in ("Sex", "Breed", "Color", "Line", "Born", "Status"):

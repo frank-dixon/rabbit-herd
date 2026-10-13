@@ -8,14 +8,14 @@
       <div class="flex min-w-0 items-start gap-3" data-page-thumb>
         {% include "rabbits/_page_thumb.html" with rabbit=rabbit only %}
         <div class="min-w-0">
-        <h1 class="break-words text-2xl font-semibold leading-snug tracking-tight focus:outline-none" tabindex="-1" id="question">Edit {{ rabbit.name }}</h1>
+        <h1 class="break-words text-[1.75rem] leading-tight font-semibold md:text-[2.25rem] leading-snug tracking-tight focus:outline-none" tabindex="-1" id="question">Edit {{ rabbit.name }}</h1>
         <p class="mt-1 text-neutral-600">Choose Change next to anything you want to update. Nothing is saved until you press Save changes.</p>
         </div>
       </div>
       {% url 'rabbit_detail' rabbit.pk as detail_url %}
       <div class="hidden sm:block sm:shrink-0">{% include "components/button.html" with label="Back to "|add:rabbit.name href=detail_url variant="secondary" only %}</div>
     </div>
-    <section class="mt-6 max-w-2xl space-y-5 rounded-2xl border border-neutral-300 bg-white p-5 shadow-sm">
+    <section class="mt-6 max-w-2xl space-y-5 ruled pt-4">
       {% if legacy_breed %}
         <p class="rounded-lg border border-amber-400 bg-amber-50 p-3 text-neutral-800">The breed was saved as "{{ legacy_breed }}", which doesn't match the breed list. <a class="font-semibold underline" href="{{ legacy_url }}">Pick the breed</a> so the right colors are offered.</p>
       {% endif %}
@@ -25,7 +25,7 @@
           <div class="grid grid-cols-[7rem_1fr_auto] items-start gap-2 px-3 py-3">
             <dt class="font-medium">{{ row.label }}</dt>
             <dd>{% if row.entries %}<ul class="space-y-1">{% for entry in row.entries %}<li>{{ entry }}</li>{% endfor %}</ul>{% else %}{{ row.answer|default:"Not given" }}{% endif %}</dd>
-            <dd><a class="font-medium underline focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900" href="{{ row.url }}" id="change-{{ row.slug }}">Change<span class="sr-only"> {{ row.label|lower }}</span></a></dd>
+            <dd><a class="font-medium underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" href="{{ row.url }}" id="change-{{ row.slug }}">Change<span class="sr-only"> {{ row.label|lower }}</span></a></dd>
           </div>
         {% endfor %}
       </dl>

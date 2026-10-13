@@ -1,6 +1,6 @@
 {# text: message body. tags: Django message tags, such as error or success. #}
 <div
-  class="rounded border px-3 py-2 text-sm font-medium {% if 'error' in tags %}border-red-800{% elif 'warning' in tags or 'success' in tags %}border-neutral-800{% else %}border-neutral-400{% endif %}"
+  class="rounded-md border px-3 py-2 text-sm font-medium {% if 'error' in tags %}border-danger/40 bg-danger-soft text-danger{% elif 'warning' in tags %}border-second/40 bg-second-soft text-second-ink{% elif 'success' in tags %}border-accent/30 bg-accent-soft text-accent{% else %}border-line bg-surface{% endif %}"
   {% if 'error' in tags %}role="alert"{% else %}role="status"{% endif %}
 >
   {{ text }}

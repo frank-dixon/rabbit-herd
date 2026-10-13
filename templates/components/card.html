@@ -1,7 +1,7 @@
 {# title: optional heading. body: text shown under the heading. #}
-<section class="rounded border border-neutral-300 bg-white p-4">
+<section class="ruled pt-4">
   {% if title %}
-    <h2 class="text-lg font-semibold">{{ title }}</h2>
+    <h2 class="text-base font-semibold">{{ title }}</h2>
   {% endif %}
   {% if body %}
     <p class="{% if title %}mt-2 {% endif %}leading-relaxed">{{ body }}</p>

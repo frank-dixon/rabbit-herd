@@ -1,6 +1,6 @@
 {# Where the rabbit came from: a contact (breeder or rabbitry), picked from the owner's contacts. #}
-<section class="rounded border border-neutral-300 bg-white p-4" id="source" aria-labelledby="source-heading">
-  <h2 class="text-lg font-semibold" id="source-heading">Came from</h2>
+<section class="ruled pt-4" id="source" aria-labelledby="source-heading">
+  <h2 class="text-base font-semibold" id="source-heading">Came from</h2>
   {% if rabbit.source %}
     <p class="mt-2" data-source><a class="font-medium underline" href="{% url 'contact_detail' rabbit.source.pk %}">{{ rabbit.source.name }}</a>{% if rabbit.source.rabbitry %} · {{ rabbit.source.rabbitry }}{% endif %}</p>
   {% else %}

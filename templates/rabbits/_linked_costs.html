@@ -1,7 +1,7 @@
 {% load money %}{# Costs linked to one rabbit or litter. Pass cost_items, cost_total, add_url, heading_id. #}
-<section class="rounded border border-neutral-300 bg-white p-4" aria-labelledby="{{ heading_id }}" data-linked-costs>
+<section class="ruled pt-4" aria-labelledby="{{ heading_id }}" data-linked-costs>
   <div class="flex items-baseline justify-between gap-2">
-    <h2 class="text-lg font-semibold" id="{{ heading_id }}">Costs</h2>
+    <h2 class="text-base font-semibold" id="{{ heading_id }}">Costs</h2>
     {% if cost_items %}<p class="font-semibold">{{ cost_total|money }}</p>{% endif %}
   </div>
   {% if cost_items %}

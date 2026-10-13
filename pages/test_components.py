@@ -97,7 +97,7 @@ class ComponentReferenceTests(TestCase):
 
         self.assertContains(response, "Components")
         self.assertContains(response, "Danger")
-        self.assertContains(response, "bg-red-800")
+        self.assertContains(response, "text-danger")
         self.assertContains(response, "disabled")
         self.assertContains(response, 'aria-disabled="true"')
         self.assertContains(response, 'type="email"')
@@ -134,7 +134,7 @@ class AlertPartialTests(SimpleTestCase):
 
         self.assertIn('role="alert"', error)
         self.assertIn("That failed.", error)
-        self.assertIn("border-red-800", error)
+        self.assertIn("border-danger/40", error)
         self.assertIn('role="status"', success)
         self.assertIn("Saved.", success)
 
@@ -218,9 +218,9 @@ class ButtonPartialTests(SimpleTestCase):
 
         self.assertIn("<button", primary)
         self.assertIn('type="submit"', primary)
-        self.assertIn("bg-neutral-800", primary)
+        self.assertIn("bg-accent", primary)
         self.assertIn("<button", danger)
-        self.assertIn("bg-red-800", danger)
+        self.assertIn("text-danger", danger)
         self.assertIn("<a", link)
         self.assertNotIn("<button", link)
         self.assertIn('href="/back/"', link)

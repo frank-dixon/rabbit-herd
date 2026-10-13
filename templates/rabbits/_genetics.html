@@ -1,7 +1,7 @@
 {# Line and genes card on the rabbit detail page, with the suggested c-carrier note. Works without JavaScript. #}
-<section class="rounded border border-neutral-300 bg-white p-4" aria-labelledby="genetics-heading">
+<section class="ruled pt-4" aria-labelledby="genetics-heading">
   <div class="flex flex-wrap items-center justify-between gap-3">
-    <h2 class="text-lg font-semibold" id="genetics-heading">Line and genes</h2>
+    <h2 class="text-base font-semibold" id="genetics-heading">Line and genes</h2>
     {% url 'rabbit_genes' rabbit.pk as genes_url %}
     {% include "components/button.html" with label="Edit genes" sr_suffix="for "|add:rabbit.name href=genes_url variant="secondary" only %}
   </div>

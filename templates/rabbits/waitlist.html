@@ -7,11 +7,11 @@
   {% include "components/page_header.html" with title="Waitlist" subtitle="Buyers waiting for a rabbit, first come, first served." only %}
   <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
     <section aria-labelledby="open-heading">
-      <h2 class="text-lg font-semibold" id="open-heading">Waiting ({{ open_entries|length }})</h2>
+      <h2 class="text-base font-semibold" id="open-heading">Waiting ({{ open_entries|length }})</h2>
       {% if open_entries %}
         <ol class="mt-2 flex flex-col gap-3" data-waitlist-open>
           {% for entry in open_entries %}
-            <li class="rounded border border-neutral-300 bg-white p-4{% if entry == editing %} ring-2 ring-neutral-900{% endif %}">
+            <li class="rounded border border-neutral-300 bg-white p-4{% if entry == editing %} ring-2 ring-accent{% endif %}">
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
                   <p class="text-sm text-neutral-600">#{{ entry.position }} · asked {{ entry.requested_on|date:"M j, Y" }}</p>
@@ -38,7 +38,7 @@
         <p class="mt-2 text-neutral-600">Nobody is waiting.</p>
       {% endif %}
       {% if closed_entries %}
-        <h2 class="mt-6 text-lg font-semibold">Closed</h2>
+        <h2 class="mt-6 text-base font-semibold">Closed</h2>
         <ul class="mt-2 divide-y divide-neutral-200 rounded border border-neutral-300 bg-white px-4 text-sm" data-waitlist-closed>
           {% for entry in closed_entries %}
             <li class="flex items-start justify-between gap-3 py-2">
@@ -50,8 +50,8 @@
       {% endif %}
     </section>
 
-    <section class="scroll-mt-4 self-start rounded border border-neutral-300 bg-white p-4" id="form" aria-labelledby="wait-form-heading">
-      <h2 class="text-lg font-semibold" id="wait-form-heading">{% if editing %}Edit {{ editing.buyer }}'s request{% else %}Add a buyer{% endif %}</h2>
+    <section class="scroll-mt-4 self-start ruled pt-4" id="form" aria-labelledby="wait-form-heading">
+      <h2 class="text-base font-semibold" id="wait-form-heading">{% if editing %}Edit {{ editing.buyer }}'s request{% else %}Add a buyer{% endif %}</h2>
       {% if editing %}{% url 'waitlist_edit' editing.pk as action %}{% else %}{% url 'waitlist' as action %}{% endif %}
       <form class="mt-3 grid grid-cols-2 gap-2" method="post" action="{{ action }}" novalidate>
         {% csrf_token %}
@@ -66,7 +66,7 @@
         <div class="col-span-2">{% include "components/select.html" with name="rabbit" label="Rabbit offered or sold (optional)" options=rabbit_options value=values.rabbit errors=errors.rabbit placeholder="None yet" only %}</div>
         <div class="col-span-2">
           <label class="block text-sm font-medium text-neutral-800" for="id_wait_notes">Notes</label>
-          <textarea class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2 text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900" id="id_wait_notes" name="notes" rows="3" maxlength="1000">{{ values.notes }}</textarea>
+          <textarea class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2 text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" id="id_wait_notes" name="notes" rows="3" maxlength="1000">{{ values.notes }}</textarea>
         </div>
         <div class="col-span-2 mt-1 flex flex-wrap items-center gap-3">
           {% include "components/button.html" with label=editing|yesno:"Save request,Add to waitlist" type="submit" variant="primary" only %}

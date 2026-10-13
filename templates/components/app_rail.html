@@ -1,16 +1,23 @@
 {# Side menu for tablet (icons over short labels) and desktop (full labels). Hidden on phones, which get the bottom tabs. #}
-<aside data-print-hide class="sticky top-0 hidden h-screen shrink-0 flex-col border-r border-neutral-300 bg-neutral-100 md:flex md:w-20 lg:w-56" aria-label="App">
-  <a class="hidden px-4 pt-5 pb-3 font-semibold lg:block" href="{% url 'index' %}">{{ app_name }}</a>
-  <nav class="flex flex-col gap-1 px-2 pt-3 lg:pt-1" aria-label="Main">
+<aside data-print-hide class="sticky top-0 hidden h-screen shrink-0 flex-col border-r border-line bg-side md:flex md:w-20 lg:w-56" aria-label="App">
+  <a class="hidden px-5 pt-6 pb-4 text-base font-semibold tracking-tight text-ink lg:block" href="{% url 'index' %}">{{ app_name }}</a>
+  <nav class="flex flex-col gap-0.5 overflow-y-auto px-2 pt-3 pb-2 lg:pt-0 lg:pr-3 lg:pl-0" aria-label="Main">
     {% for item in app_nav %}
-      <a href="{{ item.url }}" class="flex flex-col items-center gap-1 rounded border px-1 py-2 text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 lg:flex-row lg:gap-3 lg:px-3 lg:text-sm {% if item.key == 'add' %}lg:mb-2 lg:justify-center lg:border-neutral-900 lg:bg-neutral-900 lg:py-2.5 lg:font-semibold lg:text-white lg:hover:bg-neutral-700 {% endif %}{% if item.active %}border-neutral-300 bg-white font-semibold text-neutral-900{% else %}border-transparent text-neutral-700 hover:bg-white{% endif %}"{% if item.active %} aria-current="page"{% endif %}>
-        {% include "components/icon.html" with d=item.icon only %}
-        <span class="text-center lg:text-left">{% if item.key == "add" %}<span class="lg:sr-only" aria-hidden="true">Add</span><span class="sr-only lg:not-sr-only">Add a rabbit</span>{% else %}{{ item.short }}{% endif %}</span>
-      </a>
+      {% if item.key == "add" %}
+        <a href="{{ item.url }}" class="my-2 flex flex-col items-center gap-1 rounded-md px-1 py-2 text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-side lg:ml-3 lg:flex-row lg:justify-center lg:gap-2 lg:bg-accent lg:py-2.5 lg:text-sm lg:font-semibold lg:text-on-accent lg:hover:bg-accent/90 {% if item.active %}bg-accent-soft text-accent lg:text-on-accent{% else %}text-muted hover:text-ink{% endif %}"{% if item.active %} aria-current="page"{% endif %}>
+          {% include "components/icon.html" with d=item.icon only %}
+          <span class="text-center"><span class="lg:sr-only" aria-hidden="true">Add</span><span class="sr-only lg:not-sr-only">Add a rabbit</span></span>
+        </a>
+      {% else %}
+        <a href="{{ item.url }}" class="flex flex-col items-center gap-1 rounded-md px-1 py-2 text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent lg:flex-row lg:gap-3 lg:rounded-l-none lg:py-2 lg:pl-5 lg:pr-3 lg:text-sm {% if item.active %}bg-accent-soft text-accent shadow-[inset_3px_0_0_var(--second)]{% else %}text-muted hover:bg-surface hover:text-ink{% endif %}"{% if item.active %} aria-current="page"{% endif %}>
+          {% include "components/icon.html" with d=item.icon only %}
+          <span class="text-center lg:text-left">{{ item.short }}</span>
+        </a>
+      {% endif %}
     {% endfor %}
   </nav>
-  <form class="mt-auto px-2 pb-4" method="post" action="{% url 'logout' %}">
+  <form class="mt-auto border-t border-line px-2 py-3 lg:px-5" method="post" action="{% url 'logout' %}">
     {% csrf_token %}
-    <button type="submit" class="w-full rounded px-1 py-2 text-xs text-neutral-700 underline hover:bg-white lg:px-3 lg:text-left lg:text-sm">Log out</button>
+    <button type="submit" class="w-full rounded-md px-1 py-1.5 text-xs text-muted hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent lg:px-0 lg:text-left lg:text-sm">Log out</button>
   </form>
 </aside>

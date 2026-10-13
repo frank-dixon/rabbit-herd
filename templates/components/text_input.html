@@ -3,7 +3,7 @@
   <label class="{% if quiet %}sr-only{% elif large %}block text-lg font-semibold text-neutral-900{% else %}block text-sm font-medium text-neutral-800{% endif %}" for="id_{{ name }}">{{ label }}</label>
   {% if help %}<p class="mt-1 text-sm text-neutral-600" id="id_{{ name }}_help">{{ help }}</p>{% endif %}
   <input
-    class="block w-full rounded-lg border bg-white text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 {% if large %}mt-2 px-4 py-4 text-lg{% else %}mt-1 px-3 py-2{% endif %} {% if errors %}border-red-800{% else %}border-neutral-400{% endif %}"
+    class="block w-full rounded-lg border bg-white text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent {% if large %}mt-2 px-4 py-4 text-lg{% else %}mt-1 px-3 py-2{% endif %} {% if errors %}border-red-800{% else %}border-neutral-400{% endif %}"
     id="id_{{ name }}" name="{{ name }}" type="{{ type|default:'text' }}" value="{{ value }}"
     autocomplete="{{ autocomplete|default:'off' }}"
     {% if min %}min="{{ min }}"{% endif %}
