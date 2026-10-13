@@ -10,7 +10,7 @@ class SettingsTests(TestCase):
 
     def test_defaults_to_teal_and_coral_roomy_on_html(self):
         page = self.client.get(reverse("index"))
-        self.assertContains(page, '<html lang="en" data-theme="c1" data-density="roomy">')
+        self.assertContains(page, '<html lang="en" data-theme="c1" data-density="roomy" data-mode="system">')
 
     def test_settings_lists_all_five_themes_with_swatches(self):
         page = self.client.get(reverse("account"))
@@ -140,10 +140,38 @@ class FlatThemeTests(TestCase):
             self.assertContains(self.client.get(reverse("account")), f'data-theme="{key}"')
         css = (Path(dj.BASE_DIR) / "assets" / "themes.css").read_text()
         for key in ("d1", "d2", "d3", "d4", "d5", "d6"):
-            self.assertEqual(css.count(f'html[data-theme="{key}"]'), 2, key)
+            self.assertEqual(css.count(f'html[data-theme="{key}"]'), 1, key)
+            self.assertEqual(css.count(f'html:not([data-mode="light"])[data-theme="{key}"]'), 1, key)
+            self.assertEqual(css.count(f'html[data-mode="dark"][data-theme="{key}"]'), 1, key)
         self.assertIn("--canvas: #DEDEDC;", css)
         self.assertIn("--surface: #E9E9E7;", css)
 
     def test_c1_stays_the_default(self):
         from accounts.models import User
         self.assertEqual(User._meta.get_field("ui_theme").default, "c1")
+
+
+class ModeTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(email="mode@example.com", password="x-strong-Pass-1")
+        self.client.force_login(self.user)
+
+    def test_defaults_to_system_and_saves_light_or_dark_on_html(self):
+        page = self.client.get(reverse("account"))
+        self.assertContains(page, 'data-mode="system"')
+        self.assertContains(page, 'name="ui_mode" value="system" checked')
+        self.client.post(reverse("account"), {"ui_theme": "c3", "ui_density": "roomy", "ui_mode": "dark"})
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ui_mode, "dark")
+        page = self.client.get(reverse("rabbit_list"))
+        self.assertContains(page, 'data-theme="c3" data-density="roomy" data-mode="dark"')
+        self.assertNotContains(page, 'media="(prefers-color-scheme: light)"')
+
+    def test_bad_mode_is_refused(self):
+        self.client.post(reverse("account"), {"ui_theme": "c1", "ui_density": "roomy", "ui_mode": "sepia"})
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ui_mode, "system")
+
+    def test_dark_swatches_come_from_themes_css(self):
+        from .views import theme_dark_swatch
+        self.assertEqual(theme_dark_swatch("c1")[2], "#121717")

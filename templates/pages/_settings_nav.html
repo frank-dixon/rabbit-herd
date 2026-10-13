@@ -1,0 +1,13 @@
+{# Settings sections. Phones: a grouped list at the top. Desktop: a sticky sub-nav beside the panel. Plain anchor links, so it works without JS. #}
+{% with row="flex min-h-11 items-center justify-between gap-3 px-4 text-[0.95rem] text-ink hover:bg-side lg:min-h-9 lg:rounded-md lg:px-3 lg:text-sm lg:text-muted lg:hover:text-ink" %}
+<nav class="lg:sticky lg:top-20 lg:self-start" aria-label="Settings sections" data-settings-nav>
+  {% for group, links in settings_nav %}
+    <p class="eyebrow mt-5 mb-1.5 px-1 first:mt-0 lg:px-3">{{ group }}</p>
+    <ul class="overflow-hidden rounded-lg border border-line bg-surface divide-y divide-line lg:divide-y-0 lg:rounded-none lg:border-0 lg:bg-transparent">
+      {% for anchor, label, note in links %}
+        <li><a class="{{ row }}" href="#{{ anchor }}"><span>{{ label }}</span>{% if note %}<span class="text-sm text-muted lg:hidden">{{ note }}</span>{% endif %}<svg class="h-4 w-4 shrink-0 text-muted lg:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a></li>
+      {% endfor %}
+    </ul>
+  {% endfor %}
+</nav>
+{% endwith %}

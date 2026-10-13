@@ -56,8 +56,11 @@ class User(AbstractUser):
         ("d6", "Fawn & Sage"),
     ]
     DENSITIES = [("roomy", "Roomy"), ("compact", "Compact")]
+    MODES = [("system", "System"), ("light", "Light"), ("dark", "Dark")]
     ui_theme = models.CharField(max_length=8, choices=THEMES, default="c1")
     ui_density = models.CharField(max_length=8, choices=DENSITIES, default="roomy")
+    # Light or Dark overrides the device setting for every theme; System follows it.
+    ui_mode = models.CharField(max_length=8, choices=MODES, default="system")
     # Phone bottom bar: destination keys in order (pages.nav.DESTINATIONS). Empty means the default.
     tab_bar = models.JSONField(default=list, blank=True)
 

@@ -125,7 +125,7 @@
   transform: translateX(-100%); visibility: hidden;
   transition: transform var(--dur-3) var(--ease-in-out), visibility 0s linear var(--dur-3);
 }
-html[data-menu-open] .app-panel { transform: none; visibility: visible; transition: transform var(--dur-3) var(--ease-out), visibility 0s; }
+.app-panel:target, html[data-menu-open] .app-panel { transform: none; visibility: visible; transition: transform var(--dur-3) var(--ease-out), visibility 0s; }
 [data-shell] { transition: transform var(--dur-3) var(--ease-in-out); }
 .app-scrim {
   position: fixed; inset: 0; z-index: 30; background: rgb(0 0 0 / 0.32);
@@ -237,3 +237,12 @@ select:not([multiple]):not([size]) {
 @keyframes pop-in { from { opacity: 0; transform: translateY(6px) scale(0.98); } }
 @keyframes pop-out { to { opacity: 0; transform: translateY(6px) scale(0.98); } }
 @media (prefers-reduced-motion: reduce) { .account-pop, .account-pop.is-leaving { animation-duration: 1ms; } }
+
+/* Theme swatches preview in the chosen mode. */
+.swatch-dark { display: none; }
+html[data-mode="dark"] .swatch-dark { display: grid; }
+html[data-mode="dark"] .swatch-light { display: none; }
+@media (prefers-color-scheme: dark) {
+  html:not([data-mode="light"]) .swatch-dark { display: grid; }
+  html:not([data-mode="light"]) .swatch-light { display: none; }
+}

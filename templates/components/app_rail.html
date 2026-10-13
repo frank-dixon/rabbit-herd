@@ -1,20 +1,11 @@
-{# Side menu for tablet (icons over short labels) and desktop (full labels). Hidden on phones, which get the bottom tabs. #}
+{# Side menu for tablet (icons over short labels) and desktop (full labels). Hidden on phones, which get the bottom tabs and the drawer. The account footer stays pinned to the bottom. #}
 <aside data-print-hide data-app-rail class="sticky top-0 z-30 hidden h-screen shrink-0 flex-col border-r border-line bg-side md:flex md:w-20 lg:w-56" aria-label="App">
-  <a class="hidden h-14 items-center px-5 text-base font-semibold tracking-tight text-ink lg:flex" href="{% url 'index' %}">{{ app_name }}</a>
-  <nav class="flex flex-col gap-0.5 overflow-y-auto px-2 pt-3 pb-2 lg:pt-1 lg:pr-3 lg:pl-0" aria-label="Main">
-    {% for item in app_nav %}
-      {% if item.key == "add" %}
-        <a href="{{ item.url }}" class="mo-press my-2 flex flex-col items-center gap-1 rounded-md px-1 py-2 text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-side lg:ml-3 lg:flex-row lg:justify-center lg:gap-2 lg:bg-accent lg:py-2.5 lg:text-sm lg:font-semibold lg:text-on-accent lg:hover:bg-accent/90 {% if item.active %}bg-accent-soft text-accent lg:text-on-accent{% else %}text-muted hover:text-ink{% endif %}"{% if item.active %} aria-current="page"{% endif %}>
-          {% include "components/icon.html" with d=item.icon only %}
-          <span class="text-center"><span class="lg:sr-only" aria-hidden="true">Add</span><span class="sr-only lg:not-sr-only">Add a rabbit</span></span>
-        </a>
-      {% else %}
-        <a href="{{ item.url }}" class="flex flex-col items-center gap-1 rounded-md px-1 py-2 text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent lg:flex-row lg:gap-3 lg:rounded-l-none lg:py-2 lg:pl-5 lg:pr-3 lg:text-sm {% if item.active %}bg-accent-soft text-accent shadow-[inset_3px_0_0_var(--second)]{% else %}text-muted hover:bg-surface hover:text-ink{% endif %}"{% if item.active %} aria-current="page"{% endif %}>
-          {% include "components/icon.html" with d=item.icon only %}
-          <span class="text-center lg:text-left">{{ item.short }}</span>
-        </a>
-      {% endif %}
-    {% endfor %}
+  <a class="hidden h-14 shrink-0 items-center px-5 text-base font-semibold tracking-tight text-ink lg:flex" href="{% url 'index' %}">{{ app_name }}</a>
+  <nav class="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-2 pt-3 pb-2 lg:pt-1 lg:pr-3 lg:pl-0" aria-label="Main">
+    {% for item in app_nav %}{% include "components/rail_link.html" %}{% endfor %}
+    <p class="eyebrow mt-4 mb-1 hidden lg:block lg:pl-5" id="rail-records">Records</p>
+    <hr class="mx-3 my-2 hidden border-line max-lg:block">
+    {% for item in app_records %}{% include "components/rail_link.html" %}{% endfor %}
   </nav>
-  {% include "components/account_menu.html" %}
+  {% include "components/account_menu.html" with menu_id="account-menu" %}
 </aside>

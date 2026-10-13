@@ -24,7 +24,7 @@ class AppShellTests(TestCase):
         page = html[html.index('<aside'):html.index('</aside>')] + html[html.index('data-app-tabs'):]
         for missing in ("coming soon", "Coming soon", ">More<"):
             self.assertNotIn(missing, page)
-        for label in ("Today", "Rabbits", "Add a rabbit", "Archived", "Tasks", "Pairings", "Litters", "Weights", "Locations"):
+        for label in ("Today", "Rabbits", "Archived", "Tasks", "Pairings", "Litters", "Weights", "Locations"):
             self.assertIn(label, page)
         panel = html[html.index('id="app-menu"'):html.index('data-shell')]
         for label in ("Contacts", "Costs", "Waitlist", "Shows", "Health", "Export", "Settings", "Account", "Sign out"):
@@ -43,11 +43,31 @@ class AppShellTests(TestCase):
 
     def test_menu_button_works_without_js(self):
         html = self.client.get(reverse("rabbit_list")).content.decode()
-        self.assertIn('href="/menu/"', html)
+        self.assertIn('href="#app-menu"', html)
         self.assertIn('aria-controls="app-menu" aria-expanded="false" data-menu-button', html)
-        menu = self.client.get(reverse("app_menu"))
-        self.assertContains(menu, "Sign out")
-        self.assertContains(menu, 'href="/pairings/"')
+        drawer = html[html.index('id="app-menu"'):html.index("data-shell")]
+        self.assertIn("Sign out", drawer)
+        self.assertIn('href="/pairings/"', drawer)
+        self.assertNotIn(" inert", drawer[:200])
+
+    def test_layout_a_rail_records_and_account_footer(self):
+        from rabbits.models import HerdSettings
+        HerdSettings.objects.create(user=self.user, rabbitry_name="Dixon Rabbitry")
+        html = self.client.get(reverse("rabbit_list")).content.decode()
+        rail = html[html.index("data-app-rail"):html.index("</aside>")]
+        self.assertNotIn("/rabbits/new/", rail)
+        self.assertIn(">Records<", rail)
+        for url in ("/contacts/", "/costs/", "/waitlist/", "/shows/", "/health/"):
+            self.assertIn(f'href="{url}"', rail)
+        self.assertLess(rail.index("/archived") if "/archived" in rail else rail.index("tab=archived"), rail.index("/contacts/"))
+        self.assertIn("Dixon Rabbitry", rail)
+        pop = rail[rail.index("data-account-pop"):]
+        self.assertIn("Settings</a>", pop)
+        self.assertIn("Account", pop)
+        self.assertIn("Sign out", pop)
+        self.assertNotIn("Appearance", pop)
+        self.assertNotIn("Contacts", pop)
+        self.assertRedirects(self.client.get("/menu/"), reverse("account"))
 
     def test_herd_pages_for_weights_health_and_shows(self):
         for name in ("weights_hub", "health_list", "show_list"):

@@ -1,11 +1,14 @@
 /*
  * Sidebar account menu: the gear opens a menu upward. Esc or a click outside
- * closes it; arrow keys move between items. Without JS the gear opens /menu/.
+ * closes it; arrow keys move between items. Without JS the gear opens Settings.
+ * Bound for each footer (side menu and phone drawer).
  */
 
 export function bindAccountMenu(doc) {
-  const root = doc.querySelector("[data-account-menu]");
-  if (!root) return;
+  doc.querySelectorAll("[data-account-menu]").forEach((root) => bindOne(doc, root));
+}
+
+function bindOne(doc, root) {
   const button = root.querySelector("[data-account-button]");
   const pop = root.querySelector("[data-account-pop]");
   const items = () => [...pop.querySelectorAll('[role="menuitem"]')];

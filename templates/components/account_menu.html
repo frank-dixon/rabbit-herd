@@ -1,23 +1,19 @@
-{# Sidebar footer (tablet and up): who is signed in, plus a gear that opens the account menu upward. Without JS the gear opens /menu/. #}
-{% with display=herd_prefs_name|default:user.get_full_name|default:user.email %}
+{% with settings_active=app_panel.0.active %}{# Account footer, pinned to the bottom of the side menu and the phone drawer: the rabbitry (or account) name beside a gear. With JS the gear opens a small menu upward (Settings, Account, Sign out); without JS it opens Settings. #}
 <div class="relative mt-auto border-t border-line p-2 lg:p-3" data-account-menu>
-  <div class="flex items-center gap-2 max-lg:flex-col">
-    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-semibold text-accent" aria-hidden="true">{{ display|first|upper }}</span>
-    <span class="hidden min-w-0 flex-1 lg:block">
-      <span class="block overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-ink">{{ display }}</span>
-      {% if display != user.email %}<span class="block overflow-hidden text-ellipsis whitespace-nowrap text-xs text-muted">{{ user.email }}</span>{% endif %}
+  <div class="flex items-center gap-2.5{% if not drawer %} max-lg:flex-col{% endif %}">
+    <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-[0.8rem] font-semibold tracking-wide text-accent" aria-hidden="true">{{ account_name|first|upper }}</span>
+    <span class="{% if not drawer %}hidden lg:block{% else %}block{% endif %} min-w-0 flex-1">
+      <span class="block overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-ink" data-account-name>{{ account_name }}</span>
+      {% if account_detail %}<span class="block overflow-hidden text-ellipsis whitespace-nowrap text-xs text-muted">{{ account_detail }}</span>{% endif %}
     </span>
-    <a href="{% url 'app_menu' %}" class="mo-press grid h-9 w-9 shrink-0 place-items-center rounded-md text-muted hover:bg-surface hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-haspopup="menu" aria-expanded="false" aria-controls="account-menu" data-account-button>
+    <a href="{% url 'account' %}" class="mo-press grid h-9 w-9 shrink-0 place-items-center rounded-md {% if settings_active %}bg-accent-soft text-accent{% else %}text-muted hover:bg-surface hover:text-ink{% endif %} focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-haspopup="menu" aria-expanded="false" aria-controls="{{ menu_id }}" data-account-button>
       {% include "components/icon.html" with d=app_settings_icon class="h-5 w-5" only %}<span class="sr-only">Account menu</span>
     </a>
   </div>
-  <div id="account-menu" class="account-pop" role="menu" aria-label="Account" data-account-pop hidden>
-    {% for item in app_panel %}{% if item.key == "settings" %}
-      <a role="menuitem" tabindex="-1" href="{{ item.url }}" class="flex min-h-10 items-center gap-3 rounded-md px-2.5 text-sm text-ink hover:bg-side focus:bg-side focus:outline-none">{% include "components/icon.html" with d=item.icon class="h-4 w-4 text-muted" only %}{{ item.label }}</a>
-    {% endif %}{% endfor %}
-    {% for item in app_panel %}{% if item.key != "health" and item.key != "settings" %}
-      <a role="menuitem" tabindex="-1" href="{{ item.url }}" class="flex min-h-10 items-center gap-3 rounded-md px-2.5 text-sm text-ink hover:bg-side focus:bg-side focus:outline-none">{% include "components/icon.html" with d=item.icon class="h-4 w-4 text-muted" only %}{{ item.label }}</a>
-    {% endif %}{% endfor %}
+  <div id="{{ menu_id }}" class="account-pop" role="menu" aria-label="Account" data-account-pop hidden>
+    {% for item in app_panel %}
+      <a role="menuitem" tabindex="-1" href="{{ item.url }}"{% if item.active and item.key == "settings" %} aria-current="page"{% endif %} class="flex min-h-10 items-center gap-3 rounded-md px-2.5 text-sm text-ink hover:bg-side focus:bg-side focus:outline-none">{% include "components/icon.html" with d=item.icon class="h-4 w-4 text-muted" only %}{{ item.label }}</a>
+    {% endfor %}
     <form class="mt-1 border-t border-line pt-1" method="post" action="{% url 'logout' %}">{% csrf_token %}
       <button role="menuitem" tabindex="-1" type="submit" class="flex min-h-10 w-full items-center gap-3 rounded-md px-2.5 text-sm text-danger hover:bg-danger-soft focus:bg-danger-soft focus:outline-none">{% include "components/icon.html" with d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4" class="h-4 w-4" only %}Sign out</button>
     </form>

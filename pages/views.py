@@ -20,6 +20,21 @@ def index(request):
     return render(request, "landing.html")
 
 
+def theme_dark_swatch(key):
+    """(accent, secondary, canvas) of a theme in dark mode, read from themes.css."""
+    import re
+    from pathlib import Path
+
+    css = getattr(theme_dark_swatch, "_css", None)
+    if css is None:
+        css = theme_dark_swatch._css = (Path(settings.BASE_DIR) / "assets" / "themes.css").read_text()
+    match = re.search(r'html\[data-mode="dark"\]\[data-theme="' + key + r'"\][^{]*\{(.*?)\}', css, re.S)
+    if not match:
+        return THEME_SWATCHES[key]
+    values = dict(re.findall(r"--([a-z-]+):\s*([^;]+);", match.group(1)))
+    return (values.get("accent", ""), values.get("second", ""), values.get("canvas", ""))
+
+
 @login_required
 def account(request):
     """Settings: appearance (theme, grid density), account, export, log out.
@@ -28,16 +43,18 @@ def account(request):
     if request.method == "POST":
         theme = request.POST.get("ui_theme", user.ui_theme)
         density = request.POST.get("ui_density", user.ui_density)
-        if theme in dict(user.THEMES) and density in dict(user.DENSITIES):
-            user.ui_theme, user.ui_density = theme, density
-            user.save(update_fields=["ui_theme", "ui_density"])
+        mode = request.POST.get("ui_mode", user.ui_mode)
+        if theme in dict(user.THEMES) and density in dict(user.DENSITIES) and mode in dict(user.MODES):
+            user.ui_theme, user.ui_density, user.ui_mode = theme, density, mode
+            user.save(update_fields=["ui_theme", "ui_density", "ui_mode"])
             if request.headers.get("X-Requested-With") == "fetch":
                 return HttpResponse(status=204)
             messages.success(request, "Settings saved.")
         return redirect(request.POST.get("next") if url_has_allowed_host_and_scheme(request.POST.get("next", ""), {request.get_host()}) else "account")
     kinds = [("rabbits", "Rabbits"), ("litters", "Litters"), ("weights", "Weights"), ("shows", "Show results"), ("costs", "Costs")]
     themes = [
-        {"key": key, "label": label, "swatch": THEME_SWATCHES[key], "current": key == user.ui_theme}
+        {"key": key, "label": label, "swatch": THEME_SWATCHES[key], "dark": theme_dark_swatch(key),
+         "current": key == user.ui_theme}
         for key, label in user.THEMES
     ]
     from .nav import DESTINATIONS, MAX_TABS, clean_tabs
@@ -45,7 +62,15 @@ def account(request):
     current = clean_tabs(user.tab_bar)
     slots = [{"index": i + 1, "value": current[i] if i < len(current) else "", "required": i < 3} for i in range(MAX_TABS)]
     destinations = [(key, label) for key, (label, _url, _q) in DESTINATIONS.items()]
-    return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes,
+    current_theme = dict(user.THEMES).get(user.ui_theme, "")
+    settings_nav = [
+        ("Rabbitry", [("rabbitry", "General", ""), ("units", "Units", ""), ("schedule", "Breeding schedules", ""),
+                      ("reminders", "Reminders", "")]),
+        ("Preferences", [("appearance", "Appearance", current_theme), ("tabs", "Bottom bar", ""),
+                         ("export", "Data and export", "")]),
+        ("Account", [("account", "Sign-in and passkeys", "")]),
+    ]
+    return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes, "settings_nav": settings_nav, "wide": True,
                                                   "tab_slots": slots, "tab_destinations": destinations})
 
 
@@ -75,10 +100,9 @@ def tabs(request):
     return redirect(reverse("account") + "#tabs")
 
 
-@login_required
 def menu(request):
-    """The menu panel as a page, for browsers without JS."""
-    return render(request, "pages/menu.html")
+    """The old Menu page. Its sections are in the side menu and drawer now; old links go to Settings."""
+    return redirect("account")
 
 
 def components(request):

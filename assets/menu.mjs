@@ -1,5 +1,5 @@
 /*
- * Menu panel. The button is a link to /menu/ so it works without JS; with JS
+ * Menu panel. The button links to #app-menu, which opens it with :target without JS; with JS
  * it opens the slide-in panel instead. The page behind is made inert while
  * it is open (which also keeps focus inside the panel); Esc, the close
  * button or a tap on the scrim closes it and focus returns to the button.
@@ -11,6 +11,7 @@ export function bindMenu(doc, win = window) {
   const scrim = doc.querySelector("[data-menu-scrim]");
   if (!button || !panel || !shell) return null;
   const html = doc.documentElement;
+  panel.inert = true;
 
   function isOpen() { return html.hasAttribute("data-menu-open"); }
 
@@ -38,7 +39,7 @@ export function bindMenu(doc, win = window) {
     event.preventDefault();
     isOpen() ? close() : open();
   });
-  panel.querySelector("[data-menu-close]")?.addEventListener("click", () => close());
+  panel.querySelector("[data-menu-close]")?.addEventListener("click", (event) => { event.preventDefault(); close(); });
   scrim?.addEventListener("click", () => close());
   doc.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && isOpen()) { event.preventDefault(); close(); }
@@ -53,7 +54,7 @@ export function bindMenu(doc, win = window) {
     else if (!event.shiftKey && doc.activeElement === last) { event.preventDefault(); first.focus(); }
   });
   panel.addEventListener("click", (event) => {
-    if (event.target.closest("a[href]")) close({ restoreFocus: false });
+    if (event.target.closest("a[href]") && !event.target.closest("[data-account-button], [data-menu-close]")) close({ restoreFocus: false });
   });
   return { open, close, isOpen };
 }

@@ -68,5 +68,4 @@ class LocationTests(TestCase):
     def test_locations_are_in_the_nav_and_the_menu(self):
         page = self.client.get(reverse("location_list")).content.decode()
         self.assertRegex(page, r'href="/locations/"[^>]*aria-current="page"')
-        menu = self.client.get(reverse("app_menu"))
-        self.assertContains(menu, 'href="/locations/"')
+        self.assertIn('href="/locations/"', page[page.index('id="app-menu"'):])

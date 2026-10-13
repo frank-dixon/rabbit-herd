@@ -1,5 +1,5 @@
 """The app shell: bottom tabs on phones, a side menu on tablet and desktop,
-and a slide-in panel (menu button, top left) with Settings and the less-used
+and a slide-in drawer on phones (menu button, top left) with the same
 sections. Only built sections are listed."""
 
 from django.conf import settings
@@ -29,10 +29,10 @@ def ui(request):
     the page paints in the right colours with no flash and no JS."""
     user = getattr(request, "user", None)
     if user is not None and user.is_authenticated:
-        theme, density = user.ui_theme or "c1", user.ui_density or "roomy"
+        theme, density, mode = user.ui_theme or "c1", user.ui_density or "roomy", user.ui_mode or "system"
     else:
-        theme, density = "c1", "roomy"
-    return {"ui_theme": theme, "ui_density": density, "ui_icons": ICONS, "ui_theme_color": THEME_COLOR.get(theme, THEME_COLOR["c1"])[0],
+        theme, density, mode = "c1", "roomy", "system"
+    return {"ui_theme": theme, "ui_density": density, "ui_mode": mode, "ui_icons": ICONS, "ui_theme_color": THEME_COLOR.get(theme, THEME_COLOR["c1"])[0],
             "ui_theme_color_dark": THEME_COLOR.get(theme, THEME_COLOR["c1"])[1]}
 
 
@@ -83,17 +83,18 @@ DESTINATIONS = {
 DEFAULT_TABS = ["today", "rabbits", "litters", "weights", "tasks"]
 MIN_TABS, MAX_TABS = 3, 5
 
-# Side menu on tablet and desktop: the everyday sections.
-RAIL = ["today", "rabbits", "add", "litters", "pairings", "weights", "tasks", "locations", "archived"]
-# The slide-in panel: Settings and the less-used sections.
-PANEL = ["contacts", "costs", "waitlist", "shows", "health", "export", "settings", "account"]
+# Side menu (tablet and desktop) and the phone drawer: the everyday sections, then Records.
+RAIL = ["today", "rabbits", "litters", "pairings", "weights", "tasks", "locations", "archived"]
+RECORDS = ["contacts", "costs", "waitlist", "shows", "health", "export"]
+# The account popover from the footer gear.
+PANEL = ["settings", "account"]
 
 PREFIXES = [
     ("/rabbits/new/", "add"), ("/rabbits/archived/", "archived"), ("/rabbits/", "rabbits"),
     ("/locations/", "locations"), ("/tasks/", "tasks"), ("/pairings/", "pairings"), ("/litters/", "litters"),
     ("/weights/", "weights"), ("/health/", "health"), ("/shows/", "shows"), ("/waitlist/", "waitlist"),
     ("/costs/", "costs"), ("/contacts/", "contacts"), ("/settings/", "settings"), ("/account/", "settings"),
-    ("/accounts/password", "settings"), ("/menu/", "menu"),
+    ("/accounts/password", "settings"),
 ]
 
 
@@ -156,10 +157,13 @@ def app_nav(request):
     return {
         "app_nav": nav_items,
         "app_tabs": tab_items,
+        "app_records": [item(key, current) for key in RECORDS],
         "app_panel": [item(key, current) for key in PANEL],
         "app_destinations": [item(key, current) for key in DESTINATIONS],
         "app_settings_icon": ICONS["settings"],
         "herd_prefs_name": herd_name(user),
+        "account_name": herd_name(user) or user.get_full_name() or user.email,
+        "account_detail": account_detail(user),
     }
 
 
@@ -167,3 +171,11 @@ def herd_name(user):
     from rabbits.models import prefs
 
     return (prefs(user).rabbitry_name or "").strip()
+
+
+def account_detail(user):
+    """The second footer line: the person's name under a rabbitry name, else their email."""
+    full = user.get_full_name()
+    if herd_name(user) and full:
+        return full
+    return user.email if (herd_name(user) or full) else ""
