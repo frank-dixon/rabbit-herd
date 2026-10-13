@@ -293,3 +293,8 @@ html[data-density="compact"] .list-thumb { width: 2.25rem; height: 2.25rem; }
   input[type="file"], input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; }
   button:disabled, [aria-disabled="true"], select:disabled, input:disabled, label:has(> input:disabled), fieldset:disabled * { cursor: not-allowed; }
 }
+/* Tab editor: while a page or tab is picked, the tabs it can go to are outlined. */
+[data-picking] [data-tab-list] .tab-edit-item:not([aria-pressed="true"]) { outline: 2px dashed color-mix(in oklab, var(--accent) 55%, transparent); outline-offset: -4px; border-radius: 0.75rem; }
+.tab-edit-item[aria-pressed="true"] { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); border-radius: 0.75rem; }
+@media (prefers-reduced-motion: no-preference) { [data-picking] [data-tab-list] .tab-edit-item:not([aria-pressed="true"]) { animation: tab-pulse 1.4s var(--ease-out) infinite; } }
+@keyframes tab-pulse { 50% { outline-color: var(--accent); } }

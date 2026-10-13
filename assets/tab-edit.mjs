@@ -98,6 +98,17 @@ export function bindTabEdit(doc, win = window) {
   }
   function hideIndicator() { if (indicator) { indicator.remove(); indicator = null; } }
 
+  const instruction = nav.querySelector("[data-tab-instruction]");
+  const cancel = nav.querySelector("[data-tab-cancel]");
+  const RESTING = "Drag to reorder or add. Up to 5.";
+  // Show the pending step in the header: what to tap next, the tabs it can
+  // land on highlighted, and Cancel.
+  function picking(text) {
+    if (instruction) instruction.textContent = text || RESTING;
+    if (cancel) cancel.hidden = !text;
+    if (text) nav.dataset.picking = selected?.zone || "";
+    else delete nav.dataset.picking;
+  }
   function say(text) { if (hint) hint.textContent = text; }
 
   function enter() {
@@ -124,6 +135,7 @@ export function bindTabEdit(doc, win = window) {
     const finish = () => {
       editing = false;
       selected = null;
+      picking("");
       delete nav.dataset.editing;
       head.hidden = true;
       tray.hidden = true;
@@ -262,6 +274,7 @@ export function bindTabEdit(doc, win = window) {
     if (!editing) return;
     if (suppressClick) { suppressClick = false; return; }
     if (event.target.closest("[data-tab-done]")) { exit(); return; }
+    if (event.target.closest("[data-tab-cancel]")) { selected = null; picking(""); render(); return; }
     const li = event.target.closest("[data-tab], [data-place]");
     if (!li) return;
     const here = li.dataset.tab ? { zone: "bar", key: li.dataset.tab } : { zone: "tray", key: li.dataset.place };
@@ -272,12 +285,13 @@ export function bindTabEdit(doc, win = window) {
     if (!selected) {
       selected = here;
       render();
-      say(here.zone === "bar" ? "Now tap where it should go." : "Now tap the tab it replaces.");
+      picking(here.zone === "bar" ? `Tap where ${places[here.key].label} should go, or use the arrow keys.` : `Tap the tab ${places[here.key].label} replaces.`);
       focusItem(here);
       return;
     }
     const first = selected;
     selected = null;
+    picking("");
     let message = "";
     if (first.zone === "tray" && here.zone === "bar") message = move(first, { zone: "bar", key: here.key, index: tabs.indexOf(here.key) });
     else if (first.zone === "bar" && here.zone === "tray") message = move({ zone: "tray", key: here.key }, { zone: "bar", key: first.key, index: tabs.indexOf(first.key) });
