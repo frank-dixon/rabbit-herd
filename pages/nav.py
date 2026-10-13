@@ -26,7 +26,7 @@ def ui(request):
         theme, density = user.ui_theme or "c1", user.ui_density or "roomy"
     else:
         theme, density = "c1", "roomy"
-    return {"ui_theme": theme, "ui_density": density, "ui_theme_color": THEME_COLOR.get(theme, THEME_COLOR["c1"])[0],
+    return {"ui_theme": theme, "ui_density": density, "ui_icons": ICONS, "ui_theme_color": THEME_COLOR.get(theme, THEME_COLOR["c1"])[0],
             "ui_theme_color_dark": THEME_COLOR.get(theme, THEME_COLOR["c1"])[1]}
 
 
@@ -55,6 +55,7 @@ ICONS = {
     "settings": "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z",
     "account": "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0",
     "menu": "M4 7h16M4 12h16M4 17h16",
+    "photos": "M4 8a2 2 0 0 1 2-2h2l1.5-2h5L16 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
 }
 
 # Every place the bottom bar can point at: key -> (label, url name, query).

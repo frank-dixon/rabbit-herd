@@ -32,7 +32,7 @@
     </ul>
     {% if weights|length > 6 %}<p class="mt-1 text-sm text-neutral-600">Showing the latest 6 of {{ weights|length }} weights. The chart shows them all.</p>{% endif %}
   {% else %}
-    <p class="mt-2 text-neutral-600">No weights yet. Add one below to start the growth chart.</p>
+    {% include "components/empty.html" with title="No weights yet." text="Add one below to start the growth chart." compact=True icon=ui_icons.weights only %}
   {% endif %}
   <form class="mt-4 border-t border-neutral-200 pt-4" method="post" action="{% url 'rabbit_weight_add' rabbit.pk %}" data-offline-queue="Weight" novalidate>
     {% csrf_token %}

@@ -34,6 +34,6 @@
       {% endfor %}
     </ul>
   {% else %}
-    <p class="mt-4 text-neutral-600">{% if role %}No contacts with this role yet.{% else %}No contacts yet. Add the people you buy from or sell to.{% endif %}</p>
+    {% url "contact_create" as c_url %}{% if role %}{% include "components/empty.html" with title="No contacts with this role yet." href="?" action="Show all contacts" secondary=True kind="contacts" icon=ui_icons.contacts only %}{% else %}{% include "components/empty.html" with title="No contacts yet." text="Add the people you buy from or sell to, and link them to rabbits and sales." href=c_url action="Add a contact" kind="contacts" icon=ui_icons.contacts only %}{% endif %}
   {% endif %}
 {% endblock %}

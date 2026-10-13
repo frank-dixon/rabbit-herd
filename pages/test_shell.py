@@ -94,3 +94,23 @@ class PullRefreshTests(TestCase):
 
     def test_offline_banner_is_in_every_page(self):
         self.assertContains(self.client.get(reverse("index")), 'class="net-banner" role="status" data-connection-status')
+
+
+class EmptyStateTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(email="empty@example.com", password="x-strong-Pass-1")
+        self.client.force_login(self.user)
+
+    def test_each_empty_list_offers_one_next_step(self):
+        for name, step in (("index", "rabbit_create"), ("rabbit_list", "rabbit_create"),
+                           ("contact_list", "contact_create"), ("weights_hub", "rabbit_create")):
+            html = self.client.get(reverse(name)).content.decode()
+            block = html[html.index('class="empty'):]
+            block = block[:block.index("</div>\n</div>") if "</div>\n</div>" in block else 1500]
+            self.assertIn(f'href="{reverse(step)}"', block, name)
+            self.assertEqual(block.count("<a "), 1, name)
+
+    def test_empty_litters_does_not_repeat_the_header_action(self):
+        html = self.client.get(reverse("litter_list")).content.decode()
+        self.assertIn("No litters on the way.", html)
+        self.assertEqual(html.count(f'href="{reverse("pairing_list")}"', html.index("<main")), 1)

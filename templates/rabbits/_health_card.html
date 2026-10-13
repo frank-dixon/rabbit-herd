@@ -18,7 +18,7 @@
       {% endfor %}
     </ul>
   {% else %}
-    <p class="mt-2 text-sm text-neutral-600">No health notes yet.</p>
+    {% include "components/empty.html" with title="No health notes yet." text="Add one below. A follow-up date puts it on Today." compact=True icon=ui_icons.health only %}
   {% endif %}
   <form class="mt-4 border-t border-neutral-200 pt-4" method="post" action="{% url 'rabbit_health_add' rabbit.pk %}" data-offline-queue="Health note">
     {% csrf_token %}

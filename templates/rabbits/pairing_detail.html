@@ -32,7 +32,7 @@
           {% endfor %}
         </ul>
       {% else %}
-        <p class="mt-2 text-sm text-neutral-600">No litters from this pairing yet.</p>
+        {% include "components/empty.html" with title="No litters from this pairing yet." text="Record a breeding above to schedule the litter." compact=True icon=ui_icons.litters only %}
       {% endif %}
       <form class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end" method="post" action="{% url 'litter_create' pairing.pk %}">
         {% csrf_token %}

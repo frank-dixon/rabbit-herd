@@ -9,11 +9,7 @@
     <p class="num mt-0.5 text-sm text-muted">{{ today|date:"D j M" }}</p>
 
     {% if not herd.active and not herd.deceased and not herd.archived %}
-      <div class="ruled mt-6 pt-4" data-empty="herd">
-        <p class="font-semibold">No rabbits yet.</p>
-        <p class="mt-1 text-muted">Add your first rabbit. Its tasks, litters and weights gather here each day.</p>
-        <a class="mo-press mt-4 inline-flex min-h-10 items-center rounded-md bg-accent px-4 text-sm font-semibold text-on-accent hover:bg-accent/90" href="{% url 'rabbit_create' %}">Add a rabbit</a>
-      </div>
+{% url "rabbit_create" as a_url %}{% include "components/empty.html" with title="No rabbits yet." text="Add your first rabbit. Its tasks, litters and weights gather here each day." href=a_url action="Add a rabbit" kind="herd" icon=ui_icons.today only %}
     {% else %}
       <section class="mt-6" aria-labelledby="due-heading">
         <h2 class="eyebrow flex items-center gap-2" id="due-heading">Due now {% if due_now %}<span class="num text-second-ink" data-due-count>{{ due_now|length }}</span>{% endif %}</h2>

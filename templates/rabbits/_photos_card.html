@@ -83,5 +83,5 @@
       {% endwith %}
     {% endfor %}
   </ul>
-  {% if not photos %}<p class="mt-2 text-sm text-neutral-600">No photos yet.</p>{% endif %}
+  {% if not photos %}{% include "components/empty.html" with title="No photos yet." text="A side-on photo every few weeks makes growth easy to compare." compact=True kind="photos" icon=ui_icons.photos only %}{% endif %}
 </section>

@@ -18,7 +18,7 @@
         {% endwith %}{% endfor %}
       </ul>
     {% else %}
-      <p class="mt-2 text-neutral-600">No litters on the way.</p>
+{% include "components/empty.html" with title="No litters on the way." text="Open Pairings and record a breeding. The due date, nest box and palpation days are scheduled for you." kind="litters" icon=ui_icons.litters compact=True only %}
     {% endif %}
   </section>
   {% if kindled %}

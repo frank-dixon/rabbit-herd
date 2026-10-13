@@ -55,6 +55,6 @@
       <p class="mt-6 text-neutral-600">No kit photos yet. Add photos from each kit's page to line them up here.</p>
     {% endif %}
   {% else %}
-    <p class="mt-6 text-neutral-600">No kits from this litter are in your herd yet.</p>
+    {% include "components/empty.html" with title="No kits from this litter are in your herd yet." text="Add kits from the litter page to compare their photos week by week." kind="kits" icon=ui_icons.litters only %}
   {% endif %}
 {% endblock %}

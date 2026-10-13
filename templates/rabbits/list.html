@@ -164,16 +164,13 @@
     {% endif %}
   {% else %}
     {% if filtering %}
-      <div class="mt-8 rounded border border-neutral-300 bg-white p-4" data-empty="filtered">
-        <p class="font-medium">No rabbits match these filters.</p>
-        <p class="mt-1 text-neutral-600"><a class="underline" href="?{{ clear_qs }}">Clear the search and filters</a></p>
-      </div>
+      {% with href="?"|add:clear_qs %}{% include "components/empty.html" with title="No rabbits match these filters." text="Try a different search, or clear it to see the whole herd." href=href action="Clear the search and filters" kind="filtered" secondary=True icon=ui_icons.rabbits only %}{% endwith %}
     {% elif filters.tab == 'archived' %}
-      <p class="mt-8 text-neutral-600">No archived rabbits.</p>
+{% include "components/empty.html" with title="No archived rabbits." text="Rabbits you sell or retire can be archived from their page and kept here for the record." kind="archived" icon=ui_icons.archived only %}
     {% elif filters.tab == 'deceased' %}
-      <p class="mt-8 text-neutral-600">No deceased rabbits.</p>
+{% include "components/empty.html" with title="No deceased rabbits." kind="deceased" icon=ui_icons.rabbits only %}
     {% else %}
-      <p class="mt-8 text-neutral-600">No rabbits yet.</p>
+{% url "rabbit_create" as add_url %}{% include "components/empty.html" with title="No rabbits yet." text="Add your first rabbit with its breed, colour and birth date. Pedigrees, weights and litters build from there." href=add_url action="Add a rabbit" kind="herd" icon=ui_icons.rabbits only %}
     {% endif %}
   {% endif %}
 {% endblock %}
