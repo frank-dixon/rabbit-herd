@@ -1,5 +1,5 @@
-"""Litters, started from a pairing. The breed date sets the day 12 palpate,
-day 28 nest box and day 31 due dates; kindling records kits born alive and
+"""Litters, started from a pairing. The breed date sets the palpate,
+nest box and due dates (days from Settings); kindling records kits born alive and
 dead, losses later on, and survivors can be added to the herd as rabbits."""
 
 import datetime
@@ -97,11 +97,13 @@ def litter_task(request, pk):
         litter.palpated = done
     elif task == "nest_box":
         litter.nest_box_in = done
+    elif task == "rebreed":
+        litter.rebred = done
     elif task == "wean":
         litter.weaned = done
     elif task == "process":
         litter.processed = done
-    litter.save(update_fields=["palpated", "nest_box_in", "weaned", "processed"])
+    litter.save(update_fields=["palpated", "nest_box_in", "rebred", "weaned", "processed"])
     if request.POST.get("next") in ("/", "/tasks/"):
         return redirect(request.POST["next"])
     return redirect(f"/litters/{litter.pk}/#dates")

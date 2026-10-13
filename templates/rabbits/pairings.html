@@ -12,7 +12,7 @@
         {% include "components/select.html" with name="doe" label="Doe" options=doe_options value=values.doe errors=errors.doe placeholder="Choose a doe…" only %}
         {% include "components/select.html" with name="buck" label="Buck" options=buck_options value=values.buck errors=errors.buck placeholder="Choose a buck…" only %}
         <div class="sm:col-span-2">{% include "components/text_input.html" with name="notes" label="Notes (optional)" value=values.notes only %}</div>
-        {% if check %}<div class="sm:col-span-2">{% include "rabbits/_pairing_warnings.html" with warnings=check.warnings doe=check.doe buck=check.buck only %}</div>{% endif %}
+        {% if check %}<div class="sm:col-span-2">{% include "rabbits/_pairing_warnings.html" with warnings=check.warnings doe=check.doe buck=check.buck age_warnings=check.age only %}</div>{% endif %}
         <div class="flex flex-col gap-2 sm:col-span-2 sm:flex-row">
           {% include "components/button.html" with label="Check relatedness" type="submit" name="action" value="check" variant="secondary" only %}
           {% include "components/button.html" with label="Save pairing" type="submit" name="action" value="save" variant="primary" only %}

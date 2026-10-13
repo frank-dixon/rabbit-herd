@@ -699,6 +699,7 @@ class Litter(models.Model):
     """A breeding from a pairing: the breed date gives the palpate, nest box
     and due dates; after kindling it records kits born, losses and survivors."""
 
+    # Defaults; each keeper's own come from Settings (HerdSettings).
     PALPATE_DAY = 12
     NEST_BOX_DAY = 28
     DUE_DAY = 31
@@ -712,6 +713,7 @@ class Litter(models.Model):
     palpated = models.BooleanField(default=False)
     nest_box_in = models.BooleanField(default=False)
     kindled_on = models.DateField(null=True, blank=True)
+    rebred = models.BooleanField(default=False)
     weaned = models.BooleanField(default=False)
     processed = models.BooleanField(default=False)
     born_alive = models.PositiveSmallIntegerField(null=True, blank=True)
@@ -732,8 +734,13 @@ class Litter(models.Model):
         return self.bred_on + timedelta(days=n)
 
     @property
+    def schedule(self):
+        """The owner's breeding schedule settings."""
+        return prefs(self.owner)
+
+    @property
     def due_on(self):
-        return self.day(self.DUE_DAY)
+        return self.day(self.schedule.gestation_days)
 
     @property
     def survivors(self):
@@ -744,27 +751,32 @@ class Litter(models.Model):
     def tasks(self):
         """The automatic dates, each with whether it is done."""
         kindled = self.kindled_on is not None
+        s = self.schedule
         return [
-            {"key": "palpate", "label": "Palpate", "day": self.PALPATE_DAY, "date": self.day(self.PALPATE_DAY),
+            {"key": "palpate", "label": "Palpate", "day": s.palpate_day, "date": self.day(s.palpate_day),
              "done": self.palpated or kindled},
-            {"key": "nest_box", "label": "Put the nest box in", "day": self.NEST_BOX_DAY,
-             "date": self.day(self.NEST_BOX_DAY), "done": self.nest_box_in or kindled},
-            {"key": "due", "label": "Due to kindle", "day": self.DUE_DAY, "date": self.due_on, "done": kindled},
+            {"key": "nest_box", "label": "Put the nest box in", "day": s.nest_box_day,
+             "date": self.day(s.nest_box_day), "done": self.nest_box_in or kindled},
+            {"key": "due", "label": "Due to kindle", "day": s.gestation_days, "date": self.due_on, "done": kindled},
         ] + self.kit_tasks()
 
     def kit_tasks(self):
-        """Wean and process dates, from the kindling date, once kindled."""
+        """Rebreed, wean and process dates, from the kindling date, once kindled."""
         if self.kindled_on is None:
             return []
         from datetime import timedelta
 
+        s = self.schedule
         bred_days = (self.kindled_on - self.bred_on).days
-        return [
-            {"key": "wean", "label": "Wean", "age": self.WEAN_AGE, "day": bred_days + self.WEAN_AGE,
-             "date": self.kindled_on + timedelta(days=self.WEAN_AGE), "done": self.weaned},
-            {"key": "process", "label": "Process", "age": self.PROCESS_AGE, "day": bred_days + self.PROCESS_AGE,
-             "date": self.kindled_on + timedelta(days=self.PROCESS_AGE), "done": self.processed},
+        rows = [
+            {"key": "rebreed", "label": "Rebreed the doe", "age": s.rebreed_days, "day": bred_days + s.rebreed_days,
+             "date": self.kindled_on + timedelta(days=s.rebreed_days), "done": self.rebred},
+            {"key": "wean", "label": "Wean", "age": s.wean_age, "day": bred_days + s.wean_age,
+             "date": self.kindled_on + timedelta(days=s.wean_age), "done": self.weaned},
+            {"key": "process", "label": "Process", "age": s.process_age, "day": bred_days + s.process_age,
+             "date": self.kindled_on + timedelta(days=s.process_age), "done": self.processed},
         ]
+        return sorted(rows, key=lambda row: row["date"])
 
     def next_task(self):
         return next((task for task in self.tasks() if not task["done"]), None)

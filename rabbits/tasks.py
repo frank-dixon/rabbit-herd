@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .models import Litter, Rabbit, Task
+from .models import Litter, Rabbit, Task, prefs
 
 TITLE_REQUIRED = "Please say what needs doing, like Trim nails."
 DATE_REQUIRED = "Please enter a due date."
@@ -26,10 +26,11 @@ def open_items(user, today=None):
                       "rabbit": task.rabbit, "url": reverse("rabbit_detail", args=[task.rabbit_id]) if task.rabbit_id else ""})
     # Litters still to kindle, plus recent ones with wean or process dates
     # open; older litters are history and stay off the list.
-    recent = today - datetime.timedelta(days=Litter.PROCESS_AGE + 30)
+    recent = today - datetime.timedelta(days=prefs(user).process_age + 30)
     litters = Litter.objects.filter(owner=user).filter(
         Q(kindled_on__isnull=True) | Q(kindled_on__gte=recent)).select_related("pairing__doe", "pairing__buck")
     for litter in litters:
+        litter.owner = user  # Shares the user's cached settings; no query per litter.
         for task in litter.tasks():
             if not task["done"]:
                 when = f"kits {task['age']} days" if "age" in task else f"day {task['day']}"

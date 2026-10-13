@@ -78,6 +78,24 @@ def inbreeding_warnings(doe, buck):
     return warnings
 
 
+def age_warnings(doe, buck):
+    """Plain sentences for a doe or buck younger than the owner's breeding age."""
+    from django.utils import timezone
+
+    from .models import prefs
+
+    months = prefs(doe.owner).breeding_age_months
+    today = timezone.localdate()
+    out = []
+    for rabbit in (doe, buck):
+        if rabbit.birth_date is None:
+            continue
+        age = (today.year - rabbit.birth_date.year) * 12 + today.month - rabbit.birth_date.month - (today.day < rabbit.birth_date.day)
+        if age < months:
+            out.append(f"{rabbit.name} is {age} month{'s' if age != 1 else ''} old; your breeding age is {months} months.")
+    return out
+
+
 def herd_choices(user, sex):
     rabbits = Rabbit.objects.filter(owner=user, sex=sex, archived_at__isnull=True).exclude(status=Rabbit.Status.DECEASED)
     return [(str(r.pk), f"{r.name}{f' · {r.tattoo}' if r.tattoo else ''} · {r.short_breed}") for r in rabbits]
@@ -110,12 +128,12 @@ def pairing_list(request):
             messages.success(request, f"{pairing} was saved.")
             return redirect("pairing_detail", pairing.pk)
         if not errors:
-            check = {"doe": doe, "buck": buck, "warnings": inbreeding_warnings(doe, buck)}
+            check = {"doe": doe, "buck": buck, "warnings": inbreeding_warnings(doe, buck), "age": age_warnings(doe, buck)}
     elif values["doe"] and values["buck"]:
         doe = pick(request.user, values["doe"], Rabbit.Sex.DOE)
         buck = pick(request.user, values["buck"], Rabbit.Sex.BUCK)
         if doe and buck:
-            check = {"doe": doe, "buck": buck, "warnings": inbreeding_warnings(doe, buck)}
+            check = {"doe": doe, "buck": buck, "warnings": inbreeding_warnings(doe, buck), "age": age_warnings(doe, buck)}
     pairings = Pairing.objects.filter(owner=request.user).select_related("doe", "buck")
     return render(request, "rabbits/pairings.html", {
         "pairings": pairings, "errors": errors, "values": values, "check": check, "wide": True,
@@ -132,7 +150,8 @@ def pairing_detail(request, pk):
     from django.utils import timezone
 
     doe_pairs, buck_pairs = color_odds.recorded(pairing.doe), color_odds.recorded(pairing.buck)
-    context = {"pairing": pairing, "warnings": inbreeding_warnings(pairing.doe, pairing.buck), "wide": True,
+    context = {"pairing": pairing, "warnings": inbreeding_warnings(pairing.doe, pairing.buck),
+               "age_warnings": age_warnings(pairing.doe, pairing.buck), "wide": True,
                "litters": pairing.litters.all(), "today": timezone.localdate(),
                "odds": color_odds.predict(pairing.doe, pairing.buck),
                "hidden_notes": genetics.pairing_notes(pairing.doe.name, doe_pairs, pairing.buck.name, buck_pairs),

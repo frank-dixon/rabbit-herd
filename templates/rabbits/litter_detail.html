@@ -14,7 +14,7 @@
           <li class="flex flex-wrap items-center justify-between gap-2 p-3" data-task="{{ task.key }}">
             <div class="min-w-0">
               <p class="font-semibold{% if task.done %} line-through text-neutral-600{% endif %}">{{ task.label }}</p>
-              <p class="text-sm text-neutral-600">{% if task.age %}Kits {{ task.age }} days old{% else %}Day {{ task.day }}{% endif %} · {{ task.date|date:"D, M j" }}{% if not task.done %}{% if task.date < today %} · <span class="font-semibold text-red-800">overdue</span>{% elif task.date == today %} · <span class="font-semibold text-neutral-900">today</span>{% endif %}{% else %} · done{% endif %}</p>
+              <p class="text-sm text-neutral-600">{% if task.key == "rebreed" %}{{ task.age }} days after kindling{% elif task.age %}Kits {{ task.age }} days old{% else %}Day {{ task.day }}{% endif %} · {{ task.date|date:"D, M j" }}{% if not task.done %}{% if task.date < today %} · <span class="font-semibold text-red-800">overdue</span>{% elif task.date == today %} · <span class="font-semibold text-neutral-900">today</span>{% endif %}{% else %} · done{% endif %}</p>
             </div>
             {% if task.age or task.key != "due" and not litter.kindled_on %}
               <form method="post" action="{% url 'litter_task' litter.pk %}">

@@ -14,7 +14,7 @@
         <dt class="text-neutral-600">Saved</dt><dd>{{ pairing.created_at|date:"M j, Y" }}</dd>
         {% if pairing.notes %}<dt class="text-neutral-600">Notes</dt><dd class="break-words">{{ pairing.notes }}</dd>{% endif %}
       </dl>
-      {% include "rabbits/_pairing_warnings.html" with warnings=warnings doe=pairing.doe buck=pairing.buck only %}
+      {% include "rabbits/_pairing_warnings.html" with warnings=warnings doe=pairing.doe buck=pairing.buck age_warnings=age_warnings only %}
       <form class="mt-4" method="post" action="{% url 'pairing_delete' pairing.pk %}">
         {% csrf_token %}
         <button type="submit" class="inline-flex items-center justify-center rounded px-4 py-2 font-medium border border-line bg-surface text-danger hover:border-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">Remove pairing</button>

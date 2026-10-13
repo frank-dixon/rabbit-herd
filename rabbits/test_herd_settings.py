@@ -81,3 +81,52 @@ class UnitsAppliedTests(TestCase):
         response = self.client.post(reverse("rabbit_weight_add", args=[self.rabbit.pk]),
                                     {"date": "2025-07-01", "kg": "2.2"}, follow=True)
         self.assertContains(response, "2.2 kg on Jul 1 was added")
+
+
+class ScheduleAppliedTests(TestCase):
+    def setUp(self):
+        import datetime
+        from django.utils import timezone
+        from .models import Litter, Pairing, Rabbit
+        self.owner = user("schedule@example.com")
+        self.client.force_login(self.owner)
+        today = timezone.localdate()
+        mk = lambda name, sex, born: Rabbit.objects.create(owner=self.owner, name=name, sex=sex, breed="Rex",
+                                                           color="Black", birth_date=born)
+        self.doe = mk("Clover", "doe", today - datetime.timedelta(days=400))
+        self.buck = mk("Sprout", "buck", today - datetime.timedelta(days=100))
+        self.pairing = Pairing.objects.create(owner=self.owner, doe=self.doe, buck=self.buck)
+        self.today = today
+        self.litter = Litter.objects.create(owner=self.owner, pairing=self.pairing, bred_on=today)
+
+    def test_litter_dates_follow_settings(self):
+        import datetime
+        HerdSettings.objects.create(user=self.owner, gestation_days=32, palpate_day=14, nest_box_day=27,
+                                    wean_age=42, process_age=84, rebreed_days=35)
+        from .models import Litter
+        litter = Litter.objects.get(pk=self.litter.pk)
+        tasks = {t["key"]: t for t in litter.tasks()}
+        self.assertEqual(tasks["palpate"]["day"], 14)
+        self.assertEqual(tasks["nest_box"]["day"], 27)
+        self.assertEqual(litter.due_on, self.today + datetime.timedelta(days=32))
+        litter.kindled_on = self.today
+        tasks = {t["key"]: t for t in litter.tasks()}
+        self.assertEqual(tasks["wean"]["date"], self.today + datetime.timedelta(days=42))
+        self.assertEqual(tasks["process"]["age"], 84)
+        self.assertEqual(tasks["rebreed"]["date"], self.today + datetime.timedelta(days=35))
+        page = self.client.get(reverse("task_list"))
+        self.assertContains(page, "Palpate: Clover (day 14)")
+
+    def test_mark_rebred(self):
+        self.litter.kindled_on = self.today
+        self.litter.save()
+        self.client.post(reverse("litter_task", args=[self.litter.pk]), {"task": "rebreed", "done": "1"})
+        self.litter.refresh_from_db()
+        self.assertTrue(self.litter.rebred)
+
+    def test_young_rabbit_warning_uses_breeding_age(self):
+        page = self.client.get(reverse("pairing_detail", args=[self.pairing.pk]))
+        self.assertContains(page, "Sprout is 3 months old; your breeding age is 6 months.")
+        self.assertNotContains(page, "Clover is")
+        HerdSettings.objects.create(user=self.owner, breeding_age_months=3)
+        self.assertNotContains(self.client.get(reverse("pairing_detail", args=[self.pairing.pk])), "data-age-warnings")
