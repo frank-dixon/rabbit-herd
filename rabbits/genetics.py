@@ -65,3 +65,52 @@ def c_carrier_suggestion(rabbit):
         f"Probable carrier of c (albino): {rabbit.name}'s {relationship}, {name}, is c/c, "
         "so every kit gets one c. Confirm to record C/c, or remove this note."
     )
+
+
+def _has(pair, allele):
+    return pair is not None and allele in pair
+
+
+def _homo(pair, allele):
+    return pair is not None and pair[0] == allele and pair[1] == allele
+
+
+def hidden_notes(pairs):
+    """Plain notes on what a genotype hides or carries, from
+    {locus: (allele, allele)} as color_odds.recorded returns."""
+    a, c, e, v, si, en = (pairs.get(locus) for locus in ("A", "C", "E", "V", "Si", "En"))
+    notes = []
+    if _homo(c, "c"):
+        notes.append("c/c (ruby-eyed white) hides whatever it carries at A, B, D, E, V and Si. "
+                     "Bred to a colored rabbit, those genes show in the kits.")
+    elif _has(c, "c"):
+        notes.append("Carries albino (c). Bred to another carrier, about 1 in 4 kits are ruby-eyed white.")
+        if _has(c, "ch"):
+            notes.append("ch/c Himalayan: points are often paler than on ch/ch.")
+    if _homo(v, "v"):
+        if not _homo(c, "c"):
+            notes.append("v/v (blue-eyed white) hides whatever it carries at A, B, C, D, E and Si.")
+    elif _has(v, "v"):
+        notes.append("Carries Vienna (v). Bred to another carrier, about 1 in 4 kits are blue-eyed white. "
+                     "V/v rabbits can show small white marks.")
+    if _has(e, "e") and not _homo(e, "e"):
+        notes.append("Carries red (e). Bred to another carrier, about 1 in 4 kits are red-based: "
+                     "orange, fawn or tortoise.")
+    if e is not None and e[0] == "Es" and _homo(a, "a"):
+        notes.append("Carries steel (Es), which does not show on a self (a/a). Bred to an agouti, steel kits can appear.")
+    if _has(si, "si") and not _homo(si, "si"):
+        notes.append("Carries silvering (si) without showing it. Bred to another carrier, about 1 in 4 kits are silvered.")
+    if _homo(en, "En"):
+        notes.append("Charlie (En/En). Bred to a solid (en/en), every kit is broken.")
+    return notes
+
+
+def pairing_notes(doe_name, doe_pairs, buck_name, buck_pairs):
+    """Notes for a pairing: each parent's hidden genes, then what the two
+    together make likely."""
+    notes = [f"{name}: {note}" for name, pairs in ((doe_name, doe_pairs), (buck_name, buck_pairs))
+             for note in hidden_notes(pairs)]
+    doe_en, buck_en = doe_pairs.get("En"), buck_pairs.get("En")
+    if _has(doe_en, "En") and _has(buck_en, "En"):
+        notes.append("Both parents carry broken (En): expect some charlie (En/En) kits.")
+    return notes

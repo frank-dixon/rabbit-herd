@@ -198,6 +198,16 @@ def genotype_text(pair):
     return "/".join(pair)
 
 
+def recorded(rabbit):
+    """{locus: pair} for each standard locus recorded readably on a rabbit."""
+    out = {}
+    for locus, gene in _genes(rabbit).items():
+        pair = parse(locus, gene.genotype) if locus in SERIES else None
+        if pair is not None and pair != (UNKNOWN, UNKNOWN):
+            out[locus] = order(locus, pair)
+    return out
+
+
 def _genes(rabbit):
     return {gene.locus: gene for gene in rabbit.genes.all() if gene.locus != Gene.Locus.OTHER}
 

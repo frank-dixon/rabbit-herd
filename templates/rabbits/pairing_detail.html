@@ -60,6 +60,12 @@
       {% if odds.probable %}
         <p class="mt-2 text-sm text-neutral-600">Uses probable, not confirmed, genes for {{ odds.probable|join:" and " }}.</p>
       {% endif %}
+      {% if hidden_notes %}
+        <h3 class="mt-4 text-sm font-semibold">Hidden genes</h3>
+        <ul class="mt-1 space-y-1 text-sm" data-hidden-notes>
+          {% for note in hidden_notes %}<li>{{ note }}</li>{% endfor %}
+        </ul>
+      {% endif %}
       {% for name, locus, text in odds.unreadable %}
         <p class="mt-2 text-sm text-red-800">{{ name }}'s {{ locus }} gene, “{{ text }}”, can't be read as a genotype. Write it like A/at, using _ for an unknown allele.</p>
       {% endfor %}

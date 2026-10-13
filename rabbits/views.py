@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from . import costs, culling, genetics, purebred, shows
+from . import color_odds, costs, culling, genetics, purebred, shows
 from .forms import GenesForm, PhotoUploadForm
 from .models import Contact, Gene, HealthNote, Location, Rabbit, Weight
 
@@ -198,6 +198,7 @@ def rabbit_detail(request, pk):
             "kindling_note": rabbit.kindling_note(relatives),
             "upload_form": PhotoUploadForm(),
             "c_carrier_note": genetics.c_carrier_suggestion(rabbit),
+            "hidden_notes": genetics.hidden_notes(color_odds.recorded(rabbit)),
             "genes": rabbit.genes.all(),
             "relatives_with_genes": [
                 (relative, list(relative.genes.all()))
