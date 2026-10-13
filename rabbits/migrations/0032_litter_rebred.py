@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rabbits', '0030_herd_settings'),
+        ('rabbits', '0031_rabbit_eye_color'),
     ]
 
     operations = [
