@@ -32,7 +32,7 @@ def trait_parts():
     parts = ["color_choice", "color", "line", "breed"]
     for locus in GENE_LOCI:
         parts += [f"gene_{locus}", f"cert_{locus}"]
-    return parts + ["gene_other", "cert_other"]
+    return parts + ["gene_other", "cert_other", "to_herd", "herd_sex", "herd_born"]
 
 
 def parent_color_options(breed):
@@ -539,6 +539,9 @@ class RelativesForm(StepForm):
                         ),
                     )
                     continue
+            herd = self.herd_answer(base, relationship, target)
+            if herd is False:
+                continue
             relatives.append(
                 {
                     "relationship": relationship,
@@ -546,9 +549,32 @@ class RelativesForm(StepForm):
                     "new_name": new_name,
                     "new_details": new_details,
                     **self.traits(base),
+                    "to_herd": herd,
                 }
             )
         return {"relatives": relatives}
+
+    def herd_answer(self, base, relationship, target):
+        """For an outside rabbit marked "add to my herd": (sex, birth date),
+        None when not asked, or False after adding an error. A dam or sire
+        takes its sex from the relationship."""
+        if self.text(f"{base}-to_herd") != "on" or isinstance(target, Rabbit):
+            return None
+        sex = PARENT_SEX.get(relationship) or self.text(f"{base}-herd_sex")
+        ok = True
+        if sex not in Rabbit.Sex.values:
+            self.add_error(f"{base}-herd_sex", SEX_REQUIRED)
+            ok = False
+        raw = self.text(f"{base}-herd_born")
+        try:
+            born = datetime.date.fromisoformat(raw)
+            if born > today():
+                self.add_error(f"{base}-herd_born", BIRTH_DATE_FUTURE)
+                ok = False
+        except ValueError:
+            self.add_error(f"{base}-herd_born", HERD_BORN_REQUIRED)
+            ok = False
+        return (sex, born.isoformat()) if ok else False
 
     def traits(self, base):
         """The row's optional color, line, and genes. The color is the
@@ -589,6 +615,7 @@ class RelativesForm(StepForm):
         }
 
 
+HERD_BORN_REQUIRED = "Please enter the birth date to add this rabbit to your herd. Guess the month if you need to."
 GENE_UNREADABLE = "Please choose a genotype from the list, or leave it as Not recorded."
 EYE_COLOR_UNKNOWN = "Please choose an eye color from the list, or leave it blank."
 

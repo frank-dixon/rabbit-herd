@@ -260,6 +260,22 @@ export function setGeneValue(field, value) {
   if (target) target.checked = true;
 }
 
+/** "Add to my herd": the sex and birth date show only once it's ticked.
+Without JavaScript they're always shown. */
+function bindToHerd(form) {
+  form.querySelectorAll("[data-to-herd]").forEach(function (box) {
+    const toggle = box.querySelector("[data-to-herd-toggle]");
+    const fields = box.querySelector("[data-to-herd-fields]");
+    if (!toggle || !fields) return;
+    const hasError = !!fields.querySelector("[aria-invalid=true], .border-red-800");
+    fields.hidden = !toggle.checked && !hasError;
+    toggle.addEventListener("change", function () {
+      fields.hidden = !toggle.checked;
+      if (toggle.checked) enter(fields);
+    });
+  });
+}
+
 /** Live fill on the genes card when the eye color changes. */
 function bindGeneFill(form) {
   const data = document.getElementById("gene-suggestions");
@@ -343,6 +359,7 @@ export function bindRabbitFlow(root) {
   bindRelationships(form);
   bindColorChoice(form);
   bindGeneFill(form);
+  bindToHerd(form);
   bindAutosave(form);
   placeFocus(form);
 }

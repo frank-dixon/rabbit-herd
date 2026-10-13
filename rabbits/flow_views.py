@@ -380,6 +380,15 @@ def trait_context(number, row, errors, parent_colors, breed):
         "genes": genes,
         "certainty_options": CERTAINTY_OPTIONS,
         "open_genes": any(gene["value"] or gene["error"] for gene in genes),
+        "to_herd_name": f"{base}-to_herd",
+        "to_herd": row.get("to_herd") == "on",
+        "herd_sex_name": f"{base}-herd_sex",
+        "herd_sex_error": errors.get(f"{base}-herd_sex", []),
+        "herd_sex_fixed": flow_forms.PARENT_SEX.get(row.get("relationship", ""), ""),
+        "herd_born_name": f"{base}-herd_born",
+        "herd_born_error": errors.get(f"{base}-herd_born", []),
+        "sex_options": flow_forms.Rabbit.Sex.choices,
+        "today": flow_forms.today().isoformat(),
     }
 
 

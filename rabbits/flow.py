@@ -12,6 +12,7 @@ step forms in rabbits/flow_forms.py check the draft when people move on,
 and every step is checked again, in one transaction, right before saving.
 """
 
+import datetime
 from dataclasses import dataclass
 from decimal import Decimal
 
@@ -343,7 +344,8 @@ def short_breed(text):
 
 
 def save_relatives(rabbit, user, rows):
-    """Save checked relatives rows, reusing a matching outside rabbit."""
+    """Save checked relatives rows, reusing a matching outside rabbit. A row
+    marked "add to my herd" becomes a full herd rabbit, genes and all."""
     for row in rows:
         target = row["target"]
         if target is None:
@@ -370,6 +372,11 @@ def save_relatives(rabbit, user, rows):
             Gene(relative=relative, locus=locus, genotype=genotype, certainty=certainty)
             for locus, genotype, certainty in row["genes"]
         )
+        if row.get("to_herd") and relative.outside_id:
+            from .adopt_views import adopt
+
+            sex, born = row["to_herd"]
+            adopt(user, relative, sex, datetime.date.fromisoformat(born))
 
 
 class DraftNotReady(Exception):
