@@ -30,6 +30,9 @@ SERIES = {
     "Si": ["Si", "si"],
 }
 COLOR_LOCI = ["A", "B", "C", "D", "E"]
+# Crossed into color names when recorded with both alleles on both parents;
+# otherwise names assume the common V and Si (no Vienna, no silvering).
+EXTRA_COLOR_LOCI = ["V", "Si"]
 CHINCHILLA = {"cchd", "cchm", "cchl"}
 
 
@@ -96,10 +99,20 @@ def shade(b, d, agouti=False):
     return {("B", "D"): "black", ("b", "D"): "chocolate", ("B", "d"): "blue", ("b", "d"): "lilac"}[(b, d)]
 
 
-def color_name(a, b, c, d, e):
-    """A common color name from the allele each locus shows."""
+def color_name(a, b, c, d, e, v="V", si="Si"):
+    """A common color name from the allele each locus shows. v and si are
+    the shown V and Si alleles: vv is blue-eyed white, sisi is silvered."""
     if c == "c":
         return "Ruby-eyed white"
+    if v == "v":
+        return "Blue-eyed white"
+    name = _color_name(a, b, c, d, e)
+    if si == "si" and c != "ch":
+        name += ", silvered"
+    return name
+
+
+def _color_name(a, b, c, d, e):
     base = shade(b, d)
     if c == "ch":
         return f"Himalayan ({base} points)"
@@ -160,7 +173,8 @@ def predict(doe, buck):
     """Everything the pairing page shows. Keys:
     loci: per-locus rows with kit genotype odds, or the reason none show;
     colors: [(name, percent)] most likely first, or [] with colors_missing
-    naming what to record; pattern: broken odds when En is recorded on both; probable: names of rabbits whose genes used are
+    naming what to record; assumed: V and/or Si when the names take them as
+    V_ and Si_ because they are not recorded on both parents; pattern: broken odds when En is recorded on both; probable: names of rabbits whose genes used are
     only probable; unreadable: (rabbit name, locus, text) that did not parse."""
     parents = [("doe", doe, _genes(doe)), ("buck", buck, _genes(buck))]
     loci, crosses, unreadable, probable = [], {}, [], set()
@@ -186,18 +200,23 @@ def predict(doe, buck):
                            for g, f in sorted(odds.items(), key=lambda item: (-item[1], item[0]))]
         loci.append(row)
 
-    colors, colors_missing = [], []
-    for locus in COLOR_LOCI:
+    def complete(locus):
         odds = crosses.get(locus)
-        if odds is None or any(UNKNOWN in g for g in odds):
-            colors_missing.append(locus)
+        return odds is not None and not any(UNKNOWN in g for g in odds)
+
+    colors, colors_missing = [], [locus for locus in COLOR_LOCI if not complete(locus)]
+    extra = [locus for locus in EXTRA_COLOR_LOCI if complete(locus)]
+    assumed = [locus for locus in EXTRA_COLOR_LOCI if locus not in extra]
     if not colors_missing:
+        used = COLOR_LOCI + extra
         names = defaultdict(Fraction)
-        for combo in product(*(crosses[locus].items() for locus in COLOR_LOCI)):
+        for combo in product(*(crosses[locus].items() for locus in used)):
             chance = Fraction(1)
             for _, fraction in combo:
                 chance *= fraction
-            names[color_name(*(shown(locus, g) for locus, (g, _) in zip(COLOR_LOCI, combo)))] += chance
+            alleles = {locus: shown(locus, g) for locus, (g, _) in zip(used, combo)}
+            names[color_name(*(alleles[locus] for locus in COLOR_LOCI),
+                             v=alleles.get("V", "V"), si=alleles.get("Si", "Si"))] += chance
         colors = [(name, percent(f)) for name, f in sorted(names.items(), key=lambda item: (-item[1], item[0]))]
 
     # Broken is independent of color, so it is its own short list.
@@ -207,5 +226,6 @@ def predict(doe, buck):
         for genotype, chance in crosses["En"].items():
             names[pattern_name(genotype)] += chance
         pattern = [(name, percent(f)) for name, f in sorted(names.items(), key=lambda item: (-item[1], item[0]))]
-    return {"loci": loci, "colors": colors, "colors_missing": colors_missing, "pattern": pattern,
+    return {"loci": loci, "colors": colors, "colors_missing": colors_missing,
+            "assumed": assumed if colors else [], "pattern": pattern,
             "probable": sorted(probable), "unreadable": unreadable}

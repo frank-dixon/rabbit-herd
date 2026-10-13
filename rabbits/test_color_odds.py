@@ -101,3 +101,35 @@ class ViennaSilverLociTests(TestCase):
         Gene.objects.create(rabbit=rabbit, locus="V", genotype="V/v")
         Gene.objects.create(rabbit=rabbit, locus="Si", genotype="si/si")
         self.assertEqual(sorted(rabbit.genes.values_list("locus", flat=True)), ["Si", "V"])
+
+
+class ViennaSilverOddsTests(TestCase):
+    def setUp(self):
+        owner = user("vsiodds@example.com")
+        base = {"owner": owner, "breed": "Silver Fox", "color": "Black", "birth_date": datetime.date(2025, 1, 1)}
+        self.doe = Rabbit.objects.create(name="Fern", sex="doe", **base)
+        self.buck = Rabbit.objects.create(name="Moss", sex="buck", **base)
+        for rabbit in (self.doe, self.buck):
+            for locus, genotype in dict(A="a/a", B="B/B", C="C/C", D="D/D", E="E/E").items():
+                Gene.objects.create(rabbit=rabbit, locus=locus, genotype=genotype, certainty="known")
+
+    def test_names_assume_v_and_si_when_not_recorded(self):
+        odds = color_odds.predict(self.doe, self.buck)
+        self.assertEqual(odds["colors"], [("Black", "100%")])
+        self.assertEqual(odds["assumed"], ["V", "Si"])
+
+    def test_vienna_carriers_give_quarter_blue_eyed_white(self):
+        for rabbit in (self.doe, self.buck):
+            Gene.objects.create(rabbit=rabbit, locus="V", genotype="V/v", certainty="known")
+        odds = color_odds.predict(self.doe, self.buck)
+        self.assertEqual(dict(odds["colors"])["Blue-eyed white"], "25%")
+        self.assertEqual(odds["assumed"], ["Si"])
+        v_row = next(row for row in odds["loci"] if row["locus"] == "V")
+        self.assertIn(("v/v", "25%"), v_row["kits"])
+
+    def test_silver_by_carrier_gives_half_silvered(self):
+        Gene.objects.create(rabbit=self.doe, locus="Si", genotype="si/si", certainty="known")
+        Gene.objects.create(rabbit=self.buck, locus="Si", genotype="Si/si", certainty="known")
+        colors = dict(color_odds.predict(self.doe, self.buck)["colors"])
+        self.assertEqual(colors["Black"], "50%")
+        self.assertEqual(sum(float(v.rstrip("%")) for k, v in colors.items() if "ilver" in k), 50)
