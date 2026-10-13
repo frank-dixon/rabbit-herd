@@ -5,8 +5,9 @@
 {% block content %}<span data-refreshable hidden></span>
   {% include "components/page_header.html" with title="Rabbits" subtitle=subtitle actions_template="rabbits/_list_add.html" compact_actions=True %}
 
+  <div data-swap-root>
   <div class="mt-5 flex items-end justify-between gap-2 border-b border-line">
-    <nav class="seg seg-underline relative -mb-px flex min-w-0 gap-4 overflow-x-auto text-sm" aria-label="Active, former or archived" data-segmented>
+    <nav class="seg seg-underline relative -mb-px flex min-w-0 gap-4 overflow-x-auto text-sm" aria-label="Active, former or archived" data-segmented data-swap-sync>
       <span class="seg-thumb" aria-hidden="true" data-seg-thumb></span>
       <a href="?{{ active_qs }}" class="shrink-0 py-2 {% if filters.tab == 'active' %}font-semibold{% endif %}" data-seg-option data-current="page"{% if filters.tab == 'active' %} data-selected{% endif %}{% if filters.tab == 'active' %} aria-current="page"{% endif %}>Active <span class="num text-muted">{{ active_count }}</span></a>
       <a href="?{{ former_qs }}" class="shrink-0 py-2 {% if filters.tab == 'former' %}font-semibold{% endif %}" data-seg-option data-current="page"{% if filters.tab == 'former' %} data-selected{% endif %}{% if filters.tab == 'former' %} aria-current="page"{% endif %}>Former <span class="num text-muted">{{ former_count }}</span></a>
@@ -15,8 +16,7 @@
   </div>
 
   <form method="get" class="mt-3" role="search" aria-label="Search and filter rabbits" data-filter-form>
-    {% if filters.tab != 'active' %}<input type="hidden" name="tab" value="{{ filters.tab }}">{% endif %}
-    {% if view == 'list' %}<input type="hidden" name="view" value="list">{% endif %}
+    <span data-swap="hidden">{% if filters.tab != 'active' %}<input type="hidden" name="tab" value="{{ filters.tab }}">{% endif %}{% if view == 'list' %}<input type="hidden" name="view" value="list">{% endif %}</span>
     <div class="flex items-center gap-2">
       <label class="relative min-w-0 flex-1">
         <span class="sr-only">Search by name or tattoo</span>
@@ -70,22 +70,21 @@
           </div>
         </div>
       </details>
-      {% if rabbits %}
-        <div class="ml-auto flex shrink-0 items-center gap-2" data-view-controls>
+        <div class="ml-auto flex shrink-0 items-center gap-2" data-view-controls data-swap="controls">{% if rabbits %}
           {% if view == 'grid' %}<div class="hidden md:block">{% include "components/segmented.html" with label="Grid size" options=density_options only %}</div>{% endif %}
           {% include "components/segmented.html" with label="Layout" options=view_options icon_only=True only %}
-        </div>
-      {% endif %}
+        {% endif %}</div>
     </div>
-    {% if filter_chips %}
+    <div data-swap="chips">{% if filter_chips %}
       <ul class="mt-2 flex flex-wrap gap-1.5" aria-label="Active filters">
         {% for chip in filter_chips %}
           <li class="mo-enter"><a href="?{{ chip.remove_qs }}" class="mo-press inline-flex h-7 items-center gap-1 rounded-full border border-line bg-surface pl-2.5 pr-1.5 text-xs font-medium hover:border-field">{{ chip.label }}<svg class="h-3.5 w-3.5 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="sr-only">Remove filter</span></a></li>
         {% endfor %}
       </ul>
-    {% endif %}
+    {% endif %}</div>
   </form>
 
+  <div data-swap="results">
   {% if rabbits %}
 
     {% if view == 'grid' and ui_density == 'compact' %}
@@ -166,4 +165,6 @@
 {% url "rabbit_create" as add_url %}{% include "components/empty.html" with title="No rabbits yet." text="Add your first rabbit with its breed, color and birth date. Its pedigree, weights and litters build from there." href=add_url action="Add a rabbit" kind="herd" icon=ui_icons.rabbits only %}
     {% endif %}
   {% endif %}
+  </div>
+  </div>
 {% endblock %}
