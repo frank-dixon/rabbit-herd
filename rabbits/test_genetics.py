@@ -111,3 +111,29 @@ class CarrierOddsTests(FlowTestMixin, TestCase):
         from django.urls import reverse
         page = self.client.get(reverse("rabbit_detail", args=[self.juniper.pk]))
         self.assertContains(page, "Carrier odds from the parents")
+
+
+class TestMateTests(FlowTestMixin, TestCase):
+    def test_suggests_a_homozygous_recessive_mate(self):
+        Gene.objects.create(rabbit=self.juniper, locus="C", genotype="C_", certainty="known")
+        Gene.objects.create(rabbit=self.pepper, locus="C", genotype="c/c", certainty="known")
+        [item] = genetics.test_mates(self.juniper)
+        self.assertEqual(item["mates"], ["Pepper"])
+        self.assertIn("Pair with Pepper (c/c)", item["note"])
+
+    def test_says_when_no_mate_can_test(self):
+        Gene.objects.create(rabbit=self.juniper, locus="D", genotype="D/d", certainty="probable")
+        Gene.objects.create(rabbit=self.juniper, locus="A", genotype="a/a", certainty="known")
+        [item] = genetics.test_mates(self.juniper)
+        self.assertEqual(item["locus"], "D")
+        self.assertIn("No d/d buck recorded", item["note"])
+
+    def test_known_genes_need_no_test(self):
+        Gene.objects.create(rabbit=self.juniper, locus="B", genotype="B/B", certainty="known")
+        self.assertEqual(genetics.test_mates(self.juniper), [])
+
+    def test_shown_on_rabbit_page(self):
+        Gene.objects.create(rabbit=self.juniper, locus="C", genotype="C_", certainty="known")
+        self.client.force_login(self.user)
+        from django.urls import reverse
+        self.assertContains(self.client.get(reverse("rabbit_detail", args=[self.juniper.pk])), "To confirm")

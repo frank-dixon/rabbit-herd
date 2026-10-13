@@ -25,6 +25,12 @@
       <p class="mt-1 text-xs text-neutral-600">Untested here. Record a gene as probable, or test-breed to confirm.</p>
     </div>
   {% endif %}
+  {% if test_mates %}
+    <div class="mt-3" data-test-mates>
+      <h3 class="text-sm font-semibold">To confirm</h3>
+      <ul class="mt-1 space-y-1 text-sm">{% for item in test_mates %}<li><span class="font-mono">{{ item.locus }} {{ item.shown }}</span>: {{ item.note }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
   {% if c_carrier_note %}
     <div class="mt-3 rounded border border-amber-400 bg-amber-50 p-3" aria-labelledby="c-carrier-heading">
       <h3 class="font-semibold" id="c-carrier-heading">Suggested gene</h3>

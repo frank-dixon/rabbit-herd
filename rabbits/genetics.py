@@ -181,3 +181,45 @@ def carrier_odds(rabbit):
                 lines.append(f"{locus}: {_fraction_text(chance)} chance of carrying {allele}, from "
                              f"{dam_name} {genotype_text(dam[locus])} × {sire_name} {genotype_text(sire[locus])}.")
     return lines
+
+
+def test_mates(rabbit):
+    """For each gene recorded with an unknown second allele, or only as
+    probable, the herd rabbits of the other sex that are known to be
+    homozygous for that locus's bottom recessive. A test litter from one
+    shows whether the rabbit carries it. Returns [{locus, allele, shown,
+    mates: [names], note}]."""
+    from .color_odds import SERIES, UNKNOWN, genotype_text, parse
+    from .models import Rabbit
+
+    other_sex = {Rabbit.Sex.DOE: Rabbit.Sex.BUCK, Rabbit.Sex.BUCK: Rabbit.Sex.DOE}.get(rabbit.sex)
+    if other_sex is None:
+        return []
+    herd = list(Rabbit.objects.filter(owner=rabbit.owner, sex=other_sex, archived_at__isnull=True)
+                .exclude(status__in=[Rabbit.Status.DECEASED, Rabbit.Status.SOLD, Rabbit.Status.CULLED])
+                .prefetch_related("genes").order_by("name"))
+    out = []
+    for gene in rabbit.genes.all():
+        if gene.locus not in SERIES:
+            continue
+        pair = parse(gene.locus, gene.genotype)
+        if pair is None:
+            continue
+        recessive = SERIES[gene.locus][-1]
+        showing = next((allele for allele in pair if allele != UNKNOWN), None)
+        probable = gene.certainty == Gene.Certainty.PROBABLE
+        if showing in (None, recessive) or (recessive in pair and not probable):
+            continue
+        if UNKNOWN not in pair and not probable:
+            continue
+        mates = [mate.name for mate in herd if any(
+            g.locus == gene.locus and g.certainty == Gene.Certainty.KNOWN
+            and parse(g.locus, g.genotype) == (recessive, recessive) for g in mate.genes.all())]
+        test = genotype_text((recessive, recessive))
+        if mates:
+            note = (f"Pair with {' or '.join(mates[:3])} ({test}). Any {test} kit shows {rabbit.name} carries "
+                    f"{recessive}; 6 or more kits without one make it unlikely (under 2%).")
+        else:
+            note = f"No {test} {other_sex.label.lower()} recorded in the herd; one would test this."
+        out.append({"locus": gene.locus, "allele": recessive, "shown": genotype_text(pair), "mates": mates, "note": note})
+    return out
