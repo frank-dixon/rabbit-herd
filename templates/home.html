@@ -79,7 +79,7 @@
               <ul class="divide-y divide-line border-t border-line" data-active-litters>
                 {% for row in litters %}
                   <li><a class="flex items-center gap-3 py-3 hover:bg-side/40" href="{% url 'litter_detail' row.litter.pk %}">
-                    <span class="min-w-0 flex-1"><span class="block font-semibold">{{ row.litter.pairing.doe.name }} × {{ row.litter.pairing.buck.name }}</span><span class="block text-sm text-muted">{{ row.kits }} kit{{ row.kits|pluralize }}{% if row.behind %} · <span class="text-warn">{{ row.behind }} behind</span>{% endif %}</span></span>
+                    <span class="min-w-0 flex-1"><span class="block font-semibold">{{ row.litter.pairing.doe.name }} × {{ row.litter.pairing.buck.name }}</span><span class="block text-sm text-muted">{{ row.kits }} kit{{ row.kits|pluralize }}{% if row.behind %} · <span class="text-warn"><svg class="mr-0.5 inline h-3.5 w-3.5 -translate-y-px align-middle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>{{ row.behind }} behind</span>{% endif %}</span></span>
                     <span class="num shrink-0 text-right text-sm leading-tight"><span class="block">day {{ row.age }}</span>{% if row.average_text %}<span class="block text-muted">{{ row.average_text }} avg</span>{% endif %}</span>
                   </a></li>
                 {% endfor %}
@@ -125,7 +125,7 @@
               <ul class="divide-y divide-line border-t border-line" data-watch-list>
                 {% for w in watch %}
                   <li class="flex items-center gap-3 py-2.5">
-                    <span class="h-2 w-2 shrink-0 rounded-full {% if w.urgent %}bg-warn{% else %}bg-field{% endif %}" aria-hidden="true"></span>
+                    {% if w.urgent %}<span class="flex h-4 w-4 shrink-0 items-center justify-center text-warn"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>{% else %}<span class="mx-1 h-2 w-2 shrink-0 rounded-full bg-field" aria-hidden="true"></span>{% endif %}
                     <a class="min-w-0 flex-1" href="{{ w.url }}"><span class="block font-semibold">{{ w.title }}</span><span class="block text-sm {% if w.urgent %}text-warn{% else %}text-muted{% endif %}">{{ w.detail }}</span></a>
                   </li>
                 {% endfor %}

@@ -3,7 +3,7 @@
 {% block title %}Rabbits · {{ app_name }}{% endblock %}
 
 {% block content %}<span data-refreshable hidden></span>
-  {% include "components/page_header.html" with title="Rabbits" subtitle=subtitle actions_template="rabbits/_list_add.html" %}
+  {% include "components/page_header.html" with title="Rabbits" subtitle=subtitle actions_template="rabbits/_list_add.html" compact_actions=True %}
 
   <div class="mt-5 flex items-end justify-between gap-2 border-b border-line">
     <nav class="-mb-px flex min-w-0 gap-4 overflow-x-auto text-sm" aria-label="Active, former or archived">
