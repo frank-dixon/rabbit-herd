@@ -16,7 +16,7 @@ class BreedTypeCard(BrowserCase):
 
     @both
     def test_crossbred_mix_saves_from_the_breed_type_card(self, js):
-        rex, dutch = (str(Breed.objects.get(name=n).pk) for n in ("Rex", "Dutch"))
+        rex, dutch = (str(Breed.objects.get_or_create(name=n)[0].pk) for n in ("Rex", "Dutch"))
         self.rabbit = self.legacy(f"Pepper {js}")
         page = self.page(js=js)
         self.go(page, f"/rabbits/{self.rabbit.pk}/edit/breed-type/")
