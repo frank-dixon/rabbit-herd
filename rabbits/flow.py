@@ -18,7 +18,7 @@ from decimal import Decimal
 
 from django.db import transaction
 
-from . import flow_forms, gene_fill
+from . import flow_photos, flow_forms, gene_fill
 from .models import Breed, BreedShare, Gene, OutsideRabbit, Rabbit, Relative, color_text, parse_share, share_text
 
 SESSION_KEY = "rabbit_draft"
@@ -46,22 +46,24 @@ STEPS = [
     Step("name", flow_forms.NameForm, ("name", "tattoo")),
     Step("sex", flow_forms.SexForm, ("sex",)),
     Step("birth-date", flow_forms.BirthDateForm, ("birth_date",)),
-    # Parents and relatives come right after the basics, so the breed cards
-    # can start from what the parents are.
-    Step("relatives", flow_forms.RelativesForm, optional=True),
     Step("status", flow_forms.StatusForm, ("status", "death_date", "death_cause")),
     Step("breed-type", flow_forms.BreedTypeForm, ("breed_type",)),
     Step("breed", flow_forms.BreedForm, ("purebred",)),
+    # Photos right after the breed, so the card can show a sample of the breed until one is added.
+    Step("photos", flow_forms.PhotosForm, optional=True),
     Step("color", flow_forms.ColorForm, ("color_choice", "color")),
     # Genes come right after the color, so they can be filled from it.
     Step("genes", flow_forms.GenesForm, ("eye_color",) + GENE_KEYS + ("gene_auto",), optional=True),
+    # Relatives are optional, so they come last, just before the review.
+    Step("relatives", flow_forms.RelativesForm, optional=True),
     Step("review", None),
 ]
 SLUGS = [step.slug for step in STEPS]
 
 # Editing uses the same cards and checks, plus the rabbit's own line, and
 # an overview card instead of the review card.
-EDIT_STEPS = STEPS[:9] + [
+# Photos are managed on the rabbit's own page, so editing skips that card.
+EDIT_STEPS = [step for step in STEPS if step.slug not in ("photos", "review")] + [
     Step("line", flow_forms.LineForm, ("line",), optional=True),
 ]
 EDIT_SLUGS = [step.slug for step in EDIT_STEPS]
@@ -98,6 +100,7 @@ def empty_draft():
         "purebred": "",
         "cross": [blank_cross_row(), blank_cross_row()],
         "relatives": [],
+        "photos": [],
         "line": "",
         "legacy_breed": "",
         "death_date": "",
@@ -142,6 +145,7 @@ def load_draft(session, key=SESSION_KEY):
         draft["relatives"] = clean_rows(
             stored.get("relatives"), blank_relative, flow_forms.MAX_RELATIVES
         )
+        draft["photos"] = flow_photos.clean_photos(stored.get("photos"))
         if stored.get("step") in STEP_BY_SLUG:
             draft["step"] = stored["step"]
     return draft
@@ -449,6 +453,7 @@ def save_rabbit(draft, user):
         )
         save_relatives(rabbit, user, answers["relatives"])
         save_genes(rabbit, answers["genes"], auto_loci(draft))
+        flow_photos.attach(rabbit, draft)
     return rabbit
 
 

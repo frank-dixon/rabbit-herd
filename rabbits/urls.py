@@ -19,6 +19,7 @@ urlpatterns = [
     path("archived/", views.rabbit_archived, name="rabbit_archived"),
     path("new/", flow_views.rabbit_flow_resume, name="rabbit_create"),
     path("new/restart/", flow_views.rabbit_flow_restart, name="rabbit_flow_restart"),
+    path("new/photo/<int:index>/", flow_views.rabbit_flow_photo, name="rabbit_flow_photo"),
     path("new/added/<int:pk>/", flow_views.rabbit_flow_done, name="rabbit_flow_done"),
     path("new/<slug:step>/", flow_views.rabbit_flow_step, name="rabbit_flow_step"),
     path("photos/<int:pk>/", photo_views.photo_file, name="rabbit_photo_file"),

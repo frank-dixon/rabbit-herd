@@ -49,7 +49,8 @@ class CardFlowTests(TestCase):
 
     def choose_breed(self, name="Holland Lop", color="Fawn"):
         """Answer the breed card, then the color card that follows it."""
-        self.assertRedirects(self.answer("breed", purebred=breed_id(name)), step("color"))
+        self.assertRedirects(self.answer("breed", purebred=breed_id(name)), step("photos"))
+        self.assertRedirects(self.answer("photos"), step("color"))
         return self.answer("color", color=color)
 
     def draft(self):
@@ -79,7 +80,7 @@ class CardFlowTests(TestCase):
         response = self.client.get(step("name"))
         self.assertContains(response, "What is this rabbit&#x27;s name or ear tag?")
         self.assertContains(response, "Use whatever you go by to tell this rabbit apart.")
-        self.assertContains(response, "Question 1 of 10")
+        self.assertContains(response, "Question 1 of 11")
         self.assertContains(response, '<label class="sr-only" for="id_name">Name or ear tag</label>', html=False)
         self.assertContains(response, "min-h-14")
         self.assertContains(response, "Start over")
@@ -120,10 +121,11 @@ class CardFlowTests(TestCase):
     def test_color_comes_right_after_the_breed(self):
         self.assertEqual(
             flow.SLUGS,
-            ["name", "sex", "birth-date", "relatives", "status", "breed-type", "breed", "color", "genes", "review"],
+            ["name", "sex", "birth-date", "status", "breed-type", "breed", "photos", "color", "genes", "relatives", "review"],
         )
         self.walk_to_breed("purebred")
-        self.assertRedirects(self.answer("breed", purebred=breed_id("Creme d'Argent")), step("color"))
+        self.assertRedirects(self.answer("breed", purebred=breed_id("Creme d'Argent")), step("photos"))
+        self.assertRedirects(self.answer("photos"), step("color"))
         self.assertRedirects(self.answer("color", color="Creme"), step("genes"))
         # The color card waits for a breed.
         self.client.post(reverse("rabbit_flow_restart"))
@@ -185,7 +187,7 @@ class CardFlowTests(TestCase):
         response = self.answer(
             "breed", **{"cross-0-breed": rex, "cross-0-percent": "70", "cross-1-breed": dutch, "cross-1-percent": "30"},
         )
-        self.assertRedirects(response, step("color"))
+        self.assertRedirects(response, step("photos"))
 
     def test_a_repeated_breed_in_the_mix_is_added_together(self):
         self.walk_to_breed("crossbred")
@@ -196,7 +198,7 @@ class CardFlowTests(TestCase):
             **{"cross-0-breed": rex, "cross-0-percent": "25", "cross-1-breed": dutch, "cross-1-percent": "50",
                "cross-2-breed": rex, "cross-2-percent": "25"},
         )
-        self.assertRedirects(response, step("color"))
+        self.assertRedirects(response, step("photos"))
         self.assertEqual(self.draft()["cross"], [{"breed": rex, "percent": "50"}, {"breed": dutch, "percent": "50"}])
 
     def test_willow_new_zealand_twice_becomes_a_purebred_new_zealand(self):
@@ -205,7 +207,7 @@ class CardFlowTests(TestCase):
         response = self.answer(
             "breed", **{"cross-0-breed": nz, "cross-0-percent": "50", "cross-1-breed": nz, "cross-1-percent": "50"},
         )
-        self.assertRedirects(response, step("color"))
+        self.assertRedirects(response, step("photos"))
         draft = self.draft()
         self.assertEqual((draft["breed_type"], draft["purebred"]), ("purebred", nz))
         self.assertContains(self.client.get(step("color")), "recognized colors for the New Zealand")
@@ -328,7 +330,7 @@ class ParentTraitsTests(CardFlowTests):
 
         self.walk_to_breed("purebred")
         nz = breed_id("New Zealand")
-        self.assertRedirects(self.answer("breed", purebred=nz), step("color"))
+        self.assertRedirects(self.answer("breed", purebred=nz), step("photos"))
         self.answer("color", color_choice="Broken")
         self.answer("relatives", action="add-relative")
         self.answer("relatives", action="add-relative")
@@ -347,7 +349,7 @@ class ParentTraitsTests(CardFlowTests):
                "relatives-1-relationship": "sire", "relatives-1-new_name": "Domino",
                "relatives-1-color": "Broken black", "relatives-1-gene_En": "En/en"},
         )
-        self.assertRedirects(response, step("status"))
+        self.assertRedirects(response, step("review"))
         self.assertContains(self.client.get(step("review")), "Snow · Florida White, Ruby-eyed white, Ridgeview")
         self.client.post(step("review"), {"action": "next"})
         dam = Relative.objects.get(relationship="dam")

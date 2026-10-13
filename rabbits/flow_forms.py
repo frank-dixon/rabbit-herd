@@ -496,6 +496,13 @@ class BreedForm(StepForm):
         )
 
 
+class PhotosForm(forms.Form):
+    """The photos card: optional, and its files are handled by flow_photos."""
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
 class RelativesForm(StepForm):
     """Known relatives: each row is a relationship plus a herd rabbit, a
     saved outside rabbit, or a new outside rabbit by name and details."""

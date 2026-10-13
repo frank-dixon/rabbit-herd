@@ -42,7 +42,7 @@ function loadImage(file) {
   });
 }
 
-async function shrink(file) {
+export async function shrink(file) {
   let loaded;
   try {
     loaded = await loadImage(file);
@@ -124,7 +124,7 @@ function tiffDate(view, start) {
   }
 }
 
-async function readDate(file) {
+export async function readDate(file) {
   try {
     return exifDate(await file.slice(0, 256 * 1024).arrayBuffer());
   } catch {

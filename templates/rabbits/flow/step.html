@@ -15,7 +15,7 @@
       <span class="text-xs font-medium text-neutral-600">{{ number }}/{{ count }}</span>
     </div>
     {% endif %}
-    <form class="mt-4 pb-32 md:pb-0" method="post" action="{{ form_action }}" novalidate data-rabbit-flow data-step="{{ slug }}">
+    <form class="mt-4 pb-32 md:pb-0" method="post" action="{{ form_action }}"{% if slug == "photos" %} enctype="multipart/form-data"{% endif %} novalidate data-rabbit-flow data-step="{{ slug }}">
       {% csrf_token %}
       {# Enter in a text box presses the first submit button. This one is Next, so Enter never means Back or Remove. #}
       <button type="submit" name="action" value="next" class="sr-only" tabindex="-1" aria-hidden="true">{{ next_label }}</button>

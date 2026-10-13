@@ -17,7 +17,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
-from . import flow, flow_forms
+from . import breed_samples, flow, flow_forms, flow_photos
 from .models import Rabbit, share_number, share_text
 
 RADIO_FIELDS = {"sex", "status", "breed_type"}
@@ -52,6 +52,8 @@ def question(slug, draft):
         return f"Which breed is {who}?"
     if slug == "relatives":
         return f"Do you know any of {who}'s relatives?"
+    if slug == "photos":
+        return f"Add photos of {who}"
     if slug == "line":
         return f"Which line is {who} from?"
     if slug == "genes":
@@ -63,6 +65,7 @@ HINTS = {
     "name": "Use whatever you go by to tell this rabbit apart.",
     "review": "If something needs changing, use Back to return to it.",
     "genes": "Optional. Filled from the breed, color and eye color where they prove a gene. _ means the second allele isn't known yet.",
+    "photos": "Optional. Pick one or more; the first is the main photo. You can add more later.",
     "line": "Optional. The line or strain, such as a breeder's herd name, to tell same-breed lines apart.",
 }
 
@@ -72,6 +75,8 @@ def next_label(slug, draft):
         return f"Save {flow.who(draft)}"
     if slug == "relatives" and not draft["relatives"]:
         return "Skip this step"
+    if slug == "photos" and not draft["photos"]:
+        return "Skip for now"
     return "Next"
 
 
@@ -272,6 +277,11 @@ def step_context(slug, draft, user, form, exclude=None):
         })
     if slug == "breed-type":
         context["tiles"] = tiles(flow_forms.BREED_TYPE_CHOICES, draft["breed_type"])
+    if slug == "photos":
+        from .photo_processing import ACCEPT
+
+        context.update({"photos": photo_rows(draft), "photo_accept": ACCEPT, "max_photos": flow_photos.MAX_PHOTOS,
+                        "sample": breed_samples.sample_for(flow_forms.purebred_breed(draft))})
     if slug == "color":
         context.update(color_context(draft, errors))
     if slug in ("breed", "breed-type"):
@@ -499,6 +509,10 @@ def rabbit_flow_step(request, step):
             if request.headers.get("X-Autosave") == "1":
                 return HttpResponse(status=204)
             return redirect(step_url(step))
+        if step == "photos":
+            handled = photos_post(request, draft, action)
+            if handled is not None:
+                return handled
         if flow.apply_row_action(draft, action):
             flow.save_draft(request.session, draft)
             return redirect(step_url(step, anchor=row_anchor(action, draft)))
@@ -553,8 +567,57 @@ def rabbit_flow_step(request, step):
 @login_required
 @require_POST
 def rabbit_flow_restart(request):
+    flow_photos.discard(flow.load_draft(request.session))
     flow.clear_draft(request.session)
     return redirect(step_url(flow.SLUGS[0]))
+
+
+def photo_rows(draft):
+    return [{"index": i, "url": reverse("rabbit_flow_photo", args=[i]) + f"?v={row['name'].rsplit('/', 1)[-1][:8]}",
+             "label": row["label"] or f"Photo {i + 1}", "main": i == 0, "last": i == len(draft["photos"]) - 1}
+            for i, row in enumerate(draft["photos"])]
+
+
+def photos_post(request, draft, action):
+    """The photos card. Files come in with any button (or one at a time from photo-step.mjs);
+    remove, main, up and down rearrange. Returns a response, or None to go on to Next/Back."""
+    files = request.FILES.getlist("photos")
+    errors = flow_photos.add_uploads(draft, request.user, files, request.POST.get("taken_hint", "")) if files else []
+    changed = flow_photos.apply_action(draft, action)
+    if action == "order":
+        order = [int(i) for i in request.POST.get("order", "").split(",") if i.strip().isdigit()]
+        changed = flow_photos.reorder(draft, order) or True
+    flow.save_draft(request.session, draft)
+    if request.headers.get("X-Requested-With") == "fetch":
+        from django.http import JsonResponse
+
+        return JsonResponse({"photos": photo_rows(draft), "errors": errors}, status=200)
+    for error in errors:
+        messages.error(request, error)
+    if changed or action in ("upload", "save") or (errors and action == "next"):
+        return redirect(step_url("photos", anchor="photos"))
+    return None
+
+
+@login_required
+@require_GET
+def rabbit_flow_photo(request, index):
+    """A pending photo of the draft, for its thumbnail. Only the draft's own files."""
+    from django.core.files.storage import default_storage
+    from django.http import FileResponse
+    import mimetypes
+
+    photos = flow.load_draft(request.session)["photos"]
+    if index >= len(photos):
+        raise Http404("No such photo.")
+    name = photos[index]["name"]
+    try:
+        handle = default_storage.open(name, "rb")
+    except (FileNotFoundError, OSError):
+        raise Http404("This photo's file is missing.")
+    response = FileResponse(handle, content_type=mimetypes.guess_type(name)[0] or "image/jpeg")
+    response["Cache-Control"] = "private, max-age=3600"
+    return response
 
 
 @login_required

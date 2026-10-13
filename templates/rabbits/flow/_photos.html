@@ -1,0 +1,41 @@
+{# The photos card. Without JS: pick files (several at once) and press Add photos or Next; the first is the main photo, and the buttons on each thumbnail rearrange. photo-step.mjs adds drag and drop, one-by-one upload with progress, and drag to reorder. #}
+<div id="photos" class="space-y-4" data-photo-step data-upload-url="{{ form_action }}" data-max="{{ max_photos }}">
+  {% if not photos %}
+    <figure class="relative overflow-hidden rounded-lg border border-line bg-side" data-breed-sample>
+      {% load static %}
+      {% if sample.is_photo %}
+        <img class="aspect-[4/3] w-full object-cover" src="{% static sample.file %}" alt="A {{ sample.breed }} rabbit (sample photo)" width="640" height="480" loading="lazy" decoding="async">
+        <span class="absolute left-2.5 top-2.5 rounded bg-surface/90 px-1.5 py-px text-xs font-medium text-ink backdrop-blur-sm">Sample photo</span>
+        <details class="group absolute bottom-2 right-2">
+          <summary class="flex h-8 w-8 cursor-pointer list-none items-center justify-center rounded-full bg-surface/90 text-muted backdrop-blur-sm hover:text-ink [&::-webkit-details-marker]:hidden" title="{{ sample.credit }}" aria-label="Photo credit"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8h.01"/></svg></summary>
+          <p class="absolute bottom-10 right-0 w-64 rounded-md border border-line bg-surface p-2.5 text-xs text-muted shadow-lg">Sample of a {{ sample.breed }}, not your rabbit. {{ sample.credit }}. <a class="underline" href="{{ sample.source }}" target="_blank" rel="noopener">Source</a></p>
+        </details>
+      {% else %}
+        <span class="flex aspect-[4/3] w-full items-center justify-center text-ink"><img class="w-2/5 opacity-90 dark:invert" src="{% static sample.file %}" alt="" width="160" height="120"></span>
+      {% endif %}
+    </figure>
+  {% else %}
+    <ol class="grid grid-cols-2 gap-2 sm:grid-cols-3" data-photo-list aria-label="Photos, in order. The first is the main photo.">
+      {% for photo in photos %}
+        <li class="group relative overflow-hidden rounded-md border border-line bg-side" data-photo-index="{{ photo.index }}" draggable="true">
+          <img class="aspect-square w-full object-cover" src="{{ photo.url }}" alt="{{ photo.label }}" loading="lazy">
+          {% if photo.main %}<span class="absolute left-1.5 top-1.5 rounded bg-accent px-1.5 py-px text-[0.68rem] font-semibold text-on-accent">Main</span>{% endif %}
+          <span class="absolute inset-x-0 bottom-0 flex justify-end gap-1 bg-gradient-to-t from-black/55 to-transparent p-1.5 pt-6">
+            {% if not photo.main %}<button type="submit" name="action" value="photo-main-{{ photo.index }}" class="mr-auto min-h-7 whitespace-nowrap rounded bg-surface/90 px-1.5 text-[0.7rem] font-medium text-ink">Set as main</button>{% endif %}
+            {% if not photo.main %}<button type="submit" name="action" value="photo-up-{{ photo.index }}" class="grid h-7 w-7 place-items-center rounded bg-surface/90 text-ink" aria-label="Move {{ photo.label }} earlier">‹</button>{% endif %}
+            {% if not photo.last %}<button type="submit" name="action" value="photo-down-{{ photo.index }}" class="grid h-7 w-7 place-items-center rounded bg-surface/90 text-ink" aria-label="Move {{ photo.label }} later">›</button>{% endif %}
+            <button type="submit" name="action" value="photo-remove-{{ photo.index }}" class="grid h-7 w-7 place-items-center rounded bg-surface/90 text-danger" aria-label="Remove {{ photo.label }}"><svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
+          </span>
+        </li>
+      {% endfor %}
+    </ol>
+  {% endif %}
+  <label class="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-field/70 bg-surface px-4 py-6 text-center hover:border-accent data-[over]:border-accent data-[over]:bg-accent-soft" data-photo-drop>
+    <svg class="h-6 w-6 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 16l4-4 4 4 4-6 4 6M4 20h16M12 4v8M8 8l4-4 4 4"/></svg>
+    <span class="font-medium">{% if photos %}Add more photos{% else %}Choose photos{% endif %}</span>
+    <span class="text-sm text-muted"><span class="hidden md:inline">or drop them here · </span>JPEG, PNG, WebP or HEIC, up to 10 MB each</span>
+    <input class="sr-only" type="file" name="photos" accept="image/*,{{ photo_accept }}" multiple data-photo-input>
+  </label>
+  <ul class="space-y-1 text-sm" data-photo-progress aria-live="polite"></ul>
+  <noscript><button type="submit" name="action" value="upload" class="rounded-md border border-line bg-surface px-3 py-2 text-sm font-medium">Add photos</button></noscript>
+</div>

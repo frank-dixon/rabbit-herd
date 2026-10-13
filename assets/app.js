@@ -14,6 +14,7 @@
 
 import { bindRabbitFlow } from "./rabbit-flow.mjs";
 import { bindPhotoUpload } from "./photo-upload.mjs";
+import { bindPhotoStep } from "./photo-step.mjs";
 import { bindDeleteDialog } from "./delete-dialog.mjs";
 import { bindPhotoTiles } from "./photo-tiles.mjs";
 import { bindDeathFields } from "./death-fields.mjs";
@@ -322,6 +323,7 @@ function start() {
   bindPasskeys();
   bindRabbitFlow(document);
   bindPhotoUpload(document);
+  bindPhotoStep(document);
   bindDeleteDialog(document);
   bindPhotoTiles(document);
   bindDeathFields(document);

@@ -85,7 +85,8 @@ class AddFlowTests(FlowTestMixin, TestCase):
         draft = self.client.session[flow.SESSION_KEY]
         post = {key: draft[key] for key in flow.GENE_KEYS}
         post.update(gene_auto=draft["gene_auto"], eye_color="brown", gene_A="AA", action="next")
-        self.assertRedirects(self.client.post(step("genes"), post), step("review"))
+        self.assertRedirects(self.client.post(step("genes"), post), step("relatives"))
+        self.assertRedirects(self.client.post(step("relatives"), {"action": "next"}), step("review"))
         self.client.post(step("review"), {"action": "next"})
         rabbit = Rabbit.objects.get(name="Hazel")
         self.assertEqual(rabbit.eye_color, "brown")
