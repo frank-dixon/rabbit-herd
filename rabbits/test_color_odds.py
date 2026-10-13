@@ -154,3 +154,27 @@ class FullerNameTests(TestCase):
         self.assertEqual(name("A", "B", "cchl", "D", "E"), "Chinchilla (light shade)")
         self.assertEqual(name("A", "B", "cchd", "D", "E"), "Chinchilla")
         self.assertEqual(name("a", "B", "cchd", "D", "E"), "Black, chinchilla-shaded")
+
+
+class EyeColorTests(TestCase):
+    def test_eye_rules(self):
+        self.assertEqual(color_odds.eye_color("c", "v"), "Ruby")
+        self.assertEqual(color_odds.eye_color("C", "v"), "Blue")
+        self.assertEqual(color_odds.eye_color("ch"), "Pink-tinged")
+        self.assertEqual(color_odds.eye_color("cchd"), "Dark brown")
+
+    def test_pairing_lists_eyes_per_color(self):
+        owner = user("eyes@example.com")
+        self.client.force_login(owner)
+        base = {"owner": owner, "breed": "Californian", "color": "Californian", "birth_date": datetime.date(2025, 1, 1)}
+        doe = Rabbit.objects.create(name="Ivy", sex="doe", **base)
+        buck = Rabbit.objects.create(name="Oak", sex="buck", **base)
+        for rabbit in (doe, buck):
+            for locus, genotype in dict(A="a/a", B="B/B", C="ch/c", D="D/D", E="E/E").items():
+                Gene.objects.create(rabbit=rabbit, locus=locus, genotype=genotype, certainty="known")
+        pairing = Pairing.objects.create(owner=owner, doe=doe, buck=buck)
+        rows = {row["name"]: row for row in color_odds.predict(doe, buck)["color_rows"]}
+        self.assertEqual(rows["Ruby-eyed white"]["eyes"], "Ruby")
+        self.assertEqual(rows["Himalayan (black points)"]["eyes"], "Pink-tinged")
+        page = self.client.get(reverse("pairing_detail", args=[pairing.pk]))
+        self.assertContains(page, "Pink-tinged eyes")

@@ -132,6 +132,17 @@ def color_name(a, b, c, d, e, v="V", si="Si"):
     return name
 
 
+def eye_color(c, v="V"):
+    """Eye color from the shown C and V alleles."""
+    if c == "c":
+        return "Ruby"
+    if v == "v":
+        return "Blue"
+    if c == "ch":
+        return "Pink-tinged"
+    return "Dark brown"
+
+
 def _color_name(a, b, c, d, e):
     base = shade(b, d)
     if c == "ch":
@@ -194,7 +205,8 @@ def _genes(rabbit):
 def predict(doe, buck):
     """Everything the pairing page shows. Keys:
     loci: per-locus rows with kit genotype odds, or the reason none show;
-    colors: [(name, percent)] most likely first, or [] with colors_missing
+    colors: [(name, percent)] most likely first (color_rows adds each
+    color's eye color), or [] with colors_missing
     naming what to record; assumed: V and/or Si when the names take them as
     V_ and Si_ because they are not recorded on both parents; pattern: broken odds when En is recorded on both; probable: names of rabbits whose genes used are
     only probable; unreadable: (rabbit name, locus, text) that did not parse."""
@@ -226,20 +238,24 @@ def predict(doe, buck):
         odds = crosses.get(locus)
         return odds is not None and not any(UNKNOWN in g for g in odds)
 
-    colors, colors_missing = [], [locus for locus in COLOR_LOCI if not complete(locus)]
+    colors, color_rows, colors_missing = [], [], [locus for locus in COLOR_LOCI if not complete(locus)]
     extra = [locus for locus in EXTRA_COLOR_LOCI if complete(locus)]
     assumed = [locus for locus in EXTRA_COLOR_LOCI if locus not in extra]
     if not colors_missing:
         used = COLOR_LOCI + extra
-        names = defaultdict(Fraction)
+        names, eyes = defaultdict(Fraction), {}
         for combo in product(*(crosses[locus].items() for locus in used)):
             chance = Fraction(1)
             for _, fraction in combo:
                 chance *= fraction
             alleles = {locus: shown(locus, g) for locus, (g, _) in zip(used, combo)}
-            names[color_name(*(alleles[locus] for locus in COLOR_LOCI),
-                             v=alleles.get("V", "V"), si=alleles.get("Si", "Si"))] += chance
-        colors = [(name, percent(f)) for name, f in sorted(names.items(), key=lambda item: (-item[1], item[0]))]
+            name = color_name(*(alleles[locus] for locus in COLOR_LOCI),
+                              v=alleles.get("V", "V"), si=alleles.get("Si", "Si"))
+            names[name] += chance
+            eyes[name] = eye_color(alleles["C"], alleles.get("V", "V"))
+        ranked = sorted(names.items(), key=lambda item: (-item[1], item[0]))
+        colors = [(name, percent(f)) for name, f in ranked]
+        color_rows = [{"name": name, "chance": percent(f), "eyes": eyes[name]} for name, f in ranked]
 
     # Broken is independent of color, so it is its own short list.
     pattern = []
@@ -248,6 +264,6 @@ def predict(doe, buck):
         for genotype, chance in crosses["En"].items():
             names[pattern_name(genotype)] += chance
         pattern = [(name, percent(f)) for name, f in sorted(names.items(), key=lambda item: (-item[1], item[0]))]
-    return {"loci": loci, "colors": colors, "colors_missing": colors_missing,
+    return {"loci": loci, "colors": colors, "color_rows": color_rows, "colors_missing": colors_missing,
             "assumed": assumed if colors else [], "pattern": pattern,
             "probable": sorted(probable), "unreadable": unreadable}
