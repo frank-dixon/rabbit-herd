@@ -2,8 +2,25 @@
 {% for section, form in forms.items %}
   <form class="ruled mt-10 scroll-mt-20 pt-4" id="{{ section }}" method="post" action="{% url 'herd_settings_save' section %}" aria-labelledby="{{ section }}-heading" data-settings-section="{{ section }}">
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-    <h2 class="text-base font-semibold" id="{{ section }}-heading">{% if section == "units" %}Units{% elif section == "schedule" %}Breeding schedule{% elif section == "rabbitry" %}Rabbitry{% else %}Reminders{% endif %}</h2>
+    <h2 class="text-base font-semibold" id="{{ section }}-heading">{% if section == "units" %}Units{% elif section == "schedule" %}Breeding schedules{% elif section == "rabbitry" %}Rabbitry{% else %}Reminders{% endif %}</h2>
     {% include "rabbits/_settings_form.html" with section=section form=form only %}
     <div class="mt-4">{% include "components/button.html" with label="Save" type="submit" variant="secondary" only %}</div>
   </form>
+  {% if section == "schedule" %}
+    <div class="mt-6" id="schedules" data-schedule-list>
+      <h3 class="eyebrow">Other schedules</h3>
+      <p class="mt-1 text-sm text-muted">For does that need their own rhythm, such as a slower rebreed. Pick one on a doe's page, or on a pairing to override it.</p>
+      {% if schedules %}
+        <ul class="mt-3 flex flex-col divide-y divide-line rounded-lg border border-line">
+          {% for s in schedules %}
+            <li><a class="mo-press flex items-center justify-between gap-3 p-3 hover:bg-[var(--accent-soft)]" href="{% url 'schedule_edit' s.pk %}">
+              <span class="min-w-0"><span class="block font-medium">{{ s.name }}</span><span class="block text-sm text-muted"><span class="font-mono">{{ s.summary }}</span></span></span>
+              <span class="text-sm text-muted">Edit</span>
+            </a></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      <div class="mt-3">{% url 'schedule_add' as add_url %}{% include "components/button.html" with label="Add a schedule" href=add_url variant="secondary" only %}</div>
+    </div>
+  {% endif %}
 {% endfor %}

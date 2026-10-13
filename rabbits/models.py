@@ -124,6 +124,9 @@ class Rabbit(models.Model):
         choices=Status.choices,
         default=Status.BREEDING,
     )
+    # A doe's breeding schedule; null is Standard.
+    breeding_schedule = models.ForeignKey("BreedingSchedule", related_name="does", null=True, blank=True,
+                                          on_delete=models.SET_NULL)
     line = models.CharField(
         max_length=80,
         blank=True,
@@ -680,6 +683,33 @@ class Gene(models.Model):
         return f"{self.locus}: {self.genotype} ({self.get_certainty_display().lower()})"
 
 
+class BreedingSchedule(models.Model):
+    """A named set of breeding dates, such as a faster or slower rhythm for one
+    doe. Standard is the keeper's own Settings values (HerdSettings), so it
+    has no row; a null schedule anywhere means Standard."""
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="breeding_schedules", on_delete=models.CASCADE)
+    name = models.CharField(max_length=60)
+    gestation_days = models.PositiveSmallIntegerField("Gestation (days)", default=31)
+    palpate_day = models.PositiveSmallIntegerField("Palpate on day", default=12)
+    nest_box_day = models.PositiveSmallIntegerField("Nest box in on day", default=28)
+    wean_age = models.PositiveSmallIntegerField("Wean at (days old)", default=28)
+    process_age = models.PositiveSmallIntegerField("Process at (days old)", default=75)
+    rebreed_days = models.PositiveSmallIntegerField("Rebreed (days after kindling)", default=42)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name", "pk"]
+        constraints = [models.UniqueConstraint(fields=["owner", "name"], name="one_schedule_name_per_owner")]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def summary(self):
+        return f"Due day {self.gestation_days} · wean at {self.wean_age} days · rebreed {self.rebreed_days} days after"
+
+
 class Pairing(models.Model):
     """A planned or done doe x buck pairing from the keeper's own herd."""
 
@@ -687,6 +717,10 @@ class Pairing(models.Model):
     doe = models.ForeignKey(Rabbit, related_name="pairings_as_doe", on_delete=models.CASCADE)
     buck = models.ForeignKey(Rabbit, related_name="pairings_as_buck", on_delete=models.CASCADE)
     notes = models.CharField(max_length=200, blank=True)
+    # Override: a named schedule, or standard_schedule for Standard; neither follows the doe.
+    breeding_schedule = models.ForeignKey(BreedingSchedule, related_name="pairings", null=True, blank=True,
+                                          on_delete=models.SET_NULL)
+    standard_schedule = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -694,6 +728,20 @@ class Pairing(models.Model):
 
     def __str__(self):
         return f"{self.doe.name} × {self.buck.name}"
+
+    @property
+    def follows_doe(self):
+        return not self.standard_schedule and self.breeding_schedule_id is None
+
+    def resolved_schedule(self):
+        """The named schedule a new litter uses, or None for Standard."""
+        if self.standard_schedule:
+            return None
+        return self.breeding_schedule or self.doe.breeding_schedule
+
+    @property
+    def schedule(self):
+        return self.resolved_schedule() or prefs(self.owner)
 
 
 class Litter(models.Model):
@@ -710,6 +758,9 @@ class Litter(models.Model):
 
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="litters", on_delete=models.CASCADE)
     pairing = models.ForeignKey(Pairing, related_name="litters", on_delete=models.CASCADE)
+    # Fixed when the litter starts, so later changes only move it on request. Null is Standard.
+    breeding_schedule = models.ForeignKey(BreedingSchedule, related_name="litters", null=True, blank=True,
+                                          on_delete=models.SET_NULL)
     bred_on = models.DateField()
     palpated = models.BooleanField(default=False)
     nest_box_in = models.BooleanField(default=False)
@@ -736,8 +787,12 @@ class Litter(models.Model):
 
     @property
     def schedule(self):
-        """The owner's breeding schedule settings."""
-        return prefs(self.owner)
+        """The litter's named schedule, or the owner's Standard one."""
+        return self.breeding_schedule or prefs(self.owner)
+
+    @property
+    def schedule_name(self):
+        return self.breeding_schedule.name if self.breeding_schedule_id else "Standard"
 
     @property
     def due_on(self):
@@ -1062,6 +1117,8 @@ class HerdSettings(models.Model):
     daily_email = models.BooleanField("Email me a daily summary", default=False)
     daily_email_time = models.TimeField("Send at", default=clock_time(6, 0))
     daily_email_sent_on = models.DateField(null=True, blank=True, editable=False)
+
+    name = "Standard"
 
     REMINDER_KEYS = {"palpate": "remind_palpate", "nest_box": "remind_nest_box", "due": "remind_due",
                      "wean": "remind_wean", "process": "remind_process", "rebreed": "remind_rebreed",

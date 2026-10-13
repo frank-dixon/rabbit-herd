@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import HerdSettings
+from .models import BreedingSchedule, HerdSettings
 
 TATTOO_TOKENS = ("{prefix}", "{yy}", "{year}", "{n}", "{nn}", "{nnn}")
 
@@ -11,16 +11,12 @@ class UnitsForm(forms.ModelForm):
         fields = ["weight_unit"]
 
 
-class ScheduleForm(forms.ModelForm):
+class ScheduleChecks:
+    """Range and order checks shared by Standard and named schedules."""
     LIMITS = {
         "gestation_days": (28, 35), "palpate_day": (9, 18), "nest_box_day": (24, 31),
         "wean_age": (21, 84), "process_age": (42, 200), "rebreed_days": (0, 120), "breeding_age_months": (3, 12),
     }
-
-    class Meta:
-        model = HerdSettings
-        fields = ["gestation_days", "palpate_day", "nest_box_day", "wean_age", "process_age",
-                  "rebreed_days", "breeding_age_months"]
 
     def clean(self):
         data = super().clean()
@@ -35,6 +31,35 @@ class ScheduleForm(forms.ModelForm):
         if wean and process and process <= wean and "process_age" not in self.errors:
             self.add_error("process_age", "Processing comes after weaning. Enter a larger number.")
         return data
+
+
+class ScheduleForm(ScheduleChecks, forms.ModelForm):
+    class Meta:
+        model = HerdSettings
+        fields = ["gestation_days", "palpate_day", "nest_box_day", "wean_age", "process_age",
+                  "rebreed_days", "breeding_age_months"]
+
+
+class BreedingScheduleForm(ScheduleChecks, forms.ModelForm):
+    """Add and edit a named schedule. New ones start from the Standard values."""
+
+    class Meta:
+        model = BreedingSchedule
+        fields = ["name", "gestation_days", "palpate_day", "nest_box_day", "wean_age", "process_age", "rebreed_days"]
+        labels = {"name": "Name"}
+
+    def __init__(self, *args, owner, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.owner = owner
+
+    def clean_name(self):
+        name = " ".join(self.cleaned_data.get("name", "").split())
+        if name.casefold() == "standard":
+            raise forms.ValidationError("Standard is your default schedule. Choose another name.")
+        taken = BreedingSchedule.objects.filter(owner=self.owner, name__iexact=name).exclude(pk=self.instance.pk)
+        if taken.exists():
+            raise forms.ValidationError("You already have a schedule with this name.")
+        return name
 
 
 class RabbitryForm(forms.ModelForm):

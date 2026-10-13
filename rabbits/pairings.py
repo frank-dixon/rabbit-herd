@@ -7,8 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from . import color_odds, genetics
-from .models import Pairing, PedigreeEntry, Rabbit, Relative
+from . import color_odds, genetics, schedules
+from .models import Pairing, PedigreeEntry, Rabbit, Relative, prefs
 
 MAX_GENERATIONS = 4
 PARENT_STEPS = {"dam": 1, "sire": 1, "granddam": 2, "grandsire": 2}
@@ -155,7 +155,12 @@ def pairing_detail(request, pk):
                "litters": pairing.litters.all(), "today": timezone.localdate(),
                "odds": color_odds.predict(pairing.doe, pairing.buck),
                "hidden_notes": genetics.pairing_notes(pairing.doe.name, doe_pairs, pairing.buck.name, buck_pairs),
-               "differing": color_odds.differing(doe_pairs, buck_pairs)}
+               "differing": color_odds.differing(doe_pairs, buck_pairs),
+               "schedule": pairing.schedule,
+               "litter_help": "Palpate on day {0.palpate_day}, nest box on day {0.nest_box_day}, due on day {0.gestation_days}. {1} schedule.".format(
+                   pairing.schedule, pairing.schedule.name),
+               "schedule_options": schedules.options(request.user, follow_label=f"{pairing.doe.name}'s schedule ({(pairing.doe.breeding_schedule or prefs(request.user)).name})"),
+               "schedule_value": schedules.FOLLOW if pairing.follows_doe else schedules.value_for(pairing.breeding_schedule)}
     return render(request, "rabbits/pairing_detail.html", context)
 
 

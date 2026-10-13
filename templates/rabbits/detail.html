@@ -105,6 +105,7 @@
       {% include "rabbits/_linked_costs.html" with add_url=cost_add_url heading_id="costs-heading" %}
 
       {% include "rabbits/_location_card.html" %}
+      {% if schedule_options %}{% url 'doe_schedule' rabbit.pk as schedule_action %}{% include "rabbits/_schedule_picker.html" with action=schedule_action options=schedule_options value=schedule_value current=schedule_current help="New litters from her pairings use this, unless a pairing sets its own." recalc_label="Also move her open litters to these dates" %}{% endif %}
 
       {% include "rabbits/_source_card.html" %}
 

@@ -211,6 +211,7 @@ def rabbit_detail(request, pk):
             **dict(zip(("cost_items", "cost_total"), costs.linked(rabbit.expenses.all()))),
             "cost_add_url": f"/costs/?rabbit={rabbit.pk}#add",
             "today_iso": timezone.localdate().isoformat(),
+            **doe_schedule_context(request, rabbit),
             "location_choices": location_options(request.user)[:-1],
             "contact_options": [(str(c.pk), str(c)) for c in Contact.objects.filter(owner=request.user)],
             "kindling_note": rabbit.kindling_note(relatives),
@@ -333,3 +334,13 @@ def rabbit_delete(request, pk):
     if error:
         response.status_code = 400
     return response
+
+
+def doe_schedule_context(request, rabbit):
+    if rabbit.sex != Rabbit.Sex.DOE:
+        return {}
+    from . import schedules
+    from .models import prefs
+
+    return {"schedule_options": schedules.options(request.user), "schedule_value": schedules.value_for(rabbit.breeding_schedule),
+            "schedule_current": rabbit.breeding_schedule or prefs(request.user)}

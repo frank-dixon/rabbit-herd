@@ -18,4 +18,5 @@ def weigh(grams, user):
 def herd_settings_sections(context):
     instance = prefs(context["request"].user)
     return {"forms": {name: form_class(instance=instance) for name, form_class in SECTIONS.items()},
-            "csrf_token": context.get("csrf_token")}
+            "csrf_token": context.get("csrf_token"),
+            "schedules": list(context["request"].user.breeding_schedules.all())}

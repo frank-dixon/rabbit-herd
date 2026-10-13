@@ -1,4 +1,4 @@
-{# A labelled select. Pass name, label, value, errors, and options (a list of value and label pairs) or groups (a list of group label and options). Optional: placeholder, help, help_template (a template to include as the help, for help with links), large, label_class, data_role. #}
+{# A labelled select. Pass name, label, value, errors, and options (a list of value and label pairs) or groups (a list of group label and options). Optional: placeholder, help, help_template (a template to include as the help, for help with links), large, label_class, data_role, no_blank (leave out the empty first option). #}
 <div>
   <label class="{% if large %}block text-lg font-semibold text-neutral-900{% else %}block text-sm font-medium text-neutral-800{% endif %}" for="id_{{ name }}">{{ label }}</label>
   {% if help or help_template %}<p class="mt-1 text-sm text-neutral-600" id="id_{{ name }}_help">{% if help_template %}{% include help_template %}{% else %}{{ help }}{% endif %}</p>{% endif %}
@@ -9,7 +9,7 @@
     {% if help or help_template or errors %}aria-describedby="{% if help or help_template %}id_{{ name }}_help{% endif %}{% if errors %}{% if help or help_template %} {% endif %}id_{{ name }}_error{% endif %}"{% endif %}
     {% if data_role %}data-role="{{ data_role }}"{% endif %}
   >
-    <option value="">{{ placeholder|default:"Choose…" }}</option>
+    {% if not no_blank %}<option value="">{{ placeholder|default:"Choose…" }}</option>{% endif %}
     {% for option_value, option_label in options %}
       <option value="{{ option_value }}"{% if option_value == value %} selected{% endif %}>{{ option_label }}</option>
     {% endfor %}

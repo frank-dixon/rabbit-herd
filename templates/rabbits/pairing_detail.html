@@ -36,10 +36,11 @@
       {% endif %}
       <form class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end" method="post" action="{% url 'litter_create' pairing.pk %}">
         {% csrf_token %}
-        {% include "components/text_input.html" with name="bred_on" label="Breed date" type="date" value=today|date:"Y-m-d" help="Palpate on day 12, nest box on day 28, due on day 31." only %}
+        {% include "components/text_input.html" with name="bred_on" label="Breed date" type="date" value=today|date:"Y-m-d" help=litter_help only %}
         {% include "components/button.html" with label="Start a litter" type="submit" variant="primary" only %}
       </form>
     </section>
+    {% url 'pairing_schedule' pairing.pk as schedule_action %}{% include "rabbits/_schedule_picker.html" with action=schedule_action options=schedule_options value=schedule_value current=schedule help="Follows the doe unless you pick one here for this pairing." recalc_label="Also move this pairing's open litters to these dates" %}
     <section class="scroll-mt-4 ruled pt-4 lg:col-span-2" id="color-odds" aria-labelledby="odds-heading" data-color-odds>
       <h2 class="text-base font-semibold" id="odds-heading">Color odds</h2>
       <p class="mt-1 text-sm text-neutral-600">From the genes recorded on {{ pairing.doe.name }} and {{ pairing.buck.name }}. Each kit gets one allele per gene from each parent.</p>

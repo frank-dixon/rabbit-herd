@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}{% if adding %}Add a schedule{% else %}{{ schedule.name }}{% endif %} · Settings · {{ app_name }}{% endblock %}
+
+{% block content %}
+  {% url 'account' as back %}
+  {% if adding %}
+    {% include "components/page_header.html" with title="Add a schedule" subtitle="Starts from your Standard dates. Change only what differs." secondary_label="Back to Settings" secondary_href=back only %}
+  {% else %}
+    {% include "components/page_header.html" with title=schedule.name subtitle="Breeding schedule" secondary_label="Back to Settings" secondary_href=back only %}
+  {% endif %}
+  <form class="ruled mt-6 pt-4" method="post" novalidate data-schedule-form>
+    {% csrf_token %}
+    {% include "components/error_summary.html" with items=items only %}
+    <div class="max-w-sm">{% include "rabbits/_settings_field.html" with field=form.name only %}</div>
+    <p class="mt-5 text-sm text-muted">Days count from the breeding date; ages from kindling.</p>
+    <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {% for field in form %}{% if field.name != "name" %}{% include "rabbits/_settings_field.html" with field=field type="number" inputmode="numeric" only %}{% endif %}{% endfor %}
+    </div>
+    {% if not adding %}
+      <label class="mt-5 flex cursor-pointer items-start gap-3 text-sm">
+        <input class="mt-0.5 h-5 w-5 shrink-0 rounded border-field accent-[var(--accent)]" type="checkbox" name="recalculate" value="1">
+        <span>Move open litters on this schedule to the new dates<span class="block text-muted">Litters keep the dates they started with unless you tick this.{% if uses %} {{ uses }} doe{{ uses|pluralize }} use{{ uses|pluralize:"s," }} it.{% endif %}</span></span>
+      </label>
+    {% endif %}
+    <div class="mt-6 flex flex-wrap gap-2">
+      {% include "components/button.html" with label=adding|yesno:"Add schedule,Save" type="submit" variant="primary" only %}
+      {% include "components/button.html" with label="Cancel" href=back variant="secondary" only %}
+    </div>
+  </form>
+  {% if not adding %}
+    <form class="ruled mt-10 pt-4" method="post" action="{% url 'schedule_delete' schedule.pk %}">
+      {% csrf_token %}
+      <h2 class="text-base font-semibold">Remove this schedule</h2>
+      <p class="mt-1 text-sm text-muted">Does and litters on it go back to Standard.</p>
+      <div class="mt-3">{% include "components/button.html" with label="Remove schedule" type="submit" variant="danger" only %}</div>
+    </form>
+  {% endif %}
+{% endblock %}

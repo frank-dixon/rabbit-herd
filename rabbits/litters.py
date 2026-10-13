@@ -55,7 +55,8 @@ def litter_create(request, pk):
     if bred_on > today:
         messages.error(request, DATE_FUTURE)
         return redirect(f"/pairings/{pairing.pk}/#litters")
-    litter = Litter.objects.create(owner=request.user, pairing=pairing, bred_on=bred_on)
+    litter = Litter.objects.create(owner=request.user, pairing=pairing, bred_on=bred_on,
+                                   breeding_schedule=pairing.resolved_schedule())
     messages.success(request, f"Litter started. Due {litter.due_on:%B} {litter.due_on.day}, {litter.due_on.year}.")
     return redirect("litter_detail", litter.pk)
 

@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from rabbits.export import export_csv
+from rabbits import schedules
 from rabbits.settings_views import settings_save
 
 # Uploaded photos have no public URL. They are served one at a time, to
@@ -19,6 +20,9 @@ urlpatterns = [
     path("costs/", include("rabbits.cost_urls")),
     path("contacts/", include("rabbits.contact_urls")),
     path("genetics/", include("rabbits.genetics_urls")),
+    path("settings/schedules/new/", schedules.schedule_form, name="schedule_add"),
+    path("settings/schedules/<int:pk>/", schedules.schedule_form, name="schedule_edit"),
+    path("settings/schedules/<int:pk>/delete/", schedules.schedule_delete, name="schedule_delete"),
     path("settings/herd/<slug:section>/", settings_save, name="herd_settings_save"),
     path("", include("rabbits.hub_urls")),
     path("", include("pages.urls")),

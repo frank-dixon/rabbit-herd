@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import culling, shows, pedigree, health, contact_views, location_views, weights, adopt_views, edit_views, flow_views, photo_views, views
+from . import culling, shows, pedigree, health, contact_views, location_views, weights, adopt_views, edit_views, flow_views, photo_views, views, schedules
 
 urlpatterns = [
     path("", views.rabbit_list, name="rabbit_list"),
@@ -29,6 +29,7 @@ urlpatterns = [
     path("photos/<int:pk>/main/", photo_views.photo_set_main, name="rabbit_photo_set_main"),
     path("<int:pk>/photos/", photo_views.rabbit_photos, name="rabbit_photos"),
     path("<int:pk>/", views.rabbit_detail, name="rabbit_detail"),
+    path("<int:pk>/schedule/", schedules.doe_schedule, name="doe_schedule"),
     path("<int:pk>/edit/", edit_views.rabbit_edit, name="rabbit_edit"),
     path("<int:pk>/edit/<slug:step>/", edit_views.rabbit_edit_step, name="rabbit_edit_step"),
     path("<int:pk>/pedigree/", pedigree.rabbit_pedigree, name="rabbit_pedigree"),
