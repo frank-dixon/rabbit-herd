@@ -132,3 +132,17 @@ class TaskRepeatTests(TestCase):
         other = user("other@example.com")
         self.client.force_login(other)
         self.assertEqual(self.client.get(url).status_code, 404)
+
+
+class SoldLastTests(TestCase):
+    def test_sold_rabbits_sort_last_in_grid_list_and_search(self):
+        owner = user("sold@example.com")
+        self.client.force_login(owner)
+        for name, status in [("Alder", "sold"), ("Birch", "breeding"), ("Cedar", "sold"), ("Dill", "growing")]:
+            Rabbit.objects.create(owner=owner, name=name, sex="doe", breed="Rex", color="Black", status=status,
+                                  birth_date=datetime.date(2024, 1, 1))
+        for query in ("", "?view=list", "?view=grid", "?q=e", "?breed=Rex"):
+            page = self.client.get(reverse("rabbit_list") + query)
+            names = [r.name for r in page.context["rabbits"]]
+            want = [n for n in ["Birch", "Dill", "Alder", "Cedar"] if n in names]
+            self.assertEqual(names, want, query)

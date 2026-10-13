@@ -99,6 +99,8 @@ def rabbit_list(request):
     if filters["pure"]:
         want = filters["pure"] == "yes"
         rabbits = [rabbit for rabbit in rabbits if bool(rabbit.purebred_info) == want]
+    # Sold rabbits go last; sort is stable, so each group keeps its order.
+    rabbits = sorted(rabbits, key=lambda rabbit: rabbit.status == Rabbit.Status.SOLD)
     # One small query gives both tab counts and the breed filter's options.
     herd = list(mine.values_list("breed", "archived_at", "status"))
     archived_count = sum(1 for _, archived_at, _ in herd if archived_at)
