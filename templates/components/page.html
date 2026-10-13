@@ -19,7 +19,7 @@
       {% endblock %}
     </div>
   </header>
-  <main class="mx-auto w-full {% if wide %}max-w-6xl{% else %}max-w-lg{% endif %} flex-1 px-4 py-6 md:px-8 md:py-10{% if app_nav %} pb-24 md:pb-10{% endif %}">
+  <main class="mx-auto w-full {% if wide %}max-w-6xl{% else %}max-w-lg{% endif %} flex-1 px-4 py-6 md:px-8 md:py-10{% if app_nav %} pb-[calc(88px+env(safe-area-inset-bottom))] md:pb-10{% endif %}">
     {% block main %}
       {% block content %}{% endblock %}
     {% endblock %}
