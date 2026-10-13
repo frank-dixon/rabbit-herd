@@ -152,4 +152,12 @@ def app_nav(request):
         "app_tabs": tab_items,
         "app_panel": [item(key, current) for key in PANEL],
         "app_destinations": [item(key, current) for key in DESTINATIONS],
+        "app_settings_icon": ICONS["settings"],
+        "herd_prefs_name": herd_name(user),
     }
+
+
+def herd_name(user):
+    from rabbits.models import prefs
+
+    return (prefs(user).rabbitry_name or "").strip()

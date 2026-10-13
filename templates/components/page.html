@@ -17,7 +17,7 @@
         <div class="mx-auto flex h-14 {% if wide %}max-w-6xl{% else %}max-w-lg{% endif %} items-center gap-2 px-4 {% if app_nav %}md:max-w-none md:px-6{% endif %}">
           {% block header %}
             {% if app_nav %}
-              <a href="{% url 'app_menu' %}" class="mo-press -ml-2 grid h-10 w-10 place-items-center rounded-md text-ink hover:bg-side focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-controls="app-menu" aria-expanded="false" data-menu-button>
+              <a href="{% url 'app_menu' %}" class="mo-press -ml-2 grid h-10 w-10 place-items-center rounded-md text-ink md:hidden hover:bg-side focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-controls="app-menu" aria-expanded="false" data-menu-button>
                 {% include "components/icon.html" with d="M4 7h16M4 12h16M4 17h16" only %}<span class="sr-only">Menu</span>
               </a>
               <a class="hidden text-base font-semibold tracking-tight max-lg:inline" href="{% url 'index' %}">{{ app_name }}</a>

@@ -6,7 +6,7 @@
   {% include "components/page_header.html" with title="Tasks" subtitle="Your to-dos and litter dates, soonest first." only %}
   <section class="mt-6 ruled pt-4" aria-labelledby="add-task-heading">
     <h2 class="text-base font-semibold" id="add-task-heading">Add a task</h2>
-    <form class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end" method="post">
+    <form class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:items-end xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]" method="post">
       {% csrf_token %}
       {% include "components/text_input.html" with name="title" label="What needs doing" value=values.title errors=errors.title only %}
       {% include "components/text_input.html" with name="due_on" label="Due" type="date" value=values.due_on errors=errors.due_on only %}
