@@ -29,7 +29,8 @@ class CarrierNoteTests(FlowTestMixin, TestCase):
         self.assertEqual((gene.locus, gene.genotype, gene.certainty), ("C", "C/c", "probable"))
         page = self.client.get(self.detail)
         self.assertNotContains(page, "Suggested gene")
-        self.assertContains(page, "C: C/c (probable)")
+        self.assertContains(page, 'data-gene-level="probable"')
+        self.assertContains(page, '<span class="font-mono ">C/c</span>', html=False)
 
     def test_remove_hides_the_note_for_good(self):
         self.client.post(self.action, {"action": "remove"})
@@ -60,7 +61,7 @@ class GenesPageTests(FlowTestMixin, TestCase):
         )
         self.client.post(self.url, {"gene_C": "C/c", "cert_C": "probable"})
         self.assertEqual([(g.locus, g.certainty) for g in self.juniper.genes.all()], [("C", "probable")])
-        self.assertContains(self.client.get(reverse("rabbit_detail", args=[self.juniper.pk])), "C: C/c (probable)")
+        self.assertContains(self.client.get(reverse("rabbit_detail", args=[self.juniper.pk])), 'data-gene-level="probable"')
 
     def test_too_long_genotype_is_refused_and_others_cannot_open_it(self):
         response = self.client.post(self.url, {"gene_C": "x" * 41})

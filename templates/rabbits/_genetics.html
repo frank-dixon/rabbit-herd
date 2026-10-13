@@ -6,13 +6,30 @@
     <div class="flex items-center gap-3"><a class="text-sm text-muted underline hover:text-ink" href="{% url 'glossary' %}#colour-loci" data-glossary-link>What the genes mean</a>{% include "components/button.html" with label="Edit genes" sr_suffix="for "|add:rabbit.name href=genes_url variant="secondary" only %}</div>
   </div>
   {% if rabbit.line %}<p class="mt-2">Line: {{ rabbit.line }}</p>{% endif %}
-  {% if genes %}
-    <ul class="mt-2 list-disc space-y-1 pl-5">
-      {% for gene in genes %}<li>{{ gene }}{% if gene.note %} · {{ gene.note }}{% endif %}</li>{% endfor %}
-    </ul>
-  {% elif not rabbit.line and not relatives_with_genes and not c_carrier_note %}
-    <p class="mt-2 text-neutral-600">No genes recorded.</p>
-  {% endif %}
+  <div class="mt-3" data-gene-card>
+    <p class="text-sm text-muted" data-gene-summary>{{ gene_card_summary }}</p>
+    <dl class="mt-2 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2">
+      {% for row in gene_card %}
+        <div class="flex min-w-0 items-center gap-3 bg-surface px-3 py-2" data-gene-level="{{ row.level }}">
+          <dt class="w-24 shrink-0 text-sm"><span class="font-mono font-semibold">{{ row.locus }}</span> <span class="text-muted">{{ row.name }}</span></dt>
+          <dd class="flex min-w-0 flex-1 items-center justify-between gap-2">
+            <span class="min-w-0">
+              <span class="font-mono {% if row.level == 'unknown' %}text-muted{% endif %}">{{ row.genotype|default:"–" }}</span>
+              {% if row.note %}<span class="block truncate text-xs text-muted" title="{{ row.note }}">{{ row.note }}</span>{% endif %}
+            </span>
+            <span class="gene-level gene-level-{{ row.level }} shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium">{{ row.label }}</span>
+          </dd>
+        </div>
+      {% endfor %}
+    </dl>
+    {% if other_genes %}
+      <ul class="mt-2 space-y-1 text-sm">{% for gene in other_genes %}<li>{{ gene }}{% if gene.note %} · {{ gene.note }}{% endif %}</li>{% endfor %}</ul>
+    {% endif %}
+    <details class="mt-2 text-sm">
+      <summary class="cursor-pointer text-muted underline-offset-2 hover:text-ink hover:underline">What the levels mean</summary>
+      <dl class="mt-2 space-y-1">{% for key, label, help in gene_levels %}<div class="flex gap-2"><dt class="gene-level gene-level-{{ key }} h-fit shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium">{{ label }}</dt><dd class="text-muted">{{ help }}</dd></div>{% endfor %}</dl>
+    </details>
+  </div>
   {% if hidden_notes %}
     <ul class="mt-3 space-y-1 text-sm text-neutral-600" aria-label="What these genes hide or carry" data-hidden-notes>
       {% for note in hidden_notes %}<li>{{ note }}</li>{% endfor %}

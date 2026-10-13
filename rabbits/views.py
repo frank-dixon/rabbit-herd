@@ -233,6 +233,7 @@ def rabbit_detail(request, pk):
             "carrier_odds": genetics.carrier_odds(rabbit),
             "test_mates": genetics.test_mates(rabbit),
             "genes": rabbit.genes.all(),
+            **smart_gene_context(rabbit),
             "relatives_with_genes": [
                 (relative, list(relative.genes.all()))
                 for relative in rabbit.relatives.select_related("herd_rabbit", "outside")
@@ -264,6 +265,17 @@ def rabbit_c_carrier(request, pk):
             rabbit.save(update_fields=["c_carrier_dismissed", "updated_at"])
             messages.success(request, "The note was removed.")
     return redirect("rabbit_detail", pk=rabbit.pk)
+
+
+def smart_gene_context(rabbit):
+    from . import gene_card
+
+    genes = list(rabbit.genes.all())
+    card = gene_card.rows(rabbit, genes)
+    return {
+        "gene_card": card, "gene_card_summary": gene_card.summary(card), "gene_levels": gene_card.LEVELS,
+        "other_genes": [gene for gene in genes if gene.locus not in {row["locus"] for row in card}],
+    }
 
 
 @login_required

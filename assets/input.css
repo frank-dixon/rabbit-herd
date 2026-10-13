@@ -260,3 +260,11 @@ html[data-mode="dark"] .swatch-light { display: none; }
   .fold::details-content, .add-fold::details-content, .fold-chevron { transition: none; }
 }
 @media print { .fold::details-content { block-size: auto; content-visibility: visible; } .fold-chevron, .add-fold { display: none; } }
+
+/* Gene certainty badges: strongest is filled, weakest is dashed. */
+@layer components {
+  .gene-level-known { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .gene-level-probable { background: var(--accent-soft); border-color: color-mix(in oklab, var(--accent) 45%, transparent); color: var(--ink); }
+  .gene-level-possible { background: transparent; border-color: var(--line); border-style: dashed; color: var(--ink); }
+  .gene-level-unknown { background: transparent; border-color: transparent; color: var(--muted); }
+}
