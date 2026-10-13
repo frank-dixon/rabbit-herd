@@ -127,9 +127,9 @@
     </ul>
     {% else %}
       {# One bordered list with row dividers. Columns line up across rows: xl shows them all, lg drops location and next, phones keep two lines. #}
-      <div class="mt-5 overflow-hidden rounded-lg border border-line bg-surface" data-view="list">
+      <div class="mt-5 overflow-hidden rounded-lg border border-line bg-surface{% if not feature_locations %} list-cols-noloc{% endif %}" data-view="list">
         <div class="list-cols hidden border-b border-line px-3 py-2 text-xs font-medium text-muted lg:grid" aria-hidden="true">
-          <span>Rabbit</span><span>Sex and breed</span><span>Age</span><span>Last weight</span><span class="hidden xl:block">Location</span><span class="hidden xl:block">Next</span><span>Status</span>
+          <span>Rabbit</span><span>Sex and breed</span><span>Age</span><span>Last weight</span>{% if feature_locations %}<span class="hidden xl:block">Location</span>{% endif %}<span class="hidden xl:block">Next</span><span>Status</span>
         </div>
         <ul class="divide-y divide-line">
           {% for rabbit in rabbits %}
@@ -146,7 +146,7 @@
                   <span class="hidden min-w-0 break-words text-sm lg:block">{{ rabbit.get_sex_display }} · {{ rabbit.short_breed }}{% if rabbit.purebred_info and rabbit.purebred_info.source != "entered" %} · purebred{% endif %}</span>
                   <span class="num hidden text-sm lg:block"{% if rabbit.birth_date and not rabbit.age_until %} title="{{ rabbit.age_title }}"{% endif %}>{% if rabbit.birth_date and not rabbit.age_until %}{{ rabbit.age_text }}{% elif rabbit.birth_date %}<span class="text-muted">Born {{ rabbit.birth_date|date:"Y" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</span>
                   <span class="num hidden text-sm leading-tight lg:block">{% if rabbit.last_weight %}{{ rabbit.last_weight.text }}<span class="block text-xs text-muted">{{ rabbit.last_weight.date|date:"M j" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</span>
-                  <span class="hidden min-w-0 break-words text-sm xl:block">{% if rabbit.location %}{{ rabbit.location.name }}{% else %}<span class="text-muted">—</span>{% endif %}</span>
+                  {% if feature_locations %}<span class="hidden min-w-0 break-words text-sm xl:block">{% if rabbit.location %}{{ rabbit.location.name }}{% else %}<span class="text-muted">—</span>{% endif %}</span>{% endif %}
                   <span class="hidden min-w-0 break-words text-sm leading-tight xl:block">{% if rabbit.next_item %}{{ rabbit.next_item.label }}<span class="block text-xs {% if rabbit.next_item.overdue %}text-danger{% else %}text-muted{% endif %}">{% if rabbit.next_item.overdue %}Overdue · {% endif %}{{ rabbit.next_item.date|date:"M j" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</span>
                   <span class="justify-self-end lg:justify-self-start"><span class="inline-block whitespace-nowrap rounded-full border border-line px-2 py-0.5 text-xs" data-status-chip>{{ rabbit.status_tag }}</span></span>
                 </a>

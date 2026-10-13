@@ -84,6 +84,24 @@ DESTINATIONS = {
 }
 # Settings lives behind the gear (side menu, drawer and account panel), so it is never a tab.
 TAB_CHOICES = [key for key in DESTINATIONS if key != "settings"]
+
+
+def feature_off(key):
+    """Destinations hidden by a feature flag (settings.FEATURE_LOCATIONS)."""
+    from django.conf import settings as conf
+
+    return key == "locations" and not getattr(conf, "FEATURE_LOCATIONS", False)
+
+
+def tab_choices():
+    return [key for key in TAB_CHOICES if not feature_off(key)]
+
+
+def features(request):
+    from django.conf import settings as conf
+
+    return {"feature_locations": getattr(conf, "FEATURE_LOCATIONS", False)}
+
 DEFAULT_TABS = ["today", "rabbits", "litters", "weights", "tasks"]
 MIN_TABS, MAX_TABS = 3, 5
 
@@ -116,12 +134,21 @@ def active_key(request):
 
 def clean_tabs(keys):
     """A valid bar: known destinations, no repeats, 3 to 5 of them."""
+    choices = tab_choices()
     seen = []
     for key in keys or []:
-        if key in TAB_CHOICES and key not in seen:
+        if key in choices and key not in seen:
             seen.append(key)
     seen = seen[:MAX_TABS]
-    return seen if len(seen) >= MIN_TABS else list(DEFAULT_TABS)
+    if not keys or not seen:
+        return list(DEFAULT_TABS)
+    # A saved bar that lost a hidden page keeps the rest, topped up from the defaults.
+    for key in DEFAULT_TABS:
+        if len(seen) >= MIN_TABS:
+            break
+        if key not in seen:
+            seen.append(key)
+    return seen
 
 
 def due_count(user):
@@ -151,7 +178,7 @@ def app_nav(request):
         return {}
     current = active_key(request)
     tabs = clean_tabs(getattr(user, "tab_bar", None))
-    nav_items = [item(key, current) for key in RAIL]
+    nav_items = [item(key, current) for key in RAIL if not feature_off(key)]
     tab_items = [item(key, current) for key in tabs]
     if "tasks" in tabs:
         due = due_count(user)
@@ -163,7 +190,7 @@ def app_nav(request):
         "app_tabs": tab_items,
         "app_records": [item(key, current) for key in RECORDS],
         "app_panel": [item(key, current) for key in PANEL],
-        "app_destinations": [item(key, current) for key in TAB_CHOICES],
+        "app_destinations": [item(key, current) for key in tab_choices()],
         "app_settings_icon": ICONS["settings"],
         "herd_prefs_name": herd_name(user),
         "account_name": herd_name(user) or user.get_full_name() or user.email,

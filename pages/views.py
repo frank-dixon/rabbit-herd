@@ -87,11 +87,11 @@ def account(request):
          "current": key == user.ui_theme}
         for key, label in user.THEMES
     ]
-    from .nav import DESTINATIONS, MAX_TABS, TAB_CHOICES, clean_tabs
+    from .nav import DESTINATIONS, MAX_TABS, clean_tabs, tab_choices
 
     current = clean_tabs(user.tab_bar)
     slots = [{"index": i + 1, "value": current[i] if i < len(current) else "", "required": i < 3} for i in range(MAX_TABS)]
-    destinations = [(key, DESTINATIONS[key][0]) for key in TAB_CHOICES]
+    destinations = [(key, DESTINATIONS[key][0]) for key in tab_choices()]
     current_theme = dict(user.THEMES).get(user.ui_theme, "")
     sections = settings_sections(current_theme)
     return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes, "settings_sections": sections, "settings_nav": settings_nav(sections), "wide": True,
@@ -102,7 +102,7 @@ def account(request):
 def tabs(request):
     """Save the phone bottom bar: 3 to 5 destinations in order. Posted by the
     edit mode on the bar (JSON reply) or the Settings form (redirect)."""
-    from .nav import DEFAULT_TABS, DESTINATIONS, MAX_TABS, MIN_TABS
+    from .nav import DEFAULT_TABS, MAX_TABS, MIN_TABS, tab_choices
 
     if request.method == "POST":
         if request.POST.get("reset"):
@@ -110,7 +110,7 @@ def tabs(request):
         else:
             keys = [k for k in request.POST.getlist("tab") if k]
         valid = (MIN_TABS <= len(keys) <= MAX_TABS and len(set(keys)) == len(keys)
-                 and all(k in DESTINATIONS for k in keys))
+                 and all(k in tab_choices() for k in keys))
         cleaned = keys if valid else []
         if valid:
             request.user.tab_bar = cleaned

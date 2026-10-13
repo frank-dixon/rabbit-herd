@@ -24,8 +24,9 @@ class AppShellTests(TestCase):
         page = html[html.index('<aside'):html.index('</aside>')] + html[html.index('data-app-tabs'):]
         for missing in ("coming soon", "Coming soon", ">More<"):
             self.assertNotIn(missing, page)
-        for label in ("Today", "Rabbits", "Archived", "Tasks", "Pairings", "Litters", "Weights", "Locations"):
+        for label in ("Today", "Rabbits", "Archived", "Tasks", "Pairings", "Litters", "Weights"):
             self.assertIn(label, page)
+        self.assertNotIn(">Locations<", page)  # FEATURE_LOCATIONS is off by default
         panel = html[html.index('id="app-menu"'):html.index('data-shell')]
         for label in ("Contacts", "Costs", "Waitlist", "Shows", "Health", "Export", "Settings", "Account", "Sign out"):
             self.assertIn(label, panel)

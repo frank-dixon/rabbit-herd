@@ -1,12 +1,13 @@
 import datetime
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .models import Location, Rabbit
 from .test_contacts import user
 
 
+@override_settings(FEATURE_LOCATIONS=True)
 class LocationTests(TestCase):
     def setUp(self):
         self.owner = user("loc@example.com")
@@ -69,3 +70,32 @@ class LocationTests(TestCase):
         page = self.client.get(reverse("location_list")).content.decode()
         self.assertRegex(page, r'href="/locations/"[^>]*aria-current="page"')
         self.assertIn('href="/locations/"', page[page.index('id="app-menu"'):])
+
+
+class LocationsOffTests(TestCase):
+    """FEATURE_LOCATIONS is off by default: pages 404 and nothing links to them; data stays."""
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        self.user = get_user_model().objects.create_user(email="off@example.com", password="x-strong-Pass-1")
+        self.client.force_login(self.user)
+        self.spot = Location.objects.create(owner=self.user, name="Hutch 3")
+        self.rabbit = Rabbit.objects.create(owner=self.user, name="Pip", sex="doe", birth_date=datetime.date(2025, 1, 1), location=self.spot)
+
+    def test_pages_404_and_links_hidden(self):
+        self.assertEqual(self.client.get("/locations/").status_code, 404)
+        self.assertEqual(self.client.post(f"/rabbits/{self.rabbit.pk}/location/", {"location": ""}).status_code, 404)
+        detail = self.client.get(f"/rabbits/{self.rabbit.pk}/").content.decode()
+        self.assertNotIn("Hutch 3", detail)
+        self.assertNotIn('href="/locations/"', detail)
+        listing = self.client.get("/rabbits/?view=list").content.decode()
+        self.assertNotIn('name="location"', listing)
+        self.rabbit.refresh_from_db()
+        self.assertEqual(self.rabbit.location, self.spot)
+
+    def test_saved_bar_drops_locations_gracefully(self):
+        from pages.nav import clean_tabs
+
+        self.assertEqual(clean_tabs(["today", "locations", "rabbits", "tasks"]), ["today", "rabbits", "tasks"])
+        self.assertEqual(clean_tabs(["locations", "today", "rabbits"]), ["today", "rabbits", "litters"])

@@ -1,7 +1,7 @@
 """One-card edits from the rabbit page: each fact links to its card, and saving
 it updates the rabbit at once (in place with JS, as a plain form without)."""
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .test_flow_rules import FlowTestMixin
@@ -17,6 +17,7 @@ class QuickEditTests(FlowTestMixin, TestCase):
     def url(self, slug):
         return reverse("rabbit_quick_edit", args=[self.rabbit.pk, slug])
 
+    @override_settings(FEATURE_LOCATIONS=True)
     def test_detail_rows_link_to_their_card_and_mark_inline_fields(self):
         page = self.client.get(self.detail).content.decode()
         facts = page[page.index("data-facts"):page.index("</dl>", page.index("data-facts"))]

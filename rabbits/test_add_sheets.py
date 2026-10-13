@@ -1,7 +1,7 @@
 """List-first pages: the add form is in a closed sheet that the header's
 New button (?new=1) opens; errors keep it open. Works without JS."""
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .test_flow_rules import FlowTestMixin
@@ -11,6 +11,7 @@ PAGES = [("pairing_list", "New pairing", "new-pairing"), ("task_list", "New task
          ("waitlist", "New buyer", "form")]
 
 
+@override_settings(FEATURE_LOCATIONS=True)
 class AddSheetTests(FlowTestMixin, TestCase):
     def setUp(self):
         super().setUp()

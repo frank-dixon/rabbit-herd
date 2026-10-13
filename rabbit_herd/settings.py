@@ -121,6 +121,7 @@ TEMPLATES = [
                 "pages.nav.app_nav",
                 "pages.nav.app_name",
                 "pages.nav.ui",
+                "pages.nav.features",
             ],
         },
     },
@@ -129,6 +130,9 @@ TEMPLATES = [
 # The name people see in the app, page titles and emails. The code, URLs and
 # hosting services keep the rabbit-herd name.
 APP_NAME = "Bramble Burrow"
+
+# Feature flags. Locations (cages and hutches) is hidden for now; the models and data stay.
+FEATURE_LOCATIONS = os.environ.get("FEATURE_LOCATIONS", "") == "1"
 
 WSGI_APPLICATION = "rabbit_herd.wsgi.application"
 ASGI_APPLICATION = "rabbit_herd.asgi.application"

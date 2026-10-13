@@ -25,11 +25,14 @@ def _date(value):
 
 def rabbits(user):
     rows = purebred.mark(list(Rabbit.objects.filter(owner=user).select_related("location", "source").prefetch_related(*purebred.PREFETCH)))
-    yield ["Name", "Ear tattoo", "Sex", "Breed", "Purebred", "Color", "Line", "Born", "Status", "Location",
+    from django.conf import settings
+
+    loc = settings.FEATURE_LOCATIONS
+    yield ["Name", "Ear tattoo", "Sex", "Breed", "Purebred", "Color", "Line", "Born", "Status", *(["Location"] if loc else []),
            "Came from", "Died", "Cause of death", "Archived"]
     for r in rows:
         yield [r.name, r.tattoo, r.get_sex_display(), r.breed_line(), "Yes" if r.purebred_info else "No", r.color_line, r.line,
-               _date(r.birth_date), r.get_status_display(), r.location.name if r.location else "",
+               _date(r.birth_date), r.get_status_display(), *([r.location.name if r.location else ""] if loc else []),
                str(r.source) if r.source else "", _date(r.death_date), r.death_cause, "Yes" if r.archived_at else "No"]
 
 

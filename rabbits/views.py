@@ -1,3 +1,4 @@
+from django.conf import settings
 from urllib.parse import urlencode
 
 from django.contrib import messages
@@ -123,6 +124,8 @@ def rabbit_list(request):
         rabbits = rabbits.filter(breed__icontains=filters["breed"])
     if filters["status"]:
         rabbits = rabbits.filter(status=filters["status"])
+    if not settings.FEATURE_LOCATIONS:
+        filters["location"] = ""
     if filters["location"] == "none":
         rabbits = rabbits.filter(location__isnull=True)
     elif filters["location"]:
@@ -141,7 +144,7 @@ def rabbit_list(request):
     former_count = sum(1 for _, archived_at, status in herd if not archived_at and status in Rabbit.FORMER)
     active_count = len(herd) - archived_count - former_count
     filtering = any(filters[key] for key in ("q", "sex", "breed", "status", "location", "pure"))
-    locations = location_options(request.user)
+    locations = location_options(request.user) if settings.FEATURE_LOCATIONS else []
     labels = {
         "sex": dict(Rabbit.Sex.choices),
         "status": dict(Rabbit.Status.choices),
@@ -257,7 +260,7 @@ def rabbit_detail(request, pk):
             "cost_add_url": f"/costs/?rabbit={rabbit.pk}&new=1#add",
             "today_iso": timezone.localdate().isoformat(),
             **doe_schedule_context(request, rabbit),
-            "location_choices": location_options(request.user)[:-1],
+            "location_choices": location_options(request.user)[:-1] if settings.FEATURE_LOCATIONS else [],
             "contact_options": [(str(c.pk), str(c)) for c in Contact.objects.filter(owner=request.user)],
             "kindling_note": rabbit.kindling_note(relatives),
             "upload_form": PhotoUploadForm(),

@@ -8,6 +8,21 @@ from django.views.decorators.http import require_POST
 
 from .models import Location, Rabbit
 
+
+def locations_on(view):
+    """404 while settings.FEATURE_LOCATIONS is off (checked per request)."""
+    from functools import wraps
+
+    from django.conf import settings
+    from django.http import Http404
+
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        if not settings.FEATURE_LOCATIONS:
+            raise Http404("Locations are turned off.")
+        return view(request, *args, **kwargs)
+    return wrapper
+
 NAME_REQUIRED = "A location needs a name, like Hutch 3 or Barn row A."
 NAME_TOO_LONG = "A location's name can be up to 80 characters. Shorten it."
 NAME_TAKEN = "You already have a location called {name}. Choose another name."
@@ -25,6 +40,7 @@ def clean_name(user, raw, exclude=None):
     return name, ""
 
 
+@locations_on
 @login_required
 def location_list(request):
     if request.method == "POST":
@@ -42,6 +58,7 @@ def location_list(request):
     return render(request, "rabbits/locations.html", {"locations": locations, "unplaced": unplaced, "wide": True})
 
 
+@locations_on
 @login_required
 @require_POST
 def location_edit(request, pk):
@@ -61,6 +78,7 @@ def location_edit(request, pk):
     return redirect("location_list")
 
 
+@locations_on
 @login_required
 @require_POST
 def rabbit_location(request, pk):

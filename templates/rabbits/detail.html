@@ -32,7 +32,7 @@
         {% include "rabbits/facts/row_start.html" with label="Born" slug="birth-date" href=birth_date_href inline_name="birth_date" inline_type="date" inline_value=rabbit.birth_date|date:"Y-m-d" only %}{{ rabbit.birth_date|date:"M j, Y" }}{% if not rabbit.death_date %}<span class="block text-sm text-muted" title="{{ rabbit.age_title }}" data-age><span class="sr-only">Age: </span>{{ rabbit.age_text }}<span class="sr-only"> ({{ rabbit.age_title }})</span></span>{% endif %}{% include "rabbits/facts/row_end.html" %}
         {% include "rabbits/facts/row_start.html" with label="Ear tattoo" slug="name" href=name_href inline_name="tattoo" inline_value=rabbit.tattoo only %}{% if rabbit.tattoo %}<span class="num" data-tattoo>{{ rabbit.tattoo }}</span>{% else %}<span class="text-muted">Add tattoo</span>{% endif %}{% include "rabbits/facts/row_end.html" %}
         {% include "rabbits/facts/row_start.html" with label="Status" slug="status" href=status_href only %}{{ rabbit.get_status_display }}{% include "rabbits/facts/row_end.html" %}
-        {% include "rabbits/facts/row_start.html" with label="Location" slug="location" href="#location" only %}<span data-location>{% if rabbit.location %}{{ rabbit.location.name }}{% else %}<span class="text-muted">Set location</span>{% endif %}</span>{% include "rabbits/facts/row_end.html" %}
+        {% if feature_locations %}{% include "rabbits/facts/row_start.html" with label="Location" slug="location" href="#location" only %}<span data-location>{% if rabbit.location %}{{ rabbit.location.name }}{% else %}<span class="text-muted">Set location</span>{% endif %}</span>{% include "rabbits/facts/row_end.html" %}{% endif %}
         {% if rabbit.is_deceased and rabbit.death_date or rabbit.is_deceased and rabbit.death_cause %}
           {% include "rabbits/facts/row_start.html" with label="Died" slug="status" href=status_href only %}{% if rabbit.death_date %}{{ rabbit.death_date|date:"M j, Y" }}{% endif %}{% if rabbit.death_date and rabbit.death_cause %} · {% endif %}{{ rabbit.death_cause }}{% include "rabbits/facts/row_end.html" %}
         {% endif %}
@@ -87,7 +87,7 @@
 
       {% include "rabbits/_linked_costs.html" with add_url=cost_add_url heading_id="costs-heading" %}
 
-      {% include "rabbits/_location_card.html" %}
+      {% if feature_locations %}{% include "rabbits/_location_card.html" %}{% endif %}
       {% if schedule_options %}{% url 'doe_schedule' rabbit.pk as schedule_action %}{% include "rabbits/_schedule_picker.html" with action=schedule_action options=schedule_options value=schedule_value current=schedule_current help="New litters from her pairings use this, unless a pairing sets its own." recalc_label="Also move her open litters to these dates" %}{% endif %}
 
       {% include "rabbits/_source_card.html" %}
