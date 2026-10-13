@@ -46,7 +46,7 @@
       </figure>
       <dl class="grid flex-1 grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 p-4">
         <dt class="text-neutral-600">Sex</dt><dd>{{ rabbit.get_sex_display }}</dd>
-        <dt class="text-neutral-600">Breed</dt><dd class="break-words">{{ rabbit.breed_line }}</dd>
+        <dt class="text-neutral-600">Breed</dt><dd class="break-words">{{ rabbit.breed_line }}{% if purebred_info %} <span class="ml-1 inline-block rounded-full border border-neutral-400 px-2 py-0.5 align-middle text-xs" data-purebred="{{ purebred_info.source }}">Purebred{% if purebred_info.source == "parents" %} · from both parents{% endif %}</span>{% if purebred_info.source == "parents" and rabbit.breed_line != purebred_info.breed %}<span class="block text-sm text-neutral-600">Both parents are {{ purebred_info.breed }}.</span>{% endif %}{% endif %}</dd>
         <dt class="text-neutral-600">Color</dt><dd class="break-words">{{ rabbit.color_line }}</dd>
         <dt class="text-neutral-600">Line</dt><dd class="break-words">{{ rabbit.line|default:"—" }}</dd>
         <dt class="text-neutral-600">Born</dt><dd>{{ rabbit.birth_date|date:"M j, Y" }} · {{ rabbit.age_text }}</dd>

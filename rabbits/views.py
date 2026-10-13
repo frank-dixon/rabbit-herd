@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from . import genetics
+from . import genetics, purebred
 from .forms import GenesForm, PhotoUploadForm
 from .models import Contact, Gene, HealthNote, Location, Rabbit, Weight
 
@@ -60,6 +60,7 @@ def list_filters(request):
         "sex": get.get("sex") if get.get("sex") in sexes else "",
         "breed": get.get("breed", "").strip()[:80],
         "status": get.get("status") if get.get("status") in statuses else "",
+        "pure": get.get("pure") if get.get("pure") in ("yes", "no") else "",
         "location": get.get("location", "") if get.get("location", "").isdigit() or get.get("location") == "none" else "",
     }
 
@@ -93,13 +94,16 @@ def rabbit_list(request):
         rabbits = rabbits.filter(location__isnull=True)
     elif filters["location"]:
         rabbits = rabbits.filter(location_id=int(filters["location"]))
-    rabbits = list(rabbits.prefetch_related("photos"))
+    rabbits = purebred.mark(list(rabbits.prefetch_related("photos", *purebred.PREFETCH)))
+    if filters["pure"]:
+        want = filters["pure"] == "yes"
+        rabbits = [rabbit for rabbit in rabbits if bool(rabbit.purebred_info) == want]
     # One small query gives both tab counts and the breed filter's options.
     herd = list(mine.values_list("breed", "archived_at", "status"))
     archived_count = sum(1 for _, archived_at, _ in herd if archived_at)
     deceased_count = sum(1 for _, archived_at, status in herd if not archived_at and status == Rabbit.Status.DECEASED)
     active_count = len(herd) - archived_count - deceased_count
-    filtering = any(filters[key] for key in ("q", "sex", "breed", "status", "location"))
+    filtering = any(filters[key] for key in ("q", "sex", "breed", "status", "location", "pure"))
     noun = filters["tab"]
     total = {"archived": archived_count, "deceased": deceased_count}.get(filters["tab"], active_count)
     if filtering:
@@ -177,6 +181,7 @@ def rabbit_detail(request, pk):
             "rabbit": rabbit,
             "wide": True,
             "main_photo": main,
+            "purebred_info": purebred.purebred(rabbit),
             "extra_photos": [photo for photo in photos if photo is not main],
             "photos": photos,
             "relatives": relatives,
