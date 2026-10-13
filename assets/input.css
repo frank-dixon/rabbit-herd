@@ -45,6 +45,7 @@
   --color-second-ink: var(--second-ink);
   --color-second-soft: var(--second-soft);
   --color-danger: var(--danger);
+  --color-warn: var(--warn);
   --color-danger-soft: color-mix(in oklab, var(--danger) 12%, var(--surface));
   --color-photo-1: var(--photo-1);
   --color-photo-2: var(--photo-2);
