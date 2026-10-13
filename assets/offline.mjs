@@ -59,7 +59,7 @@ export async function flushQueue(storage, fetchFn, token) {
     } catch (error) {
       break;
     }
-    if (!response.ok || String(response.url || "").includes("/accounts/login/")) {
+    if (!response.ok || String(response.url || "").match(/\/(accounts\/)?login\//)) {
       break;
     }
     items.shift();
@@ -129,7 +129,7 @@ export function bindOffline(doc, win) {
       render();
     });
   });
-  doc.querySelectorAll('form[action$="/accounts/logout/"]').forEach((form) => {
+  doc.querySelectorAll('form[action$="/logout/"]').forEach((form) => {
     form.addEventListener("submit", () => {
       storage.removeItem(QUEUE_KEY);
       if (nav.serviceWorker && nav.serviceWorker.controller) {

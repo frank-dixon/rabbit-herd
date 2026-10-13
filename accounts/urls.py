@@ -2,10 +2,32 @@ from django.urls import path
 
 from . import views
 
-urlpatterns = [
+
+def moved(name):
+    """Old /accounts/... address: a permanent 308 redirect (keeps POST and the query string)."""
+    from django.http import HttpResponseRedirect
+    from django.urls import reverse
+
+    class Moved(HttpResponseRedirect):
+        status_code = 308
+
+    def view(request):
+        qs = request.META.get("QUERY_STRING")
+        return Moved(reverse(name) + (f"?{qs}" if qs else ""))
+    return view
+
+
+# The sign-in pages live at /login/, /signup/ and /logout/ (rabbit_herd/urls.py).
+auth_urlpatterns = [
     path("login/", views.EmailLoginView.as_view(), name="login"),
-    path("logout/", views.AppLogoutView.as_view(), name="logout"),
     path("signup/", views.SignupView.as_view(), name="signup"),
+    path("logout/", views.AppLogoutView.as_view(), name="logout"),
+]
+
+urlpatterns = [
+    path("login/", moved("login")),
+    path("logout/", moved("logout")),
+    path("signup/", moved("signup")),
     path("signup/done/", views.signup_done, name="signup_done"),
     path("confirm/<uidb64>/<token>/", views.confirm_email, name="confirm_email"),
     path("guest/", views.continue_as_guest, name="guest"),

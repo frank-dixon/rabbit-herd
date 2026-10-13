@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import include, path
+from accounts.urls import auth_urlpatterns
 
 from rabbits.export import export_csv
 from rabbits import glossary, schedules
@@ -10,6 +11,7 @@ from rabbits.settings_views import settings_save
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
+    path("", include(auth_urlpatterns)),
     path("rabbits/", include("rabbits.urls")),
     path("locations/", include("rabbits.location_urls")),
     path("pairings/", include("rabbits.pairing_urls")),
