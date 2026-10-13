@@ -169,7 +169,9 @@ def weight_context(request, rabbit):
     from .weights import chart
 
     entries = list(rabbit.weights.all())
-    last_unit = entries[-1].unit if entries else request.session.get("weight_unit", Weight.Unit.LB_OZ)
+    from .models import prefs
+
+    last_unit = prefs(request.user).weight_unit
     return {
         "weights": list(reversed(entries)),
         "weight_chart": chart(entries, last_unit),

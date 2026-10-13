@@ -33,7 +33,7 @@ class WeightTests(TestCase):
         page = self.client.get(self.detail)
         self.assertContains(page, "data-weight-chart")
         self.assertContains(page, "<polyline")
-        self.assertContains(page, "1.6 kg")
+        self.assertContains(page, "3 lb 8 oz")  # Shown in the Settings unit (lb by default).
         self.assertContains(page, "8 weeks")
 
     def test_problems_are_explained_and_nothing_is_saved(self):

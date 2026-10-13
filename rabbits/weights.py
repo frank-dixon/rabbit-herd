@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .models import GRAMS_PER_OUNCE, Rabbit, Weight, weight_text
+from .models import GRAMS_PER_OUNCE, Rabbit, Weight, prefs, weight_text
 
 DATE_REQUIRED = "A weight needs a date. Please enter the day it was weighed."
 DATE_FUTURE = "The date can't be in the future. Please check it."
@@ -92,7 +92,7 @@ def weight_add(request, pk):
     if form.is_valid():
         data = form.cleaned_data
         weight = Weight.objects.create(rabbit=rabbit, date=data["day"], grams=data["grams"], unit=data["unit"], note=data["note"])
-        messages.success(request, f"{weight.text} on {weight.date:%b} {weight.date.day} was added.")
+        messages.success(request, f"{weight_text(weight.grams, prefs(request.user).weight_unit)} on {weight.date:%b} {weight.date.day} was added.")
         request.session["weight_unit"] = data["unit"]
     else:
         for errors in form.errors.values():

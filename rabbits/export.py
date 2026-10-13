@@ -9,7 +9,7 @@ from django.http import Http404, HttpResponse
 from django.utils import timezone
 
 from . import purebred
-from .models import Expense, Litter, Rabbit, ShowEntry, Weight, weight_text
+from .models import Expense, Litter, Rabbit, ShowEntry, Weight, prefs, weight_text
 
 
 def safe(value):
@@ -43,8 +43,9 @@ def litters(user):
 
 def weights(user):
     yield ["Rabbit", "Ear tattoo", "Date", "Weight", "Grams", "Pounds", "Kilograms", "Note"]
+    unit = prefs(user).weight_unit
     for w in Weight.objects.filter(rabbit__owner=user).select_related("rabbit").order_by("rabbit__name", "date", "pk"):
-        yield [w.rabbit.name, w.rabbit.tattoo, _date(w.date), w.text, w.grams, f"{w.grams / 453.59237:.2f}",
+        yield [w.rabbit.name, w.rabbit.tattoo, _date(w.date), weight_text(w.grams, unit), w.grams, f"{w.grams / 453.59237:.2f}",
                f"{w.grams / 1000:.3f}", w.note]
 
 

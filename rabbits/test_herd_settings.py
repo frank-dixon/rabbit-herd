@@ -52,3 +52,32 @@ class HerdSettingsPageTests(TestCase):
         self.assertEqual(self.client.post(reverse("herd_settings_save", args=["nope"])).status_code, 404)
         self.client.logout()
         self.assertEqual(self.client.post(reverse("herd_settings_save", args=["units"]), {"weight_unit": "kg"}).status_code, 302)
+
+
+class UnitsAppliedTests(TestCase):
+    def setUp(self):
+        import datetime
+        from .models import Rabbit, Weight
+        self.owner = user("units@example.com")
+        self.client.force_login(self.owner)
+        self.rabbit = Rabbit.objects.create(owner=self.owner, name="Thistle", sex="doe", breed="Rex", color="Black",
+                                            birth_date=datetime.date(2025, 1, 1))
+        Weight.objects.create(rabbit=self.rabbit, date=datetime.date(2025, 6, 1), grams=1985, unit="lb")
+
+    def test_pounds_by_default(self):
+        page = self.client.get(reverse("rabbit_detail", args=[self.rabbit.pk]))
+        self.assertContains(page, "4 lb 6 oz")
+        self.assertContains(page, 'data-weight-unit="lb"')
+        self.assertNotContains(page, 'name="kg"')
+
+    def test_kilograms_when_chosen(self):
+        HerdSettings.objects.create(user=self.owner, weight_unit="kg")
+        page = self.client.get(reverse("rabbit_detail", args=[self.rabbit.pk]))
+        self.assertContains(page, "1.98 kg")
+        self.assertNotContains(page, "4 lb 6 oz")
+        self.assertContains(page, 'name="kg"')
+        self.assertNotContains(page, 'name="lb"')
+        self.assertContains(self.client.get(reverse("export_csv", args=["weights"])), "1.98 kg")
+        response = self.client.post(reverse("rabbit_weight_add", args=[self.rabbit.pk]),
+                                    {"date": "2025-07-01", "kg": "2.2"}, follow=True)
+        self.assertContains(response, "2.2 kg on Jul 1 was added")

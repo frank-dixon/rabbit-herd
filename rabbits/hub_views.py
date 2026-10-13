@@ -18,9 +18,10 @@ def weights_hub(request):
                   last_date=Subquery(latest.values("date")[:1]))
         .order_by("name")
     )
-    from .models import weight_text
+    from .models import prefs, weight_text
 
-    rows = [{"rabbit": r, "text": weight_text(r.last_grams, r.last_unit) if r.last_grams else "", "date": r.last_date}
+    unit = prefs(request.user).weight_unit
+    rows = [{"rabbit": r, "text": weight_text(r.last_grams, unit) if r.last_grams else "", "date": r.last_date}
             for r in rabbits]
     rows.sort(key=lambda row: (row["date"] is not None, row["date"] or 0))
     recent = Weight.objects.filter(rabbit__owner=request.user).select_related("rabbit").order_by("-date", "-pk")[:12]

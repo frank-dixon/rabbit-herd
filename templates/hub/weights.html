@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load herd_settings %}
 {% block title %}Weights · {{ app_name }}{% endblock %}
 {% block content %}
   <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Weights</h1>
@@ -32,7 +33,7 @@
       <h2 class="eyebrow" id="recent-weights">Recent weigh-ins</h2>
       <ul class="mt-2 divide-y divide-line">
         {% for w in recent %}
-          <li class="flex items-baseline justify-between gap-3 py-2"><a class="min-w-0 truncate hover:underline" href="{% url 'rabbit_detail' w.rabbit_id %}#weights">{{ w.rabbit.name }}</a><span class="num shrink-0">{{ w.text }} <span class="text-muted">· {{ w.date|date:"M j" }}</span></span></li>
+          <li class="flex items-baseline justify-between gap-3 py-2"><a class="min-w-0 truncate hover:underline" href="{% url 'rabbit_detail' w.rabbit_id %}#weights">{{ w.rabbit.name }}</a><span class="num shrink-0">{{ w.grams|weigh:request.user }} <span class="text-muted">· {{ w.date|date:"M j" }}</span></span></li>
         {% endfor %}
       </ul>
     </section>
