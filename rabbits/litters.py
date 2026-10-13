@@ -73,7 +73,9 @@ def litter_list(request):
 @login_required
 def litter_detail(request, pk):
     litter = own_litter(request, pk)
-    kits = list(litter.kits.all())
+    kits = list(litter.kits.prefetch_related("cull_notes"))
+    for kit in kits:
+        kit.latest_cull = next(iter(kit.cull_notes.all()), None)
     room = (litter.survivors or 0) - len(kits)
     return render(request, "rabbits/litter_detail.html", {
         "litter": litter, "tasks": litter.tasks(), "kits": kits, "room": room,

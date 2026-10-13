@@ -790,3 +790,24 @@ class HealthNote(models.Model):
 
     def __str__(self):
         return f"{self.get_kind_display()} · {self.date}"
+
+
+class CullNote(models.Model):
+    """A keep-or-cull evaluation of one rabbit: the decision, why, and when."""
+
+    class Decision(models.TextChoices):
+        KEEP = "keep", "Keep"
+        CULL = "cull", "Cull"
+        UNDECIDED = "undecided", "Undecided"
+
+    rabbit = models.ForeignKey(Rabbit, related_name="cull_notes", on_delete=models.CASCADE)
+    date = models.DateField()
+    decision = models.CharField(max_length=10, choices=Decision.choices)
+    reason = models.TextField(max_length=1000, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date", "-pk"]
+
+    def __str__(self):
+        return f"{self.get_decision_display()} · {self.date}"
