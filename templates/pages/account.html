@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load herd_settings %}
 
 {% block title %}Settings · {{ app_name }}{% endblock %}
 
@@ -45,6 +46,8 @@
       {% include "components/button.html" with label="Save" type="submit" variant="primary" only %}
     </div>
   </form>
+
+  {% herd_settings_sections %}
 
   <section class="ruled mt-10 scroll-mt-20 pt-4" id="account" aria-labelledby="account-heading">
     <h2 class="text-base font-semibold" id="account-heading">Account</h2>

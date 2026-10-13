@@ -1,0 +1,9 @@
+{# Herd sections of the Settings page. Each posts to its own URL and comes back here. #}
+{% for section, form in forms.items %}
+  <form class="ruled mt-10 scroll-mt-20 pt-4" id="{{ section }}" method="post" action="{% url 'herd_settings_save' section %}" aria-labelledby="{{ section }}-heading" data-settings-section="{{ section }}">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <h2 class="text-base font-semibold" id="{{ section }}-heading">{% if section == "units" %}Units{% elif section == "schedule" %}Breeding schedule{% elif section == "rabbitry" %}Rabbitry{% else %}Reminders{% endif %}</h2>
+    {% include "rabbits/_settings_form.html" with section=section form=form only %}
+    <div class="mt-4">{% include "components/button.html" with label="Save" type="submit" variant="secondary" only %}</div>
+  </form>
+{% endfor %}

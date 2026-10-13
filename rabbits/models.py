@@ -1,5 +1,5 @@
 from decimal import Decimal
-from datetime import date
+from datetime import date, time as clock_time
 import uuid
 from pathlib import Path
 
@@ -961,3 +961,54 @@ class WaitlistEntry(models.Model):
                 continue
             found.append(rabbit)
         return found
+
+
+class HerdSettings(models.Model):
+    """One keeper's herd preferences from the Settings page: weight units,
+    breeding schedule defaults, rabbitry name and tattoo format, and which
+    dates remind them. A user without a row gets the defaults (see prefs)."""
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name="herd_settings", on_delete=models.CASCADE)
+    weight_unit = models.CharField("Weights in", max_length=2, choices=Weight.Unit.choices, default=Weight.Unit.LB_OZ)
+
+    gestation_days = models.PositiveSmallIntegerField("Gestation (days)", default=31)
+    palpate_day = models.PositiveSmallIntegerField("Palpate on day", default=12)
+    nest_box_day = models.PositiveSmallIntegerField("Nest box in on day", default=28)
+    wean_age = models.PositiveSmallIntegerField("Wean at (days old)", default=28)
+    process_age = models.PositiveSmallIntegerField("Process at (days old)", default=75)
+    rebreed_days = models.PositiveSmallIntegerField("Rebreed (days after kindling)", default=42)
+    breeding_age_months = models.PositiveSmallIntegerField("Ready to breed at (months)", default=6)
+
+    rabbitry_name = models.CharField(max_length=80, blank=True)
+    prefix = models.CharField("Name prefix", max_length=20, blank=True)
+    tattoo_format = models.CharField(max_length=40, blank=True, default="{prefix}{yy}{nn}")
+
+    remind_palpate = models.BooleanField("Palpate", default=True)
+    remind_nest_box = models.BooleanField("Nest box", default=True)
+    remind_due = models.BooleanField("Due to kindle", default=True)
+    remind_wean = models.BooleanField("Wean", default=True)
+    remind_process = models.BooleanField("Process", default=True)
+    remind_rebreed = models.BooleanField("Rebreed", default=True)
+    remind_tasks = models.BooleanField("Your own tasks", default=True)
+    daily_email = models.BooleanField("Email me a daily summary", default=False)
+    daily_email_time = models.TimeField("Send at", default=clock_time(6, 0))
+    daily_email_sent_on = models.DateField(null=True, blank=True, editable=False)
+
+    REMINDER_KEYS = {"palpate": "remind_palpate", "nest_box": "remind_nest_box", "due": "remind_due",
+                     "wean": "remind_wean", "process": "remind_process", "rebreed": "remind_rebreed",
+                     "task": "remind_tasks"}
+
+    def __str__(self):
+        return f"Settings for {self.user}"
+
+
+def prefs(user):
+    """The user's HerdSettings, or an unsaved default one. Cached on the user
+    object for the request."""
+    if user is None or not getattr(user, "is_authenticated", False):
+        return HerdSettings()
+    cached = getattr(user, "_herd_settings_cache", None)
+    if cached is None:
+        cached = HerdSettings.objects.filter(user=user).first() or HerdSettings(user=user)
+        user._herd_settings_cache = cached
+    return cached

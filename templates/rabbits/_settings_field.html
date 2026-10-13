@@ -1,0 +1,11 @@
+{# One herd-settings field. Pass field (a bound form field) and optionally type. #}
+{% if field.field.widget.input_type == "checkbox" %}
+  <label class="flex min-h-10 cursor-pointer items-center gap-3 text-sm">
+    <input class="h-5 w-5 shrink-0 rounded border-field accent-[var(--accent)]" type="checkbox" name="{{ field.html_name }}" id="{{ field.id_for_label }}"{% if field.value %} checked{% endif %}>
+    <span>{{ field.label }}</span>
+  </label>
+{% elif field.field.choices %}
+  {% include "components/select.html" with name=field.html_name label=field.label options=field.field.choices value=field.value errors=field.errors placeholder=" " only %}
+{% else %}
+  {% include "components/text_input.html" with name=field.html_name label=field.label value=field.value|default_if_none:"" errors=field.errors type=type help=field.help_text inputmode=inputmode only %}
+{% endif %}

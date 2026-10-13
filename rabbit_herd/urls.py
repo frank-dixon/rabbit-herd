@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import include, path
 
 from rabbits.export import export_csv
+from rabbits.settings_views import settings_save
 
 # Uploaded photos have no public URL. They are served one at a time, to
 # their owner only, by rabbits.photo_views.photo_file.
@@ -18,6 +19,7 @@ urlpatterns = [
     path("costs/", include("rabbits.cost_urls")),
     path("contacts/", include("rabbits.contact_urls")),
     path("genetics/", include("rabbits.genetics_urls")),
+    path("settings/herd/<slug:section>/", settings_save, name="herd_settings_save"),
     path("", include("rabbits.hub_urls")),
     path("", include("pages.urls")),
 ]

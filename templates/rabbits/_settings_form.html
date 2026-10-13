@@ -1,0 +1,30 @@
+{# The body of one herd-settings section form. Pass section and form. #}
+{% if section == "units" %}
+  <p class="mt-1 text-sm text-muted">Used for entering and showing weights. Weights already recorded convert.</p>
+  <div class="mt-3 max-w-xs">{% include "rabbits/_settings_field.html" with field=form.weight_unit only %}</div>
+{% elif section == "schedule" %}
+  <p class="mt-1 text-sm text-muted">Days count from the breeding date; ages from kindling. Litter dates and tasks use these.</p>
+  <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+    {% for field in form %}{% include "rabbits/_settings_field.html" with field=field type="number" inputmode="numeric" only %}{% endfor %}
+  </div>
+{% elif section == "rabbitry" %}
+  <p class="mt-1 text-sm text-muted">The name prints on pedigrees. The tattoo format fills in a suggestion for each new rabbit: {prefix}, {yy} or {year}, and {n}, {nn} or {nnn} for the next number.</p>
+  <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+    {% for field in form %}{% include "rabbits/_settings_field.html" with field=field only %}{% endfor %}
+  </div>
+{% elif section == "reminders" %}
+  <fieldset class="mt-3">
+    <legend class="eyebrow">Remind me about</legend>
+    <div class="mt-2 grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+      {% for field in form %}{% if field.name|slice:":7" == "remind_" %}{% include "rabbits/_settings_field.html" with field=field only %}{% endif %}{% endfor %}
+    </div>
+  </fieldset>
+  <fieldset class="mt-4">
+    <legend class="eyebrow">Daily summary email</legend>
+    <div class="mt-2 flex flex-wrap items-end gap-4">
+      {% include "rabbits/_settings_field.html" with field=form.daily_email only %}
+      <div class="w-36">{% include "rabbits/_settings_field.html" with field=form.daily_email_time type="time" only %}</div>
+    </div>
+    <p class="mt-1 text-sm text-muted">What's due and overdue that day, for the dates ticked above. Sent to your account email.</p>
+  </fieldset>
+{% endif %}

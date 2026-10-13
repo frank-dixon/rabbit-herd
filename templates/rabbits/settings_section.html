@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} · Settings · {{ app_name }}{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title=title subtitle="Please fix the marked fields and save again." only %}
+  <form class="ruled mt-6 pt-4" method="post" action="{% url 'herd_settings_save' section %}" data-settings-section="{{ section }}" novalidate>
+    {% csrf_token %}
+    {% include "components/error_summary.html" with items=items only %}
+    {% include "rabbits/_settings_form.html" with section=section form=form only %}
+    <div class="mt-4 flex flex-wrap gap-2">
+      {% include "components/button.html" with label="Save" type="submit" variant="primary" only %}
+      {% url 'account' as back %}{% include "components/button.html" with label="Back to Settings" href=back variant="secondary" only %}
+    </div>
+  </form>
+{% endblock %}
