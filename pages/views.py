@@ -152,10 +152,11 @@ def home_context(user, limit=8):
     today = timezone.localdate()
     rabbits = list(Rabbit.objects.filter(owner=user))
     live = [r for r in rabbits if r.archived_at is None]
-    active = [r for r in live if r.status != Rabbit.Status.DECEASED]
+    # The same "active" as the Rabbits list: living rabbits still in the herd.
+    active = [r for r in live if r.status not in Rabbit.FORMER]
     statuses = [
         {"label": label, "count": sum(1 for r in active if r.status == value), "value": value}
-        for value, label in Rabbit.Status.choices if value != Rabbit.Status.DECEASED
+        for value, label in Rabbit.Status.choices if value not in Rabbit.FORMER
     ]
     events = []
     for r in rabbits:
@@ -251,7 +252,15 @@ def herd_first(user, today, active, rabbits, items):
                          "due": due})
     next_kindling = min(pairings, key=lambda p: p["due"]) if pairings else None
     weights = []
-    for w in Weight.objects.filter(rabbit__owner=user, rabbit__archived_at__isnull=True).select_related("rabbit").order_by("-date", "-pk")[:4]:
+    seen = set()
+    recent = Weight.objects.filter(rabbit__owner=user, rabbit__archived_at__isnull=True).select_related("rabbit").order_by("-date", "-pk")
+    for w in recent.iterator():
+        # One row per rabbit: its latest weight.
+        if w.rabbit_id in seen:
+            continue
+        seen.add(w.rabbit_id)
+        if len(seen) > 4:
+            break
         before = Weight.objects.filter(rabbit=w.rabbit, date__lt=w.date).order_by("-date", "-pk").first()
         delta = w.grams - before.grams if before else None
         weights.append({"weight": w, "rabbit": photos.get(w.rabbit_id, w.rabbit), "delta": delta_text(delta, w.unit) if delta else ""})

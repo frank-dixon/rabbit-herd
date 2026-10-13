@@ -22,7 +22,9 @@
     {% if not herd.active and not herd.deceased and not herd.archived %}
 {% url "rabbit_create" as a_url %}{% include "components/empty.html" with title="No rabbits yet." text="Add your first rabbit. Its tasks, litters and weights show up here each day." href=a_url action="Add a rabbit" kind="herd" icon=ui_icons.today only %}
     {% else %}
-      <section class="mt-6" aria-labelledby="herd-heading" data-herd-cards>
+      {# Phones put what's due first; from md the herd leads, as in the board. #}
+      <div class="flex flex-col gap-6 md:block">
+      <section class="md:mt-6" aria-labelledby="herd-heading" data-herd-cards>
         <div class="flex items-baseline"><h2 class="text-[17px] font-semibold" id="herd-heading">Herd</h2><a class="ml-auto text-sm text-muted underline hover:text-ink" href="{{ list_url }}">All rabbits{% if herd_more %} ({{ tiles.herd }}){% endif %}</a></div>
         {% if herd_cards %}
           <ul class="mo-stagger -mr-4 mt-3 flex snap-x gap-2.5 overflow-x-auto pr-4 pb-1 sm:mr-0 sm:grid sm:grid-cols-3 sm:gap-3 sm:overflow-visible sm:pr-0 lg:grid-cols-4">
@@ -45,22 +47,22 @@
       </section>
 
       {% if former_chips %}
-        <ul class="mt-3 flex flex-wrap gap-2.5" aria-label="Former herd" data-former>
+        <ul class="-mt-3 flex flex-wrap gap-2.5 md:mt-3" aria-label="Former herd" data-former>
           {% for chip in former_chips %}
             <li><a class="flex items-center gap-2 rounded-full border border-line bg-surface py-1 pr-3 pl-1 text-[13px] hover:border-field" href="{% url 'rabbit_detail' chip.rabbit.pk %}">{% with main=chip.rabbit.main_photo %}{% if main %}<img class="h-[26px] w-[26px] rounded-full object-cover" {% photo_src main "26px" 160 %} alt="" loading="lazy">{% else %}<span class="grid h-[26px] w-[26px] place-items-center rounded-full bg-accent-soft text-xs font-semibold text-accent" aria-hidden="true">{{ chip.rabbit.name|first|upper }}</span>{% endif %}{% endwith %}{{ chip.rabbit.name }} <span class="text-muted">{{ chip.note }}</span></a></li>
           {% endfor %}
         </ul>
       {% endif %}
 
-      <dl class="mt-6 grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3" data-tiles>
+      <dl class="grid grid-cols-2 md:mt-6 gap-2.5 md:grid-cols-4 md:gap-3" data-tiles>
         <div class="rounded-[10px] border border-line bg-surface px-4 py-3.5"><dt class="text-[13px] text-muted">In the herd</dt><dd class="text-[22px] font-semibold md:text-[26px]">{{ tiles.herd }}</dd><dd class="text-[13px] text-muted">{{ tiles.bucks }} buck{{ tiles.bucks|pluralize }} · {{ tiles.does }} doe{{ tiles.does|pluralize }}</dd></div>
         <div class="rounded-[10px] border border-line bg-surface px-4 py-3.5"><dt class="text-[13px] text-muted">Bred</dt><dd class="text-[22px] font-semibold md:text-[26px]">{{ tiles.bred }}</dd><dd class="text-[13px] text-muted">{{ tiles.bred_names|default:"None right now" }}</dd></div>
         <div class="rounded-[10px] border border-line bg-surface px-4 py-3.5"><dt class="text-[13px] text-muted">Next kindling</dt>{% if tiles.next_kindling %}<dd class="text-[22px] font-semibold md:text-[26px]">{{ tiles.next_kindling.due|date:"D, M j" }}</dd><dd class="text-[13px] text-muted">{{ tiles.next_kindling.litter.pairing.doe.name }} · {% if tiles.next_days > 0 %}{{ tiles.next_days }} day{{ tiles.next_days|pluralize }}{% elif tiles.next_days == 0 %}today{% else %}overdue{% endif %}</dd>{% else %}<dd class="text-[22px] font-semibold md:text-[26px]">None</dd><dd class="text-[13px] text-muted">No does bred</dd>{% endif %}</div>
         <div class="rounded-[10px] border border-line bg-surface px-4 py-3.5"><dt class="text-[13px] text-muted">Sold</dt><dd class="text-[22px] font-semibold md:text-[26px]">{{ tiles.sold }}</dd><dd class="text-[13px] text-muted">{{ tiles.culled }} culled · {{ tiles.deceased }} deceased</dd></div>
       </dl>
 
-      <div class="mt-6 grid gap-5 md:grid-cols-[1.25fr_1fr]">
-        <div class="space-y-5">
+      <div class="contents md:mt-6 md:grid md:grid-cols-[1.25fr_1fr] md:gap-5">
+        <div class="contents md:block md:space-y-5">
           <section class="rounded-[10px] border border-line bg-surface px-4 pt-1 pb-3" aria-labelledby="pairings-heading" data-pairings-progress>
             <h2 class="flex items-center gap-2 pt-3 pb-2 text-[15px] font-semibold" id="pairings-heading">Pairings and litters {% if progress_count %}<span class="num rounded-full bg-accent-soft px-2 text-xs text-accent">{{ progress_count }}</span>{% endif %}<a class="ml-auto text-[13px] font-normal text-muted underline hover:text-ink" href="{% url 'pairing_list' %}">All pairings</a></h2>
             {% for p in pairings_progress %}
@@ -85,7 +87,7 @@
             {% endif %}
           </section>
 
-          <section class="rounded-[10px] border border-line bg-surface px-4 pt-1 pb-3" aria-labelledby="due-heading">
+          <section class="order-first rounded-[10px] border border-line bg-surface px-4 pt-1 pb-3 md:order-none" aria-labelledby="due-heading">
             <h2 class="flex items-center gap-2 pt-3 pb-2 text-[15px] font-semibold" id="due-heading">Due in the next 7 days {% if week_now or week_later %}<span class="num rounded-full bg-accent-soft px-2 text-xs text-accent" data-due-count>{{ week_count }}</span>{% endif %}<a class="ml-auto text-[13px] font-normal text-muted underline hover:text-ink" href="{% url 'task_list' %}">All tasks</a></h2>
             {% if week_now %}
               <p class="pt-2 pb-1 text-xs font-semibold text-muted">Overdue and today</p>
@@ -100,7 +102,7 @@
           </section>
         </div>
 
-        <div class="space-y-5">
+        <div class="contents md:block md:space-y-5">
           <section class="rounded-[10px] border border-line bg-surface px-4 pt-1 pb-3" aria-labelledby="weights-heading" data-recent-weights>
             <h2 class="flex items-center gap-2 pt-3 pb-2 text-[15px] font-semibold" id="weights-heading">Recent weights<a class="ml-auto text-[13px] font-normal text-muted underline hover:text-ink" href="{% url 'weights_hub' %}">Weights</a></h2>
             {% for row in recent_weights %}
@@ -131,6 +133,7 @@
         </div>
       </div>
 
+      </div>
       <p class="num mt-8 text-center text-xs text-muted" data-herd-summary>
         <a class="hover:text-ink" href="{{ list_url }}">{{ herd.active }} rabbit{{ herd.active|pluralize }}</a> · {{ herd.does }} doe{{ herd.does|pluralize }} · {{ herd.bucks }} buck{{ herd.bucks|pluralize }}{% for status in herd.statuses %} · {{ status.count }} {{ status.label|lower }}{% endfor %}
       </p>

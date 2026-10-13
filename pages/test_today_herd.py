@@ -45,3 +45,27 @@ class TodayHerdFirstTests(TestCase):
         names = [card["rabbit"].name for card in self.client.get(reverse("index")).context["herd_cards"]]
         self.assertNotIn("Lily", names)
         self.assertNotIn("Juniper", names)
+
+
+class TodayCountsTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(email="c@example.com", password="x-strong-Pass-1")
+        self.client.force_login(self.user)
+        mk = lambda name, status: Rabbit.objects.create(owner=self.user, name=name, sex="doe", birth_date="2024-03-10", status=status)
+        self.a, self.b = mk("Basil", "breeding"), mk("Fern", "growing")
+        mk("Juniper", "culled")
+        mk("Lily", "sold")
+
+    def test_culled_and_sold_rabbits_are_not_counted_as_the_herd(self):
+        page = self.client.get(reverse("index"))
+        self.assertEqual(page.context["herd"]["active"], 2)
+        self.assertEqual(page.context["tiles"]["herd"], 2)
+        self.assertContains(page, "2 rabbits</a> · 2 does · 0 bucks · 1 breeding · 1 growing out")
+
+    def test_recent_weights_show_one_row_per_rabbit(self):
+        today = timezone.localdate()
+        for days in range(4):
+            Weight.objects.create(rabbit=self.a, date=today - datetime.timedelta(days=days), grams=4000 + days)
+        Weight.objects.create(rabbit=self.b, date=today - datetime.timedelta(days=9), grams=3000)
+        rows = self.client.get(reverse("index")).context["recent_weights"]
+        self.assertEqual([r["rabbit"].name for r in rows], ["Basil", "Fern"])
