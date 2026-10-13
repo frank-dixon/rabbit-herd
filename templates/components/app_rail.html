@@ -1,10 +1,10 @@
 {# Side menu for tablet (icons over short labels) and desktop (full labels). Hidden on phones, which get the bottom tabs. #}
 <aside data-print-hide data-app-rail class="sticky top-0 hidden h-screen shrink-0 flex-col border-r border-line bg-side md:flex md:w-20 lg:w-56" aria-label="App">
-  <a class="hidden px-5 pt-6 pb-4 text-base font-semibold tracking-tight text-ink lg:block" href="{% url 'index' %}">{{ app_name }}</a>
-  <nav class="flex flex-col gap-0.5 overflow-y-auto px-2 pt-3 pb-2 lg:pt-0 lg:pr-3 lg:pl-0" aria-label="Main">
+  <a class="hidden h-14 items-center px-5 text-base font-semibold tracking-tight text-ink lg:flex" href="{% url 'index' %}">{{ app_name }}</a>
+  <nav class="flex flex-col gap-0.5 overflow-y-auto px-2 pt-3 pb-2 lg:pt-1 lg:pr-3 lg:pl-0" aria-label="Main">
     {% for item in app_nav %}
       {% if item.key == "add" %}
-        <a href="{{ item.url }}" class="my-2 flex flex-col items-center gap-1 rounded-md px-1 py-2 text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-side lg:ml-3 lg:flex-row lg:justify-center lg:gap-2 lg:bg-accent lg:py-2.5 lg:text-sm lg:font-semibold lg:text-on-accent lg:hover:bg-accent/90 {% if item.active %}bg-accent-soft text-accent lg:text-on-accent{% else %}text-muted hover:text-ink{% endif %}"{% if item.active %} aria-current="page"{% endif %}>
+        <a href="{{ item.url }}" class="mo-press my-2 flex flex-col items-center gap-1 rounded-md px-1 py-2 text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-side lg:ml-3 lg:flex-row lg:justify-center lg:gap-2 lg:bg-accent lg:py-2.5 lg:text-sm lg:font-semibold lg:text-on-accent lg:hover:bg-accent/90 {% if item.active %}bg-accent-soft text-accent lg:text-on-accent{% else %}text-muted hover:text-ink{% endif %}"{% if item.active %} aria-current="page"{% endif %}>
           {% include "components/icon.html" with d=item.icon only %}
           <span class="text-center"><span class="lg:sr-only" aria-hidden="true">Add</span><span class="sr-only lg:not-sr-only">Add a rabbit</span></span>
         </a>
@@ -16,8 +16,4 @@
       {% endif %}
     {% endfor %}
   </nav>
-  <form class="mt-auto border-t border-line px-2 py-3 lg:px-5" method="post" action="{% url 'logout' %}">
-    {% csrf_token %}
-    <button type="submit" class="w-full rounded-md px-1 py-1.5 text-xs text-muted hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent lg:px-0 lg:text-left lg:text-sm">Log out</button>
-  </form>
 </aside>

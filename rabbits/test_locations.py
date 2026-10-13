@@ -65,9 +65,8 @@ class LocationTests(TestCase):
         self.assertEqual(self.client.post(reverse("location_edit", args=[theirs.pk]), {"action": "delete"}).status_code, 404)
         self.assertNotContains(self.client.get(reverse("location_list")), "Theirs")
 
-    def test_locations_are_in_the_nav_and_under_more_on_phones(self):
+    def test_locations_are_in_the_nav_and_the_menu(self):
         page = self.client.get(reverse("location_list")).content.decode()
         self.assertRegex(page, r'href="/locations/"[^>]*aria-current="page"')
-        more = self.client.get(reverse("account"))
-        self.assertContains(more, 'aria-label="More sections"')
-        self.assertContains(more, 'href="/locations/"')
+        menu = self.client.get(reverse("app_menu"))
+        self.assertContains(menu, 'href="/locations/"')

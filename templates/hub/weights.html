@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Weights · {{ app_name }}{% endblock %}
+{% block content %}
+  <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Weights</h1>
+  <p class="mt-0.5 text-sm text-muted">Longest since a weigh-in comes first.</p>
+  {% if rows %}
+    <ul class="mo-stagger mt-5 divide-y divide-line overflow-hidden rounded-md border border-line bg-surface" data-weights-hub>
+      {% for row in rows %}
+        <li>
+          <a class="flex items-center gap-3 px-4 py-3 hover:bg-side focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent" href="{% url 'rabbit_detail' row.rabbit.pk %}#weights">
+            <span class="min-w-0 flex-1">
+              <span class="block truncate font-semibold">{{ row.rabbit.name }}</span>
+              <span class="block truncate text-sm text-muted">{{ row.rabbit.get_sex_display }} · {{ row.rabbit.age_text }}</span>
+            </span>
+            <span class="shrink-0 text-right">
+              {% if row.text %}<span class="num block text-ink">{{ row.text }}</span><span class="num block text-xs text-muted">{{ row.date|date:"M j" }}</span>{% else %}<span class="text-sm text-muted">Not weighed</span>{% endif %}
+            </span>
+            <svg class="h-4 w-4 shrink-0 text-field" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="ruled mt-6 pt-4" data-empty>
+      <p class="font-medium">No rabbits to weigh yet.</p>
+      <p class="mt-1 text-sm text-muted">Add a rabbit, then log its weight from its page.</p>
+      <a class="mt-3 inline-flex min-h-10 items-center rounded-md bg-accent px-4 text-sm font-semibold text-on-accent" href="{% url 'rabbit_create' %}">Add a rabbit</a>
+    </div>
+  {% endif %}
+  {% if recent %}
+    <section class="ruled mt-10 pt-4" aria-labelledby="recent-weights">
+      <h2 class="eyebrow" id="recent-weights">Recent weigh-ins</h2>
+      <ul class="mt-2 divide-y divide-line">
+        {% for w in recent %}
+          <li class="flex items-baseline justify-between gap-3 py-2"><a class="min-w-0 truncate hover:underline" href="{% url 'rabbit_detail' w.rabbit_id %}#weights">{{ w.rabbit.name }}</a><span class="num shrink-0">{{ w.text }} <span class="text-muted">· {{ w.date|date:"M j" }}</span></span></li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+{% endblock %}

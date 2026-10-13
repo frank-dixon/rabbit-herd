@@ -1,5 +1,6 @@
-"""The app shell's menu: a side menu on tablet and desktop, bottom tabs on
-phones. Only built sections are listed; nothing points at work not done yet."""
+"""The app shell: bottom tabs on phones, a side menu on tablet and desktop,
+and a slide-in panel (menu button, top left) with Settings and the less-used
+sections. Only built sections are listed."""
 
 from django.conf import settings
 from django.urls import reverse
@@ -33,52 +34,103 @@ def app_name(request):
     """The user-facing app name, from settings.APP_NAME."""
     return {"app_name": settings.APP_NAME}
 
-# Outline icons, 24x24, drawn with currentColor (no new colors).
+# Outline icons, 24x24, drawn with currentColor.
 ICONS = {
+    "today": "M4 6.5A1.5 1.5 0 0 1 5.5 5h13A1.5 1.5 0 0 1 20 6.5v12a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5zM4 10h16M8 3v4M16 3v4M9 14.5l2 2 4-4",
     "home": "M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z",
-    "rabbits": "M4 5h16M4 12h16M4 19h16",
+    "rabbits": "M9.5 9C8 9 7 7 7 4.8 7 3.6 7.6 3 8.3 3c1.3 0 2.2 2.6 2.2 4.6M14.5 9c1.5 0 2.5-2 2.5-4.2C17 3.6 16.4 3 15.7 3c-1.3 0-2.2 2.6-2.2 4.6M6 15a6 6 0 0 1 12 0c0 3.3-2.7 6-6 6s-6-2.7-6-6zM10 15h.01M14 15h.01",
     "add": "M12 5v14M5 12h14",
     "archived": "M3 5h18v4H3zM5 9v10h14V9M10 13h4",
     "contacts": "M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20a6 6 0 0 1 12 0M16 11a3 3 0 1 0 0-6M18 20h4a6 6 0 0 0-5-5.9",
     "locations": "M4 4h16v16H4zM4 12h16M12 4v16",
     "pairings": "M8 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM16 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
     "litters": "M7 4v3M17 4v3M4 8h16v12H4zM8 12h3v3H8z",
+    "weights": "M12 4v16M7 20h10M5 8h14M5 8l-3 6a3 3 0 0 0 6 0zM19 8l-3 6a3 3 0 0 0 6 0zM12 4a1 1 0 1 0 0 .01",
     "tasks": "M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2",
+    "health": "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10zM9 11h6M12 8v6",
+    "shows": "M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9 17h6v4H9z",
     "costs": "M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 2 2.6 4.5 3 4.5 1.3 4.5 3-2 3-4.5 3-4.5-1.3-4.5-3",
     "waitlist": "M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01",
-    "more": "M5 12h.01M12 12h.01M19 12h.01",
+    "export": "M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14",
     "settings": "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z",
     "account": "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0",
+    "menu": "M4 7h16M4 12h16M4 17h16",
 }
+
+# Every place the bottom bar can point at: key -> (label, url name, query).
+DESTINATIONS = {
+    "today": ("Today", "index", ""),
+    "rabbits": ("Rabbits", "rabbit_list", ""),
+    "litters": ("Litters", "litter_list", ""),
+    "weights": ("Weights", "weights_hub", ""),
+    "tasks": ("Tasks", "task_list", ""),
+    "pairings": ("Pairings", "pairing_list", ""),
+    "health": ("Health", "health_list", ""),
+    "shows": ("Shows", "show_list", ""),
+    "locations": ("Locations", "location_list", ""),
+    "costs": ("Costs", "cost_list", ""),
+    "waitlist": ("Waitlist", "waitlist", ""),
+    "contacts": ("Contacts", "contact_list", ""),
+    "settings": ("Settings", "account", ""),
+}
+DEFAULT_TABS = ["today", "rabbits", "litters", "weights", "tasks"]
+MIN_TABS, MAX_TABS = 3, 5
+
+# Side menu on tablet and desktop: the everyday sections.
+RAIL = ["today", "rabbits", "add", "litters", "pairings", "weights", "tasks", "locations", "archived"]
+# The slide-in panel: Settings and the less-used sections.
+PANEL = ["contacts", "costs", "waitlist", "shows", "health", "export", "settings", "account"]
+
+PREFIXES = [
+    ("/rabbits/new/", "add"), ("/rabbits/archived/", "archived"), ("/rabbits/", "rabbits"),
+    ("/locations/", "locations"), ("/tasks/", "tasks"), ("/pairings/", "pairings"), ("/litters/", "litters"),
+    ("/weights/", "weights"), ("/health/", "health"), ("/shows/", "shows"), ("/waitlist/", "waitlist"),
+    ("/costs/", "costs"), ("/contacts/", "contacts"), ("/settings/", "settings"), ("/account/", "settings"),
+    ("/accounts/password", "settings"), ("/menu/", "menu"),
+]
 
 
 def active_key(request):
     path = request.path
     if path == "/":
-        return "home"
-    if path.startswith("/rabbits/new/"):
-        return "add"
-    if path.startswith("/rabbits/archived/") or (path == "/rabbits/" and request.GET.get("tab") == "archived"):
+        return "today"
+    if path == "/rabbits/" and request.GET.get("tab") == "archived":
         return "archived"
-    if path.startswith("/rabbits/"):
-        return "rabbits"
-    if path.startswith("/locations/"):
-        return "locations"
-    if path.startswith("/tasks/"):
-        return "tasks"
-    if path.startswith("/pairings/"):
-        return "pairings"
-    if path.startswith("/litters/"):
-        return "litters"
-    if path.startswith("/waitlist/"):
-        return "waitlist"
-    if path.startswith("/costs/"):
-        return "costs"
-    if path.startswith("/contacts/"):
-        return "contacts"
-    if path.startswith("/settings/") or path.startswith("/account/") or path.startswith("/accounts/password"):
-        return "account"
+    for prefix, key in PREFIXES:
+        if path.startswith(prefix):
+            return key
     return ""
+
+
+def clean_tabs(keys):
+    """A valid bar: known destinations, no repeats, 3 to 5 of them."""
+    seen = []
+    for key in keys or []:
+        if key in DESTINATIONS and key not in seen:
+            seen.append(key)
+    seen = seen[:MAX_TABS]
+    return seen if len(seen) >= MIN_TABS else list(DEFAULT_TABS)
+
+
+def due_count(user):
+    from rabbits.tasks import open_items
+
+    from django.utils import timezone
+
+    today = timezone.localdate()
+    return sum(1 for item in open_items(user, today) if item["date"] <= today)
+
+
+def item(key, current, label=None, url=None):
+    if url is None:
+        name, query = {
+            "add": ("rabbit_create", ""), "archived": ("rabbit_list", "?tab=archived"),
+            "export": ("account", "#export"), "account": ("account", "#account"),
+        }.get(key, DESTINATIONS.get(key, ("", "", ""))[1:])
+        url = reverse(name) + query
+    label = label or {"add": "Add a rabbit", "archived": "Archived", "export": "Export", "account": "Account"}.get(key) or DESTINATIONS[key][0]
+    return {"key": key, "label": label, "short": "Add" if key == "add" else label, "url": url,
+            "icon": ICONS[key], "active": key == current}
 
 
 def app_nav(request):
@@ -86,36 +138,17 @@ def app_nav(request):
     if user is None or not user.is_authenticated:
         return {}
     current = active_key(request)
-    items = [
-        ("home", "Home", reverse("index")),
-        ("rabbits", "Rabbits", reverse("rabbit_list")),
-        ("add", "Add a rabbit", reverse("rabbit_create")),
-        ("tasks", "Tasks", reverse("task_list")),
-        ("archived", "Archived", reverse("rabbit_list") + "?tab=archived"),
-        ("locations", "Locations", reverse("location_list")),
-        ("pairings", "Pairings", reverse("pairing_list")),
-        ("litters", "Litters", reverse("litter_list")),
-        ("waitlist", "Waitlist", reverse("waitlist")),
-        ("costs", "Costs", reverse("cost_list")),
-        ("contacts", "Contacts", reverse("contact_list")),
-        ("account", "Settings", reverse("account")),
-    ]
-    # Phones get four tabs; everything else sits under More (the account page).
-    phone = {"home", "rabbits", "add"}
-    more_active = current not in phone and current != ""
+    tabs = clean_tabs(getattr(user, "tab_bar", None))
+    nav_items = [item(key, current) for key in RAIL]
+    tab_items = [item(key, current) for key in tabs]
+    if "tasks" in tabs:
+        due = due_count(user)
+        for entry in tab_items:
+            if entry["key"] == "tasks":
+                entry["badge"] = due
     return {
-        "app_tabs": [
-            {"key": key, "label": label, "short": "Add" if key == "add" else label, "url": url,
-             "icon": ICONS[key], "active": key == current}
-            for key, label, url in items if key in phone
-        ] + [{"key": "more", "label": "More", "short": "More", "url": reverse("account"), "icon": ICONS["more"], "active": more_active}],
-        "app_more": [
-            {"key": key, "label": label, "url": url, "icon": ICONS[key], "active": key == current}
-            for key, label, url in items if key not in phone and key != "account"
-        ],
-        "app_nav": [
-            {"key": key, "label": label, "short": "Add" if key == "add" else label,
-             "url": url, "icon": ICONS["settings" if key == "account" else key], "active": key == current}
-            for key, label, url in items
-        ]
+        "app_nav": nav_items,
+        "app_tabs": tab_items,
+        "app_panel": [item(key, current) for key in PANEL],
+        "app_destinations": [item(key, current) for key in DESTINATIONS],
     }

@@ -22,10 +22,37 @@ class AppShellTests(TestCase):
     def test_only_built_sections_are_listed(self):
         html = self.client.get(reverse("index")).content.decode()
         page = html[html.index('<aside'):html.index('</aside>')] + html[html.index('data-app-tabs'):]
-        for missing in ("Breeding", "Weights", "coming soon", "Coming soon"):
+        for missing in ("coming soon", "Coming soon", ">More<"):
             self.assertNotIn(missing, page)
-        for label in ("Home", "Rabbits", "Add a rabbit", "Archived", "Tasks", "Pairings", "Litters", "Settings", "Log out"):
+        for label in ("Today", "Rabbits", "Add a rabbit", "Archived", "Tasks", "Pairings", "Litters", "Weights", "Locations"):
             self.assertIn(label, page)
+        panel = html[html.index('id="app-menu"'):html.index('data-shell')]
+        for label in ("Contacts", "Costs", "Waitlist", "Shows", "Health", "Export", "Settings", "Account", "Sign out"):
+            self.assertIn(label, panel)
+
+    def test_phone_bar_is_n1_with_a_due_badge(self):
+        from datetime import date, timedelta
+        from rabbits.models import Task
+        Task.objects.create(owner=self.user, title="Trim nails", due_on=date.today() - timedelta(days=1))
+        Task.objects.create(owner=self.user, title="Later", due_on=date.today() + timedelta(days=5))
+        html = self.client.get(reverse("rabbit_list")).content.decode()
+        tabs = html[html.index("data-app-tabs"):]
+        self.assertEqual([t for t in ("today", "rabbits", "litters", "weights", "tasks") if f'data-tab="{t}"' in tabs],
+                         ["today", "rabbits", "litters", "weights", "tasks"])
+        self.assertIn('1<span class="sr-only"> due</span>', tabs)
+
+    def test_menu_button_works_without_js(self):
+        html = self.client.get(reverse("rabbit_list")).content.decode()
+        self.assertIn('href="/menu/"', html)
+        self.assertIn('aria-controls="app-menu" aria-expanded="false" data-menu-button', html)
+        menu = self.client.get(reverse("app_menu"))
+        self.assertContains(menu, "Sign out")
+        self.assertContains(menu, 'href="/pairings/"')
+
+    def test_herd_pages_for_weights_health_and_shows(self):
+        for name in ("weights_hub", "health_list", "show_list"):
+            self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
+        self.assertContains(self.client.get(reverse("weights_hub")), "Pepper")
 
     def test_the_current_section_is_marked(self):
         page = self.client.get(reverse("rabbit_detail", args=[self.rabbit.pk])).content.decode()

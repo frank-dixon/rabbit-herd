@@ -6,6 +6,7 @@ from . import pwa, views
 urlpatterns = [
     path("components/", views.components, name="components"),
     path("settings/", views.account, name="account"),
+    path("menu/", views.menu, name="app_menu"),
     path("account/", RedirectView.as_view(pattern_name="account", permanent=False)),
     path("manifest.webmanifest", pwa.manifest, name="pwa_manifest"),
     path("sw.js", pwa.service_worker, name="pwa_service_worker"),

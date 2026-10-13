@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Menu · {{ app_name }}{% endblock %}
+{% block content %}
+  <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Menu</h1>
+  <div class="-mx-3 mt-4 flex flex-col">{% include "components/menu_list.html" %}</div>
+{% endblock %}

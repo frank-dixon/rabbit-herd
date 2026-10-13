@@ -107,3 +107,31 @@
   main { padding: 0 !important; max-width: none !important; }
   [data-pedigree-cell] { break-inside: avoid; }
 }
+
+/* Menu panel. Phones: the panel and the page move together (push). Tablet
+   and up: the panel slides over the page with a scrim. Transform only. */
+:root { --panel-w: min(84vw, 320px); }
+.app-panel {
+  position: fixed; inset-block: 0; left: 0; z-index: 40; width: var(--panel-w);
+  display: flex; flex-direction: column; background: var(--surface);
+  border-right: 1px solid var(--line);
+  transform: translateX(-100%); visibility: hidden;
+  transition: transform var(--dur-3) var(--ease-in-out), visibility 0s linear var(--dur-3);
+}
+html[data-menu-open] .app-panel { transform: none; visibility: visible; transition: transform var(--dur-3) var(--ease-out), visibility 0s; }
+[data-shell] { transition: transform var(--dur-3) var(--ease-in-out); }
+.app-scrim {
+  position: fixed; inset: 0; z-index: 30; background: rgb(0 0 0 / 0.32);
+  opacity: 0; pointer-events: none; transition: opacity var(--dur-3) var(--ease-in-out);
+}
+html[data-menu-open] .app-scrim { opacity: 1; pointer-events: auto; }
+@media (max-width: 767px) {
+  html[data-menu-open] [data-shell] { transform: translateX(var(--panel-w)); }
+  html[data-menu-open] .app-panel { box-shadow: none; }
+  .app-scrim { left: var(--panel-w); background: rgb(0 0 0 / 0.18); }
+  html[data-menu-open] body { overflow: hidden; }
+}
+@media (min-width: 768px) {
+  html[data-menu-open] .app-panel { box-shadow: 0 0 48px -12px rgb(0 0 0 / 0.35); }
+}
+@media print { .app-panel, .app-scrim { display: none !important; } }

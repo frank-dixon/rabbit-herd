@@ -42,6 +42,12 @@ def account(request):
     return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes})
 
 
+@login_required
+def menu(request):
+    """The menu panel as a page, for browsers without JS."""
+    return render(request, "pages/menu.html")
+
+
 def components(request):
     """Show every partial. Staff only, or anyone while DEBUG is on."""
     if not settings.DEBUG and not request.user.is_staff:

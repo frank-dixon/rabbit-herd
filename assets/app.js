@@ -20,6 +20,7 @@ import { bindDeathFields } from "./death-fields.mjs";
 import { bindOffline } from "./offline.mjs";
 import { bindSettings } from "./settings.mjs";
 import { bindFilters } from "./filters.mjs";
+import { bindMenu } from "./menu.mjs";
 
 /**
  * Read the CSRF token from the page.
@@ -311,6 +312,7 @@ function start() {
   bindOffline(document, window);
   bindSettings(document, window);
   bindFilters(document);
+  bindMenu(document, window);
 }
 
 if (document.readyState === "loading") {

@@ -1,0 +1,18 @@
+<div class="flex-1 overflow-y-auto px-3 py-4">
+  <p class="eyebrow px-2 md:hidden">Herd</p>
+  <ul class="mt-1 mb-5 md:hidden">
+    {% for item in app_nav %}{% if item.key == "pairings" or item.key == "locations" or item.key == "archived" or item.key == "add" %}
+      <li><a href="{{ item.url }}" class="flex min-h-11 items-center gap-3 rounded-md px-2 text-[0.95rem] {% if item.active %}bg-accent-soft font-semibold text-accent{% else %}text-ink hover:bg-side{% endif %}"{% if item.active %} aria-current="page"{% endif %}>{% include "components/icon.html" with d=item.icon class="h-5 w-5" only %}{{ item.label }}</a></li>
+    {% endif %}{% endfor %}
+  </ul>
+  <p class="eyebrow px-2">More</p>
+  <ul class="mt-1">
+    {% for item in app_panel %}
+      <li><a href="{{ item.url }}" class="flex min-h-11 items-center gap-3 rounded-md px-2 text-[0.95rem] {% if item.active and item.key != 'account' and item.key != 'export' %}bg-accent-soft font-semibold text-accent{% else %}text-ink hover:bg-side{% endif %}"{% if item.active and item.key != 'account' and item.key != 'export' %} aria-current="page"{% endif %}>{% include "components/icon.html" with d=item.icon class="h-5 w-5" only %}<span class="flex-1">{{ item.label }}</span>{% if item.key == "account" %}<span class="max-w-[9rem] overflow-hidden text-ellipsis whitespace-nowrap text-xs text-muted">{{ user.email }}</span>{% endif %}</a></li>
+    {% endfor %}
+  </ul>
+</div>
+<form class="border-t border-line px-3 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]" method="post" action="{% url 'logout' %}">
+  {% csrf_token %}
+  <button type="submit" class="flex min-h-11 w-full items-center gap-3 rounded-md px-2 text-[0.95rem] text-danger hover:bg-danger-soft">{% include "components/icon.html" with d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4" only %}Sign out</button>
+</form>

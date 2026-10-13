@@ -18,5 +18,6 @@ urlpatterns = [
     path("costs/", include("rabbits.cost_urls")),
     path("contacts/", include("rabbits.contact_urls")),
     path("genetics/", include("rabbits.genetics_urls")),
+    path("", include("rabbits.hub_urls")),
     path("", include("pages.urls")),
 ]

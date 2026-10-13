@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Shows · {{ app_name }}{% endblock %}
+{% block content %}
+  <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Shows</h1>
+  <p class="mt-0.5 text-sm text-muted">Results across the herd, newest first.</p>
+  {% if entries %}
+    <ul class="mo-stagger mt-5 divide-y divide-line overflow-hidden rounded-md border border-line bg-surface">
+      {% for e in entries %}
+        <li><a class="block px-4 py-3 hover:bg-side" href="{% url 'rabbit_detail' e.rabbit_id %}#shows">
+          <span class="flex items-baseline justify-between gap-3"><span class="truncate font-semibold">{{ e.rabbit.name }} · {{ e.show_name }}</span><span class="num shrink-0 text-xs text-muted">{{ e.date|date:"M j, Y" }}</span></span>
+          <span class="mt-0.5 block truncate text-sm text-muted">{{ e.placing_text }}{% if e.award %} · {{ e.award }}{% endif %}{% if e.leg %} · Leg{% endif %}</span>
+        </a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="ruled mt-6 pt-4" data-empty><p class="font-medium">No show results yet.</p><p class="mt-1 text-sm text-muted">Record a placing from a rabbit's page after a show.</p><a class="mt-3 inline-flex min-h-10 items-center rounded-md border border-line bg-surface px-4 text-sm font-medium" href="{% url 'rabbit_list' %}">Open your rabbits</a></div>
+  {% endif %}
+{% endblock %}
