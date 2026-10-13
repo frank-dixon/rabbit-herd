@@ -6,6 +6,8 @@
   </label>
 {% elif field.field.choices %}
   {% include "components/select.html" with name=field.html_name label=field.label options=field.field.choices value=field.value errors=field.errors placeholder=" " only %}
+{% elif type == "time" %}
+  {% with value=field.value %}{% include "components/text_input.html" with name=field.html_name label=field.label value=value|time:"H:i"|default:value errors=field.errors type="time" only %}{% endwith %}
 {% else %}
   {% include "components/text_input.html" with name=field.html_name label=field.label value=field.value|default_if_none:"" errors=field.errors type=type help=field.help_text inputmode=inputmode only %}
 {% endif %}

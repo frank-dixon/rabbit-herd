@@ -170,3 +170,9 @@ class RabbitryAppliedTests(TestCase):
         rabbit = self.make("Clover", "BH2601")
         page = self.client.get(reverse("rabbit_pedigree", args=[rabbit.pk]))
         self.assertContains(page, "Bramble Hill · BH")
+
+
+class TimeFieldTests(TestCase):
+    def test_send_time_shows_as_hours_and_minutes(self):
+        self.client.force_login(user("time@example.com"))
+        self.assertContains(self.client.get(reverse("account")), 'value="06:00"')
