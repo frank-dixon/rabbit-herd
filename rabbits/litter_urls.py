@@ -1,10 +1,13 @@
 from django.urls import path
 
+from . import weigh_in
+
 from . import kit_compare, litters
 
 urlpatterns = [
     path("", litters.litter_list, name="litter_list"),
     path("<int:pk>/", litters.litter_detail, name="litter_detail"),
+    path("<int:pk>/weigh/", weigh_in.weigh_in, name="litter_weigh_in"),
     path("<int:pk>/compare/", kit_compare.litter_compare, name="litter_compare"),
     path("<int:pk>/task/", litters.litter_task, name="litter_task"),
     path("<int:pk>/kindling/", litters.litter_kindle, name="litter_kindle"),

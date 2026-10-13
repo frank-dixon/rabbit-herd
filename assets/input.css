@@ -169,3 +169,14 @@ html[data-menu-open] .app-scrim { opacity: 1; pointer-events: auto; }
 .swipe-content { position: relative; z-index: 1; background: var(--surface); will-change: transform; }
 .swipe-bg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end; padding-inline: 1.25rem; font-weight: 600; font-size: 0.9rem; color: var(--on-accent); background: color-mix(in oklab, var(--accent) 70%, var(--surface)); transition: background-color var(--dur-1) var(--ease-out); }
 .swipe-armed .swipe-bg { background: var(--accent); }
+
+/* Quick weigh-in. */
+.key { min-height: 3.5rem; border-radius: 0.75rem; background: var(--surface); border: 1px solid var(--line); font-family: var(--font-mono); font-size: 1.5rem; color: var(--ink); display: grid; place-items: center; transition: transform var(--dur-press) var(--ease-out), background-color var(--dur-1) var(--ease-out); -webkit-tap-highlight-color: transparent; user-select: none; }
+.key:active { transform: scale(0.96); background: var(--side); }
+.key:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.weigh-card { view-transition-name: weigh-card; }
+::view-transition-old(weigh-card) { animation: var(--dur-2) var(--ease-in) both wk-out; }
+::view-transition-new(weigh-card) { animation: var(--dur-3) var(--ease-out) both wk-in; }
+@keyframes wk-out { to { opacity: 0; transform: translateX(-24px); } }
+@keyframes wk-in { from { opacity: 0; transform: translateX(24px); } }
+@media (prefers-reduced-motion: reduce) { ::view-transition-old(weigh-card), ::view-transition-new(weigh-card) { animation-name: mo-fade-out, mo-fade-in; } }

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Weigh-in · {{ litter.pairing.doe.name }} × {{ litter.pairing.buck.name }} · {{ app_name }}{% endblock %}
+{% block tabs %}{% endblock %}
+{% block content %}
+  <div class="mx-auto max-w-sm" data-weigh-in>
+    <div class="flex items-center justify-between gap-3">
+      <a class="text-sm font-medium text-accent hover:underline" href="{% url 'litter_detail' litter.pk %}">‹ {{ litter.pairing.doe.name }} × {{ litter.pairing.buck.name }}</a>
+      <span class="num text-sm text-muted">{{ position }} / {{ count }}</span>
+    </div>
+    <ol class="mt-3 flex gap-1" aria-hidden="true">
+      {% for k in kits %}<li class="h-1 flex-1 rounded-full {% if k.pk == kit.pk %}bg-accent{% elif k.pk in done_today %}bg-accent/40{% else %}bg-line{% endif %}"></li>{% endfor %}
+    </ol>
+
+    <form method="post" class="mt-6" data-weigh-form novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="kit" value="{{ index }}">
+      <div class="weigh-card rounded-xl border border-line bg-surface p-5">
+        <p class="eyebrow">Kit {{ position }} of {{ count }}</p>
+        <h1 class="mt-1 truncate text-2xl font-semibold">{{ kit.name }}</h1>
+        <p class="mt-0.5 text-sm text-muted">{% if last %}Last <span class="num">{{ last.text }}</span> on {{ last.date|date:"M j" }}{% else %}First weigh-in{% endif %}</p>
+        <label class="sr-only" for="id_value">Weight of {{ kit.name }}{% if unit == "g" %} in grams{% else %} in ounces{% endif %}</label>
+        <div class="mt-4 flex items-baseline justify-center gap-2">
+          <input class="num w-full min-w-0 bg-transparent text-center text-6xl! font-medium tracking-tight text-ink outline-none placeholder:text-line" id="id_value" name="value" value="{{ value }}" inputmode="decimal" autocomplete="off" placeholder="{{ last_value|default:'0' }}" autofocus{% if error %} aria-invalid="true" aria-describedby="weigh-error"{% endif %}>
+        </div>
+        <div class="mt-3 flex justify-center gap-1" role="radiogroup" aria-label="Unit">
+          {% for key, label in units.items %}
+            <label class="cursor-pointer rounded-full px-3 py-1 text-sm font-medium text-muted has-checked:bg-accent-soft has-checked:text-accent has-focus-visible:ring-2 has-focus-visible:ring-accent"><input class="sr-only" type="radio" name="unit" value="{{ key }}"{% if unit == key %} checked{% endif %}>{{ key }}</label>
+          {% endfor %}
+        </div>
+        {% if error %}<p class="mt-3 text-center text-sm font-medium text-danger" id="weigh-error" role="alert">{{ error }}</p>{% endif %}
+      </div>
+
+      <div class="keypad mt-4 grid grid-cols-3 gap-2" data-keypad hidden>
+        {% for key in "123456789" %}<button type="button" class="key" data-key="{{ key }}">{{ key }}</button>{% endfor %}
+        <button type="button" class="key" data-key=".">.</button>
+        <button type="button" class="key" data-key="0">0</button>
+        <button type="button" class="key" data-key="back" aria-label="Delete"><svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5h11v14H9l-6-7zM13 10l4 4M17 10l-4 4"/></svg></button>
+      </div>
+
+      <div class="mt-4 grid grid-cols-[auto_1fr] gap-2">
+        <button type="submit" name="skip" value="1" class="mo-press min-h-14 rounded-lg border border-line bg-surface px-5 font-medium text-muted hover:text-ink">Skip</button>
+        <button type="submit" class="mo-press min-h-14 rounded-lg bg-accent px-5 text-lg font-semibold text-on-accent hover:bg-accent/90">{% if position == count %}Save and finish{% else %}Save · next kit{% endif %}</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

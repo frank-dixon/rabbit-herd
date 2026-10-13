@@ -26,6 +26,7 @@ import { bindTabEdit } from "./tab-edit.mjs";
 import { bindToasts } from "./toast.mjs";
 import { bindUndoRemove } from "./undo-remove.mjs";
 import { bindSwipe } from "./swipe.mjs";
+import { bindWeighIn } from "./weigh-in.mjs";
 
 /**
  * Read the CSRF token from the page.
@@ -323,6 +324,7 @@ function start() {
   bindToasts(document, window);
   bindUndoRemove(document, window);
   bindSwipe(document, window);
+  bindWeighIn(document, window);
   // Arriving to log a weight (a swipe or the Log weight button): focus the entry.
   if (new URLSearchParams(window.location.search).has("weigh")) {
     const weigh = document.querySelector('#weights form[action$="/weights/"] input:not([type=hidden]):not([type=date])');
