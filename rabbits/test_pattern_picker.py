@@ -49,7 +49,8 @@ class PickerFlowTests(FlowTestMixin, TestCase):
         draft = self.client.session[flow.SESSION_KEY]
         post = {key: draft[key] for key in flow.GENE_KEYS}
         post.update(gene_auto=draft["gene_auto"], gene_En="EnEn", action="next")
-        self.assertRedirects(self.client.post(step("genes"), post), step("review"))
+        self.assertRedirects(self.client.post(step("genes"), post), step("relatives"))
+        self.client.post(step("relatives"), {"action": "next"})
         self.client.post(step("review"), {"action": "next"})
         rabbit = Rabbit.objects.get(name="Hazel")
         self.assertEqual(rabbit.genes.get(locus="En").genotype, "EnEn")

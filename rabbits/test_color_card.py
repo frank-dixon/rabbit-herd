@@ -105,7 +105,8 @@ class ColorCardViewTests(TestCase):
         else:
             self.answer("breed-type", breed_type="purebred")
             response = self.answer("breed", purebred=breed_id(breed))
-        self.assertRedirects(response, step("color"))
+        self.assertRedirects(response, step("photos"))
+        self.answer("photos")
         return self.client.get(step("color"))
 
     def save(self):
@@ -166,7 +167,7 @@ class BreedChangeTests(ColorCardViewTests):
     def change_breed(self, name):
         self.client.post(step("color"), {"action": "back"})
         response = self.answer("breed", purebred=breed_id(name))
-        self.assertRedirects(response, step("color"), fetch_redirect_response=False)
+        self.assertRedirects(response, step("photos"), fetch_redirect_response=False)
         return self.client.get(step("color"))
 
     def draft(self):
@@ -235,6 +236,7 @@ class BreedChangeTests(ColorCardViewTests):
         self.answer("relatives")
         self.client.post(step("review"), {"action": "back"})
         self.client.post(step("relatives"), {"action": "back"})
+        self.client.post(step("genes"), {"action": "back"})
         self.change_breed("Dutch")
         response = self.client.get(step("review"))
         self.assertRedirects(response, step("color") + "?check=1", fetch_redirect_response=False)

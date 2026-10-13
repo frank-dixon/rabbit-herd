@@ -34,36 +34,29 @@ class ParentsFirstTests(TestCase):
         return {"relatives-0-relationship": "dam", "relatives-0-ref": f"h:{self.dam.pk}",
                 "relatives-1-relationship": "sire", "relatives-1-ref": f"h:{sire.pk}"}
 
-    def test_the_parents_card_comes_right_after_the_basics_in_both_flows(self):
-        expected = ["name", "sex", "birth-date", "relatives", "status", "breed-type", "breed", "color"]
-        self.assertEqual(flow.SLUGS[:8], expected)
-        self.assertEqual(flow.EDIT_SLUGS[:8], expected)
-        step = lambda slug: reverse("rabbit_flow_step", args=[slug])
-        self.post(step("name"), name="Hazel")
-        self.post(step("sex"), sex="doe")
-        self.assertRedirects(self.post(step("birth-date"), birth_date="2024-05-01"), step("relatives"))
-        self.assertRedirects(self.post(step("relatives")), step("status"))
-        overview = self.client.get(reverse("rabbit_edit", args=[self.dam.pk]))
-        self.assertEqual([row["slug"] for row in overview.context["rows"]][:5], expected[:5])
+    def test_relatives_come_last_in_both_flows(self):
+        # Frank, Oct 2026: the optional relatives card moved to just before the review.
+        self.assertEqual(flow.SLUGS[-2:], ["relatives", "review"])
+        self.assertEqual(flow.EDIT_SLUGS[-2:], ["relatives", "line"])
+
+    def prefill(self, sire):
+        """The parents fill an empty breed (still used when a breed is unanswered, as in the edit flow)."""
+        draft = flow.empty_draft()
+        draft.update(name="Kit", sex="doe", birth_date="2026-05-01", relatives=[flow.blank_relative(), flow.blank_relative()])
+        for key, value in self.parents(sire).items():
+            index, field = key.split("-")[1], key.split("-", 2)[2]
+            draft["relatives"][int(index)][field] = value
+        form = flow.bound_form("relatives", draft, self.user)
+        self.assertTrue(form.is_valid(), form.errors)
+        return draft, flow.prefill_breed_from_parents(draft, form.cleaned_data["relatives"])
 
     def test_same_breed_parents_prefill_a_purebred(self):
-        step = lambda slug: reverse("rabbit_flow_step", args=[slug])
-        self.post(step("name"), name="Kit")
-        self.post(step("sex"), sex="doe")
-        self.post(step("birth-date"), birth_date="2026-05-01")
-        self.add_rows(step("relatives"))
-        response = self.client.post(step("relatives"), {"action": "next", **self.parents(self.sire)}, follow=True)
-        self.assertContains(response, "The breed was filled in from the parents: New Zealand.")
-        draft = flow.load_draft(self.client.session)
+        draft, filled = self.prefill(self.sire)
+        self.assertEqual(filled, "New Zealand")
         self.assertEqual((draft["breed_type"], draft["purebred"]), ("purebred", str(bid("New Zealand"))))
 
     def test_mixed_parents_prefill_half_of_each(self):
-        step = lambda slug: reverse("rabbit_flow_step", args=[slug])
-        for slug, data in (("name", {"name": "Kit"}), ("sex", {"sex": "doe"}), ("birth-date", {"birth_date": "2026-05-01"})):
-            self.post(step(slug), **data)
-        self.add_rows(step("relatives"))
-        self.post(step("relatives"), **self.parents(self.cross_sire))
-        draft = flow.load_draft(self.client.session)
+        draft, _ = self.prefill(self.cross_sire)
         self.assertEqual(draft["breed_type"], "crossbred")
         self.assertEqual(flow.draft_breed_line(draft), "Cross: 50% New Zealand, 25% Dutch, 25% Rex")
 
