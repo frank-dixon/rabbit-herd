@@ -26,6 +26,8 @@ SERIES = {
     "D": ["D", "d"],
     "E": ["ED", "Es", "E", "ej", "e"],
     "En": ["En", "en"],
+    "V": ["V", "v"],
+    "Si": ["Si", "si"],
 }
 COLOR_LOCI = ["A", "B", "C", "D", "E"]
 CHINCHILLA = {"cchd", "cchm", "cchl"}

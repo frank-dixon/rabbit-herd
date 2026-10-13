@@ -642,6 +642,8 @@ class Gene(models.Model):
         D = "D", "D (dilute)"
         E = "E", "E (extension)"
         EN = "En", "En (broken)"
+        V = "V", "V (Vienna, blue-eyed white)"
+        SI = "Si", "Si (silvering)"
         OTHER = "other", "Other genes"
 
     class Certainty(models.TextChoices):

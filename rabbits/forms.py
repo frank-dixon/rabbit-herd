@@ -72,7 +72,7 @@ class GenesForm(forms.Form):
             limit = 200 if locus == Gene.Locus.OTHER else 40
             self.fields[f"gene_{locus}"] = forms.CharField(
                 label=label, max_length=limit, required=False,
-                help_text="Free text, for example Vienna carrier." if locus == Gene.Locus.OTHER else "For example C/c.",
+                help_text="Free text, for example rex carrier." if locus == Gene.Locus.OTHER else "For example C/c.",
             )
             self.fields[f"cert_{locus}"] = forms.ChoiceField(
                 label=f"{locus if locus != Gene.Locus.OTHER else 'Other'}: known or probable",

@@ -86,3 +86,18 @@ class PairingOddsTests(TestCase):
     def test_other_keepers_pairing_is_hidden(self):
         self.client.force_login(user("someone@example.com"))
         self.assertEqual(self.page().status_code, 404)
+
+
+class ViennaSilverLociTests(TestCase):
+    def test_v_and_si_parse(self):
+        self.assertEqual(color_odds.parse("V", "Vv"), ("V", "v"))
+        self.assertEqual(color_odds.parse("Si", "si/si"), ("si", "si"))
+        self.assertEqual(color_odds.parse("Si", "Sisi"), ("Si", "si"))
+
+    def test_v_and_si_can_be_recorded(self):
+        owner = user("vsi@example.com")
+        rabbit = Rabbit.objects.create(owner=owner, name="Pearl", sex="doe", breed="Silver Fox",
+                                       color="Black", birth_date=datetime.date(2025, 1, 1))
+        Gene.objects.create(rabbit=rabbit, locus="V", genotype="V/v")
+        Gene.objects.create(rabbit=rabbit, locus="Si", genotype="si/si")
+        self.assertEqual(sorted(rabbit.genes.values_list("locus", flat=True)), ["Si", "V"])
