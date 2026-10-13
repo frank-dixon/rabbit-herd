@@ -8,7 +8,7 @@
       <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Rabbits</h1>
       <p class="mt-0.5 text-sm text-muted">{{ subtitle }}</p>
     </div>
-    <a href="{% url 'rabbit_create' %}" class="mo-press inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-md bg-accent px-3.5 text-sm font-semibold text-on-accent hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add<span class="sr-only sm:not-sr-only">&nbsp;a rabbit</span></a>
+    <a href="{% url 'rabbit_create' %}" class="mo-press inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-md bg-accent px-3.5 text-sm font-semibold text-on-accent hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add<span class="sr-only sm:not-sr-only"> a rabbit</span></span></a>
   </div>
 
   <div class="mt-5 flex items-end justify-between gap-2 border-b border-line">
@@ -21,7 +21,18 @@
       <nav class="mb-1.5 flex shrink-0 items-center gap-1" aria-label="Layout">
         <a href="?{{ grid_qs }}" class="mo-press grid h-8 w-8 place-items-center rounded-md {% if view == 'grid' %}bg-accent-soft text-accent{% else %}text-muted hover:text-ink{% endif %}"{% if view == 'grid' %} aria-current="true"{% endif %} title="Grid"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg><span class="sr-only">Grid</span></a>
         <a href="?{{ list_qs }}" class="mo-press grid h-8 w-8 place-items-center rounded-md {% if view == 'list' %}bg-accent-soft text-accent{% else %}text-muted hover:text-ink{% endif %}"{% if view == 'list' %} aria-current="true"{% endif %} title="List"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="sr-only">List</span></a>
-        {% if view == 'grid' %}{% block density_toggle %}{% endblock %}{% endif %}
+        {% if view == 'grid' %}
+          <form method="post" action="{% url 'account' %}" class="contents">
+            {% csrf_token %}
+            <input type="hidden" name="ui_theme" value="{{ ui_theme }}">
+            <input type="hidden" name="ui_density" value="{% if ui_density == 'compact' %}roomy{% else %}compact{% endif %}">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="mo-press ml-1 grid h-8 w-8 place-items-center rounded-md border-l border-line pl-1 text-muted hover:text-ink" title="{% if ui_density == 'compact' %}Roomy grid{% else %}Compact grid{% endif %}" data-density-toggle>
+              {% if ui_density == 'compact' %}<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h16v7H4zM4 13h16v7H4z"/></svg>{% else %}<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h4v4H4zM10 4h4v4h-4zM16 4h4v4h-4zM4 10h4v4H4zM10 10h4v4h-4zM16 10h4v4h-4zM4 16h4v4H4zM10 16h4v4h-4zM16 16h4v4h-4z"/></svg>{% endif %}
+              <span class="sr-only">{% if ui_density == 'compact' %}Switch to a roomy grid{% else %}Switch to a compact grid{% endif %}</span>
+            </button>
+          </form>
+        {% endif %}
       </nav>
     {% endif %}
   </div>
@@ -94,8 +105,27 @@
 
   {% if rabbits %}
 
-    {% if view == 'grid' %}
-    <ul class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-view="grid">
+    {% if view == 'grid' and ui_density == 'compact' %}
+    <ul class="mo-stagger mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:gap-3 lg:grid-cols-5 xl:grid-cols-6" data-view="grid" data-density="compact">
+      {% for rabbit in rabbits %}
+        {% with main=rabbit.main_photo %}
+          <li class="min-w-0">
+            <a href="{% url 'rabbit_detail' rabbit.pk %}" class="mo-press group block h-full overflow-hidden rounded-md border border-line bg-surface hover:border-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+              <span class="relative block">
+                {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="block aspect-square w-full text-3xl" only %}
+                <span class="absolute left-1.5 top-1.5 max-w-[calc(100%-0.75rem)] truncate rounded bg-surface/90 px-1.5 py-px text-[0.68rem] font-medium text-ink backdrop-blur-sm">{{ rabbit.status_tag }}</span>
+              </span>
+              <span class="block px-2.5 pb-2.5 pt-2">
+                <span class="block truncate text-[0.95rem] font-semibold leading-tight"><span class="sr-only">Open </span>{{ rabbit.name }}</span>
+                <span class="mt-0.5 block truncate text-xs text-muted">{{ rabbit.get_sex_display }}{% if rabbit.birth_date %} · {{ rabbit.age_text }}{% endif %} · {{ rabbit.short_breed }}</span>
+              </span>
+            </a>
+          </li>
+        {% endwith %}
+      {% endfor %}
+    </ul>
+    {% elif view == 'grid' %}
+    <ul class="mo-stagger mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-view="grid">
       {% for rabbit in rabbits %}
         {% with main=rabbit.main_photo %}
           <li>

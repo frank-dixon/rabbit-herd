@@ -153,3 +153,36 @@ class DeceasedTests(TestCase):
         page = self.client.get(reverse("rabbit_detail", args=[self.pepper.pk]))
         self.assertContains(page, "Deceased · May 18, 2026")
         self.assertContains(page, "May 18, 2026 · Died kindling")
+
+
+class DensityTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        self.user = get_user_model().objects.create_user(email="dense@example.com", password="x-strong-Pass-1")
+        self.client.force_login(self.user)
+        Rabbit.objects.create(owner=self.user, name="Pepper", sex="doe", birth_date="2025-03-10", breed="Rex")
+
+    def test_roomy_is_the_default_grid(self):
+        page = self.client.get(reverse("rabbit_list"))
+        self.assertContains(page, 'data-view="grid"')
+        self.assertNotContains(page, 'data-density="compact"')
+        self.assertContains(page, "Switch to a compact grid")
+
+    def test_compact_grid_is_two_up_with_a_single_detail_line(self):
+        self.user.ui_density = "compact"
+        self.user.save()
+        page = self.client.get(reverse("rabbit_list"))
+        self.assertContains(page, 'data-density="compact"')
+        self.assertContains(page, "grid-cols-2")
+        self.assertContains(page, "Doe · ")
+        self.assertContains(page, "Switch to a roomy grid")
+
+    def test_quick_toggle_saves_and_returns_to_the_list(self):
+        response = self.client.post(reverse("account"), {"ui_theme": "c1", "ui_density": "compact", "next": "/rabbits/?sex=doe"})
+        self.assertRedirects(response, "/rabbits/?sex=doe")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ui_density, "compact")
+
+    def test_toggle_refuses_an_outside_next(self):
+        response = self.client.post(reverse("account"), {"ui_theme": "c1", "ui_density": "compact", "next": "https://example.org/"})
+        self.assertRedirects(response, reverse("account"))
