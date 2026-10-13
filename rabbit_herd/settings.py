@@ -155,7 +155,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
+# Dates such as "today", overdue tasks and day labels follow the keeper's zone.
+TIME_ZONE = os.environ.get("TIME_ZONE", "").strip() or "America/New_York"
 USE_I18N = True
 USE_TZ = True
 
