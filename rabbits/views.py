@@ -281,7 +281,12 @@ def smart_gene_context(rabbit):
 
 @login_required
 def rabbit_genes(request, pk):
+    """Old free-text genes form. Opening it now goes to the genes card
+    (dropdowns and the pattern picker), the same one the add flow uses;
+    posts still save so old bookmarks and forms keep working."""
     rabbit = owned_rabbit(request.user, pk)
+    if request.method != "POST":
+        return redirect("rabbit_edit_step", pk=rabbit.pk, step="genes")
     form = GenesForm(request.POST or None, rabbit=rabbit)
     if request.method == "POST" and form.is_valid():
         form.save()

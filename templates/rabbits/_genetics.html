@@ -2,7 +2,7 @@
 <section class="ruled pt-4" aria-labelledby="genetics-heading">
   <div class="flex flex-wrap items-center justify-between gap-3">
     <h2 class="text-base font-semibold" id="genetics-heading">Line and genes</h2>
-    {% url 'rabbit_genes' rabbit.pk as genes_url %}
+    {% url 'rabbit_edit_step' rabbit.pk 'genes' as genes_url %}
     <div class="flex items-center gap-3"><a class="text-sm text-muted underline hover:text-ink" href="{% url 'glossary' %}#colour-loci" data-glossary-link>What the genes mean</a>{% include "components/button.html" with label="Edit genes" sr_suffix="for "|add:rabbit.name href=genes_url variant="secondary" only %}</div>
   </div>
   {% if rabbit.line %}<p class="mt-2">Line: {{ rabbit.line }}</p>{% endif %}

@@ -45,7 +45,7 @@ class DetailLayoutTests(TestCase):
         self.assertContains(page, "No parents recorded.")
         # Nothing recorded, but the breed and colour imply genes, so the card shows them as Possible.
         self.assertContains(page, 'data-gene-level="possible"')
-        self.assertContains(page, 'href="' + reverse("rabbit_genes", args=[rabbit.pk]) + '"')
+        self.assertContains(page, 'href="' + reverse("rabbit_edit_step", args=[rabbit.pk, "genes"]) + '"')
         self.assertNotContains(page, "Buck. Creme d&#x27;Argent. Creme. Born")
 
 

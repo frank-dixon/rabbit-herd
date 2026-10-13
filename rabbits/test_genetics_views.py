@@ -53,7 +53,7 @@ class GenesPageTests(FlowTestMixin, TestCase):
         self.url = reverse("rabbit_genes", args=[self.juniper.pk])
 
     def test_genes_save_update_and_clear_without_javascript(self):
-        self.assertContains(self.client.get(self.url), "Genes Juniper carries")
+        self.assertRedirects(self.client.get(self.url), reverse("rabbit_edit_step", args=[self.juniper.pk, "genes"]))
         self.client.post(self.url, {"gene_C": "C/c", "cert_C": "known", "gene_other": "Vienna carrier"})
         self.assertEqual(
             sorted((g.locus, g.genotype, g.certainty) for g in self.juniper.genes.all()),
@@ -73,3 +73,12 @@ class GenesPageTests(FlowTestMixin, TestCase):
     def test_the_edit_page_has_the_line(self):
         edit = reverse("rabbit_edit_step", args=[self.juniper.pk, "line"])
         self.assertContains(self.client.get(edit), 'name="line"')
+
+
+class EditGenesLinkTests(FlowTestMixin, TestCase):
+    def test_detail_edit_genes_opens_the_genes_card(self):
+        self.client.force_login(self.user)
+        page = self.client.get(reverse("rabbit_detail", args=[self.juniper.pk]))
+        card = reverse("rabbit_edit_step", args=[self.juniper.pk, "genes"])
+        self.assertContains(page, f'href="{card}"')
+        self.assertContains(self.client.get(card), "data-pattern-picker")
