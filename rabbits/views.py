@@ -67,7 +67,8 @@ def list_filters(request):
     sexes = dict(Rabbit.Sex.choices)
     statuses = dict(Rabbit.Status.choices)
     return {
-        "tab": get.get("tab") if get.get("tab") in ("archived", "deceased") else "active",
+        # "deceased" was the old name of the Former tab; old links still land there.
+        "tab": {"deceased": "former"}.get(get.get("tab"), get.get("tab")) if get.get("tab") in ("archived", "deceased", "former") else "active",
         "q": " ".join(get.get("q", "").split())[:120],
         "sex": get.get("sex") if get.get("sex") in sexes else "",
         "breed": get.get("breed", "").strip()[:80],
@@ -84,16 +85,36 @@ def query_string(params, **changes):
     return urlencode({key: value for key, value in merged.items() if value})
 
 
+def list_row_columns(user, rabbits):
+    """The list view's columns: latest weight and the next open date."""
+    from .tasks import open_items
+
+    ids = {r.pk for r in rabbits}
+    latest = {}
+    for w in Weight.objects.filter(rabbit_id__in=ids).order_by("rabbit_id", "-date", "-pk"):
+        latest.setdefault(w.rabbit_id, w)
+    upcoming = {}
+    for item in open_items(user):
+        rabbit = item.get("rabbit")
+        if rabbit and rabbit.pk in ids and rabbit.pk not in upcoming:
+            upcoming[rabbit.pk] = {**item, "label": item["title"].split(":")[0] if item["kind"] == "litter" else item["title"]}
+    for r in rabbits:
+        r.last_weight = latest.get(r.pk)
+        r.next_item = upcoming.get(r.pk)
+        r.age_until = r.death_date if r.status in Rabbit.FORMER else None
+
+
 @login_required
 def rabbit_list(request):
     view = list_view_choice(request)
     filters = list_filters(request)
     mine = owned_rabbits(request.user)
     live = mine.filter(archived_at__isnull=True)
-    active = live.exclude(status=Rabbit.Status.DECEASED)
-    deceased = live.filter(status=Rabbit.Status.DECEASED)
+    # Active is the living herd; Former holds sold, culled and deceased rabbits.
+    active = live.exclude(status__in=Rabbit.FORMER)
+    former = live.filter(status__in=Rabbit.FORMER)
     archived = mine.filter(archived_at__isnull=False)
-    rabbits = {"archived": archived, "deceased": deceased}.get(filters["tab"], active)
+    rabbits = {"archived": archived, "former": former}.get(filters["tab"], active)
     if filters["q"]:
         rabbits = rabbits.filter(Q(name__icontains=filters["q"]) | Q(tattoo__iexact=filters["q"]) | Q(tattoo__icontains=filters["q"]))
     if filters["sex"]:
@@ -106,17 +127,19 @@ def rabbit_list(request):
         rabbits = rabbits.filter(location__isnull=True)
     elif filters["location"]:
         rabbits = rabbits.filter(location_id=int(filters["location"]))
-    rabbits = purebred.mark(list(rabbits.prefetch_related("photos", *purebred.PREFETCH)))
+    rabbits = purebred.mark(list(rabbits.select_related("location").prefetch_related("photos", *purebred.PREFETCH)))
     if filters["pure"]:
         want = filters["pure"] == "yes"
         rabbits = [rabbit for rabbit in rabbits if bool(rabbit.purebred_info) == want]
     # Sold rabbits go last; sort is stable, so each group keeps its order.
     rabbits = sorted(rabbits, key=lambda rabbit: rabbit.status == Rabbit.Status.SOLD)
+    if view == "list":
+        list_row_columns(request.user, rabbits)
     # One small query gives both tab counts and the breed filter's options.
     herd = list(mine.values_list("breed", "archived_at", "status"))
     archived_count = sum(1 for _, archived_at, _ in herd if archived_at)
-    deceased_count = sum(1 for _, archived_at, status in herd if not archived_at and status == Rabbit.Status.DECEASED)
-    active_count = len(herd) - archived_count - deceased_count
+    former_count = sum(1 for _, archived_at, status in herd if not archived_at and status in Rabbit.FORMER)
+    active_count = len(herd) - archived_count - former_count
     filtering = any(filters[key] for key in ("q", "sex", "breed", "status", "location", "pure"))
     locations = location_options(request.user)
     labels = {
@@ -131,11 +154,14 @@ def rabbit_list(request):
         for key in ("sex", "status", "breed", "location", "pure") if filters[key]
     ]
     noun = filters["tab"]
-    total = {"archived": archived_count, "deceased": deceased_count}.get(filters["tab"], active_count)
+    total = {"archived": archived_count, "former": former_count}.get(filters["tab"], active_count)
+    plural = "" if total == 1 else "s"
     if filtering:
-        subtitle = f"{len(rabbits)} of {total} {noun} rabbit{'' if total == 1 else 's'}"
+        subtitle = f"{len(rabbits)} of {total} {noun} rabbit{plural}"
+    elif noun == "active":
+        subtitle = f"{total} active rabbit{plural} in your herd"
     else:
-        subtitle = f"{total} {noun} rabbit{'' if total == 1 else 's'} in your herd"
+        subtitle = f"{total} {noun} rabbit{plural}"
     return render(
         request,
         "rabbits/list.html",
@@ -149,11 +175,13 @@ def rabbit_list(request):
             "filter_chips": chips,
             "active_count": active_count,
             "archived_count": archived_count,
-            "deceased_count": deceased_count,
-            "deceased_qs": query_string({}, tab="deceased"),
+            "former_count": former_count,
+            "former_qs": query_string({}, tab="former"),
             "sex_options": Rabbit.Sex.choices,
             "location_options": locations,
-            "status_options": Rabbit.Status.choices,
+            # Each tab offers only the statuses it can hold.
+            "status_options": [(v, l) for v, l in Rabbit.Status.choices
+                               if filters["tab"] == "archived" or (v in Rabbit.FORMER) == (filters["tab"] == "former")],
             "breed_options": breed_names(breed for breed, _, _ in herd),
             "view_options": [
                 {"href": "?" + query_string(filters, view=key), "label": label, "icon": key, "selected": view == key}

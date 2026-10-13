@@ -38,7 +38,7 @@ class RabbitListLayoutTests(TestCase):
         # The saved choice applies at every screen size: no grid behind it.
         self.assertNotContains(again, 'data-view="grid"')
         self.assertNotContains(again, "lg:hidden")
-        self.assertContains(again, "Log weight for ")
+        self.assertContains(again, "Last weight")
         back = self.client.get(reverse("rabbit_list"), {"view": "grid"})
         self.assertNotContains(back, 'data-view="list"')
 
@@ -71,7 +71,7 @@ class SearchFilterTests(TestCase):
         self.client.force_login(self.user)
         make = lambda **kw: Rabbit.objects.create(owner=self.user, color="Black", birth_date=date(2025, 1, 1), **kw)
         make(name="Blackberry", sex="buck", breed="Cross: 50% Creme d'Argent, 50% New Zealand", status="breeding")
-        make(name="Lily", sex="doe", breed="New Zealand", status="sold")
+        make(name="Lily", sex="doe", breed="New Zealand", status="growing")
         make(name="Willow", sex="doe", breed="Rex", status="breeding")
         make(name="Clover", sex="doe", breed="Rex", status="breeding", archived_at=timezone.now())
 
@@ -124,7 +124,7 @@ class SearchFilterTests(TestCase):
         page, _ = self.names(sex="doe", view="list")
         self.assertContains(page, 'href="?sex=doe&amp;view=grid"')
         self.assertContains(page, 'data-view="list"')
-        again, _ = self.names(status="sold")
+        again, _ = self.names(status="growing")
         self.assertContains(again, 'data-view="list"')
 
 
@@ -145,7 +145,7 @@ class DeceasedTests(TestCase):
         self.assertEqual(self.names(), ["Blackberry"])
         self.assertEqual(self.names(tab="deceased"), ["Pepper"])
         page = self.client.get(reverse("rabbit_list"), {"tab": "deceased"})
-        self.assertContains(page, 'Deceased <span class="num text-muted">1</span>')
+        self.assertContains(page, 'Former <span class="num text-muted">1</span>')
         self.assertContains(page, 'Active <span class="num text-muted">1</span>')
         self.assertContains(page, "Deceased · May 18, 2026")
 

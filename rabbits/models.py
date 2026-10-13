@@ -87,6 +87,9 @@ class Rabbit(models.Model):
         CULLED = "culled", "Culled"
         DECEASED = "deceased", "Deceased"
 
+    # No longer in the herd: shown on the rabbit list's Former tab.
+    FORMER = ("sold", "culled", "deceased")
+
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="rabbits",
@@ -228,6 +231,15 @@ class Rabbit(models.Model):
         if months:
             parts.append(f"{months} mo")
         return " ".join(parts)
+
+    def age_short(self, today=None, until=None):
+        """Tiered age: days under 8 weeks, weeks to 6 months, months to 2
+        years, then "2 yr 8 mo". `until` (a death date, say) ends the count."""
+        return age_tiered(self.birth_date, until or today or date.today())
+
+    def age_exact(self, today=None, until=None):
+        """The exact age for a tooltip: "147 days" or "4 months 25 days"."""
+        return age_exact(self.birth_date, until or today or date.today())
 
     def kindling_note(self, relatives=None):
         """ "Pepper died kindling this litter on May 18, 2026" when the herd
@@ -392,6 +404,52 @@ class Weight(models.Model):
     @property
     def text(self):
         return weight_text(self.grams, self.unit)
+
+
+def _months_and_days(born, on):
+    months = (on.year - born.year) * 12 + on.month - born.month
+    if on.day < born.day:
+        months -= 1
+    anchor_year, anchor_month = divmod(born.month - 1 + months, 12)
+    import calendar
+    year, month = born.year + anchor_year, anchor_month + 1
+    day = min(born.day, calendar.monthrange(year, month)[1])
+    return months, (on - date(year, month, day)).days
+
+
+def age_tiered(born, on):
+    if not born:
+        return ""
+    days = (on - born).days
+    if days < 0:
+        return ""
+    if days < 56:
+        return f"{days} day{'' if days == 1 else 's'}"
+    months, _ = _months_and_days(born, on)
+    if months < 6:
+        return f"{days // 7} wk"
+    if months < 24:
+        return f"{months} mo"
+    years, rest = divmod(months, 12)
+    return f"{years} yr" + (f" {rest} mo" if rest else "")
+
+
+def age_exact(born, on):
+    if not born or on < born:
+        return ""
+    days = (on - born).days
+    if days < 56:
+        return f"{days} day{'' if days == 1 else 's'}"
+    months, extra = _months_and_days(born, on)
+    years, months = divmod(months, 12)
+    parts = []
+    if years:
+        parts.append(f"{years} year{'' if years == 1 else 's'}")
+    if months:
+        parts.append(f"{months} month{'' if months == 1 else 's'}")
+    if extra:
+        parts.append(f"{extra} day{'' if extra == 1 else 's'}")
+    return " ".join(parts)
 
 
 def weight_text(grams, unit):

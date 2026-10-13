@@ -157,7 +157,8 @@ class RabbitRecordTests(TestCase):
         self.assertRedirects(restored, reverse("rabbit_detail", args=[rabbit.pk]))
         rabbit.refresh_from_db()
         self.assertIsNone(rabbit.archived_at)
-        self.assertContains(self.client.get(reverse("rabbit_list")), "Clover")
+        # A culled rabbit comes back to the Former tab, not the active herd.
+        self.assertContains(self.client.get(reverse("rabbit_list"), {"tab": "former"}), "Clover")
         self.assertContains(self.client.get(reverse("rabbit_archived")), "No archived rabbits.")
 
     def test_form_rejects_a_missing_name_and_a_future_birth_date(self):

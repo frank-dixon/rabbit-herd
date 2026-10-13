@@ -6,10 +6,10 @@
   {% include "components/page_header.html" with title="Rabbits" subtitle=subtitle actions_template="rabbits/_list_add.html" %}
 
   <div class="mt-5 flex items-end justify-between gap-2 border-b border-line">
-    <nav class="-mb-px flex min-w-0 gap-4 overflow-x-auto text-sm" aria-label="Active or archived">
+    <nav class="-mb-px flex min-w-0 gap-4 overflow-x-auto text-sm" aria-label="Active, former or archived">
       <a href="?{{ active_qs }}" class="shrink-0 border-b-2 py-2 {% if filters.tab == 'active' %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if filters.tab == 'active' %} aria-current="page"{% endif %}>Active <span class="num text-muted">{{ active_count }}</span></a>
+      <a href="?{{ former_qs }}" class="shrink-0 border-b-2 py-2 {% if filters.tab == 'former' %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if filters.tab == 'former' %} aria-current="page"{% endif %}>Former <span class="num text-muted">{{ former_count }}</span></a>
       <a href="?{{ archived_qs }}" class="shrink-0 border-b-2 py-2 {% if filters.tab == 'archived' %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if filters.tab == 'archived' %} aria-current="page"{% endif %}>Archived <span class="num text-muted">{{ archived_count }}</span></a>
-      <a href="?{{ deceased_qs }}" class="shrink-0 border-b-2 py-2 {% if filters.tab == 'deceased' %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if filters.tab == 'deceased' %} aria-current="page"{% endif %}>Deceased <span class="num text-muted">{{ deceased_count }}</span></a>
     </nav>
   </div>
 
@@ -126,33 +126,45 @@
       {% endfor %}
     </ul>
     {% else %}
-      <ul class="mt-5 flex flex-col gap-2" data-view="list">
-        {% for rabbit in rabbits %}
-          {% with main=rabbit.main_photo %}
-            <li class="flex items-stretch overflow-hidden rounded-md border border-line bg-surface" data-swipe data-swipe-href="{% url 'rabbit_detail' rabbit.pk %}?weigh=1#weights" data-swipe-label="Log weight">
-              <a href="{% url 'rabbit_detail' rabbit.pk %}" class="flex min-w-0 flex-1 items-center gap-3 p-2.5 hover:bg-side focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent sm:gap-4">
-                {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="h-[60px] w-[60px] shrink-0 rounded text-xl sm:h-[72px] sm:w-[72px] sm:text-2xl" only %}
-                <span class="min-w-0 flex-1">
-                  <span class="block break-words font-semibold sm:text-lg"><span class="sr-only">Open </span>{{ rabbit.name }}</span>
-                  <span class="block text-sm text-neutral-600">{{ rabbit.get_sex_display }} · {{ rabbit.short_breed }}{% if rabbit.purebred_info and rabbit.purebred_info.source != "entered" %} · purebred{% endif %}{% if rabbit.tattoo %} · {{ rabbit.tattoo }}{% endif %}</span>
-                </span>
-                <span class="shrink-0 rounded-full border border-neutral-400 px-2 py-0.5 text-xs">{{ rabbit.status_tag }}</span>
-              </a>
-              <a href="{% url 'rabbit_detail' rabbit.pk %}?weigh=1#weights" class="mo-press grid w-12 shrink-0 place-items-center border-l border-line text-muted hover:bg-side hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent" title="Log weight"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M7 20h10M5 8h14M5 8l-3 6a3 3 0 0 0 6 0zM19 8l-3 6a3 3 0 0 0 6 0z"/></svg><span class="sr-only">Log weight for {{ rabbit.name }}</span></a>
-            </li>
-          {% endwith %}
-        {% endfor %}
-      </ul>
+      {# One bordered list with row dividers. Columns line up across rows: lg shows them all, md drops location and next, phones keep two lines. #}
+      <div class="mt-5 overflow-hidden rounded-lg border border-line bg-surface" data-view="list">
+        <div class="list-cols hidden border-b border-line px-3 py-2 text-xs font-medium text-muted md:grid" aria-hidden="true">
+          <span>Rabbit</span><span>Sex and breed</span><span>Age</span><span>Last weight</span><span class="hidden lg:block">Location</span><span class="hidden lg:block">Next</span><span>Status</span>
+        </div>
+        <ul class="divide-y divide-line">
+          {% for rabbit in rabbits %}
+            {% with main=rabbit.main_photo %}
+              <li data-swipe data-swipe-href="{% url 'rabbit_detail' rabbit.pk %}?weigh=1#weights" data-swipe-label="Log weight">
+                <a href="{% url 'rabbit_detail' rabbit.pk %}" class="list-row list-cols grid items-center px-3 hover:bg-side focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent">
+                  <span class="flex min-w-0 items-center gap-3">
+                    {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="list-thumb shrink-0 rounded-md text-base" only %}
+                    <span class="min-w-0">
+                      <span class="block break-words font-semibold"><span class="sr-only">Open </span>{{ rabbit.name }}{% if rabbit.tattoo %} <span class="num text-xs font-normal text-muted">{{ rabbit.tattoo }}</span>{% endif %}</span>
+                      <span class="block text-sm text-muted md:hidden">{{ rabbit.get_sex_display }} · {{ rabbit.short_breed }}{% if rabbit.birth_date and not rabbit.age_until %} · <span title="{{ rabbit.age_exact }}">{{ rabbit.age_short }}</span>{% endif %}{% if rabbit.last_weight %} · {{ rabbit.last_weight.text }}{% endif %}</span>
+                    </span>
+                  </span>
+                  <span class="hidden min-w-0 break-words text-sm md:block">{{ rabbit.get_sex_display }} · {{ rabbit.short_breed }}{% if rabbit.purebred_info and rabbit.purebred_info.source != "entered" %} · purebred{% endif %}</span>
+                  <span class="num hidden text-sm md:block"{% if rabbit.birth_date and not rabbit.age_until %} title="{{ rabbit.age_exact }}"{% endif %}>{% if rabbit.birth_date and not rabbit.age_until %}{{ rabbit.age_short }}{% elif rabbit.birth_date %}<span class="text-muted">Born {{ rabbit.birth_date|date:"Y" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</span>
+                  <span class="num hidden text-sm leading-tight md:block">{% if rabbit.last_weight %}{{ rabbit.last_weight.text }}<span class="block text-xs text-muted">{{ rabbit.last_weight.date|date:"M j" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</span>
+                  <span class="hidden min-w-0 break-words text-sm lg:block">{% if rabbit.location %}{{ rabbit.location.name }}{% else %}<span class="text-muted">—</span>{% endif %}</span>
+                  <span class="hidden min-w-0 break-words text-sm leading-tight lg:block">{% if rabbit.next_item %}{{ rabbit.next_item.label }}<span class="block text-xs {% if rabbit.next_item.overdue %}text-danger{% else %}text-muted{% endif %}">{% if rabbit.next_item.overdue %}Overdue · {% endif %}{{ rabbit.next_item.date|date:"M j" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</span>
+                  <span class="justify-self-end md:justify-self-start"><span class="inline-block whitespace-nowrap rounded-full border border-line px-2 py-0.5 text-xs" data-status-chip>{{ rabbit.status_tag }}</span></span>
+                </a>
+              </li>
+            {% endwith %}
+          {% endfor %}
+        </ul>
+      </div>
     {% endif %}
   {% else %}
     {% if filtering %}
       {% with href="?"|add:clear_qs %}{% include "components/empty.html" with title="No rabbits match these filters." text="Try a different search, or clear it to see the whole herd." href=href action="Clear the search and filters" kind="filtered" secondary=True icon=ui_icons.rabbits only %}{% endwith %}
     {% elif filters.tab == 'archived' %}
 {% include "components/empty.html" with title="No archived rabbits." text="Rabbits you sell or retire can be archived from their page and kept here for the record." kind="archived" icon=ui_icons.archived only %}
-    {% elif filters.tab == 'deceased' %}
-{% include "components/empty.html" with title="No deceased rabbits." kind="deceased" icon=ui_icons.rabbits only %}
+    {% elif filters.tab == 'former' %}
+{% include "components/empty.html" with title="No former rabbits." text="Rabbits you sell or cull, and any that die, move here with their records." kind="deceased" icon=ui_icons.rabbits only %}
     {% else %}
-{% url "rabbit_create" as add_url %}{% include "components/empty.html" with title="No rabbits yet." text="Add your first rabbit with its breed, colour and birth date. Pedigrees, weights and litters build from there." href=add_url action="Add a rabbit" kind="herd" icon=ui_icons.rabbits only %}
+{% url "rabbit_create" as add_url %}{% include "components/empty.html" with title="No rabbits yet." text="Add your first rabbit with its breed, color and birth date. Pedigrees, weights and litters build from there." href=add_url action="Add a rabbit" kind="herd" icon=ui_icons.rabbits only %}
     {% endif %}
   {% endif %}
 {% endblock %}
