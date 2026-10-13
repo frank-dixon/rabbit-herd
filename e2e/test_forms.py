@@ -4,6 +4,8 @@ off, then checked in the database after a reload."""
 import datetime
 import os
 
+from django.test import override_settings
+
 from rabbits.models import (Breed, Contact, CullNote, Expense, Gene, HealthNote, Litter, Location, Pairing,
                             Rabbit, RabbitPhoto, Task, WaitlistEntry, Weight)
 
@@ -46,6 +48,7 @@ class RabbitPageForms(BrowserCase):
         self.assertEqual(CullNote.objects.count(), before + 1)
 
     @both
+    @override_settings(FEATURE_LOCATIONS=True)
     def test_location(self, js):
         self.run_form(js, self.path, first(f"/rabbits/{self.doe.pk}/location/"), {"new_location": f"Barn row {js}"})
         self.doe.refresh_from_db()
@@ -136,6 +139,7 @@ class ListPageForms(BrowserCase):
         self.assertTrue(Task.objects.filter(title=f"Clean trays {js}").exists())
 
     @both
+    @override_settings(FEATURE_LOCATIONS=True)
     def test_location(self, js):
         self.sheet_form(js, "/locations/", {"name": f"Hutch {js}"})
         self.assertTrue(Location.objects.filter(name=f"Hutch {js}").exists())
