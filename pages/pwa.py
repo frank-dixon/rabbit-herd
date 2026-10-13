@@ -2,8 +2,9 @@
 
 The service worker is served from the site root so its scope covers every
 page. It is rendered as a template so it can name the hashed CSS and JS
-files; its version changes whenever those files change, which makes the
-browser replace the old cache.
+files; its version changes whenever those files' contents change (not just
+their names, which stay the same with DEBUG on), which makes the browser
+replace the old cache.
 """
 
 import hashlib
@@ -48,10 +49,34 @@ def manifest(request):
     return JsonResponse(data, content_type="application/manifest+json")
 
 
+SHELL_FILES = ("css/app.css", "js/app.js")
+
+
+def shell_fingerprint():
+    """A hash of the built CSS and JS, so a rebuild always ships a new worker."""
+    from django.contrib.staticfiles import finders
+    from django.contrib.staticfiles.storage import staticfiles_storage
+
+    digest = hashlib.sha256()
+    for name in SHELL_FILES:
+        path = finders.find(name)
+        if not path:
+            try:
+                path = staticfiles_storage.path(name)
+            except NotImplementedError:
+                path = None
+        try:
+            with open(path, "rb") as handle:
+                digest.update(handle.read())
+        except (OSError, TypeError):
+            digest.update(b"missing:" + name.encode())
+    return digest.hexdigest()
+
+
 @cache_control(no_cache=True)
 def service_worker(request):
     assets = shell_assets()
-    version = hashlib.sha256("|".join(assets).encode()).hexdigest()[:12]
+    version = hashlib.sha256(("|".join(assets) + shell_fingerprint()).encode()).hexdigest()[:12]
     response = render(
         request,
         "pwa/sw.js",
