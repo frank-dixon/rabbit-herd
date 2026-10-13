@@ -217,6 +217,19 @@ def review_rows(draft, user):
     return rows, relatives
 
 
+def tattoo_suggestion(slug, data, user, form, exclude):
+    """On a new rabbit's name step, fill the ear tattoo from the keeper's
+    tattoo format in Settings when none is entered yet."""
+    if slug != "name" or exclude is not None or form is not None or data.get("tattoo") or user is None:
+        return {}
+    from .tattoo import suggest
+
+    value = suggest(user)
+    if not value:
+        return {}
+    return {"tattoo_value": value, "tattoo_help": "Filled in from your tattoo format in Settings. Change or clear it if needed."}
+
+
 def step_context(slug, draft, user, form, exclude=None):
     errors = {key: list(messages) for key, messages in (form.errors.items() if form else [])}
     data = flow.form_data(draft)
@@ -241,6 +254,7 @@ def step_context(slug, draft, user, form, exclude=None):
         "error": errors.get(slug.replace("-", "_"), []),
         "tattoo_value": data.get("tattoo", ""),
         "tattoo_error": errors.get("tattoo", []),
+        **tattoo_suggestion(slug, data, user, form, exclude),
         "today": flow_forms.today().isoformat(),
         "draft": draft,
         "form_action": step_url(slug),

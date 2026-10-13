@@ -65,7 +65,10 @@ def rabbit_pedigree(request, pk):
     for span, slots in zip([4, 2, 1], gens):
         for index, slot in enumerate(slots):
             slot["row"] = index * span + 1
+    from .models import prefs
+
     return render(request, "rabbits/pedigree.html", {
+        "herd_prefs": prefs(request.user),
         "rabbit": rabbit, "generations": gens, "known": len(tree), "wide": True,
         "titles": ["Parents", "Grandparents", "Great-grandparents"],
         "columns": list(zip(["Parents", "Grandparents", "Great-grandparents"], gens, [4, 2, 1])),

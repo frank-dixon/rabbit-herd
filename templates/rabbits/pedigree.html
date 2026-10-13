@@ -16,6 +16,7 @@
   </div>
 
   <section class="mt-6 ruled pt-4 print:mt-0 print:border-0 print:p-0" aria-labelledby="subject-heading" data-pedigree>
+    {% if herd_prefs.rabbitry_name %}<p class="eyebrow mb-2" data-rabbitry>{{ herd_prefs.rabbitry_name }}{% if herd_prefs.prefix %} · {{ herd_prefs.prefix }}{% endif %}</p>{% endif %}
     <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-neutral-300 pb-2">
       <h2 class="text-base font-semibold" id="subject-heading">{{ rabbit.name }}{% if rabbit.tattoo %} · {{ rabbit.tattoo }}{% endif %}</h2>
       <p class="text-sm text-neutral-600">{{ app_name }} pedigree</p>

@@ -41,6 +41,7 @@ class RabbitryForm(forms.ModelForm):
     class Meta:
         model = HerdSettings
         fields = ["rabbitry_name", "prefix", "tattoo_format"]
+        labels = {"prefix": "Prefix"}
 
     def clean_tattoo_format(self):
         value = " ".join(self.cleaned_data.get("tattoo_format", "").split())

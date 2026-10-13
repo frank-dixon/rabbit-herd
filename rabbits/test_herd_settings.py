@@ -130,3 +130,43 @@ class ScheduleAppliedTests(TestCase):
         self.assertNotContains(page, "Clover is")
         HerdSettings.objects.create(user=self.owner, breeding_age_months=3)
         self.assertNotContains(self.client.get(reverse("pairing_detail", args=[self.pairing.pk])), "data-age-warnings")
+
+
+class RabbitryAppliedTests(TestCase):
+    def setUp(self):
+        import datetime
+        from .models import Rabbit
+        self.owner = user("rabbitry@example.com")
+        self.client.force_login(self.owner)
+        self.make = lambda name, tattoo: Rabbit.objects.create(
+            owner=self.owner, name=name, sex="doe", breed="Rex", color="Black",
+            birth_date=datetime.date(2025, 1, 1), tattoo=tattoo)
+
+    def test_suggestions_follow_the_format(self):
+        import datetime
+        from .tattoo import suggest
+        day = datetime.date(2026, 10, 12)
+        self.assertEqual(suggest(self.owner, day), "2601")  # default {prefix}{yy}{nn}, no prefix yet
+        HerdSettings.objects.create(user=self.owner, prefix="BH", tattoo_format="{prefix}{yy}{nn}")
+        self.owner._herd_settings_cache = None
+        self.make("A", "BH2602")
+        self.make("B", "bh2607")
+        self.make("C", "XY2655")
+        self.assertEqual(suggest(self.owner, day), "BH2608")
+        settings = HerdSettings.objects.get(user=self.owner)
+        settings.tattoo_format = ""
+        settings.save()
+        self.owner._herd_settings_cache = None
+        self.assertEqual(suggest(self.owner, day), "")
+
+    def test_new_rabbit_name_step_is_prefilled(self):
+        HerdSettings.objects.create(user=self.owner, prefix="BH", tattoo_format="{prefix}-{nnn}")
+        page = self.client.get(reverse("rabbit_flow_step", args=["name"]))
+        self.assertContains(page, 'value="BH-001"')
+        self.assertContains(page, "Filled in from your tattoo format")
+
+    def test_pedigree_prints_rabbitry(self):
+        HerdSettings.objects.create(user=self.owner, rabbitry_name="Bramble Hill", prefix="BH")
+        rabbit = self.make("Clover", "BH2601")
+        page = self.client.get(reverse("rabbit_pedigree", args=[rabbit.pk]))
+        self.assertContains(page, "Bramble Hill · BH")
