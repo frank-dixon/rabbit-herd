@@ -96,8 +96,16 @@ def weight_add(request, pk):
         messages.success(request, f"{weight_text(weight.grams, prefs(request.user).weight_unit)} on {weight.date:%b} {weight.date.day} was added.")
         request.session["weight_unit"] = data["unit"]
     else:
-        for errors in form.errors.values():
-            messages.error(request, errors[0])
+        # Show the problem where it happened: the card re-renders with the
+        # typed values and field errors (the old top-of-page alert was out
+        # of sight after jumping to #weights), plus an error toast.
+        request.session["weight_form"] = {
+            "rabbit": rabbit.pk,
+            "values": {key: request.POST.get(key, "") for key in ("date", "lb", "oz", "kg", "note")},
+            "errors": {field: errors[0] for field, errors in form.errors.items()},
+        }
+        first = next(iter(form.errors.values()))[0]
+        messages.error(request, f"The weight wasn't saved. {first}", extra_tags="toast")
     return redirect(f"/rabbits/{rabbit.pk}/#weights")
 
 

@@ -36,7 +36,7 @@
 {% block main %}
   <p class="net-banner" role="status" data-connection-status data-print-hide hidden></p>
   {% if messages %}
-    {% for message in messages %}{% if message.level_tag == "error" %}
+    {% for message in messages %}{% if message.level_tag == "error" and "toast" not in message.extra_tags %}
       <div class="mb-6" data-print-hide>{% include "components/alert.html" with text=message tags=message.tags only %}</div>
     {% endif %}{% endfor %}
     {% include "components/toasts.html" %}

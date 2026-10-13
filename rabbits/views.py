@@ -190,7 +190,12 @@ def weight_context(request, rabbit):
     from .models import prefs
 
     last_unit = prefs(request.user).weight_unit
+    failed = request.session.pop("weight_form", None)
+    if not failed or failed.get("rabbit") != rabbit.pk:
+        failed = {"values": {}, "errors": {}}
     return {
+        "weight_values": failed["values"],
+        "weight_errors": failed["errors"],
         "weights": list(reversed(entries)),
         "weight_chart": chart(entries, last_unit),
         "weight_unit": last_unit,

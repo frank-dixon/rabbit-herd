@@ -89,3 +89,40 @@ class ChartAxisTests(TestCase):
         self.assertEqual(len(chart(rows[:1], "lb")["x_ticks"]), 1)
         long = [SimpleNamespace(date=datetime.date(2025, 1, 1), grams=500), SimpleNamespace(date=datetime.date(2026, 2, 1), grams=3000)]
         self.assertEqual(chart(long, "lb")["x_ticks"][0]["label"], "Jan ’25")
+
+
+class WeightErrorFeedbackTests(TestCase):
+    """A refused weight is never silent: the card shows the error with the
+    typed values kept, and an error toast says it wasn't saved."""
+
+    def test_refused_weight_shows_inline_error_and_toast(self):
+        from datetime import date
+        from django.contrib.auth import get_user_model
+        from django.urls import reverse
+        from .models import Rabbit
+
+        user = get_user_model().objects.create_user("w@example.com", "pw-12345678")
+        self.client.force_login(user)
+        rabbit = Rabbit.objects.create(owner=user, name="Juniper", sex="doe", breed="Rex", color="Black", birth_date=date(2026, 9, 1))
+        response = self.client.post(reverse("rabbit_weight_add", args=[rabbit.pk]), {"date": "2026-08-01", "lb": "5", "oz": "4"}, follow=True)
+        self.assertContains(response, "data-weight-error")
+        self.assertContains(response, 'toast toast-error')
+        self.assertContains(response, "The weight wasn&#x27;t saved.")
+        self.assertContains(response, 'name="lb" type="text" value="5"')
+        self.assertEqual(rabbit.weights.count(), 0)
+
+    def test_saved_weight_shows_toast_and_persists(self):
+        from datetime import date
+        from django.contrib.auth import get_user_model
+        from django.urls import reverse
+        from django.utils import timezone
+        from .models import Rabbit
+
+        user = get_user_model().objects.create_user("w2@example.com", "pw-12345678")
+        self.client.force_login(user)
+        rabbit = Rabbit.objects.create(owner=user, name="Blackberry", sex="doe", breed="Rex", color="Black", birth_date=date(2025, 1, 1))
+        today = timezone.localdate().isoformat()
+        response = self.client.post(reverse("rabbit_weight_add", args=[rabbit.pk]), {"date": today, "lb": "5", "oz": "4"}, follow=True)
+        self.assertContains(response, "was added.")
+        self.assertNotContains(response, "No weights yet")
+        self.assertEqual(rabbit.weights.count(), 1)

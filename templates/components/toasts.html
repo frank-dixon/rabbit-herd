@@ -1,8 +1,8 @@
 {# Success messages as toasts above the tab bar. A message tagged "undo|<url>" gets an Undo button that posts to that URL; it works without JS. toast.mjs fades them out after a few seconds. #}
 <div class="toasts" data-toasts aria-live="polite" data-print-hide>
-  {% for message in messages %}{% if message.level_tag != "error" %}
-    {% with tags=message.extra_tags|default:"" %}
-      <div class="toast" role="status" data-toast>
+  {% for message in messages %}{% if message.level_tag != "error" or "toast" in message.extra_tags %}
+    {% with tags=message.extra_tags|default:""|cut:"toast" %}
+      <div class="toast{% if message.level_tag == "error" %} toast-error{% endif %}" role="{% if message.level_tag == "error" %}alert{% else %}status{% endif %}" data-toast>
         <span class="min-w-0 flex-1">{{ message }}</span>
         {% if tags|slice:":5" == "undo|" %}
           <form method="post" action="{{ tags|slice:'5:' }}" data-toast-undo>{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button type="submit" class="toast-action">Undo</button></form>
