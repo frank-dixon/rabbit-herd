@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Compare kits · {{ litter.pairing }} · {{ app_name }}{% endblock %}
+
+{% block content %}
+  {% url 'litter_detail' litter.pk as litter_url %}
+  {% include "components/page_header.html" with title="Compare kits" subtitle=litter.pairing|stringformat:"s" secondary_label="Back to litter" secondary_href=litter_url only %}
+  {% if kits %}
+    <nav class="mt-6 flex justify-end" aria-label="Line up photos by">
+      <div class="inline-flex overflow-hidden rounded border border-neutral-500 bg-white text-sm">
+        <a href="?by=age" class="px-3 py-1.5 {% if by == 'age' %}bg-neutral-800 text-white{% endif %}"{% if by == 'age' %} aria-current="true"{% endif %}>By age</a>
+        <a href="?by=date" class="border-l border-neutral-500 px-3 py-1.5 {% if by == 'date' %}bg-neutral-800 text-white{% endif %}"{% if by == 'date' %} aria-current="true"{% endif %}>By date</a>
+      </div>
+    </nav>
+    {% if rows %}
+      <div class="mt-4 overflow-x-auto rounded border border-neutral-300 bg-white" data-compare>
+        <table class="w-full border-collapse text-sm">
+          <caption class="sr-only">Kit photos, one column per kit, one row per {% if by == 'date' %}date{% else %}week of age{% endif %}</caption>
+          <thead>
+            <tr class="border-b border-neutral-300">
+              <th scope="col" class="sticky left-0 bg-white p-2 text-left font-medium text-neutral-600">{% if by == 'date' %}Date{% else %}Age{% endif %}</th>
+              {% for kit in kits %}
+                <th scope="col" class="min-w-[8.5rem] p-2 text-left align-bottom sm:min-w-[11rem]">
+                  <a class="font-semibold underline" href="{% url 'rabbit_detail' kit.pk %}">{{ kit.name }}</a>
+                  <span class="block font-normal text-neutral-600">{{ kit.get_sex_display }}</span>
+                </th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for label, cells in rows %}
+              <tr class="border-b border-neutral-200 last:border-b-0">
+                <th scope="row" class="sticky left-0 bg-white p-2 text-left align-top font-medium whitespace-nowrap">{{ label }}</th>
+                {% for photos in cells %}
+                  <td class="p-2 align-top">
+                    {% if photos %}
+                      {% with photo=photos.0 %}
+                        <a href="{% url 'rabbit_photos' photo.rabbit_id %}" class="block">
+                          <img class="aspect-square w-32 rounded object-cover sm:w-44" src="{% url 'rabbit_photo_file' photo.pk %}?v={{ photo.image.name|slice:'-12:' }}" alt="{{ photo.rabbit.name }}, {{ photo.date_badge|lower }}" loading="lazy">
+                        </a>
+                        <span class="mt-1 block text-neutral-600">{{ photo.badge_parts.1 }}{% if photos|length > 1 %} · {{ photos|length|add:"-1" }} more{% endif %}</span>
+                      {% endwith %}
+                    {% else %}
+                      <span class="flex aspect-square w-32 items-center justify-center rounded bg-neutral-100 text-neutral-500 sm:w-44">No photo</span>
+                    {% endif %}
+                  </td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-2 text-sm text-neutral-600">Ages use each photo's taken date when it has one, otherwise the day it was added.</p>
+    {% else %}
+      <p class="mt-6 text-neutral-600">No kit photos yet. Add photos from each kit's page to line them up here.</p>
+    {% endif %}
+  {% else %}
+    <p class="mt-6 text-neutral-600">No kits from this litter are in your herd yet.</p>
+  {% endif %}
+{% endblock %}
