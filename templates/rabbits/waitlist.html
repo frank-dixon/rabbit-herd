@@ -50,7 +50,7 @@
       {% endif %}
     </section>
 
-    <section class="scroll-mt-4 self-start ruled pt-4" id="form" aria-labelledby="wait-form-heading">
+    <section class="scroll-mt-20 self-start ruled pt-4" id="form" aria-labelledby="wait-form-heading">
       <h2 class="text-base font-semibold" id="wait-form-heading">{% if editing %}Edit {{ editing.buyer }}'s request{% else %}Add a buyer{% endif %}</h2>
       {% if editing %}{% url 'waitlist_edit' editing.pk as action %}{% else %}{% url 'waitlist' as action %}{% endif %}
       <form class="mt-3 grid grid-cols-2 gap-2" method="post" action="{{ action }}" novalidate>

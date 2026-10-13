@@ -71,3 +71,14 @@ dialog[open]::backdrop { background: rgb(0 0 0 / 0.4); }
 
 /* Status messages and alerts arrive gently. */
 [role="status"]:not([hidden]):not(:empty), [role="alert"] { animation: mo-enter var(--dur-2) var(--ease-out) both; }
+
+/* Scrolling: in-page links glide instead of jumping, and every anchor target
+   clears the sticky header. The scrollbar's space is always reserved, so a page
+   growing past the screen never shifts sideways. Reduced motion jumps. */
+html { scrollbar-gutter: stable; }
+:where([id]) { scroll-margin-top: 5rem; }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+/* Settings sub-nav: the section in view (aria-current, set by scrollspy.mjs). */
+[data-settings-nav] a { transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), background-color var(--dur-1) var(--ease-out); }

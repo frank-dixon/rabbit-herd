@@ -32,6 +32,8 @@ import { bindRepeatFields } from "./repeat-fields.mjs";
 import { bindPressReset } from "./press-reset.mjs";
 import { bindAccountMenu } from "./account-menu.mjs";
 import { bindPrefetch } from "./prefetch.mjs";
+import { bindScrollSpy } from "./scrollspy.mjs";
+import { focusSmooth, reducedMotion } from "./motion.mjs";
 
 /**
  * Read the CSRF token from the page.
@@ -338,15 +340,20 @@ function start() {
   const openFold = () => {
     const target = location.hash && document.getElementById(location.hash.slice(1));
     const fold = target && target.closest("details[data-fold]");
-    if (fold && !fold.open) fold.open = true;
+    if (fold && !fold.open) {
+      fold.open = true;
+      // Opening grows the section after the browser has jumped; settle on it smoothly.
+      requestAnimationFrame(() => target.scrollIntoView({ block: "start", behavior: reducedMotion() ? "auto" : "smooth" }));
+    }
   };
   openFold();
   window.addEventListener("hashchange", openFold);
   bindPrefetch(document, window);
+  bindScrollSpy(document, window);
   // Arriving to log a weight (a swipe or the Log weight button): focus the entry.
   if (new URLSearchParams(window.location.search).has("weigh")) {
     const weigh = document.querySelector('#weights form[action$="/weights/"] input:not([type=hidden]):not([type=date])');
-    window.setTimeout(() => weigh?.focus(), 0);
+    window.setTimeout(() => focusSmooth(weigh), 0);
   }
 }
 

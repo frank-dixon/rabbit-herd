@@ -1,5 +1,5 @@
-{# Settings sections. Phones: a grouped list at the top. Desktop: a sticky sub-nav beside the panel. Plain anchor links, so it works without JS. #}
-{% with row="flex min-h-11 items-center justify-between gap-3 px-4 text-[0.95rem] text-ink hover:bg-side lg:min-h-9 lg:rounded-md lg:px-3 lg:text-sm lg:text-muted lg:hover:text-ink" %}
+{# Settings sections. Phones: a grouped list at the top. Desktop: a sticky sub-nav beside the panel. Plain anchor links, so it works without JS; scrollspy.mjs marks the section in view with aria-current. #}
+{% with row="flex min-h-11 items-center justify-between gap-3 px-4 text-[0.95rem] text-ink hover:bg-side lg:min-h-9 lg:rounded-none lg:rounded-r-md lg:border-l-2 lg:border-transparent lg:px-3 aria-[current=location]:font-semibold aria-[current=location]:text-accent lg:aria-[current=location]:border-accent lg:aria-[current=location]:text-accent lg:text-sm lg:text-muted lg:hover:text-ink" %}
 <nav class="lg:sticky lg:top-20 lg:self-start" aria-label="Settings sections" data-settings-nav>
   {% for group, links in settings_nav %}
     <p class="eyebrow mt-5 mb-1.5 px-1 first:mt-0 lg:px-3">{{ group }}</p>

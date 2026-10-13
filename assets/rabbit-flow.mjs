@@ -1,3 +1,4 @@
+import { enter, focusSmooth } from "./motion.mjs";
 /*
  * Helpers for the add-a-rabbit card flow (rabbits/flow_views.py).
  *
@@ -140,6 +141,7 @@ function bindColorChoice(form) {
   }
   function update(event) {
     const show = needsColorText(current(), other);
+    if (show && box.hidden) enter(box);
     box.hidden = !show;
     if (show && event && event.target && event.target.name === "color_choice") {
       const input = box.querySelector("input");
@@ -292,20 +294,21 @@ function bindGeneFill(form) {
 
 /** Errors first, then a row that was just added, then the question. */
 function placeFocus(form) {
+  const focus = (el) => { if (typeof el.scrollIntoView === "function") focusSmooth(el); else el.focus(); };
   const summary = document.getElementById("error-summary");
   if (summary) {
-    summary.focus();
+    focus(summary);
     return;
   }
   const hash = window.location.hash.slice(1);
   const target = hash ? document.getElementById(hash) : null;
   if (target) {
-    target.focus();
+    focus(target);
     return;
   }
   const question = document.getElementById("question");
   if (question && form.getAttribute("data-step") !== "name") {
-    question.focus();
+    focus(question);
   }
 }
 

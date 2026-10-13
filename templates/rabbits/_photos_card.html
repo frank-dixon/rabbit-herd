@@ -1,6 +1,6 @@
 {% load photos %}{# Photos card on the rabbit's page: an Add photo tile, then square tiles with a Main tag. Each tile opens an options panel. Without JavaScript the panel is shown with :target; with it, the same <dialog> opens as a modal. Every form posts back_to=detail and returns to #photos. #}
 {% url 'rabbit_photos' rabbit.pk as photos_url %}
-<section class="scroll-mt-4 ruled pt-4" id="photos" aria-labelledby="gallery-heading">
+<section class="scroll-mt-20 ruled pt-4" id="photos" aria-labelledby="gallery-heading">
   <div class="flex flex-wrap items-center justify-between gap-3">
     {% if back_to == "photos" %}
       <h2 class="text-base font-semibold" id="gallery-heading">{{ photos|length }} photo{{ photos|length|pluralize }}</h2>

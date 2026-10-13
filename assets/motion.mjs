@@ -26,3 +26,22 @@ export function leave(el, { remove = true } = {}) {
     });
   });
 }
+
+/** True when the user asked the system for less motion. */
+export function reducedMotion(win = globalThis.window) {
+  return Boolean(win?.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+}
+
+/**
+ * Move focus without the browser's instant jump: focus in place, then glide the
+ * element into view only when it is off screen. Reduced motion jumps.
+ */
+export function focusSmooth(el, win = globalThis.window) {
+  if (!el) return;
+  el.focus({ preventScroll: true });
+  if (typeof el.scrollIntoView !== "function" || !el.getBoundingClientRect) return;
+  const box = el.getBoundingClientRect();
+  const height = win?.innerHeight || 0;
+  if (box.top >= 72 && box.bottom <= height) return;
+  el.scrollIntoView({ block: "center", behavior: reducedMotion(win) ? "auto" : "smooth" });
+}
