@@ -1,24 +1,32 @@
 """Seed (or refresh) the demo account: demo@bramble-burrow.app with a lived-in herd.
 
 The password is read from the DEMO_PASSWORD environment variable inside the command;
-it is never taken as an argument, printed or logged. --no-password leaves the account
-without a usable password (set it afterwards with `manage.py changepassword`).
+it is never taken as an argument, printed or logged. --no-password leaves the password
+alone: an existing account keeps its password; a new one gets no usable password (set it
+with `manage.py changepassword`).
+
+Every rabbit gets a saved main photo of its breed, from rabbits/demo_photos/ (Wikimedia
+Commons, CC/PD; author, license and source in attribution.json and in the photo's notes).
 
 Idempotent: re-running updates the account and rebuilds the demo herd in place, so
 nothing is duplicated. Dates are relative to today, so the herd always looks current.
 Only the demo account's own data is touched.
 """
 import datetime
+import json
 import os
+from pathlib import Path
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
 from rabbits.models import (Breed, Contact, CullNote, Expense, HealthNote, HerdSettings, Litter, Location, Pairing,
-                            Rabbit, Task, WaitlistEntry, Weight)
+                            Rabbit, RabbitPhoto, Task, WaitlistEntry, Weight)
+from rabbits.renditions import delete_renditions
 
 DEMO_EMAIL = "demo@bramble-burrow.app"
 
@@ -92,7 +100,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--no-password", action="store_true",
-                            help="Leave the account without a usable password (set it later with changepassword).")
+                            help="Don't set the password: an existing account keeps its own; a new one gets none.")
 
     def handle(self, no_password=False, **options):
         password = None if no_password else os.environ.get("DEMO_PASSWORD")
@@ -112,8 +120,8 @@ class Command(BaseCommand):
             user = User.objects.create_user(email=DEMO_EMAIL)
         if password:
             user.set_password(password)
-        else:
-            user.set_unusable_password()
+        elif created:
+            user.set_unusable_password()  # --no-password on a new account; an existing one keeps its password
         user.email_confirmed = True
         user.email_confirmed_at = user.email_confirmed_at or timezone.now()
         user.is_active = True
@@ -124,6 +132,7 @@ class Command(BaseCommand):
     def herd(self, user, today):
         day = lambda n: today - datetime.timedelta(days=n)  # noqa: E731
         # Rebuild only the demo account's herd, so re-runs update rather than duplicate.
+        old_files = list(RabbitPhoto.objects.filter(rabbit__owner=user).values_list("image", flat=True))
         for model in (Task, WaitlistEntry, Expense, Litter, Pairing, Rabbit, Contact, Location):
             model.objects.filter(owner=user).delete()
 
@@ -144,6 +153,7 @@ class Command(BaseCommand):
                 death_cause=extra.get("cause", "Culled" if status == "culled" else ""), source=source)
 
         R = rabbits
+        photos = self.photos(R, old_files)
         # Litters: weaned (Briar and Nettle came from it), nursing, due soon, just bred.
         def litter(doe, buck, bred, **kw):
             pairing = Pairing.objects.get_or_create(owner=user, doe=R[doe], buck=R[buck])[0]
@@ -240,5 +250,34 @@ class Command(BaseCommand):
             "sold": Rabbit.objects.filter(owner=user, status="sold").count(),
             "contacts": Contact.objects.filter(owner=user).count(), "litters": Litter.objects.filter(owner=user).count(),
             "weights": weights, "health": len(health), "tasks": Task.objects.filter(owner=user).count(),
-            "cull notes": culls + 2, "waitlist": WaitlistEntry.objects.filter(owner=user).count(),
+            "cull notes": culls + 2, "photos": photos, "waitlist": WaitlistEntry.objects.filter(owner=user).count(),
         }
+
+    def photos(self, rabbits, old_files):
+        """Main photo per rabbit, cycling through its breed's licensed photos (color matches first)."""
+        from django.core.files.storage import default_storage
+        from django.db import transaction as tx
+
+        for name in old_files:  # the previous run's files, removed once this run commits
+            tx.on_commit(lambda n=name: (default_storage.delete(n), delete_renditions(default_storage, n)))
+        folder = Path(__file__).resolve().parents[2] / "demo_photos"
+        credits = json.loads((folder / "attribution.json").read_text())
+        by_breed, used = {}, {}
+        for c in credits:
+            by_breed.setdefault(c["breed"], []).append(c)
+        count = 0
+        for rabbit in rabbits.values():
+            pool = by_breed.get(rabbit.breed)
+            if not pool:
+                continue
+            words = set(rabbit.color.lower().split())
+            fresh = [c for c in pool if used.get(c["file"], 0) == min(used.get(p["file"], 0) for p in pool)]
+            pick = next((c for c in fresh if words & set(c["file"].replace("-", " ").split())), fresh[0])
+            used[pick["file"]] = used.get(pick["file"], 0) + 1
+            photo = RabbitPhoto(rabbit=rabbit, is_main=True,
+                                notes=f"Demo photo: {pick['author']}, {pick['license']}, via Wikimedia Commons ({pick['source']}).")
+            with open(folder / pick["file"], "rb") as handle:
+                photo.image.save("photo.jpg", File(handle), save=False)
+            photo.save()
+            count += 1
+        return count
