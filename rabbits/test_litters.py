@@ -50,7 +50,7 @@ class LitterTests(TestCase):
         self.client.post(url, {"kindled_on": self.today.isoformat(), "born_alive": "3", "born_dead": "1", "died_after": "1"})
         litter.refresh_from_db()
         self.assertEqual((litter.born_alive, litter.born_dead, litter.survivors), (3, 1, 2))
-        self.assertIsNone(litter.next_task())
+        self.assertEqual(litter.next_task()["key"], "wean")
         add = reverse("litter_add_kit", args=[litter.pk])
         self.client.post(add, {"name": "Clover", "sex": "doe", "tattoo": "CL1"})
         self.client.post(add, {"name": "Dup", "sex": "buck", "tattoo": "cl1"})
@@ -75,3 +75,36 @@ class LitterTests(TestCase):
         self.client.force_login(user("other@example.com"))
         self.assertEqual(self.client.get(reverse("litter_detail", args=[litter.pk])).status_code, 404)
         self.assertEqual(self.client.post(reverse("litter_add_kit", args=[litter.pk]), {"name": "X", "sex": "doe"}).status_code, 404)
+
+
+class WeanProcessTests(TestCase):
+    def setUp(self):
+        self.owner = user("wean@example.com")
+        self.client.force_login(self.owner)
+        mk = lambda name, sex: Rabbit.objects.create(owner=self.owner, name=name, sex=sex, breed="Rex",
+                                                     color="Black", birth_date=datetime.date(2024, 1, 1))
+        pairing = Pairing.objects.create(owner=self.owner, doe=mk("Hazel", "doe"), buck=mk("Basil", "buck"))
+        today = timezone.localdate()
+        self.litter = Litter.objects.create(owner=self.owner, pairing=pairing, bred_on=today - datetime.timedelta(days=40),
+                                            kindled_on=today - datetime.timedelta(days=9))
+
+    def test_dates_after_kindling(self):
+        tasks = {task["key"]: task for task in self.litter.tasks()}
+        self.assertEqual(tasks["wean"]["date"], self.litter.kindled_on + datetime.timedelta(days=28))
+        self.assertEqual(tasks["process"]["date"], self.litter.kindled_on + datetime.timedelta(days=75))
+        page = self.client.get(reverse("litter_detail", args=[self.litter.pk]))
+        self.assertContains(page, "Kits 28 days old")
+
+    def test_mark_weaned_and_task_list(self):
+        page = self.client.get(reverse("task_list"))
+        self.assertContains(page, "Wean: Hazel (kits 28 days)")
+        self.client.post(reverse("litter_task", args=[self.litter.pk]), {"task": "wean", "done": "1"})
+        self.litter.refresh_from_db()
+        self.assertTrue(self.litter.weaned)
+        self.assertNotContains(self.client.get(reverse("task_list")), "Wean: Hazel")
+
+    def test_old_litters_stay_off_the_task_list(self):
+        self.litter.kindled_on = timezone.localdate() - datetime.timedelta(days=400)
+        self.litter.bred_on = self.litter.kindled_on - datetime.timedelta(days=31)
+        self.litter.save()
+        self.assertNotContains(self.client.get(reverse("task_list")), "Hazel")

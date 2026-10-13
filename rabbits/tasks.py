@@ -1,9 +1,10 @@
-"""Tasks: manual to-dos plus the litter palpate, nest box and due dates,
+"""Tasks: manual to-dos plus the litter palpate, nest box, due, wean and process dates,
 listed together by date. Overdue items are marked."""
 
 import datetime
 
 from django.contrib import messages
+from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -23,12 +24,17 @@ def open_items(user, today=None):
     for task in Task.objects.filter(owner=user, done_at__isnull=True).select_related("rabbit"):
         items.append({"kind": "task", "pk": task.pk, "title": task.title, "date": task.due_on,
                       "rabbit": task.rabbit, "url": reverse("rabbit_detail", args=[task.rabbit_id]) if task.rabbit_id else ""})
-    litters = Litter.objects.filter(owner=user, kindled_on__isnull=True).select_related("pairing__doe", "pairing__buck")
+    # Litters still to kindle, plus recent ones with wean or process dates
+    # open; older litters are history and stay off the list.
+    recent = today - datetime.timedelta(days=Litter.PROCESS_AGE + 30)
+    litters = Litter.objects.filter(owner=user).filter(
+        Q(kindled_on__isnull=True) | Q(kindled_on__gte=recent)).select_related("pairing__doe", "pairing__buck")
     for litter in litters:
         for task in litter.tasks():
             if not task["done"]:
+                when = f"kits {task['age']} days" if "age" in task else f"day {task['day']}"
                 items.append({"kind": "litter", "pk": litter.pk, "key": task["key"], "date": task["date"],
-                              "title": f"{task['label']}: {litter.pairing.doe.name} (day {task['day']})",
+                              "title": f"{task['label']}: {litter.pairing.doe.name} ({when})",
                               "rabbit": litter.pairing.doe, "url": reverse("litter_detail", args=[litter.pk])})
     for item in items:
         item["overdue"] = item["date"] < today

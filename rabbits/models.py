@@ -701,6 +701,9 @@ class Litter(models.Model):
     PALPATE_DAY = 12
     NEST_BOX_DAY = 28
     DUE_DAY = 31
+    # Kit age in days, counted from kindling.
+    WEAN_AGE = 28
+    PROCESS_AGE = 75
 
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="litters", on_delete=models.CASCADE)
     pairing = models.ForeignKey(Pairing, related_name="litters", on_delete=models.CASCADE)
@@ -708,6 +711,8 @@ class Litter(models.Model):
     palpated = models.BooleanField(default=False)
     nest_box_in = models.BooleanField(default=False)
     kindled_on = models.DateField(null=True, blank=True)
+    weaned = models.BooleanField(default=False)
+    processed = models.BooleanField(default=False)
     born_alive = models.PositiveSmallIntegerField(null=True, blank=True)
     born_dead = models.PositiveSmallIntegerField(default=0)
     died_after = models.PositiveSmallIntegerField(default=0, help_text="Kits lost after birth.")
@@ -744,6 +749,20 @@ class Litter(models.Model):
             {"key": "nest_box", "label": "Put the nest box in", "day": self.NEST_BOX_DAY,
              "date": self.day(self.NEST_BOX_DAY), "done": self.nest_box_in or kindled},
             {"key": "due", "label": "Due to kindle", "day": self.DUE_DAY, "date": self.due_on, "done": kindled},
+        ] + self.kit_tasks()
+
+    def kit_tasks(self):
+        """Wean and process dates, from the kindling date, once kindled."""
+        if self.kindled_on is None:
+            return []
+        from datetime import timedelta
+
+        bred_days = (self.kindled_on - self.bred_on).days
+        return [
+            {"key": "wean", "label": "Wean", "age": self.WEAN_AGE, "day": bred_days + self.WEAN_AGE,
+             "date": self.kindled_on + timedelta(days=self.WEAN_AGE), "done": self.weaned},
+            {"key": "process", "label": "Process", "age": self.PROCESS_AGE, "day": bred_days + self.PROCESS_AGE,
+             "date": self.kindled_on + timedelta(days=self.PROCESS_AGE), "done": self.processed},
         ]
 
     def next_task(self):

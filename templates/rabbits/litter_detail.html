@@ -14,9 +14,9 @@
           <li class="flex flex-wrap items-center justify-between gap-2 p-3" data-task="{{ task.key }}">
             <div class="min-w-0">
               <p class="font-semibold{% if task.done %} line-through text-neutral-600{% endif %}">{{ task.label }}</p>
-              <p class="text-sm text-neutral-600">Day {{ task.day }} · {{ task.date|date:"D, M j" }}{% if not task.done %}{% if task.date < today %} · <span class="font-semibold text-red-800">overdue</span>{% elif task.date == today %} · <span class="font-semibold text-neutral-900">today</span>{% endif %}{% else %} · done{% endif %}</p>
+              <p class="text-sm text-neutral-600">{% if task.age %}Kits {{ task.age }} days old{% else %}Day {{ task.day }}{% endif %} · {{ task.date|date:"D, M j" }}{% if not task.done %}{% if task.date < today %} · <span class="font-semibold text-red-800">overdue</span>{% elif task.date == today %} · <span class="font-semibold text-neutral-900">today</span>{% endif %}{% else %} · done{% endif %}</p>
             </div>
-            {% if task.key != "due" and not litter.kindled_on %}
+            {% if task.age or task.key != "due" and not litter.kindled_on %}
               <form method="post" action="{% url 'litter_task' litter.pk %}">
                 {% csrf_token %}<input type="hidden" name="task" value="{{ task.key }}"><input type="hidden" name="done" value="{{ task.done|yesno:'0,1' }}">
                 {% include "components/button.html" with label=task.done|yesno:"Undo,Mark done" sr_suffix=task.label type="submit" variant="secondary" only %}

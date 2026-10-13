@@ -97,7 +97,11 @@ def litter_task(request, pk):
         litter.palpated = done
     elif task == "nest_box":
         litter.nest_box_in = done
-    litter.save(update_fields=["palpated", "nest_box_in"])
+    elif task == "wean":
+        litter.weaned = done
+    elif task == "process":
+        litter.processed = done
+    litter.save(update_fields=["palpated", "nest_box_in", "weaned", "processed"])
     if request.POST.get("next") in ("/", "/tasks/"):
         return redirect(request.POST["next"])
     return redirect(f"/litters/{litter.pk}/#dates")
