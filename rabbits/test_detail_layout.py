@@ -43,7 +43,7 @@ class DetailLayoutTests(TestCase):
         self.assertContains(page, 'Jan 15, 2025<span class="block text-sm text-muted"')
         self.assertContains(page, "No photos yet.")
         self.assertContains(page, "No parents recorded.")
-        # Nothing recorded, but the breed and colour imply genes, so the card shows them as Possible.
+        # Nothing recorded, but the breed and color imply genes, so the card shows them as Possible.
         self.assertContains(page, 'data-gene-level="possible"')
         self.assertContains(page, 'href="' + reverse("rabbit_edit_step", args=[rabbit.pk, "genes"]) + '"')
         self.assertNotContains(page, "Buck. Creme d&#x27;Argent. Creme. Born")

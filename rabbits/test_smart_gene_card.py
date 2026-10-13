@@ -25,7 +25,7 @@ class SmartGeneCardTests(FlowTestMixin, TestCase):
         self.assertEqual(levels["D"], ("known", "Dd"))
         self.assertEqual(levels["B"], ("probable", "Bb"))
 
-    def test_breed_and_colour_fill_gaps_as_possible(self):
+    def test_breed_and_color_fill_gaps_as_possible(self):
         levels = self.levels()
         self.assertEqual(levels["E"], ("possible", "ee"))
         self.bun.breed, self.bun.color = "", ""
@@ -43,7 +43,7 @@ class SmartGeneCardTests(FlowTestMixin, TestCase):
         self.assertContains(page, "data-gene-card")
         self.assertContains(page, 'data-gene-level="possible"')
         self.assertContains(page, "What the levels mean")
-        self.assertContains(page, "From breed and colour")
+        self.assertContains(page, "From breed and color")
 
     def test_nothing_recorded_or_implied_keeps_the_short_empty_state(self):
         self.bun.breed, self.bun.color = "", ""

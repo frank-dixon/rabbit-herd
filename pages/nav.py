@@ -20,13 +20,13 @@ THEME_SWATCHES = {
     "d5": ("#5A3E2B", "#8B7B5E", "#E8DCC8"),
     "d6": ("#43573D", "#9A6B4C", "#E8DCC8"),
 }
-# Browser chrome colour per theme: (light canvas, dark canvas).
+# Browser chrome color per theme: (light canvas, dark canvas).
 THEME_COLOR = {'c1': ('#F5F6F5', '#121717'), 'c2': ('#F5F5F3', '#121318'), 'c3': ('#F5F4F0', '#131613'), 'c4': ('#F6F5F4', '#161317'), 'c5': ('#F6F5F4', '#151515'), 'd1': ('#EAEAEA', '#1F1F1F'), 'd2': ('#EAEAEA', '#1F1F1F'), 'd3': ('#DEDEDC', '#26282A'), 'd4': ('#DEDEDC', '#26282A'), 'd5': ('#E8DCC8', '#221E19'), 'd6': ('#E8DCC8', '#221E19')}
 
 
 def ui(request):
     """The signed-in user's theme and grid density, rendered onto <html> so
-    the page paints in the right colours with no flash and no JS."""
+    the page paints in the right colors with no flash and no JS."""
     user = getattr(request, "user", None)
     if user is not None and user.is_authenticated:
         theme, density, mode = user.ui_theme or "c1", user.ui_density or "roomy", user.ui_mode or "system"

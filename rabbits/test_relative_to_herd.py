@@ -1,5 +1,5 @@
 """An outside relative added on the relatives step can go straight into the
-herd as a full rabbit, keeping its colour, line and genes."""
+herd as a full rabbit, keeping its color, line and genes."""
 
 from django.test import TestCase
 from django.urls import reverse

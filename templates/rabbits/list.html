@@ -164,7 +164,7 @@
     {% elif filters.tab == 'former' %}
 {% include "components/empty.html" with title="No former rabbits." text="Rabbits you sell or cull, and any that die, move here with their records." kind="deceased" icon=ui_icons.rabbits only %}
     {% else %}
-{% url "rabbit_create" as add_url %}{% include "components/empty.html" with title="No rabbits yet." text="Add your first rabbit with its breed, color and birth date. Pedigrees, weights and litters build from there." href=add_url action="Add a rabbit" kind="herd" icon=ui_icons.rabbits only %}
+{% url "rabbit_create" as add_url %}{% include "components/empty.html" with title="No rabbits yet." text="Add your first rabbit with its breed, color and birth date. Its pedigree, weights and litters build from there." href=add_url action="Add a rabbit" kind="herd" icon=ui_icons.rabbits only %}
     {% endif %}
   {% endif %}
 {% endblock %}

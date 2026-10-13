@@ -24,7 +24,7 @@
   font-display: swap;
 }
 
-/* Every colour in the templates resolves to a theme token. The neutral,
+/* Every color in the templates resolves to a theme token. The neutral,
    red, amber and green scales are remapped so older utility classes follow
    the active theme too; new markup should prefer the semantic names. */
 @theme inline {

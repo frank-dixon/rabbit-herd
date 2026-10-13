@@ -1,6 +1,6 @@
 """The smart genes card on a rabbit's page: one row per locus with how sure
 we are. Known and Probable come from what was recorded; Possible is what the
-breed, colour and eye colour point to but nobody has recorded; Unknown is
+breed, color and eye color point to but nobody has recorded; Unknown is
 everything else, so the gaps are visible instead of silent."""
 
 from . import gene_fill
@@ -8,7 +8,7 @@ from . import gene_fill
 LEVELS = [
     ("known", "Known", "Proven, for example by test litters or a ruby-eyed white coat."),
     ("probable", "Probable", "Recorded as likely, from the parents or the seller."),
-    ("possible", "Possible", "What the breed and colour point to. Not recorded yet."),
+    ("possible", "Possible", "Suggested by the breed and color. Not recorded yet."),
     ("unknown", "Unknown", "Nothing recorded or implied."),
 ]
 LEVEL_LABELS = {key: label for key, label, _ in LEVELS}
@@ -25,7 +25,7 @@ def rows(rabbit, genes=None):
         if gene:
             level, genotype, note = gene.certainty, gene.genotype, gene.note
         elif implied.get(locus):
-            level, genotype, note = "possible", implied[locus], "From breed and colour"
+            level, genotype, note = "possible", implied[locus], "From breed and color"
         else:
             level, genotype, note = "unknown", "", ""
         out.append({

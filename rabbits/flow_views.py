@@ -394,8 +394,8 @@ def trait_context(number, row, errors, parent_colors, breed):
 
 
 PATTERNS = [
-    ("solid", "Solid", "enen", "One colour all over, no white spotting."),
-    ("broken", "Broken", "Enen", "Coloured patches on white, 10 to 50% colour."),
+    ("solid", "Solid", "enen", "One color all over, no white spotting."),
+    ("broken", "Broken", "Enen", "Colored patches on white, 10 to 50% color."),
     ("charlie", "Charlie", "EnEn", "Mostly white, with a light nose and ear marking."),
 ]
 
