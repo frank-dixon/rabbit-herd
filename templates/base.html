@@ -4,9 +4,16 @@
 {% block head %}
   <meta name="csrf-token" content="{{ csrf_token }}">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="manifest" href="{% url 'pwa_manifest' %}">
+  <meta name="theme-color" content="#262626">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="{{ app_name }}">
+  <link rel="apple-touch-icon" href="{% static 'icons/apple-touch-icon.png' %}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'icons/favicon-32.png' %}">
 {% endblock %}
 
 {% block main %}
+  <p class="mb-6 rounded border border-neutral-400 bg-white px-3 py-2 text-sm font-medium" role="status" data-connection-status data-print-hide hidden></p>
   {% if messages %}
     <div class="mb-8 space-y-2" data-print-hide>
       {% for message in messages %}
