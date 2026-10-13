@@ -302,3 +302,16 @@ html[data-density="compact"] .list-thumb { width: 2.25rem; height: 2.25rem; }
 .tab-edit-item[aria-pressed="true"] { background: var(--accent-soft); box-shadow: inset 0 0 0 2px var(--accent); border-radius: 0.75rem; }
 @media (prefers-reduced-motion: no-preference) { [data-picking] [data-tab-list] .tab-edit-item:not([aria-pressed="true"]) { animation: tab-pulse 1.4s var(--ease-out) infinite; } }
 @keyframes tab-pulse { 50% { outline-color: var(--accent); } }
+
+/* Row dividers: a border under a row with a fractional height (a wrapped breed) can land between
+   device pixels and read thicker at 100% zoom. Draw the line as an inset shadow on an overlay
+   instead, which rasterizes as a crisp 1px hairline, above hover backgrounds of full-bleed rows. */
+.divide-y > :not(:last-child) { border-bottom-width: 0; border-top-width: 0; position: relative; }
+.divide-y > :not(:last-child)::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  box-shadow: inset 0 -1px 0 var(--divide-c, var(--color-line));
+}
+.divide-y.divide-y-0 > :not(:last-child)::after { box-shadow: none; }
+.divide-line { --divide-c: var(--color-line); }
+.divide-neutral-200 { --divide-c: var(--color-neutral-200); }
+.divide-neutral-300 { --divide-c: var(--color-neutral-300); }
