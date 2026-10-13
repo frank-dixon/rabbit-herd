@@ -11,7 +11,7 @@
             {% include "components/rabbit_avatar.html" with rabbit=row.rabbit size="sm" only %}
             <span class="min-w-0 flex-1">
               <span class="block truncate font-semibold">{{ row.rabbit.name }}</span>
-              <span class="block truncate text-sm text-muted">{{ row.rabbit.get_sex_display }} · {{ row.rabbit.age_text }}</span>
+              <span class="block truncate text-sm text-muted">{{ row.rabbit.get_sex_display }} · <span title="{{ row.rabbit.age_title }}">{{ row.rabbit.age_text }}</span></span>
             </span>
             <span class="shrink-0 text-right">
               {% if row.text %}<span class="num block text-ink">{{ row.text }}</span><span class="num block text-xs text-muted">{{ row.date|date:"M j" }}</span>{% else %}<span class="text-sm text-muted">Not weighed</span>{% endif %}

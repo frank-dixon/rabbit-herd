@@ -26,3 +26,12 @@ class AgeTierTests(SimpleTestCase):
     def test_month_end_birthdays(self):
         self.assertEqual(age_exact(date(2026, 1, 31), date(2026, 4, 30)), "2 months 30 days")
         self.assertEqual(age_tiered(None, BORN), "")
+
+
+class DetailAgeTests(SimpleTestCase):
+    def test_a_rabbit_that_died_stops_ageing(self):
+        from .models import Rabbit
+
+        rabbit = Rabbit(birth_date=date(2026, 1, 1), status="deceased", death_date=date(2026, 5, 28))
+        self.assertEqual(rabbit.age_text(today=date(2026, 10, 1)), "21 wk")
+        self.assertEqual(rabbit.age_title, "4 months 27 days")

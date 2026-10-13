@@ -12,13 +12,13 @@ class AgeTextTests(SimpleTestCase):
         return Rabbit(birth_date=born).age_text(today=today)
 
     def test_years_and_months(self):
-        self.assertEqual(self.age(date(2025, 1, 15), date(2026, 10, 12)), "1 yr 8 mo")
-        self.assertEqual(self.age(date(2025, 1, 15), date(2026, 10, 15)), "1 yr 9 mo")
+        self.assertEqual(self.age(date(2025, 1, 15), date(2026, 10, 12)), "20 mo")
+        self.assertEqual(self.age(date(2025, 1, 15), date(2026, 10, 15)), "21 mo")
 
     def test_months_only_whole_years_and_newborns(self):
-        self.assertEqual(self.age(date(2026, 6, 1), date(2026, 10, 12)), "4 mo")
+        self.assertEqual(self.age(date(2026, 6, 1), date(2026, 10, 12)), "19 wk")
         self.assertEqual(self.age(date(2024, 10, 12), date(2026, 10, 12)), "2 yr")
-        self.assertEqual(self.age(date(2026, 10, 1), date(2026, 10, 12)), "under 1 mo")
+        self.assertEqual(self.age(date(2026, 10, 1), date(2026, 10, 12)), "11 days")
 
 
 class DetailLayoutTests(TestCase):
@@ -40,7 +40,7 @@ class DetailLayoutTests(TestCase):
         self.assertNotIn(">Back to rabbits<", body)
         for label in ("Sex", "Breed", "Color", "Line", "Born", "Status"):
             self.assertRegex(body, rf'<dt class="[^"]*">{label}</dt>')
-        self.assertContains(page, '<span class="num">Jan 15, 2025</span>')
+        self.assertContains(page, 'Jan 15, 2025<span class="block text-sm text-muted"')
         self.assertContains(page, "No photos yet.")
         self.assertContains(page, "No parents recorded.")
         # Nothing recorded, but the breed and colour imply genes, so the card shows them as Possible.

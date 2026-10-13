@@ -219,18 +219,14 @@ class Rabbit(models.Model):
         return self.breed
 
     def age_text(self, today=None):
-        """Age such as "1 yr 9 mo", "4 mo" or "under 1 mo"."""
-        today = today or date.today()
-        months = (today.year - self.birth_date.year) * 12 + today.month - self.birth_date.month
-        if today.day < self.birth_date.day:
-            months -= 1
-        if months < 1:
-            return "under 1 mo"
-        years, months = divmod(months, 12)
-        parts = [f"{years} yr"] if years else []
-        if months:
-            parts.append(f"{months} mo")
-        return " ".join(parts)
+        """The tiered age everywhere in the app ("19 days", "14 wk", "9 mo",
+        "2 yr 8 mo"). A rabbit that died stops ageing on its death date."""
+        return self.age_short(today, until=self.death_date if self.status in self.FORMER else None)
+
+    @property
+    def age_title(self):
+        """The exact age, for the tooltip next to the tiered one."""
+        return self.age_exact(until=self.death_date if self.status in self.FORMER else None)
 
     def age_short(self, today=None, until=None):
         """Tiered age: days under 8 weeks, weeks to 6 months, months to 2
