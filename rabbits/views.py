@@ -212,6 +212,7 @@ def rabbit_detail(request, pk):
             "upload_form": PhotoUploadForm(),
             "c_carrier_note": genetics.c_carrier_suggestion(rabbit),
             "hidden_notes": genetics.hidden_notes(color_odds.recorded(rabbit)),
+            "carrier_odds": genetics.carrier_odds(rabbit),
             "genes": rabbit.genes.all(),
             "relatives_with_genes": [
                 (relative, list(relative.genes.all()))

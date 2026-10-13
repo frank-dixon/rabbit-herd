@@ -79,3 +79,35 @@ class HiddenNotesTests(TestCase):
         page = self.client.get(reverse("pairing_detail", args=[pairing.pk]))
         self.assertContains(page, "Snow: c/c (ruby-eyed white)")
         self.assertContains(page, "Coal: Carries red (e)")
+
+
+class CarrierOddsTests(FlowTestMixin, TestCase):
+    def parents(self, dam_c, sire_c):
+        for relationship, genotype in (("dam", dam_c), ("sire", sire_c)):
+            outside = OutsideRabbit.objects.create(owner=self.user, name=relationship.title())
+            row = Relative.objects.create(rabbit=self.juniper, relationship=relationship, outside=outside)
+            Gene.objects.create(relative=row, locus="C", genotype=genotype, certainty="known")
+
+    def test_two_thirds_when_showing_full_color_from_two_carriers(self):
+        self.parents("C/c", "C/c")
+        Gene.objects.create(rabbit=self.juniper, locus="C", genotype="C_", certainty="known")
+        self.assertEqual(genetics.carrier_odds(self.juniper),
+                         ["C: 2/3 chance of carrying c, from Dam C/c × Sire C/c."])
+
+    def test_half_without_a_recorded_gene(self):
+        self.parents("C/C", "C/c")
+        self.assertEqual(genetics.carrier_odds(self.juniper),
+                         ["C: 1/2 chance of carrying c, from Dam C/C × Sire C/c."])
+
+    def test_nothing_when_known_or_parents_missing(self):
+        self.assertEqual(genetics.carrier_odds(self.juniper), [])
+        self.parents("C/c", "C/c")
+        Gene.objects.create(rabbit=self.juniper, locus="C", genotype="C/C", certainty="known")
+        self.assertEqual(genetics.carrier_odds(self.juniper), [])
+
+    def test_shown_on_rabbit_page(self):
+        self.parents("C/c", "C/c")
+        self.client.force_login(self.user)
+        from django.urls import reverse
+        page = self.client.get(reverse("rabbit_detail", args=[self.juniper.pk]))
+        self.assertContains(page, "Carrier odds from the parents")

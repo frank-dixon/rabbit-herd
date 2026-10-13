@@ -114,3 +114,70 @@ def pairing_notes(doe_name, doe_pairs, buck_name, buck_pairs):
     if _has(doe_en, "En") and _has(buck_en, "En"):
         notes.append("Both parents carry broken (En): expect some charlie (En/En) kits.")
     return notes
+
+
+def _pairs_from_genes(genes):
+    from .color_odds import SERIES, UNKNOWN, order, parse
+
+    out = {}
+    for gene in genes:
+        if gene.locus in SERIES:
+            pair = parse(gene.locus, gene.genotype)
+            if pair is not None and UNKNOWN not in pair:
+                out[gene.locus] = order(gene.locus, pair)
+    return out
+
+
+def parent_pairs(rabbit):
+    """{"dam"/"sire": (name, {locus: pair})} with fully known pairs only,
+    from the relative row's genes, or the herd rabbit's when it is in the herd."""
+    out = {}
+    rows = rabbit.relatives.filter(relationship__in=PARENTS).select_related("herd_rabbit", "outside")
+    for row in rows:
+        pairs = _pairs_from_genes(row.genes.all())
+        name = str(row.other.name)
+        if row.herd_rabbit is not None:
+            pairs = {**pairs, **_pairs_from_genes(row.herd_rabbit.genes.all())}
+            name = row.herd_rabbit.name
+        out[row.relationship] = (name, pairs)
+    return out
+
+
+def _fraction_text(chance):
+    return f"{chance.numerator}/{chance.denominator}" if chance.denominator != 1 else "certain"
+
+
+def carrier_odds(rabbit):
+    """For loci not fully known on the rabbit but known on both parents:
+    the chance it carries each hidden allele, given the allele it shows
+    when that is recorded (C_ shows C). Returns a list of plain lines."""
+    from fractions import Fraction
+
+    from .color_odds import SERIES, UNKNOWN, cross, genotype_text, order, parse, shown
+
+    parents = parent_pairs(rabbit)
+    if "dam" not in parents or "sire" not in parents:
+        return []
+    (dam_name, dam), (sire_name, sire) = parents["dam"], parents["sire"]
+    own = {gene.locus: parse(gene.locus, gene.genotype) for gene in rabbit.genes.all() if gene.locus in SERIES}
+    lines = []
+    for locus in SERIES:
+        mine = own.get(locus)
+        if mine is not None and UNKNOWN not in mine:
+            continue
+        if locus not in dam or locus not in sire:
+            continue
+        odds = cross(locus, dam[locus], sire[locus])
+        showing = next((allele for allele in (mine or ()) if allele != UNKNOWN), None)
+        if showing is not None:
+            odds = {g: f for g, f in odds.items() if shown(locus, g) == showing and showing in g}
+        total = sum(odds.values(), Fraction(0))
+        if not total:
+            continue
+        hidden = sorted({allele for g in odds for allele in g[1:]} - {showing}, key=SERIES[locus].index)
+        for allele in hidden:
+            chance = sum((f for g, f in odds.items() if allele in g and shown(locus, g) != allele), Fraction(0)) / total
+            if 0 < chance < 1:
+                lines.append(f"{locus}: {_fraction_text(chance)} chance of carrying {allele}, from "
+                             f"{dam_name} {genotype_text(dam[locus])} × {sire_name} {genotype_text(sire[locus])}.")
+    return lines
