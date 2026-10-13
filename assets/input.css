@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+/* Printing: drop the app chrome; the pedigree fits one letter page across. */
+@media print {
+  @page { size: letter landscape; margin: 0.4in; }
+  [data-print-hide] { display: none !important; }
+  body { background: #fff !important; }
+  main { padding: 0 !important; max-width: none !important; }
+  [data-pedigree-cell] { break-inside: avoid; }
+}

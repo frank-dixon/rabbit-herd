@@ -1,5 +1,5 @@
 {# Bottom tabs on phones. Pages with their own fixed action bar (edit summary, cards) leave these out. #}
-<nav class="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-300 bg-white pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Main" data-app-tabs>
+<nav data-print-hide class="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-300 bg-white pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Main" data-app-tabs>
   <ul class="grid grid-cols-4">
     {% for item in app_tabs %}
       <li>

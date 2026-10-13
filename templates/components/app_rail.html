@@ -1,5 +1,5 @@
 {# Side menu for tablet (icons over short labels) and desktop (full labels). Hidden on phones, which get the bottom tabs. #}
-<aside class="sticky top-0 hidden h-screen shrink-0 flex-col border-r border-neutral-300 bg-neutral-100 md:flex md:w-20 lg:w-56" aria-label="App">
+<aside data-print-hide class="sticky top-0 hidden h-screen shrink-0 flex-col border-r border-neutral-300 bg-neutral-100 md:flex md:w-20 lg:w-56" aria-label="App">
   <a class="hidden px-4 pt-5 pb-3 font-semibold lg:block" href="{% url 'index' %}">{{ app_name }}</a>
   <nav class="flex flex-col gap-1 px-2 pt-3 lg:pt-1" aria-label="Main">
     {% for item in app_nav %}

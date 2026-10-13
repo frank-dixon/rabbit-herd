@@ -8,7 +8,7 @@
 
 {% block main %}
   {% if messages %}
-    <div class="mb-8 space-y-2">
+    <div class="mb-8 space-y-2" data-print-hide>
       {% for message in messages %}
         {% include "components/alert.html" with text=message tags=message.tags only %}
       {% endfor %}

@@ -1,0 +1,13 @@
+{# One pedigree box. slot: {position, label, sex, cell}. #}
+<div class="flex h-full flex-col justify-center rounded border border-neutral-400 bg-white px-2 py-1.5 text-xs leading-snug" data-pedigree-cell="{{ slot.position }}">
+  <p class="text-neutral-600">{{ slot.label }}</p>
+  {% with c=slot.cell %}
+    {% if c %}
+      <p class="break-words font-semibold text-neutral-900">{% if c.herd %}<a class="underline print:no-underline" href="{% url 'rabbit_detail' c.pk %}">{{ c.name }}</a>{% else %}{{ c.name }}{% endif %}{% if c.tattoo %} · {{ c.tattoo }}{% endif %}</p>
+      {% if c.breed or c.color %}<p class="break-words">{{ c.breed }}{% if c.breed and c.color %} · {% endif %}{{ c.color }}</p>{% endif %}
+      {% if c.line or c.born %}<p class="break-words text-neutral-600">{% if c.born %}Born {{ c.born|date:"M j, Y" }}{% endif %}{% if c.born and c.line %} · {% endif %}{% if c.line %}Line: {{ c.line }}{% endif %}</p>{% endif %}
+    {% else %}
+      <p class="text-neutral-500">Not recorded</p>
+    {% endif %}
+  {% endwith %}
+</div>
