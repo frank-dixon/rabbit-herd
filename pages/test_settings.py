@@ -125,7 +125,7 @@ class UndoToastTests(TestCase):
 class FlatThemeTests(TestCase):
     def setUp(self):
         from accounts.models import User
-        self.user = User.objects.create_user(email="flat@example.com", password="pw-12345678x")
+        self.user = User.objects.create_user(email="flat@example.com", password=None)
         self.client.force_login(self.user)
 
     def test_d_themes_are_offered_saved_and_styled(self):
