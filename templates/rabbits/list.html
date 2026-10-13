@@ -147,16 +147,16 @@
       <ul class="mt-5 flex flex-col gap-2" data-view="list">
         {% for rabbit in rabbits %}
           {% with main=rabbit.main_photo %}
-            <li>
-              <a href="{% url 'rabbit_detail' rabbit.pk %}" class="flex items-center gap-3 rounded border border-neutral-300 bg-white p-2.5 hover:border-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:gap-4">
+            <li class="flex items-stretch overflow-hidden rounded-md border border-line bg-surface" data-swipe data-swipe-href="{% url 'rabbit_detail' rabbit.pk %}?weigh=1#weights" data-swipe-label="Log weight">
+              <a href="{% url 'rabbit_detail' rabbit.pk %}" class="flex min-w-0 flex-1 items-center gap-3 p-2.5 hover:bg-side focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent sm:gap-4">
                 {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="h-[60px] w-[60px] shrink-0 rounded text-xl sm:h-[72px] sm:w-[72px] sm:text-2xl" only %}
                 <span class="min-w-0 flex-1">
                   <span class="block break-words font-semibold sm:text-lg"><span class="sr-only">Open </span>{{ rabbit.name }}</span>
                   <span class="block text-sm text-neutral-600">{{ rabbit.get_sex_display }} · {{ rabbit.short_breed }}{% if rabbit.purebred_info and rabbit.purebred_info.source != "entered" %} · purebred{% endif %}{% if rabbit.tattoo %} · {{ rabbit.tattoo }}{% endif %}</span>
                 </span>
                 <span class="shrink-0 rounded-full border border-neutral-400 px-2 py-0.5 text-xs">{{ rabbit.status_tag }}</span>
-                <span class="shrink-0 text-xl text-neutral-400" aria-hidden="true">›</span>
               </a>
+              <a href="{% url 'rabbit_detail' rabbit.pk %}?weigh=1#weights" class="mo-press grid w-12 shrink-0 place-items-center border-l border-line text-muted hover:bg-side hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent" title="Log weight"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M7 20h10M5 8h14M5 8l-3 6a3 3 0 0 0 6 0zM19 8l-3 6a3 3 0 0 0 6 0z"/></svg><span class="sr-only">Log weight for {{ rabbit.name }}</span></a>
             </li>
           {% endwith %}
         {% endfor %}

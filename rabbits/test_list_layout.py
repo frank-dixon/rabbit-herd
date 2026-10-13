@@ -38,7 +38,7 @@ class RabbitListLayoutTests(TestCase):
         # The saved choice applies at every screen size: no grid behind it.
         self.assertNotContains(again, 'data-view="grid"')
         self.assertNotContains(again, "lg:hidden")
-        self.assertContains(again, "›")
+        self.assertContains(again, "Log weight for ")
         back = self.client.get(reverse("rabbit_list"), {"view": "grid"})
         self.assertNotContains(back, 'data-view="list"')
 

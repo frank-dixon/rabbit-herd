@@ -1,5 +1,5 @@
 {# One due item on Today: a round check that marks it done in one tap. item, next. #}
-<li class="flex items-center gap-3 px-4 py-3" data-task-item data-today-item{% if item.overdue %} data-overdue{% endif %}>
+<li class="flex items-center gap-3 px-4 py-3" data-task-item data-today-item{% if item.kind == "task" or item.key != "due" %} data-swipe="[data-quick-done]" data-swipe-label="Done"{% endif %}{% if item.overdue %} data-overdue{% endif %}>
   {% if item.kind == "task" or item.key != "due" %}
     <form method="post" action="{% if item.kind == 'task' %}{% url 'task_done' item.pk %}{% else %}{% url 'litter_task' item.pk %}{% endif %}" class="shrink-0" data-quick-done>
       {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
