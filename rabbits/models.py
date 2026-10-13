@@ -957,6 +957,30 @@ class CullNote(models.Model):
         return f"{self.get_decision_display()} · {self.date}"
 
 
+class Cover(models.Model):
+    """One mating in a litter's breeding session. Breeders often cover a doe
+    more than once (again a few hours later, or the next day); the litter's
+    bred date is the first cover that took, so the due dates follow it."""
+
+    class Outcome(models.TextChoices):
+        COVERED = "covered", "Covered (fall-off)"
+        NO_FALL = "no_fall", "Mounted, no fall-off"
+        REFUSED = "refused", "Refused"
+
+    litter = models.ForeignKey("Litter", related_name="covers", on_delete=models.CASCADE)
+    date = models.DateField()
+    time = models.TimeField(null=True, blank=True)
+    outcome = models.CharField(max_length=10, choices=Outcome.choices, default=Outcome.COVERED)
+    note = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["date", "time", "pk"]
+
+    def __str__(self):
+        return f"{self.get_outcome_display()} · {self.date}"
+
+
 class ShowEntry(models.Model):
     """One rabbit's result at one show. A leg is an ARBA grand champion leg;
     three make a grand champion."""

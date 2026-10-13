@@ -8,11 +8,13 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.dateparse import parse_time
 from django.views.decorators.http import require_POST
 
 from . import costs, flow
-from .models import Breed, BreedShare, Litter, Pairing, Rabbit, Relative
+from .models import Breed, BreedShare, Cover, Litter, Pairing, Rabbit, Relative
 
 DATE_REQUIRED = "Please enter the date, like {example}."
 DATE_FUTURE = "That date is in the future. Please check it."
@@ -57,6 +59,7 @@ def litter_create(request, pk):
         return redirect(f"/pairings/{pairing.pk}/#litters")
     litter = Litter.objects.create(owner=request.user, pairing=pairing, bred_on=bred_on,
                                    breeding_schedule=pairing.resolved_schedule())
+    Cover.objects.create(litter=litter, date=bred_on, outcome=Cover.Outcome.COVERED)
     messages.success(request, f"Litter started. Due {litter.due_on:%B} {litter.due_on.day}, {litter.due_on.year}.")
     return redirect("litter_detail", litter.pk)
 
@@ -78,11 +81,14 @@ def litter_detail(request, pk):
     for kit in kits:
         kit.latest_cull = next(iter(kit.cull_notes.all()), None)
     room = (litter.survivors or 0) - len(kits)
+    covers = list(litter.covers.all())
     return render(request, "rabbits/litter_detail.html", {
         "litter": litter, "tasks": litter.tasks(), "kits": kits, "room": room,
         "today": timezone.localdate(), "wide": True,
         "subtitle": f"Litter bred {litter.bred_on:%b} {litter.bred_on.day}, {litter.bred_on.year} · due {litter.due_on:%b} {litter.due_on.day}",
         "sex_options": Rabbit.Sex.choices,
+        "covers": covers, "cover_outcomes": Cover.Outcome.choices,
+        "counted_cover": next((c.pk for c in covers if c.outcome == Cover.Outcome.COVERED), None),
         **dict(zip(("cost_items", "cost_total"), costs.linked(litter.expenses.all()))),
         "cost_add_url": f"/costs/?litter={litter.pk}#add",
     })
@@ -197,3 +203,62 @@ def litter_delete(request, pk):
     litter.delete()
     messages.success(request, "The litter was removed. Kits already in your herd stay there.")
     return redirect("pairing_detail", pairing.pk)
+
+
+def sync_bred_on(litter):
+    """The bred date is the first cover that took. With none, it stays put."""
+    first = litter.covers.filter(outcome=Cover.Outcome.COVERED).order_by("date", "time", "pk").first()
+    if first and first.date != litter.bred_on:
+        litter.bred_on = first.date
+        litter.save(update_fields=["bred_on"])
+        return True
+    return False
+
+
+@login_required
+@require_POST
+def cover_add(request, pk):
+    litter = own_litter(request, pk)
+    back = reverse("litter_detail", args=[litter.pk]) + "#covers"
+    day = parse_date(request.POST.get("date") or "")
+    today = timezone.localdate()
+    outcome = request.POST.get("outcome") or Cover.Outcome.COVERED
+    errors = []
+    if day is None:
+        errors.append("A cover needs a date.")
+    elif day > today:
+        errors.append(DATE_FUTURE)
+    elif litter.kindled_on and day > litter.kindled_on:
+        errors.append("A cover can't be after the litter was kindled.")
+    if outcome not in Cover.Outcome.values:
+        errors.append("Choose how the cover went.")
+    raw_time = (request.POST.get("time") or "").strip()
+    try:
+        time = parse_time(raw_time) if raw_time else None
+    except ValueError:
+        time = None
+    if raw_time and time is None:
+        errors.append("Enter the time like 7:30 AM, or leave it blank.")
+    if errors:
+        for error in errors:
+            messages.error(request, error)
+        return redirect(back)
+    Cover.objects.create(litter=litter, date=day, time=time, outcome=outcome,
+                         note=" ".join((request.POST.get("note") or "").split())[:200])
+    moved = sync_bred_on(litter)
+    text = "Cover added."
+    if moved:
+        text += f" Bred date is now {litter.bred_on:%B} {litter.bred_on.day}; due {litter.due_on:%B} {litter.due_on.day}."
+    messages.success(request, text)
+    return redirect(back)
+
+
+@login_required
+@require_POST
+def cover_delete(request, pk, cover_pk):
+    litter = own_litter(request, pk)
+    cover = get_object_or_404(Cover, litter=litter, pk=cover_pk)
+    cover.delete()
+    sync_bred_on(litter)
+    messages.success(request, "Cover removed.")
+    return redirect(reverse("litter_detail", args=[litter.pk]) + "#covers")

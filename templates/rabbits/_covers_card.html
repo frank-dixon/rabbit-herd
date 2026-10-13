@@ -1,0 +1,43 @@
+{% comment %}Breeding session: every cover (mating) for this litter, oldest first, and a form to add one. The bred
+date, and so every due date, follows the first cover that took. covers, counted_cover, cover_outcomes, litter, today.{% endcomment %}
+<section class="scroll-mt-20 ruled pt-4" id="covers" aria-labelledby="covers-heading">
+  <div class="flex items-baseline justify-between gap-3">
+    <h2 class="text-base font-semibold" id="covers-heading">Covers <span class="num text-sm font-normal text-muted">{{ covers|length }}</span></h2>
+    <p class="text-sm text-muted">Due dates count from the first cover that took.</p>
+  </div>
+  {% if covers %}
+    <ol class="mt-3 flex flex-col divide-y divide-line rounded-md border border-line bg-surface" data-covers>
+      {% for cover in covers %}
+        <li class="flex items-start gap-3 px-3 py-2.5" data-cover="{{ cover.outcome }}">
+          <span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full {% if cover.outcome == 'covered' %}bg-accent{% elif cover.outcome == 'refused' %}bg-danger{% else %}border-2 border-muted{% endif %}" aria-hidden="true"></span>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm"><span class="num font-medium">{{ cover.date|date:"D, M j" }}{% if cover.time %} · {{ cover.time|time:"g:i A" }}{% endif %}</span> · {{ cover.get_outcome_display }}{% if cover.pk == counted_cover %}<span class="ml-2 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent" data-counts>Counts</span>{% endif %}</p>
+            {% if cover.note %}<p class="break-words text-sm text-muted">{{ cover.note }}</p>{% endif %}
+          </div>
+          <form method="post" action="{% url 'cover_delete' litter.pk cover.pk %}" class="shrink-0" data-confirm="Remove this cover?">
+            {% csrf_token %}
+            <button type="submit" class="mo-press rounded-md px-2 py-1 text-sm text-muted hover:bg-side hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Remove<span class="sr-only"> the cover on {{ cover.date|date:"M j" }}</span></button>
+          </form>
+        </li>
+      {% endfor %}
+    </ol>
+  {% endif %}
+  <details class="fold mt-3" data-fold{% if not covers %} open{% endif %}>
+    <summary class="mo-press inline-flex min-h-10 cursor-pointer list-none items-center gap-1.5 rounded-md border border-line px-3 text-sm font-medium hover:bg-side [&::-webkit-details-marker]:hidden"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add a cover</summary>
+    <form method="post" action="{% url 'cover_add' litter.pk %}" class="mt-3 grid gap-3 rounded-md border border-line bg-surface p-3 sm:grid-cols-2" data-cover-form>
+      {% csrf_token %}
+      <label class="block text-sm font-medium">Date<input class="mt-1 block h-10 w-full rounded-md border border-field/70 bg-surface px-3" type="date" name="date" value="{{ today|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}" required></label>
+      <label class="block text-sm font-medium">Time <span class="font-normal text-muted">(optional)</span><input class="mt-1 block h-10 w-full rounded-md border border-field/70 bg-surface px-3" type="time" name="time"></label>
+      <fieldset class="sm:col-span-2">
+        <legend class="text-sm font-medium">How it went</legend>
+        <div class="mt-1 flex flex-wrap gap-2">
+          {% for key, label in cover_outcomes %}
+            <label class="inline-flex min-h-10 cursor-pointer items-center rounded-md border border-line px-3 text-sm transition-colors duration-150 hover:bg-side has-checked:border-accent has-checked:bg-accent-soft has-checked:font-medium has-checked:text-accent has-focus-visible:ring-2 has-focus-visible:ring-accent"><input class="sr-only" type="radio" name="outcome" value="{{ key }}"{% if forloop.first %} checked{% endif %}>{{ label }}</label>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <label class="block text-sm font-medium sm:col-span-2">Note <span class="font-normal text-muted">(optional)</span><input class="mt-1 block h-10 w-full rounded-md border border-field/70 bg-surface px-3" type="text" name="note" maxlength="200" placeholder="Second cover, 6 hours later"></label>
+      <div class="sm:col-span-2">{% include "components/button.html" with label="Add cover" type="submit" variant="primary" only %}</div>
+    </form>
+  </details>
+</section>
