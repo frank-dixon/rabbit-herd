@@ -1,0 +1,10 @@
+{# Settings section: export. Listed in pages.views.SETTINGS_SECTIONS. #}
+  <section class="ruled pt-4" id="export" aria-labelledby="export-heading" data-export>
+    <h2 class="text-base font-semibold" id="export-heading">Export</h2>
+    <p class="mt-1 text-sm text-muted">Download your records as CSV files for a spreadsheet. Each rabbit's pedigree prints from its page.</p>
+    <ul class="mt-3 flex flex-wrap gap-2">
+      {% for kind, label in export_kinds %}
+        <li><a class="inline-flex min-h-10 items-center rounded-md border border-line bg-surface px-3 text-sm font-medium hover:border-field" href="{% url 'export_csv' kind %}" download>{{ label }}</a></li>
+      {% endfor %}
+    </ul>
+  </section>

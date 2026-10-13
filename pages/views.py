@@ -35,6 +35,36 @@ def theme_dark_swatch(key):
     return (values.get("accent", ""), values.get("second", ""), values.get("canvas", ""))
 
 
+
+# Settings sections in page order: (group, anchor, label, template). The sub-nav and the page
+# both render from this one list, so the links always match the order of the sections.
+SETTINGS_SECTIONS = [
+    ("Rabbitry", "rabbitry", "General", "pages/settings/_herd.html"),
+    ("Rabbitry", "units", "Units", "pages/settings/_herd.html"),
+    ("Rabbitry", "schedule", "Breeding schedules", "pages/settings/_herd.html"),
+    ("Rabbitry", "reminders", "Reminders", "pages/settings/_herd.html"),
+    ("Preferences", "appearance", "Appearance", "pages/settings/_appearance.html"),
+    ("Preferences", "tabs", "Bottom bar", "pages/settings/_tabs.html"),
+    ("Preferences", "export", "Data and export", "pages/settings/_export.html"),
+    ("Account", "account", "Sign-in and passkeys", "pages/settings/_account.html"),
+]
+
+
+def settings_sections(current_theme=""):
+    return [{"group": g, "anchor": a, "label": l, "template": t, "note": current_theme if a == "appearance" else ""}
+            for g, a, l, t in SETTINGS_SECTIONS]
+
+
+def settings_nav(sections):
+    """Group consecutive sections for the sub-nav: [(group, [(anchor, label, note)])]."""
+    groups = []
+    for s in sections:
+        if not groups or groups[-1][0] != s["group"]:
+            groups.append((s["group"], []))
+        groups[-1][1].append((s["anchor"], s["label"], s["note"]))
+    return groups
+
+
 @login_required
 def account(request):
     """Settings: appearance (theme, grid density), account, export, log out.
@@ -63,14 +93,8 @@ def account(request):
     slots = [{"index": i + 1, "value": current[i] if i < len(current) else "", "required": i < 3} for i in range(MAX_TABS)]
     destinations = [(key, label) for key, (label, _url, _q) in DESTINATIONS.items()]
     current_theme = dict(user.THEMES).get(user.ui_theme, "")
-    settings_nav = [
-        ("Rabbitry", [("rabbitry", "General", ""), ("units", "Units", ""), ("schedule", "Breeding schedules", ""),
-                      ("reminders", "Reminders", "")]),
-        ("Preferences", [("appearance", "Appearance", current_theme), ("tabs", "Bottom bar", ""),
-                         ("export", "Data and export", "")]),
-        ("Account", [("account", "Sign-in and passkeys", "")]),
-    ]
-    return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes, "settings_nav": settings_nav, "wide": True,
+    sections = settings_sections(current_theme)
+    return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes, "settings_sections": sections, "settings_nav": settings_nav(sections), "wide": True,
                                                   "tab_slots": slots, "tab_destinations": destinations})
 
 

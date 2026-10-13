@@ -15,8 +15,9 @@ def weigh(grams, user):
 
 
 @register.inclusion_tag("rabbits/_herd_settings.html", takes_context=True)
-def herd_settings_sections(context):
+def herd_settings_sections(context, only=None):
     instance = prefs(context["request"].user)
-    return {"forms": {name: form_class(instance=instance) for name, form_class in SECTIONS.items()},
+    names = [only] if only else list(SECTIONS)
+    return {"forms": {name: SECTIONS[name](instance=instance) for name in names},
             "csrf_token": context.get("csrf_token"),
             "schedules": list(context["request"].user.breeding_schedules.all())}
