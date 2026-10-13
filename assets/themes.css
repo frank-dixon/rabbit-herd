@@ -1,0 +1,212 @@
+/* Theme palettes (C1–C5), light and dark. Generated from the design boards;
+   every text pairing passes WCAG AA in both modes. Dark follows the system. */
+
+html[data-theme="c1"], :root:not([data-theme]) {
+  color-scheme: light;
+  --canvas: #F5F6F5;
+  --surface: #FFFFFF;
+  --side: #ECEFEE;
+  --line: #DCE1E0;
+  --ink: #17201F;
+  --muted: #566260;
+  --accent: #0F5E63;
+  --on-accent: #FFFFFF;
+  --accent-soft: #DDEBEB;
+  --second: #D65A3E;
+  --second-ink: #A63E26;
+  --second-soft: #FBE6DF;
+  --field: #8A9593;
+  --photo-1: #C9D3D1;
+  --photo-2: #9FB0AD;
+  --danger: #A1261B;
+}
+
+@media (prefers-color-scheme: dark) {
+html[data-theme="c1"], :root:not([data-theme]) {
+  color-scheme: dark;
+  --canvas: #121717;
+  --surface: #1A2120;
+  --side: #161C1C;
+  --line: #2C3635;
+  --ink: #E6ECEB;
+  --muted: #9AA8A6;
+  --accent: #5EC2BE;
+  --on-accent: #06201F;
+  --accent-soft: #18393A;
+  --second: #F0896F;
+  --second-ink: #F5A28C;
+  --second-soft: #3E241E;
+  --field: #5E6B69;
+  --photo-1: #3A4644;
+  --photo-2: #232B2A;
+  --danger: #F08A7E;
+}
+}
+
+html[data-theme="c2"] {
+  color-scheme: light;
+  --canvas: #F5F5F3;
+  --surface: #FFFFFF;
+  --side: #EDEDEA;
+  --line: #DEDDD8;
+  --ink: #181A20;
+  --muted: #5A5D66;
+  --accent: #2347B5;
+  --on-accent: #FFFFFF;
+  --accent-soft: #E2E8F8;
+  --second: #E0A019;
+  --second-ink: #8A5A00;
+  --second-soft: #FBEFCF;
+  --field: #8C8E95;
+  --photo-1: #CFD0CC;
+  --photo-2: #A9AAA4;
+  --danger: #A1261B;
+}
+
+@media (prefers-color-scheme: dark) {
+html[data-theme="c2"] {
+  color-scheme: dark;
+  --canvas: #121318;
+  --surface: #1A1C23;
+  --side: #16171D;
+  --line: #2D303A;
+  --ink: #E7E8EC;
+  --muted: #9EA2AE;
+  --accent: #8EA8FF;
+  --on-accent: #0B1638;
+  --accent-soft: #1E2747;
+  --second: #F2BE4A;
+  --second-ink: #F4C766;
+  --second-soft: #3A2F14;
+  --field: #5F6370;
+  --photo-1: #3B3E48;
+  --photo-2: #24262D;
+  --danger: #F08A7E;
+}
+}
+
+html[data-theme="c3"] {
+  color-scheme: light;
+  --canvas: #F5F4F0;
+  --surface: #FFFFFF;
+  --side: #ECEBE5;
+  --line: #DDDBD2;
+  --ink: #1C1F1A;
+  --muted: #5D6158;
+  --accent: #22573B;
+  --on-accent: #FFFFFF;
+  --accent-soft: #DFEAE2;
+  --second: #B9582F;
+  --second-ink: #9A4522;
+  --second-soft: #F6E3D8;
+  --field: #8D8F86;
+  --photo-1: #CFCDC2;
+  --photo-2: #A8A698;
+  --danger: #A1261B;
+}
+
+@media (prefers-color-scheme: dark) {
+html[data-theme="c3"] {
+  color-scheme: dark;
+  --canvas: #131613;
+  --surface: #1B1F1B;
+  --side: #171A17;
+  --line: #2F352F;
+  --ink: #E8EBE6;
+  --muted: #A0A79E;
+  --accent: #7CC79C;
+  --on-accent: #082012;
+  --accent-soft: #1C3526;
+  --second: #E38B62;
+  --second-ink: #EBA17E;
+  --second-soft: #3B261C;
+  --field: #606860;
+  --photo-1: #3D433C;
+  --photo-2: #252925;
+  --danger: #F08A7E;
+}
+}
+
+html[data-theme="c4"] {
+  color-scheme: light;
+  --canvas: #F6F5F4;
+  --surface: #FFFFFF;
+  --side: #EEECEB;
+  --line: #DFDBDA;
+  --ink: #1F1A20;
+  --muted: #625B63;
+  --accent: #5E2B62;
+  --on-accent: #FFFFFF;
+  --accent-soft: #EFE3EF;
+  --second: #6E8F68;
+  --second-ink: #4A6845;
+  --second-soft: #E4ECE1;
+  --field: #918A91;
+  --photo-1: #D3CDD0;
+  --photo-2: #ACA3A8;
+  --danger: #A1261B;
+}
+
+@media (prefers-color-scheme: dark) {
+html[data-theme="c4"] {
+  color-scheme: dark;
+  --canvas: #161317;
+  --surface: #1F1B20;
+  --side: #1A171B;
+  --line: #352F36;
+  --ink: #ECE7EC;
+  --muted: #A99FA9;
+  --accent: #D0A3D8;
+  --on-accent: #2A0F2E;
+  --accent-soft: #3A2A3D;
+  --second: #A8C4A1;
+  --second-ink: #B6CFB0;
+  --second-soft: #24301F;
+  --field: #695F69;
+  --photo-1: #443C45;
+  --photo-2: #29242A;
+  --danger: #F08A7E;
+}
+}
+
+html[data-theme="c5"] {
+  color-scheme: light;
+  --canvas: #F6F5F4;
+  --surface: #FFFFFF;
+  --side: #EEEDEC;
+  --line: #DFDDDB;
+  --ink: #1C1B1D;
+  --muted: #5E5D63;
+  --accent: #B3261E;
+  --on-accent: #FFFFFF;
+  --accent-soft: #F7E1DF;
+  --second: #44576C;
+  --second-ink: #3B4C5F;
+  --second-soft: #E1E7EE;
+  --field: #8F8E93;
+  --photo-1: #D2D0CF;
+  --photo-2: #ABA8A7;
+  --danger: #8E1E17;
+}
+
+@media (prefers-color-scheme: dark) {
+html[data-theme="c5"] {
+  color-scheme: dark;
+  --canvas: #151515;
+  --surface: #1E1E1F;
+  --side: #191919;
+  --line: #333335;
+  --ink: #ECEBEA;
+  --muted: #A6A5AA;
+  --accent: #F28B82;
+  --on-accent: #3A0906;
+  --accent-soft: #3D2120;
+  --second: #9FB4CB;
+  --second-ink: #AFC1D4;
+  --second-soft: #232C37;
+  --field: #66656A;
+  --photo-1: #424143;
+  --photo-2: #282829;
+  --danger: #FF9C93;
+}
+}

@@ -1,10 +1,108 @@
 @import "tailwindcss";
+@import "./themes.css";
+
+/* Self-hosted fonts (SIL OFL, licences in static/fonts) so the installed app
+   renders the same offline. Instrument Sans for text, DM Mono for numbers. */
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("../fonts/instrument-sans-latin-var.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "DM Mono";
+  src: url("../fonts/dm-mono-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "DM Mono";
+  src: url("../fonts/dm-mono-latin-500-normal.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+
+/* Every colour in the templates resolves to a theme token. The neutral,
+   red, amber and green scales are remapped so older utility classes follow
+   the active theme too; new markup should prefer the semantic names. */
+@theme inline {
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-side: var(--side);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-field: var(--field);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-second: var(--second);
+  --color-second-ink: var(--second-ink);
+  --color-second-soft: var(--second-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: color-mix(in oklab, var(--danger) 12%, var(--surface));
+  --color-photo-1: var(--photo-1);
+  --color-photo-2: var(--photo-2);
+
+  --color-white: var(--surface);
+  --color-black: var(--ink);
+  --color-neutral-50: var(--canvas);
+  --color-neutral-100: var(--side);
+  --color-neutral-200: var(--line);
+  --color-neutral-300: var(--line);
+  --color-neutral-400: var(--field);
+  --color-neutral-500: var(--muted);
+  --color-neutral-600: var(--muted);
+  --color-neutral-700: var(--muted);
+  --color-neutral-800: var(--ink);
+  --color-neutral-900: var(--ink);
+  --color-neutral-950: var(--ink);
+  --color-red-50: color-mix(in oklab, var(--danger) 10%, var(--surface));
+  --color-red-100: color-mix(in oklab, var(--danger) 16%, var(--surface));
+  --color-red-700: var(--danger);
+  --color-red-800: var(--danger);
+  --color-red-900: var(--danger);
+  --color-amber-50: var(--second-soft);
+  --color-amber-100: var(--second-soft);
+  --color-amber-400: var(--second);
+  --color-amber-700: var(--second-ink);
+  --color-amber-950: var(--second-ink);
+  --color-green-100: var(--accent-soft);
+  --color-green-700: var(--accent);
+  --color-green-900: var(--accent);
+}
+
+@layer base {
+  html {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01" off;
+    -webkit-text-size-adjust: 100%;
+  }
+  h1, h2, h3 { letter-spacing: -0.015em; }
+  h1 { letter-spacing: -0.025em; }
+  ::selection { background: var(--accent-soft); color: var(--ink); }
+  input, select, textarea { accent-color: var(--accent); }
+}
+
+@layer utilities {
+  /* Figures: weights, dates, tattoos, counts. */
+  .num { font-family: var(--font-mono); font-size: 0.93em; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+  .eyebrow { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  /* A1 ruled section: a firm rule over the section instead of a boxed card. */
+  .ruled { border-top: 1.5px solid var(--ink); }
+}
 
 /* Printing: drop the app chrome; the pedigree fits one letter page across. */
 @media print {
   @page { size: letter landscape; margin: 0.4in; }
   [data-print-hide] { display: none !important; }
-  body { background: #fff !important; }
+  html, body { background: #fff !important; color: #000 !important; }
   main { padding: 0 !important; max-width: none !important; }
   [data-pedigree-cell] { break-inside: avoid; }
 }

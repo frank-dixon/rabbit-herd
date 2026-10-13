@@ -21,6 +21,9 @@ def shell_assets():
         static("js/app.js"),
         static("icons/icon-192.png"),
         static("icons/apple-touch-icon.png"),
+        static("fonts/instrument-sans-latin-var.woff2"),
+        static("fonts/dm-mono-latin-400-normal.woff2"),
+        static("fonts/dm-mono-latin-500-normal.woff2"),
     ]
 
 
