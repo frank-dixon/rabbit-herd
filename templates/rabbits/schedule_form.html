@@ -5,9 +5,9 @@
 {% block content %}
   {% url 'account' as back %}
   {% if adding %}
-    {% include "components/page_header.html" with title="Add a schedule" subtitle="Starts from your Standard dates. Change only what differs." secondary_label="Back to Settings" secondary_href=back only %}
+    {% include "components/page_header.html" with title="Add a schedule" subtitle="Starts from your Standard dates. Change only what differs." back_label="Settings" back_href=back only %}
   {% else %}
-    {% include "components/page_header.html" with title=schedule.name subtitle="Breeding schedule" secondary_label="Back to Settings" secondary_href=back only %}
+    {% include "components/page_header.html" with title=schedule.name subtitle="Breeding schedule" back_label="Settings" back_href=back only %}
   {% endif %}
   <form class="ruled mt-6 pt-4" method="post" novalidate data-schedule-form>
     {% csrf_token %}

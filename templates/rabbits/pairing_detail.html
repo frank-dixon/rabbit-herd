@@ -4,7 +4,7 @@
 
 {% block content %}
   {% url 'pairing_list' as list_url %}
-  {% include "components/page_header.html" with title=pairing|stringformat:"s" subtitle="Doe × buck pairing" secondary_label="All pairings" secondary_href=list_url only %}
+  {% include "components/page_header.html" with title=pairing|stringformat:"s" subtitle="Doe × buck pairing" back_label="Pairings" back_href=list_url rabbit=pairing.doe rabbit2=pairing.buck only %}
   <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
     <section class="ruled pt-4" aria-labelledby="pair-heading">
       <h2 class="text-base font-semibold" id="pair-heading">The pair</h2>

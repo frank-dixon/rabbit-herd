@@ -3,7 +3,7 @@
 {% block title %}Edit task · {{ app_name }}{% endblock %}
 
 {% block content %}
-  {% include "components/page_header.html" with title="Edit task" subtitle=task.title secondary_label="All tasks" secondary_href="/tasks/" only %}
+  {% include "components/page_header.html" with title="Edit task" subtitle=task.title back_label="Tasks" back_href="/tasks/" only %}
   <form class="mt-6 grid max-w-xl grid-cols-1 gap-3" method="post">
     {% csrf_token %}
     {% include "components/text_input.html" with name="title" label="What needs doing" value=values.title errors=errors.title only %}

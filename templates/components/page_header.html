@@ -1,13 +1,31 @@
-{# Page title on the left, actions on the right (stacked full width on phones). title, subtitle, primary_label/primary_href, secondary_label/secondary_href. #}
-<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-  <div class="min-w-0">
-    <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">{{ title }}</h1>
-    {% if subtitle %}<p class="mt-1 text-neutral-600">{{ subtitle }}</p>{% endif %}
-  </div>
-  {% if primary_label or secondary_label %}
-    <div class="flex flex-col gap-2 sm:flex-row sm:shrink-0">
-      {% if secondary_label %}{% include "components/button.html" with label=secondary_label href=secondary_href variant="secondary" only %}{% endif %}
-      {% if primary_label %}{% include "components/button.html" with label=primary_label href=primary_href variant="primary" only %}{% endif %}
-    </div>
+{% comment %} The one page header, app-wide. Title and subtitle on the left; actions on the right that never wrap their text and drop below the title when space is tight.
+   Pass title. Optional: subtitle, back_label and back_href (a small "← Label" link above the title), rabbit and rabbit2 (photo thumbnails, or a styled initial, beside the title; shows in print too),
+   badge (a small pill after the title), primary_label/primary_href, secondary_label/secondary_href, print_label (a Print button), actions_template (custom action markup, rendered with the page context),
+   heading_id and focus_heading (for flows that move focus to the heading), print_hide. {% endcomment %}
+<header class="page-header{% if print_hide %} print:hidden{% endif %}" data-page-header{% if print_hide %} data-print-hide{% endif %}>
+  {% if back_href %}
+    <a class="group -ml-1 mb-2 inline-flex min-h-8 items-center gap-1 rounded-md px-1 text-sm font-medium text-muted hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent print:hidden" href="{{ back_href }}" data-back-link>
+      <svg class="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5 motion-reduce:transition-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>{{ back_label }}
+    </a>
   {% endif %}
-</div>
+  <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+    <div class="flex min-w-0 flex-[1_1_18rem] items-center gap-3">
+      {% if rabbit %}<span class="flex shrink-0 items-center" data-page-thumb>{% include "components/rabbit_avatar.html" with rabbit=rabbit size="lg" only %}{% if rabbit2 %}<span class="-ml-3 rounded-[0.6rem] ring-2 ring-canvas md:-ml-4">{% include "components/rabbit_avatar.html" with rabbit=rabbit2 size="lg" only %}</span>{% endif %}</span>{% endif %}
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <h1 class="break-words text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]{% if focus_heading %} focus:outline-none{% endif %}"{% if heading_id %} id="{{ heading_id }}"{% endif %}{% if focus_heading %} tabindex="-1"{% endif %}>{{ title }}</h1>
+          {% if badge %}<span class="rounded-full border border-line px-2 py-0.5 text-xs whitespace-nowrap text-muted" data-header-badge>{{ badge }}</span>{% endif %}
+        </div>
+        {% if subtitle %}<p class="mt-1 text-muted">{{ subtitle }}</p>{% endif %}
+      </div>
+    </div>
+    {% if primary_label or secondary_label or print_label or actions_template %}
+      <div class="flex shrink-0 flex-wrap items-center gap-2 whitespace-nowrap print:hidden [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap" data-header-actions>
+        {% if actions_template %}{% include actions_template %}{% endif %}
+        {% if print_label %}<button type="button" class="mo-press inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-line bg-surface px-4 py-2 font-medium text-ink hover:border-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" data-print-button onclick="window.print()">{{ print_label }}</button>{% endif %}
+        {% if secondary_label %}{% include "components/button.html" with label=secondary_label href=secondary_href variant="secondary" only %}{% endif %}
+        {% if primary_label %}{% include "components/button.html" with label=primary_label href=primary_href variant="primary" only %}{% endif %}
+      </div>
+    {% endif %}
+  </div>
+</header>

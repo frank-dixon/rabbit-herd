@@ -3,10 +3,8 @@
 {% block title %}Delete {{ rabbit.name }} · {{ app_name }}{% endblock %}
 
 {% block content %}
-  <div class="flex items-start gap-3" data-page-thumb>
-    {% include "rabbits/_page_thumb.html" with rabbit=rabbit only %}
-    <h1 class="min-w-0 break-words text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Delete {{ rabbit.name }}?</h1>
-  </div>
+  {% url 'rabbit_detail' rabbit.pk as detail_url %}
+  {% with title="Delete "|add:rabbit.name|add:"?" %}{% include "components/page_header.html" with title=title back_label=rabbit.name back_href=detail_url rabbit=rabbit only %}{% endwith %}
   <section class="mt-6 max-w-2xl ruled pt-4">
     {% include "rabbits/_delete_form.html" with field_id="id_confirm" js=False %}
   </section>

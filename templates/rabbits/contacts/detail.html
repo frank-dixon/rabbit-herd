@@ -5,19 +5,7 @@
 {% block content %}
   {% url 'contact_edit' contact.pk as edit_url %}
   {% url 'contact_list' as list_url %}
-  <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-    <div class="min-w-0">
-      <div class="flex flex-wrap items-center gap-2">
-        <h1 class="break-words text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">{{ contact.name }}</h1>
-        {% for label in contact.roles %}<span class="rounded-full border border-neutral-400 px-2 py-0.5 text-xs">{{ label }}</span>{% endfor %}
-      </div>
-      {% if contact.rabbitry %}<p class="mt-1 text-neutral-600">{{ contact.rabbitry }}</p>{% endif %}
-    </div>
-    <div class="flex flex-col gap-2 sm:shrink-0 sm:flex-row-reverse">
-      {% include "components/button.html" with label="Edit" href=edit_url variant="primary" only %}
-      {% include "components/button.html" with label="Back to contacts" href=list_url variant="secondary" only %}
-    </div>
-  </div>
+  {% with badge=contact.roles|join:" · " %}{% include "components/page_header.html" with title=contact.name subtitle=contact.rabbitry badge=badge back_label="Contacts" back_href=list_url actions_template="rabbits/contacts/_detail_actions.html" %}{% endwith %}
   <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
     <section class="ruled pt-4" aria-labelledby="contact-info-heading">
       <h2 class="text-base font-semibold" id="contact-info-heading">Contact info</h2>

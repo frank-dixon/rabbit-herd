@@ -3,12 +3,9 @@
 {% block title %}{{ heading }} · {{ app_name }}{% endblock %}
 
 {% block content %}
-  <h1 class="break-words text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">{{ heading }}</h1>
+  {% if contact %}{% url 'contact_detail' contact.pk as back_url %}{% include "components/page_header.html" with title=heading back_label=contact.name back_href=back_url only %}
+  {% else %}{% url 'contact_list' as back_url %}{% include "components/page_header.html" with title=heading back_label="Contacts" back_href=back_url only %}{% endif %}
   <section class="mt-6 ruled pt-4">
     {% include "components/form.html" with form=form submit_label=submit_label %}
   </section>
-  <div class="mt-4">
-    {% if contact %}{% url 'contact_detail' contact.pk as back_url %}{% with label="Back to "|add:contact.name %}{% include "components/button.html" with label=label href=back_url variant="secondary" only %}{% endwith %}
-    {% else %}{% url 'contact_list' as back_url %}{% include "components/button.html" with label="Back to contacts" href=back_url variant="secondary" only %}{% endif %}
-  </div>
 {% endblock %}

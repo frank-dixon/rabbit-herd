@@ -4,7 +4,7 @@
 {% block title %}Settings · {{ app_name }}{% endblock %}
 
 {% block content %}
-  <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Settings</h1>
+  {% include "components/page_header.html" with title="Settings" only %}
   <div class="mt-6 lg:grid lg:max-w-[calc(13rem+2.5rem+60rem)] lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10">
   {% include "pages/_settings_nav.html" %}
   <div class="min-w-0" data-settings-panel>

@@ -2,8 +2,7 @@
 {% load herd_settings %}
 {% block title %}Weights · {{ app_name }}{% endblock %}
 {% block content %}<span data-refreshable hidden></span>
-  <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Weights</h1>
-  <p class="mt-0.5 text-sm text-muted">Longest since a weigh-in comes first.</p>
+  {% include "components/page_header.html" with title="Weights" subtitle="Longest since a weigh-in comes first." only %}
   {% if rows %}
     <ul class="mo-stagger mt-5 divide-y divide-line overflow-hidden rounded-md border border-line bg-surface" data-weights-hub>
       {% for row in rows %}

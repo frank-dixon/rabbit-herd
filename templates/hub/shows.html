@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Shows · {{ app_name }}{% endblock %}
 {% block content %}<span data-refreshable hidden></span>
-  <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Shows</h1>
-  <p class="mt-0.5 text-sm text-muted">Results across the herd, newest first.</p>
+  {% include "components/page_header.html" with title="Shows" subtitle="Results across the herd, newest first." only %}
   {% if entries %}
     <ul class="mo-stagger mt-5 divide-y divide-line overflow-hidden rounded-md border border-line bg-surface">
       {% for e in entries %}

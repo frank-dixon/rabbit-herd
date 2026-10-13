@@ -3,13 +3,7 @@
 {% block title %}Contacts · {{ app_name }}{% endblock %}
 
 {% block content %}<span data-refreshable hidden></span>
-  <div class="flex items-center justify-between gap-3">
-    <div class="min-w-0">
-      <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Contacts</h1>
-      <p class="mt-0.5 text-sm text-muted">Buyers and breeders you deal with.</p>
-    </div>
-    <a href="{% url 'contact_create' %}" class="mo-press inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-md bg-accent px-3.5 text-sm font-semibold text-on-accent hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add<span class="sr-only sm:not-sr-only"> a contact</span></span></a>
-  </div>
+  {% include "components/page_header.html" with title="Contacts" subtitle="Buyers and breeders you deal with." actions_template="rabbits/contacts/_list_add.html" %}
   <nav class="mt-5 flex gap-4 border-b border-line text-sm" aria-label="Filter contacts">
     {% for value, label in roles %}
       <a href="{% if value %}?role={{ value }}{% else %}?{% endif %}" class="-mb-px border-b-2 py-2 {% if role == value %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if role == value %} aria-current="page"{% endif %}>{{ label }}</a>

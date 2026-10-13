@@ -1,0 +1,9 @@
+{# Header actions on a rabbit's page: secondary actions first, Edit last. #}
+{% url 'rabbit_delete' rabbit.pk as delete_url %}
+<a href="{{ delete_url }}" data-delete-open="delete-dialog" class="mo-press inline-flex min-h-10 items-center justify-center rounded-md border border-line bg-surface px-4 py-2 font-medium text-danger hover:border-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas">Delete</a>
+{% if rabbit.is_archived %}
+  <form method="post" action="{% url 'rabbit_restore' rabbit.pk %}" class="flex">{% csrf_token %}{% include "components/button.html" with label="Restore" type="submit" variant="secondary" only %}</form>
+{% else %}
+  <form method="post" action="{% url 'rabbit_archive' rabbit.pk %}" class="flex">{% csrf_token %}{% include "components/button.html" with label="Archive" type="submit" variant="secondary" only %}</form>
+{% endif %}
+{% include "components/button.html" with label="Edit" href=edit_url variant="primary" only %}

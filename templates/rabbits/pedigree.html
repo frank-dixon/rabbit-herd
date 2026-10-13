@@ -3,22 +3,13 @@
 {% block title %}Pedigree · {{ rabbit.name }} · {{ app_name }}{% endblock %}
 
 {% block content %}
-  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between" data-print-hide>
-    <div class="min-w-0">
-      <h1 class="break-words text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Pedigree: {{ rabbit.name }}</h1>
-      <p class="mt-1 text-neutral-600">{{ known }} of 14 ancestors recorded. Built from parents and pedigree entries, following herd rabbits upward.</p>
-    </div>
-    <div class="flex flex-col gap-2 sm:flex-row">
-      {% url 'rabbit_detail' rabbit.pk as detail_url %}
-      {% include "components/button.html" with label="Back to rabbit" href=detail_url variant="secondary" only %}
-      <button type="button" class="inline-flex items-center justify-center rounded px-4 py-2 font-medium bg-accent text-on-accent hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2" onclick="window.print()">Print</button>
-    </div>
-  </div>
+  {% url 'rabbit_detail' rabbit.pk as detail_url %}
+  {% with title="Pedigree: "|add:rabbit.name subtitle=known|stringformat:"s"|add:" of 14 ancestors recorded. Built from parents and pedigree entries, following herd rabbits upward." %}{% include "components/page_header.html" with title=title subtitle=subtitle back_label=rabbit.name back_href=detail_url rabbit=rabbit print_label="Print" print_hide=True only %}{% endwith %}
 
   <section class="mt-6 ruled pt-4 print:mt-0 print:border-0 print:p-0" aria-labelledby="subject-heading" data-pedigree>
     {% if herd_prefs.rabbitry_name %}<p class="eyebrow mb-2" data-rabbitry>{{ herd_prefs.rabbitry_name }}{% if herd_prefs.prefix %} · {{ herd_prefs.prefix }}{% endif %}</p>{% endif %}
     <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-neutral-300 pb-2">
-      <h2 class="text-base font-semibold" id="subject-heading">{{ rabbit.name }}{% if rabbit.tattoo %} · {{ rabbit.tattoo }}{% endif %}</h2>
+      <h2 class="flex items-center gap-3 text-base font-semibold" id="subject-heading"><span class="hidden print:inline-flex">{% include "components/rabbit_avatar.html" with rabbit=rabbit size="lg" only %}</span><span>{{ rabbit.name }}{% if rabbit.tattoo %} · {{ rabbit.tattoo }}{% endif %}</span></h2>
       <p class="text-sm text-neutral-600">{{ app_name }} pedigree</p>
     </div>
     <dl class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3 print:grid-cols-6">

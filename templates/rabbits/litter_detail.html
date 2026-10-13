@@ -4,7 +4,7 @@
 
 {% block content %}
   {% url 'pairing_detail' litter.pairing.pk as pairing_url %}
-  {% include "components/page_header.html" with title=litter.pairing|stringformat:"s" subtitle=subtitle secondary_label="Back to pairing" secondary_href=pairing_url only %}
+  {% include "components/page_header.html" with title=litter.pairing|stringformat:"s" subtitle=subtitle back_label="Pairing" back_href=pairing_url rabbit=litter.pairing.doe rabbit2=litter.pairing.buck only %}
   <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
     <section class="scroll-mt-4 ruled pt-4" id="dates" aria-labelledby="dates-heading">
       <h2 class="text-base font-semibold" id="dates-heading">Dates</h2>

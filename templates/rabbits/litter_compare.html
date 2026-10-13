@@ -5,7 +5,7 @@
 
 {% block content %}
   {% url 'litter_detail' litter.pk as litter_url %}
-  {% include "components/page_header.html" with title="Compare kits" subtitle=litter.pairing|stringformat:"s" secondary_label="Back to litter" secondary_href=litter_url only %}
+  {% include "components/page_header.html" with title="Compare kits" subtitle=litter.pairing|stringformat:"s" back_label="Litter" back_href=litter_url only %}
   {% if kits %}
     <nav class="mt-6 flex justify-end" aria-label="Line up photos by">
       <div class="inline-flex overflow-hidden rounded border border-neutral-500 bg-white text-sm">

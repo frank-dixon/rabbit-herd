@@ -3,8 +3,8 @@
 {% block title %}Add {{ relative.outside.name }} to your herd · {{ app_name }}{% endblock %}
 
 {% block content %}
-  <h1 class="break-words text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Add {{ relative.outside.name }} to your herd</h1>
-  <p class="mt-1 text-neutral-600">{{ relative.get_relationship_display }} of {{ relative.rabbit.name }}. The name, breed, color, line and genes are copied over, and every link to this outside rabbit moves to the new herd record.</p>
+  {% url 'rabbit_detail' relative.rabbit.pk as back_url %}
+  {% with title="Add "|add:relative.outside.name|add:" to your herd" subtitle=relative.get_relationship_display|add:" of "|add:relative.rabbit.name|add:". The name, breed, color, line and genes are copied over, and every link to this outside rabbit moves to the new herd record." %}{% include "components/page_header.html" with title=title subtitle=subtitle back_label=relative.rabbit.name back_href=back_url only %}{% endwith %}
   <section class="mt-6 max-w-2xl ruled pt-4">
     <form method="post" class="space-y-4">
       {% csrf_token %}

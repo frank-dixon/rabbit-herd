@@ -4,15 +4,7 @@
 
 {% block content %}
   {% url 'rabbit_detail' rabbit.pk as back_url %}
-  <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-    <div class="flex min-w-0 items-start gap-3" data-page-thumb>
-      {% include "rabbits/_page_thumb.html" with rabbit=rabbit only %}
-      <h1 class="min-w-0 break-words text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Photos of {{ rabbit.name }}</h1>
-    </div>
-    <div class="flex flex-col sm:shrink-0">
-      {% include "components/button.html" with label="Back to "|add:rabbit.name href=back_url variant="secondary" only %}
-    </div>
-  </div>
+  {% with title="Photos of "|add:rabbit.name %}{% include "components/page_header.html" with title=title back_label=rabbit.name back_href=back_url rabbit=rabbit only %}{% endwith %}
   <p class="mt-2 text-sm text-neutral-600">The main photo shows on your rabbit list and at the top of {{ rabbit.name }}'s page. Open a photo to change its notes or date, make it main, rotate it, or remove it.</p>
 
   <div class="mt-6">

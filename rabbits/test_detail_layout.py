@@ -33,8 +33,11 @@ class DetailLayoutTests(TestCase):
         body = page.content.decode()
         self.assertContains(page, "max-w-6xl")
         self.assertContains(page, '<h1 class="break-words text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Speedwell</h1>')
-        self.assertLess(body.index(">Edit<"), body.index(">Archive<"))
-        self.assertLess(body.index(">Archive<"), body.index(">Back to rabbits<"))
+        # Shared header: a small back link above the title, the thumbnail beside it, Edit last.
+        self.assertLess(body.index("data-back-link"), body.index("<h1"))
+        self.assertIn("data-page-thumb", body[body.index("data-page-header"):body.index("<h1")])
+        self.assertLess(body.index(">Archive<"), body.index(">Edit<"))
+        self.assertNotIn(">Back to rabbits<", body)
         for label in ("Sex", "Breed", "Color", "Line", "Born", "Status"):
             self.assertContains(page, f'<dt class="text-neutral-600">{label}</dt>')
         self.assertContains(page, "Jan 15, 2025 · ")

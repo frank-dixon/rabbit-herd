@@ -30,6 +30,7 @@ class FlowLayoutTests(TestCase):
         )
         page = self.client.get(reverse("rabbit_edit", args=[rabbit.pk]))
         self.assertContains(page, "max-w-6xl")
-        self.assertContains(page, "Back to Hazel")
+        self.assertContains(page, "data-back-link")
+        self.assertContains(page, "Hazel\n    </a>")
         row = self.row(page)
         self.assertLess(row.index('value="save"'), row.index('value="discard"'))

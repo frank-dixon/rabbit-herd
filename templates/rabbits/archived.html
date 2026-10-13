@@ -4,7 +4,7 @@
 
 {% block content %}
   {% url 'rabbit_list' as list_url %}
-  {% include "components/page_header.html" with title="Archived rabbits" subtitle="These records stay in your herd." secondary_label="Active rabbits" secondary_href=list_url only %}
+  {% include "components/page_header.html" with title="Archived rabbits" subtitle="These records stay in your herd." back_label="Rabbits" back_href=list_url only %}
   {% if rabbits %}
     <ul class="mt-6 flex flex-col divide-y divide-neutral-200 overflow-hidden rounded border border-neutral-300 bg-white">
       {% for rabbit in rabbits %}
