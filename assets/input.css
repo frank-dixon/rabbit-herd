@@ -149,7 +149,9 @@ html[data-menu-open] .app-scrim { opacity: 1; pointer-events: auto; }
 [data-today-item].is-done p { opacity: 0.55; transition: opacity var(--dur-1) var(--ease-out); }
 
 /* Bottom bar edit mode. */
-[data-app-tabs][data-editing] { box-shadow: 0 -12px 32px -16px rgb(0 0 0 / 0.3); touch-action: none; user-select: none; -webkit-user-select: none; }
+/* Editing the bar: a soft scrim dims the page (tapping it is "Done"), and the bar rises as a sheet. */
+[data-app-tabs] { transition: box-shadow var(--dur-2) var(--ease-out); }
+[data-app-tabs][data-editing] { border-radius: 14px 14px 0 0; box-shadow: 0 -12px 32px -16px rgb(0 0 0 / 0.3), 0 0 0 100vmax rgb(0 0 0 / 0.32); touch-action: none; user-select: none; -webkit-user-select: none; }
 [data-app-tabs] [data-tab] a { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
 [data-app-tabs][data-editing] [data-slot] .tab-edit-item > span:first-child { background: var(--accent-soft); color: var(--accent); }
 @media (prefers-reduced-motion: no-preference) {

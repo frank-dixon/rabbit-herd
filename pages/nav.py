@@ -82,6 +82,8 @@ DESTINATIONS = {
     "glossary": ("Glossary", "glossary", ""),
     "settings": ("Settings", "account", ""),
 }
+# Settings lives behind the gear (side menu, drawer and account panel), so it is never a tab.
+TAB_CHOICES = [key for key in DESTINATIONS if key != "settings"]
 DEFAULT_TABS = ["today", "rabbits", "litters", "weights", "tasks"]
 MIN_TABS, MAX_TABS = 3, 5
 
@@ -116,7 +118,7 @@ def clean_tabs(keys):
     """A valid bar: known destinations, no repeats, 3 to 5 of them."""
     seen = []
     for key in keys or []:
-        if key in DESTINATIONS and key not in seen:
+        if key in TAB_CHOICES and key not in seen:
             seen.append(key)
     seen = seen[:MAX_TABS]
     return seen if len(seen) >= MIN_TABS else list(DEFAULT_TABS)
@@ -161,7 +163,7 @@ def app_nav(request):
         "app_tabs": tab_items,
         "app_records": [item(key, current) for key in RECORDS],
         "app_panel": [item(key, current) for key in PANEL],
-        "app_destinations": [item(key, current) for key in DESTINATIONS],
+        "app_destinations": [item(key, current) for key in TAB_CHOICES],
         "app_settings_icon": ICONS["settings"],
         "herd_prefs_name": herd_name(user),
         "account_name": herd_name(user) or user.get_full_name() or user.email,

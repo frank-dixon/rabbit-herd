@@ -1,10 +1,11 @@
 {# Bottom tabs on phones. Pages with their own fixed action bar (edit summary, cards) leave these out. Press and hold (or right-click) a tab to edit the tab bar; tab-edit.mjs. #}
 <nav data-print-hide class="tabbar fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden" aria-label="Main" data-app-tabs data-save-url="{% url 'tab_bar' %}">
-  <div class="flex items-center justify-between gap-3 px-4 pt-3 pb-1" data-tab-edit-head hidden>
+  <div class="relative flex items-center justify-between gap-3 px-4 pt-4 pb-1" data-tab-edit-head hidden>
+    <span class="absolute top-1.5 left-1/2 h-1 w-9 -translate-x-1/2 rounded-full bg-field/60" aria-hidden="true"></span>
     <div><p class="text-sm font-semibold">Tab bar</p><p class="text-xs text-muted" data-tab-instruction aria-live="polite">Drag to reorder or add. Up to 5.</p></div>
     <div class="flex gap-2">
-      <button type="button" class="mo-press rounded-md border border-line px-3 py-1.5 text-sm font-medium" data-tab-cancel hidden>Cancel</button>
-      <button type="button" class="mo-press rounded-md bg-accent px-3.5 py-1.5 text-sm font-semibold text-on-accent" data-tab-done>Done</button>
+      <button type="button" class="mo-press inline-flex min-h-11 items-center rounded-md border border-line px-3.5 text-sm font-medium" data-tab-cancel hidden>Cancel</button>
+      <button type="button" class="mo-press inline-flex min-h-11 items-center rounded-md bg-accent px-4 text-sm font-semibold text-on-accent" data-tab-done>Done</button>
     </div>
   </div>
   <ul class="grid" style="grid-template-columns: repeat({{ app_tabs|length }}, minmax(0, 1fr))" data-tab-list>

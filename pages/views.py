@@ -87,11 +87,11 @@ def account(request):
          "current": key == user.ui_theme}
         for key, label in user.THEMES
     ]
-    from .nav import DESTINATIONS, MAX_TABS, clean_tabs
+    from .nav import DESTINATIONS, MAX_TABS, TAB_CHOICES, clean_tabs
 
     current = clean_tabs(user.tab_bar)
     slots = [{"index": i + 1, "value": current[i] if i < len(current) else "", "required": i < 3} for i in range(MAX_TABS)]
-    destinations = [(key, label) for key, (label, _url, _q) in DESTINATIONS.items()]
+    destinations = [(key, DESTINATIONS[key][0]) for key in TAB_CHOICES]
     current_theme = dict(user.THEMES).get(user.ui_theme, "")
     sections = settings_sections(current_theme)
     return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes, "settings_sections": sections, "settings_nav": settings_nav(sections), "wide": True,

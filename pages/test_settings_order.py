@@ -23,3 +23,11 @@ class SettingsOrderTests(TestCase):
         for anchor in sections:
             self.assertIn(f'id="{anchor}"', html)
             self.assertLess(html.index(f'data-settings-slot="{anchor}"'), html.index(f'id="{anchor}"', html.index("</nav>")))
+
+    def test_settings_is_never_offered_as_a_tab(self):
+        from .nav import TAB_CHOICES, clean_tabs
+
+        self.assertNotIn("settings", TAB_CHOICES)
+        self.assertEqual(clean_tabs(["today", "settings", "rabbits", "tasks"]), ["today", "rabbits", "tasks"])
+        html = self.client.get(reverse("account")).content.decode()
+        self.assertNotIn('<option value="settings"', html)
