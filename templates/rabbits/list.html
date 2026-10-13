@@ -11,31 +11,13 @@
       <a href="?{{ archived_qs }}" class="shrink-0 border-b-2 py-2 {% if filters.tab == 'archived' %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if filters.tab == 'archived' %} aria-current="page"{% endif %}>Archived <span class="num text-muted">{{ archived_count }}</span></a>
       <a href="?{{ deceased_qs }}" class="shrink-0 border-b-2 py-2 {% if filters.tab == 'deceased' %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if filters.tab == 'deceased' %} aria-current="page"{% endif %}>Deceased <span class="num text-muted">{{ deceased_count }}</span></a>
     </nav>
-    {% if rabbits %}
-      <nav class="mb-1.5 flex shrink-0 items-center gap-1" aria-label="Layout">
-        <a href="?{{ grid_qs }}" class="mo-press grid h-8 w-8 place-items-center rounded-md {% if view == 'grid' %}bg-accent-soft text-accent{% else %}text-muted hover:text-ink{% endif %}"{% if view == 'grid' %} aria-current="true"{% endif %} title="Grid"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg><span class="sr-only">Grid</span></a>
-        <a href="?{{ list_qs }}" class="mo-press grid h-8 w-8 place-items-center rounded-md {% if view == 'list' %}bg-accent-soft text-accent{% else %}text-muted hover:text-ink{% endif %}"{% if view == 'list' %} aria-current="true"{% endif %} title="List"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="sr-only">List</span></a>
-        {% if view == 'grid' %}
-          <form method="post" action="{% url 'account' %}" class="contents">
-            {% csrf_token %}
-            <input type="hidden" name="ui_theme" value="{{ ui_theme }}">
-            <input type="hidden" name="ui_density" value="{% if ui_density == 'compact' %}roomy{% else %}compact{% endif %}">
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-            <button type="submit" class="mo-press ml-1 grid h-8 w-8 place-items-center rounded-md border-l border-line pl-1 text-muted hover:text-ink" title="{% if ui_density == 'compact' %}Roomy grid{% else %}Compact grid{% endif %}" data-density-toggle>
-              {% if ui_density == 'compact' %}<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h16v7H4zM4 13h16v7H4z"/></svg>{% else %}<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h4v4H4zM10 4h4v4h-4zM16 4h4v4h-4zM4 10h4v4H4zM10 10h4v4h-4zM16 10h4v4h-4zM4 16h4v4H4zM10 16h4v4h-4zM16 16h4v4h-4z"/></svg>{% endif %}
-              <span class="sr-only">{% if ui_density == 'compact' %}Switch to a roomy grid{% else %}Switch to a compact grid{% endif %}</span>
-            </button>
-          </form>
-        {% endif %}
-      </nav>
-    {% endif %}
   </div>
 
   <form method="get" class="mt-3" role="search" aria-label="Search and filter rabbits" data-filter-form>
     {% if filters.tab != 'active' %}<input type="hidden" name="tab" value="{{ filters.tab }}">{% endif %}
     {% if view == 'list' %}<input type="hidden" name="view" value="list">{% endif %}
-    <div class="flex items-center gap-2">
-      <label class="relative min-w-0 flex-1">
+    <div class="flex flex-wrap items-center gap-2">
+      <label class="relative min-w-[12rem] flex-1">
         <span class="sr-only">Search by name or tattoo</span>
         <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-3.5-3.5"/></svg>
         <input class="block h-10 w-full rounded-md border border-field/70 bg-surface pl-9 pr-3 text-ink placeholder:text-muted focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40" id="id_q" name="q" type="search" value="{{ filters.q }}" placeholder="Name or tattoo" autocomplete="off" enterkeyhint="search">
@@ -87,6 +69,12 @@
           </div>
         </div>
       </details>
+      {% if rabbits %}
+        <div class="ml-auto flex shrink-0 items-center gap-2" data-view-controls>
+          {% if view == 'grid' %}{% include "components/segmented.html" with label="Grid size" options=density_options only %}{% endif %}
+          {% include "components/segmented.html" with label="Layout" options=view_options icon_only=True only %}
+        </div>
+      {% endif %}
     </div>
     {% if filter_chips %}
       <ul class="mt-2 flex flex-wrap gap-1.5" aria-label="Active filters">

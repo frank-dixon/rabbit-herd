@@ -166,7 +166,10 @@ class DensityTests(TestCase):
         page = self.client.get(reverse("rabbit_list"))
         self.assertContains(page, 'data-view="grid"')
         self.assertNotContains(page, 'data-density="compact"')
-        self.assertContains(page, "Switch to a compact grid")
+        controls = page.content.decode()
+        controls = controls[controls.index("data-view-controls"):]
+        self.assertIn('aria-label="Grid size"', controls)
+        self.assertRegex(controls, r'href="\?density=roomy"[^>]*aria-current="true"')
 
     def test_compact_grid_is_two_up_with_a_single_detail_line(self):
         self.user.ui_density = "compact"
@@ -175,7 +178,7 @@ class DensityTests(TestCase):
         self.assertContains(page, 'data-density="compact"')
         self.assertContains(page, "grid-cols-2")
         self.assertContains(page, "Doe · ")
-        self.assertContains(page, "Switch to a roomy grid")
+        self.assertRegex(page.content.decode(), r'href="\?density=compact"[^>]*aria-current="true"')
 
     def test_quick_toggle_saves_and_returns_to_the_list(self):
         response = self.client.post(reverse("account"), {"ui_theme": "c1", "ui_density": "compact", "next": "/rabbits/?sex=doe"})
@@ -186,3 +189,18 @@ class DensityTests(TestCase):
     def test_toggle_refuses_an_outside_next(self):
         response = self.client.post(reverse("account"), {"ui_theme": "c1", "ui_density": "compact", "next": "https://example.org/"})
         self.assertRedirects(response, reverse("account"))
+
+    def test_density_and_layout_links_persist_per_account(self):
+        self.client.get(reverse("rabbit_list") + "?density=compact&sex=doe")
+        self.client.get(reverse("rabbit_list") + "?view=list")
+        self.user.refresh_from_db()
+        self.assertEqual((self.user.ui_density, self.user.ui_list_view), ("compact", "list"))
+        self.client.logout()
+        self.client.force_login(self.user)
+        page = self.client.get(reverse("rabbit_list")).content.decode()
+        self.assertIn('data-view="list"', page)
+        self.assertNotIn('aria-label="Grid size"', page)
+        self.assertRegex(page, r'href="\?view=list"[^>]*aria-current="true"')
+
+    def test_settings_no_longer_has_the_grid_row(self):
+        self.assertNotContains(self.client.get(reverse("account")), "Rabbit grid")

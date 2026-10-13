@@ -61,6 +61,9 @@ class User(AbstractUser):
     ui_density = models.CharField(max_length=8, choices=DENSITIES, default="roomy")
     # Light or Dark overrides the device setting for every theme; System follows it.
     ui_mode = models.CharField(max_length=8, choices=MODES, default="system")
+    # The Rabbits page layout, remembered per account.
+    LIST_VIEWS = [("grid", "Grid"), ("list", "List")]
+    ui_list_view = models.CharField(max_length=8, choices=LIST_VIEWS, default="grid")
     # Phone bottom bar: destination keys in order (pages.nav.DESTINATIONS). Empty means the default.
     tab_bar = models.JSONField(default=list, blank=True)
 

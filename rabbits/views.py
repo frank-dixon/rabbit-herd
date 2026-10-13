@@ -26,13 +26,24 @@ LIST_VIEW_SESSION_KEY = "rabbit_list_view"
 
 
 def list_view_choice(request):
-    """Grid or list for the rabbit list. ?view= sets it and the session remembers it."""
+    """Grid or list for the rabbit list, and the grid's density. ?view= and
+    ?density= set them (plain links, so no JS is needed) and the account
+    remembers both."""
+    user = request.user
+    changed = []
     asked = request.GET.get("view")
+    if asked in LIST_VIEWS and asked != user.ui_list_view:
+        user.ui_list_view = asked
+        changed.append("ui_list_view")
+    density = request.GET.get("density")
+    if density in dict(user.DENSITIES) and density != user.ui_density:
+        user.ui_density = density
+        changed.append("ui_density")
+    if changed:
+        user.save(update_fields=changed)
     if asked in LIST_VIEWS:
         request.session[LIST_VIEW_SESSION_KEY] = asked
-        return asked
-    saved = request.session.get(LIST_VIEW_SESSION_KEY)
-    return saved if saved in LIST_VIEWS else "grid"
+    return user.ui_list_view if user.ui_list_view in LIST_VIEWS else "grid"
 
 
 def breed_names(breeds):
@@ -144,8 +155,12 @@ def rabbit_list(request):
             "location_options": locations,
             "status_options": Rabbit.Status.choices,
             "breed_options": breed_names(breed for breed, _, _ in herd),
-            "grid_qs": query_string(filters, view="grid"),
-            "list_qs": query_string(filters, view="list"),
+            "view_options": [
+                {"href": "?" + query_string(filters, view=key), "label": label, "icon": key, "selected": view == key}
+                for key, label in (("grid", "Grid"), ("list", "List"))],
+            "density_options": [
+                {"href": "?" + query_string(filters, density=key), "label": label, "selected": request.user.ui_density == key}
+                for key, label in request.user.DENSITIES],
             "active_qs": query_string({"view": ""}, tab="active"),
             "archived_qs": query_string({}, tab="archived"),
             "clear_qs": query_string({}, tab=filters["tab"]),
