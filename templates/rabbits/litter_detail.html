@@ -75,6 +75,7 @@
         <p class="mt-2 text-sm text-neutral-600">Every surviving kit is in your herd.</p>
       {% endif %}
     </section>
+    <div class="lg:col-span-2">{% include "rabbits/_linked_costs.html" with add_url=cost_add_url heading_id="litter-costs-heading" %}</div>
   </div>
   <form class="mt-4" method="post" action="{% url 'litter_delete' litter.pk %}">
     {% csrf_token %}

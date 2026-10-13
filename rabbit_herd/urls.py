@@ -11,6 +11,7 @@ urlpatterns = [
     path("pairings/", include("rabbits.pairing_urls")),
     path("litters/", include("rabbits.litter_urls")),
     path("tasks/", include("rabbits.task_urls")),
+    path("costs/", include("rabbits.cost_urls")),
     path("contacts/", include("rabbits.contact_urls")),
     path("", include("pages.urls")),
 ]

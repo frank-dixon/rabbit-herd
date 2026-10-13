@@ -845,3 +845,42 @@ class ShowEntry(models.Model):
         n = self.placing
         suffix = "th" if 10 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
         return f"{n}{suffix}" + (f" of {self.out_of}" if self.out_of else "")
+
+
+class Expense(models.Model):
+    """Money spent on the herd: a feed purchase or another cost. Linking a
+    rabbit or a litter counts it toward that rabbit's or litter's cost."""
+
+    class Category(models.TextChoices):
+        FEED = "feed", "Feed"
+        HAY = "hay", "Hay"
+        SUPPLIES = "supplies", "Supplies"
+        VET = "vet", "Vet and medicine"
+        SHOWS = "shows", "Show fees"
+        OTHER = "other", "Other"
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="expenses", on_delete=models.CASCADE)
+    date = models.DateField()
+    category = models.CharField(max_length=10, choices=Category.choices, default=Category.FEED)
+    description = models.CharField(max_length=120, help_text="Such as 50 lb pellets or a water bottle.")
+    amount = models.DecimalField(max_digits=8, decimal_places=2)
+    weight_lb = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True,
+                                    help_text="For feed and hay: how many pounds were bought.")
+    rabbit = models.ForeignKey(Rabbit, related_name="expenses", null=True, blank=True, on_delete=models.SET_NULL)
+    litter = models.ForeignKey(Litter, related_name="expenses", null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date", "-pk"]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(amount__gte=0), name="expense_amount_not_negative"),
+        ]
+
+    def __str__(self):
+        return f"{self.description} · ${self.amount}"
+
+    @property
+    def per_lb(self):
+        if self.weight_lb:
+            return (self.amount / self.weight_lb).quantize(Decimal("0.01"))
+        return None

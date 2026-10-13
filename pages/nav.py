@@ -20,6 +20,7 @@ ICONS = {
     "pairings": "M8 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM16 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
     "litters": "M7 4v3M17 4v3M4 8h16v12H4zM8 12h3v3H8z",
     "tasks": "M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2",
+    "costs": "M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 2 2.6 4.5 3 4.5 1.3 4.5 3-2 3-4.5 3-4.5-1.3-4.5-3",
     "more": "M5 12h.01M12 12h.01M19 12h.01",
     "account": "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0",
 }
@@ -43,6 +44,8 @@ def active_key(request):
         return "pairings"
     if path.startswith("/litters/"):
         return "litters"
+    if path.startswith("/costs/"):
+        return "costs"
     if path.startswith("/contacts/"):
         return "contacts"
     if path.startswith("/account/") or path.startswith("/accounts/password"):
@@ -64,6 +67,7 @@ def app_nav(request):
         ("locations", "Locations", reverse("location_list")),
         ("pairings", "Pairings", reverse("pairing_list")),
         ("litters", "Litters", reverse("litter_list")),
+        ("costs", "Costs", reverse("cost_list")),
         ("contacts", "Contacts", reverse("contact_list")),
         ("account", "Account", reverse("account")),
     ]

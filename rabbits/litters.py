@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from . import flow
+from . import costs, flow
 from .models import Breed, BreedShare, Litter, Pairing, Rabbit, Relative
 
 DATE_REQUIRED = "Please enter the date, like {example}."
@@ -82,6 +82,8 @@ def litter_detail(request, pk):
         "today": timezone.localdate(), "wide": True,
         "subtitle": f"Litter bred {litter.bred_on:%b} {litter.bred_on.day}, {litter.bred_on.year} · due {litter.due_on:%b} {litter.due_on.day}",
         "sex_options": Rabbit.Sex.choices,
+        **dict(zip(("cost_items", "cost_total"), costs.linked(litter.expenses.all()))),
+        "cost_add_url": f"/costs/?litter={litter.pk}#add",
     })
 
 

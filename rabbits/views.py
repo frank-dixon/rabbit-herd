@@ -8,7 +8,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from . import culling, genetics, purebred, shows
+from . import costs, culling, genetics, purebred, shows
 from .forms import GenesForm, PhotoUploadForm
 from .models import Contact, Gene, HealthNote, Location, Rabbit, Weight
 
@@ -190,6 +190,8 @@ def rabbit_detail(request, pk):
             "health_kinds": HealthNote.Kind.choices,
             **culling.form_context(request, rabbit),
             **shows.form_context(request, rabbit),
+            **dict(zip(("cost_items", "cost_total"), costs.linked(rabbit.expenses.all()))),
+            "cost_add_url": f"/costs/?rabbit={rabbit.pk}#add",
             "today_iso": timezone.localdate().isoformat(),
             "location_choices": location_options(request.user)[:-1],
             "contact_options": [(str(c.pk), str(c)) for c in Contact.objects.filter(owner=request.user)],
