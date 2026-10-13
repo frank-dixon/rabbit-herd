@@ -104,6 +104,18 @@ def rabbit_list(request):
     deceased_count = sum(1 for _, archived_at, status in herd if not archived_at and status == Rabbit.Status.DECEASED)
     active_count = len(herd) - archived_count - deceased_count
     filtering = any(filters[key] for key in ("q", "sex", "breed", "status", "location", "pure"))
+    locations = location_options(request.user)
+    labels = {
+        "sex": dict(Rabbit.Sex.choices),
+        "status": dict(Rabbit.Status.choices),
+        "location": dict(locations),
+        "pure": {"yes": "Purebred", "no": "Not purebred"},
+    }
+    chips = [
+        {"key": key, "label": labels.get(key, {}).get(filters[key], filters[key]),
+         "remove_qs": query_string(filters, **{key: ""})}
+        for key in ("sex", "status", "breed", "location", "pure") if filters[key]
+    ]
     noun = filters["tab"]
     total = {"archived": archived_count, "deceased": deceased_count}.get(filters["tab"], active_count)
     if filtering:
@@ -120,12 +132,13 @@ def rabbit_list(request):
             "subtitle": subtitle,
             "filters": filters,
             "filtering": filtering,
+            "filter_chips": chips,
             "active_count": active_count,
             "archived_count": archived_count,
             "deceased_count": deceased_count,
             "deceased_qs": query_string({}, tab="deceased"),
             "sex_options": Rabbit.Sex.choices,
-            "location_options": location_options(request.user),
+            "location_options": locations,
             "status_options": Rabbit.Status.choices,
             "breed_options": breed_names(breed for breed, _, _ in herd),
             "grid_qs": query_string(filters, view="grid"),

@@ -19,6 +19,7 @@ import { bindPhotoTiles } from "./photo-tiles.mjs";
 import { bindDeathFields } from "./death-fields.mjs";
 import { bindOffline } from "./offline.mjs";
 import { bindSettings } from "./settings.mjs";
+import { bindFilters } from "./filters.mjs";
 
 /**
  * Read the CSRF token from the page.
@@ -309,6 +310,7 @@ function start() {
   bindDeathFields(document);
   bindOffline(document, window);
   bindSettings(document, window);
+  bindFilters(document);
 }
 
 if (document.readyState === "loading") {

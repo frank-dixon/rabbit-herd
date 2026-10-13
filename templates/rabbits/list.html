@@ -3,75 +3,99 @@
 {% block title %}Rabbits · {{ app_name }}{% endblock %}
 
 {% block content %}
-  {% url 'rabbit_create' as create_url %}
-  {% include "components/page_header.html" with title="Rabbits" subtitle=subtitle primary_label="+ Add a rabbit" primary_href=create_url only %}
+  <div class="flex items-center justify-between gap-3">
+    <div class="min-w-0">
+      <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Rabbits</h1>
+      <p class="mt-0.5 text-sm text-muted">{{ subtitle }}</p>
+    </div>
+    <a href="{% url 'rabbit_create' %}" class="mo-press inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-md bg-accent px-3.5 text-sm font-semibold text-on-accent hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add<span class="sr-only sm:not-sr-only">&nbsp;a rabbit</span></a>
+  </div>
 
-  <nav class="mt-6 flex gap-1 border-b border-neutral-300" aria-label="Active or archived">
-    <a href="?{{ active_qs }}" class="-mb-px rounded-t border px-3 py-1.5 text-sm {% if filters.tab == 'active' %}border-neutral-300 border-b-neutral-200 bg-white font-medium{% else %}border-transparent text-neutral-600{% endif %}"{% if filters.tab == 'active' %} aria-current="page"{% endif %}>Active ({{ active_count }})</a>
-    <a href="?{{ archived_qs }}" class="-mb-px rounded-t border px-3 py-1.5 text-sm {% if filters.tab == 'archived' %}border-neutral-300 border-b-neutral-200 bg-white font-medium{% else %}border-transparent text-neutral-600{% endif %}"{% if filters.tab == 'archived' %} aria-current="page"{% endif %}>Archived ({{ archived_count }})</a>
-    <a href="?{{ deceased_qs }}" class="-mb-px rounded-t border px-3 py-1.5 text-sm {% if filters.tab == 'deceased' %}border-neutral-300 border-b-neutral-200 bg-white font-medium{% else %}border-transparent text-neutral-600{% endif %}"{% if filters.tab == 'deceased' %} aria-current="page"{% endif %}>Deceased ({{ deceased_count }})</a>
-  </nav>
-
-  <form method="get" class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto_auto_auto] sm:items-end" role="search" aria-label="Search and filter rabbits">
-    {% if filters.tab != 'active' %}<input type="hidden" name="tab" value="{{ filters.tab }}">{% endif %}
-    <div class="col-span-2 sm:col-span-1">
-      <label class="block text-sm font-medium text-neutral-800" for="id_q">Search by name or tattoo</label>
-      <input class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2 text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" id="id_q" name="q" type="search" value="{{ filters.q }}" autocomplete="off">
-    </div>
-    <div>
-      <label class="block text-sm font-medium text-neutral-800" for="id_sex">Sex</label>
-      <select class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2" id="id_sex" name="sex">
-        <option value="">Any</option>
-        {% for value, label in sex_options %}<option value="{{ value }}"{% if filters.sex == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
-      </select>
-    </div>
-    <div>
-      <label class="block text-sm font-medium text-neutral-800" for="id_status">Status</label>
-      <select class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2" id="id_status" name="status">
-        <option value="">Any</option>
-        {% for value, label in status_options %}<option value="{{ value }}"{% if filters.status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
-      </select>
-    </div>
-    {% if location_options %}
-    <div>
-      <label class="block text-sm font-medium text-neutral-800" for="id_location">Location</label>
-      <select class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2 sm:max-w-[10rem]" id="id_location" name="location">
-        <option value="">Any</option>
-        {% for value, label in location_options %}<option value="{{ value }}"{% if filters.location == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
-      </select>
-    </div>
+  <div class="mt-5 flex items-end justify-between gap-2 border-b border-line">
+    <nav class="-mb-px flex min-w-0 gap-4 overflow-x-auto text-sm" aria-label="Active or archived">
+      <a href="?{{ active_qs }}" class="shrink-0 border-b-2 py-2 {% if filters.tab == 'active' %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if filters.tab == 'active' %} aria-current="page"{% endif %}>Active <span class="num text-muted">{{ active_count }}</span></a>
+      <a href="?{{ archived_qs }}" class="shrink-0 border-b-2 py-2 {% if filters.tab == 'archived' %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if filters.tab == 'archived' %} aria-current="page"{% endif %}>Archived <span class="num text-muted">{{ archived_count }}</span></a>
+      <a href="?{{ deceased_qs }}" class="shrink-0 border-b-2 py-2 {% if filters.tab == 'deceased' %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if filters.tab == 'deceased' %} aria-current="page"{% endif %}>Deceased <span class="num text-muted">{{ deceased_count }}</span></a>
+    </nav>
+    {% if rabbits %}
+      <nav class="mb-1.5 flex shrink-0 items-center gap-1" aria-label="Layout">
+        <a href="?{{ grid_qs }}" class="mo-press grid h-8 w-8 place-items-center rounded-md {% if view == 'grid' %}bg-accent-soft text-accent{% else %}text-muted hover:text-ink{% endif %}"{% if view == 'grid' %} aria-current="true"{% endif %} title="Grid"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg><span class="sr-only">Grid</span></a>
+        <a href="?{{ list_qs }}" class="mo-press grid h-8 w-8 place-items-center rounded-md {% if view == 'list' %}bg-accent-soft text-accent{% else %}text-muted hover:text-ink{% endif %}"{% if view == 'list' %} aria-current="true"{% endif %} title="List"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="sr-only">List</span></a>
+        {% if view == 'grid' %}{% block density_toggle %}{% endblock %}{% endif %}
+      </nav>
     {% endif %}
-    <div class="col-span-2 sm:col-span-1">
-      <label class="block text-sm font-medium text-neutral-800" for="id_breed">Breed</label>
-      <select class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2 sm:max-w-[14rem]" id="id_breed" name="breed">
-        <option value="">Any</option>
-        {% for name in breed_options %}<option value="{{ name }}"{% if filters.breed == name %} selected{% endif %}>{{ name }}</option>{% endfor %}
-      </select>
+  </div>
+
+  <form method="get" class="mt-3" role="search" aria-label="Search and filter rabbits" data-filter-form>
+    {% if filters.tab != 'active' %}<input type="hidden" name="tab" value="{{ filters.tab }}">{% endif %}
+    {% if view == 'list' %}<input type="hidden" name="view" value="list">{% endif %}
+    <div class="flex items-center gap-2">
+      <label class="relative min-w-0 flex-1">
+        <span class="sr-only">Search by name or tattoo</span>
+        <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-3.5-3.5"/></svg>
+        <input class="block h-10 w-full rounded-md border border-field/70 bg-surface pl-9 pr-3 text-ink placeholder:text-muted focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40" id="id_q" name="q" type="search" value="{{ filters.q }}" placeholder="Name or tattoo" autocomplete="off" enterkeyhint="search">
+      </label>
+      <details class="group/f static sm:relative" data-filter-panel{% if filters_open %} open{% endif %}>
+        <summary class="mo-press flex h-10 cursor-pointer list-none items-center gap-1.5 rounded-md border px-3 text-sm font-medium select-none [&::-webkit-details-marker]:hidden {% if filter_chips %}border-accent bg-accent-soft text-accent{% else %}border-field/70 bg-surface text-ink hover:border-field{% endif %} focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+          Filter{% if filter_chips %} <span class="num rounded-full bg-accent px-1.5 text-[0.7rem] leading-[1.15rem] text-on-accent"><span class="sr-only">(</span>{{ filter_chips|length }}<span class="sr-only"> active)</span></span>{% endif %}
+        </summary>
+        <div class="absolute inset-x-4 z-30 mt-2 rounded-lg border border-line bg-surface p-4 shadow-[0_12px_32px_-12px_rgb(0_0_0/0.25)] sm:inset-x-auto sm:right-0 sm:w-80">
+          <div class="grid grid-cols-2 gap-3">
+            <label class="block text-sm font-medium">Sex
+              <select class="mt-1 block h-10 w-full rounded-md border border-field/70 bg-surface px-2" name="sex">
+                <option value="">Any</option>
+                {% for value, label in sex_options %}<option value="{{ value }}"{% if filters.sex == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </label>
+            <label class="block text-sm font-medium">Status
+              <select class="mt-1 block h-10 w-full rounded-md border border-field/70 bg-surface px-2" name="status">
+                <option value="">Any</option>
+                {% for value, label in status_options %}<option value="{{ value }}"{% if filters.status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </label>
+            <label class="col-span-2 block text-sm font-medium">Breed
+              <select class="mt-1 block h-10 w-full rounded-md border border-field/70 bg-surface px-2" name="breed">
+                <option value="">Any</option>
+                {% for name in breed_options %}<option value="{{ name }}"{% if filters.breed == name %} selected{% endif %}>{{ name }}</option>{% endfor %}
+              </select>
+            </label>
+            {% if location_options %}
+            <label class="block text-sm font-medium">Location
+              <select class="mt-1 block h-10 w-full rounded-md border border-field/70 bg-surface px-2" name="location">
+                <option value="">Any</option>
+                {% for value, label in location_options %}<option value="{{ value }}"{% if filters.location == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </label>
+            {% endif %}
+            <label class="block text-sm font-medium">Purebred
+              <select class="mt-1 block h-10 w-full rounded-md border border-field/70 bg-surface px-2" name="pure">
+                <option value="">Any</option>
+                <option value="yes"{% if filters.pure == "yes" %} selected{% endif %}>Purebred</option>
+                <option value="no"{% if filters.pure == "no" %} selected{% endif %}>Not purebred</option>
+              </select>
+            </label>
+          </div>
+          <div class="mt-4 flex items-center justify-between gap-2">
+            {% if filtering %}<a class="text-sm font-medium text-accent underline-offset-2 hover:underline" href="?{{ clear_qs }}">Clear all</a>{% else %}<span></span>{% endif %}
+            <button type="submit" class="mo-press inline-flex min-h-9 items-center rounded-md bg-accent px-4 text-sm font-semibold text-on-accent hover:bg-accent/90" data-filter-apply>Apply</button>
+          </div>
+        </div>
+      </details>
     </div>
-    <div>
-      <label class="block text-sm font-medium text-neutral-800" for="id_pure">Purebred</label>
-      <select class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2" id="id_pure" name="pure">
-        <option value="">Any</option>
-        <option value="yes"{% if filters.pure == "yes" %} selected{% endif %}>Purebred</option>
-        <option value="no"{% if filters.pure == "no" %} selected{% endif %}>Not purebred</option>
-      </select>
-    </div>
-    <div class="col-span-2 flex gap-2 sm:col-span-1">
-      <div class="flex flex-1 flex-col sm:flex-none">{% include "components/button.html" with label="Search" type="submit" variant="primary" only %}</div>
-      {% if filtering %}<div class="flex flex-1 flex-col sm:flex-none">{% include "components/button.html" with label="Clear" href="?"|add:clear_qs variant="secondary" only %}</div>{% endif %}
-    </div>
+    {% if filter_chips %}
+      <ul class="mt-2 flex flex-wrap gap-1.5" aria-label="Active filters">
+        {% for chip in filter_chips %}
+          <li class="mo-enter"><a href="?{{ chip.remove_qs }}" class="mo-press inline-flex h-7 items-center gap-1 rounded-full border border-line bg-surface pl-2.5 pr-1.5 text-xs font-medium hover:border-field">{{ chip.label }}<svg class="h-3.5 w-3.5 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span class="sr-only">Remove filter</span></a></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
   </form>
 
   {% if rabbits %}
-    <nav class="mt-6 flex justify-end" aria-label="Layout">
-      <div class="inline-flex overflow-hidden rounded border border-neutral-500 bg-white text-sm">
-        <a href="?{{ grid_qs }}" class="px-3 py-1.5 {% if view == 'grid' %}bg-accent text-on-accent hover:bg-accent/90{% endif %}"{% if view == 'grid' %} aria-current="true"{% endif %}>Grid</a>
-        <a href="?{{ list_qs }}" class="border-l border-neutral-500 px-3 py-1.5 {% if view == 'list' %}bg-accent text-on-accent hover:bg-accent/90{% endif %}"{% if view == 'list' %} aria-current="true"{% endif %}>List</a>
-      </div>
-    </nav>
 
     {% if view == 'grid' %}
-    <ul class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-view="grid">
+    <ul class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-view="grid">
       {% for rabbit in rabbits %}
         {% with main=rabbit.main_photo %}
           <li>
@@ -90,7 +114,7 @@
       {% endfor %}
     </ul>
     {% else %}
-      <ul class="mt-6 flex flex-col gap-2" data-view="list">
+      <ul class="mt-5 flex flex-col gap-2" data-view="list">
         {% for rabbit in rabbits %}
           {% with main=rabbit.main_photo %}
             <li>

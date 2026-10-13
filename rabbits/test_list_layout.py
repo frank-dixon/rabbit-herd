@@ -86,6 +86,20 @@ class SearchFilterTests(TestCase):
         self.assertEqual(self.names(breed="New Zealand")[1], ["Blackberry", "Lily"])
         self.assertEqual(self.names(sex="doe", breed="New Zealand")[1], ["Lily"])
 
+    def test_compact_filter_row_counts_and_removable_chips(self):
+        page, _ = self.names(sex="doe", breed="New Zealand")
+        self.assertContains(page, "data-filter-panel")
+        self.assertContains(page, '<span class="sr-only">(</span>2<span class="sr-only"> active)</span>')
+        chips = {chip["label"]: chip["remove_qs"] for chip in page.context["filter_chips"]}
+        self.assertEqual(set(chips), {"Doe", "New Zealand"})
+        self.assertNotIn("sex=", chips["Doe"])
+        self.assertIn("breed=New+Zealand", chips["Doe"])
+
+    def test_no_filters_means_no_chips_and_a_plain_filter_button(self):
+        page, _ = self.names()
+        self.assertEqual(page.context["filter_chips"], [])
+        self.assertNotContains(page, "Active filters")
+
     def test_breed_options_include_breeds_inside_crosses(self):
         page, _ = self.names()
         self.assertEqual(page.context["breed_options"], ["Creme d'Argent", "New Zealand", "Rex"])
@@ -93,8 +107,8 @@ class SearchFilterTests(TestCase):
     def test_archived_tab_and_counts(self):
         page, names = self.names(tab="archived")
         self.assertEqual(names, ["Clover"])
-        self.assertContains(page, "Active (3)")
-        self.assertContains(page, "Archived (1)")
+        self.assertContains(page, 'Active <span class="num text-muted">3</span>')
+        self.assertContains(page, 'Archived <span class="num text-muted">1</span>')
         self.assertContains(page, '<input type="hidden" name="tab" value="archived">')
 
     def test_unknown_values_are_ignored(self):
@@ -131,8 +145,8 @@ class DeceasedTests(TestCase):
         self.assertEqual(self.names(), ["Blackberry"])
         self.assertEqual(self.names(tab="deceased"), ["Pepper"])
         page = self.client.get(reverse("rabbit_list"), {"tab": "deceased"})
-        self.assertContains(page, "Deceased (1)")
-        self.assertContains(page, "Active (1)")
+        self.assertContains(page, 'Deceased <span class="num text-muted">1</span>')
+        self.assertContains(page, 'Active <span class="num text-muted">1</span>')
         self.assertContains(page, "Deceased · May 18, 2026")
 
     def test_detail_tag_and_died_row(self):
