@@ -3,10 +3,18 @@
 {% block title %}What-if cross · {{ app_name }}{% endblock %}
 
 {% block content %}
-  {% include "components/page_header.html" with title="What-if cross" subtitle="Kit color odds for any two rabbits or breeds. Nothing here is saved; the page address holds the cross." only %}
+  {% include "components/page_header.html" with title="What-if cross" subtitle="Kit color odds for any two rabbits, breeds or typed genotypes. Nothing is saved; the page address holds the cross." only %}
   <form class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2" method="get" action="{% url 'genetics_cross' %}" data-cross-form>
-    {% include "components/select.html" with name="doe" label="First parent" groups=groups value=values.doe errors=errors.doe placeholder="Choose a rabbit or breed…" only %}
-    {% include "components/select.html" with name="buck" label="Second parent" groups=groups value=values.buck errors=errors.buck placeholder="Choose a rabbit or breed…" only %}
+    <div class="flex flex-col gap-3">
+      {% include "components/select.html" with name="doe" label="First parent" groups=groups value=values.doe errors=errors.doe placeholder="Choose a rabbit or breed…" only %}
+      {% include "components/text_input.html" with name="doe_genes" label="First parent's genes" value=values.doe_genes errors=errors.doe_genes help="Type or edit, such as aa B_ Cc D_ Ee. Typed genes are used over the pick." only %}
+    </div>
+    <div class="flex flex-col gap-3">
+      {% include "components/select.html" with name="buck" label="Second parent" groups=groups value=values.buck errors=errors.buck placeholder="Choose a rabbit or breed…" only %}
+      {% include "components/text_input.html" with name="buck_genes" label="Second parent's genes" value=values.buck_genes errors=errors.buck_genes help="Leave blank to use the pick's genes." only %}
+    </div>
+    <input type="hidden" name="doe_was" value="{{ values.doe }}">
+    <input type="hidden" name="buck_was" value="{{ values.buck }}">
     <div class="sm:col-span-2">{% include "components/button.html" with label="Show odds" type="submit" variant="primary" only %}</div>
   </form>
   {% if result %}
@@ -14,6 +22,11 @@
       <h2 class="text-base font-semibold" id="cross-heading">{{ result.doe_label }} × {{ result.buck_label }}</h2>
       {% if result.breeds %}<p class="mt-1 text-sm text-neutral-600" data-breed-note>{{ result.breeds|join:" and " }}: typical genes for the variety, with each unfixed allele read as a second copy of the one shown (B_ as B/B). Your lines may differ.</p>{% endif %}
       {% include "rabbits/_color_odds.html" with odds=result.odds differing=result.differing hidden_notes=result.hidden_notes doe_label=result.doe_label buck_label=result.buck_label only %}
+      <div class="mt-4" data-share>
+        <label class="block text-sm font-medium text-neutral-800" for="id_share">Link to this cross</label>
+        <input class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2 font-mono text-sm text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" id="id_share" type="text" readonly value="{{ share_url }}" aria-describedby="id_share_help">
+        <p class="mt-1 text-sm text-neutral-600" id="id_share_help">Bookmark it or send it. Herd rabbits only show for you; typed genes and breeds work for anyone signed in.</p>
+      </div>
     </section>
   {% elif not values.doe and not values.buck %}
     <p class="mt-6 text-neutral-600">Choose two parents to see their kits' likely colors.</p>

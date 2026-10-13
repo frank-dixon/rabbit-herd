@@ -102,8 +102,14 @@ BY_SLUG = {slug(variety.name): variety for variety in VARIETIES}
 def genes(summary):
     """{locus: (allele, allele)} from a summary such as "aa B_ cc D_".
     Unknown alleles stay _; tokens that match no locus are skipped."""
-    out = {}
-    for token in summary.split():
+    return read(summary)[0]
+
+
+def read(summary):
+    """(genes, unread tokens) from typed text such as "aa B_ cc D_" or
+    "a/a B/b": each token is one locus, written either way."""
+    out, unread = {}, []
+    for token in str(summary or "").replace(",", " ").split():
         for locus in SERIES:
             if locus in out:
                 continue
@@ -111,7 +117,14 @@ def genes(summary):
             if pair is not None and pair != (UNKNOWN, UNKNOWN):
                 out[locus] = pair
                 break
-    return out
+        else:
+            unread.append(token)
+    return out, unread
+
+
+def summary(pairs):
+    """The short typed form of {locus: pair}: "aa B_ cc"."""
+    return " ".join("".join(pairs[locus]) for locus in SERIES if locus in pairs)
 
 
 def typical(name_or_slug):

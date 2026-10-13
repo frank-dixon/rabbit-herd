@@ -1,6 +1,7 @@
 """What-if cross: color odds for any two parents, picked from the herd or
-from the typical breed genotypes. A GET form, so the URL carries the cross
-and works without JavaScript."""
+from the typical breed genotypes, or typed in (doe_genes, buck_genes such
+as "aa B_ Cc"). A GET form, so the URL carries the whole cross and can be
+bookmarked or shared; it works without JavaScript."""
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
@@ -40,12 +41,43 @@ def resolve(user, value):
     return None
 
 
+def typed(source, text, fallback_label):
+    """Apply typed genotype text on top of a picked source. Returns
+    (picked or None, unread tokens)."""
+    pairs, unread = breed_genetics.read(text)
+    if not pairs:
+        return None, unread
+    label = fallback_label
+    if source is not None:
+        label = source[0] if breed_genetics.summary(pairs) == breed_genetics.summary(source[2]) else f"{source[0]} (edited)"
+    side = (label, {locus: (color_odds.genotype_text(pair), False) for locus, pair in pairs.items()})
+    return (label, side, pairs, "typed"), unread
+
+
 @login_required
 def cross_view(request):
     values = {side: request.GET.get(side, "") for side in SIDES}
+    values.update({f"{side}_genes": " ".join(request.GET.get(f"{side}_genes", "").split())[:200] for side in SIDES})
     picked = {side: resolve(request.user, values[side]) for side in SIDES}
     errors = {side: ["Choose a rabbit or breed from the list."]
               for side in SIDES if values[side] and picked[side] is None}
+    for side, label in (("doe", "First parent"), ("buck", "Second parent")):
+        text = values[f"{side}_genes"]
+        was = request.GET.get(f"{side}_was")
+        if was is not None and was != values[side]:
+            text = ""  # The pick changed since its genes were filled in; use the new pick.
+        if picked[side] is not None and text == breed_genetics.summary(picked[side][2]):
+            text = ""  # Unchanged from the pick: keep the pick (and its probable genes).
+        if text:
+            result, unread = typed(picked[side], text, label)
+            if unread:
+                errors[f"{side}_genes"] = [f"Can't read {', '.join(unread)}. Write each gene like aa, B_ or Cc, separated by spaces."]
+            if result is not None:
+                if picked[side] is not None and picked[side][3] == "breed" and result[0] == picked[side][0]:
+                    result = (result[0], result[1], result[2], "breed")
+                picked[side] = result
+        elif picked[side] is not None:
+            values[f"{side}_genes"] = breed_genetics.summary(picked[side][2])
     result = None
     if picked["doe"] and picked["buck"]:
         (doe_label, doe_side, doe_pairs, doe_kind), (buck_label, buck_side, buck_pairs, buck_kind) = picked["doe"], picked["buck"]
@@ -60,5 +92,6 @@ def cross_view(request):
             "breeds": [label for label, kind in ((doe_label, doe_kind), (buck_label, buck_kind)) if kind == "breed"],
         }
     return render(request, "rabbits/cross.html", {
-        "values": values, "errors": errors, "result": result, "groups": source_options(request.user), "wide": True,
+        "values": values, "errors": errors, "result": result,
+        "share_url": request.build_absolute_uri() if result else "", "groups": source_options(request.user), "wide": True,
     })
