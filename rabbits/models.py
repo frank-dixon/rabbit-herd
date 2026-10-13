@@ -259,10 +259,19 @@ class Rabbit(models.Model):
 
     @property
     def status_tag(self):
-        """Status for tags: "Deceased · May 18, 2026" when the date is known."""
-        if self.is_deceased and self.death_date:
-            return f"Deceased · {self.death_date:%b} {self.death_date.day}, {self.death_date.year}"
+        """Short status for pills: "Deceased", "Sold". The date goes on the meta line (died_text)."""
         return self.get_status_display()
+
+    @property
+    def died_text(self):
+        """ "Died Mon, May 18" (the year too when it isn't this year), or "" when no date."""
+        if not (self.is_deceased and self.death_date):
+            return ""
+        from django.utils import timezone
+
+        d = self.death_date
+        year = f", {d.year}" if d.year != timezone.localdate().year else ""
+        return f"Died {d:%a}, {d:%b} {d.day}{year}"
 
     @property
     def short_breed(self):

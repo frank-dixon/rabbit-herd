@@ -147,11 +147,12 @@ class DeceasedTests(TestCase):
         page = self.client.get(reverse("rabbit_list"), {"tab": "deceased"})
         self.assertContains(page, 'Former <span class="num text-muted">1</span>')
         self.assertContains(page, 'Active <span class="num text-muted">1</span>')
-        self.assertContains(page, "Deceased · May 18, 2026")
+        self.assertContains(page, ">Deceased</span>")  # short pill; the date sits on the meta line
+        self.assertContains(page, "Died Mon, May 18")
 
     def test_detail_tag_and_died_row(self):
         page = self.client.get(reverse("rabbit_detail", args=[self.pepper.pk]))
-        self.assertContains(page, "Deceased · May 18, 2026")
+        self.assertContains(page, ">Deceased</span>")
         self.assertContains(page, "May 18, 2026 · Died kindling")
 
 

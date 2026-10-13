@@ -14,7 +14,7 @@
           {% endwith %}
           <div class="min-w-0 flex-1">
             <p class="break-words text-lg font-semibold">{{ rabbit.name }}</p>
-            <p class="text-sm text-neutral-600">{{ rabbit.get_sex_display }} · {{ rabbit.short_breed }} · {{ rabbit.status_tag }}</p>
+            <p class="text-sm text-neutral-600">{{ rabbit.get_sex_display }} · {{ rabbit.short_breed }} · {{ rabbit.status_tag }}{% if rabbit.died_text %} · {{ rabbit.died_text }}{% endif %}</p>
           </div>
           <div class="flex flex-col gap-2 sm:flex-row sm:shrink-0">
             {% url 'rabbit_detail' rabbit.pk as detail_url %}

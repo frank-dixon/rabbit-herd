@@ -62,7 +62,7 @@ class KindlingNoteTests(TestCase):
         url = reverse("rabbit_detail", args=[kit.pk])
         page = self.client.get(url)
         self.assertContains(page, "Pepper died kindling this litter on May 18, 2026.")
-        self.assertContains(page, "Dam (mother) · Deceased · May 18, 2026")
+        self.assertContains(page, "Dam (mother) · Died Mon, May 18")
         pepper.death_cause = "Illness"
         pepper.save()
         self.assertNotContains(self.client.get(url), "died kindling this litter")
