@@ -1,0 +1,17 @@
+{# One growth chart drawing. c (from siblings.growth_chart), suffix (unique id part), name_len. #}
+        <svg class="h-auto w-full text-ink {{ svg_class }}" viewBox="0 0 {{ c.width }} {{ c.height }}" role="img" aria-labelledby="growth-title{{ suffix }}" data-growth-chart>
+          <title id="growth-title{{ suffix }}">{{ c.summary }}</title>
+          {% for t in c.y_ticks %}<line x1="{{ c.left }}" x2="{{ c.right }}" y1="{{ t.y }}" y2="{{ t.y }}" stroke="currentColor" stroke-opacity="0.1"/><text x="{{ c.left|add:'-8' }}" y="{{ t.y }}" text-anchor="end" dominant-baseline="middle" font-size="11" fill="currentColor" fill-opacity="0.65">{{ t.label }}</text>{% endfor %}
+          <line x1="{{ c.left }}" x2="{{ c.right }}" y1="{{ c.bottom }}" y2="{{ c.bottom }}" stroke="currentColor" stroke-opacity="0.35"/>
+          {% for t in c.x_ticks %}<text x="{{ t.x }}" y="{{ c.bottom|add:'17' }}" text-anchor="middle" font-size="11" fill="currentColor" fill-opacity="0.65">{{ t.label }}</text>{% endfor %}
+          <text x="{{ c.mid_x }}" y="{{ c.height|add:'-6' }}" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor" fill-opacity="0.6">{{ c.x_title }}</text>
+          <text transform="translate(14 {{ c.mid_y }}) rotate(-90)" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor" fill-opacity="0.6">{{ c.y_title }}</text>
+          {% if c.average %}<polyline class="transition-opacity duration-200" data-series="avg" points="{{ c.average }}" fill="none" stroke="currentColor" stroke-opacity="0.55" stroke-width="1.75" stroke-dasharray="5 4"/>{% endif %}
+          {% for line in c.lines %}
+            <g class="transition-opacity duration-200" data-series="{{ line.index }}" style="color: {{ line.color }}">
+              <polyline points="{{ line.points }}" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round"/>
+              {% for d in line.dots %}<circle cx="{{ d.x }}" cy="{{ d.y }}" r="{% if forloop.last %}3.5{% else %}2{% endif %}" fill="currentColor"/>{% endfor %}
+              <text x="{{ c.label_x }}" y="{{ line.label_y }}" dominant-baseline="middle" font-size="11" font-weight="600" fill="currentColor">{{ line.name|truncatechars:name_len }}</text>
+            </g>
+          {% endfor %}
+        </svg>
