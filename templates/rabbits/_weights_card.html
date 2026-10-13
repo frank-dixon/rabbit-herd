@@ -23,7 +23,7 @@
       {% for weight in weights|slice:":6" %}
         <li class="flex items-start justify-between gap-3 py-2">
           <span class="min-w-0"><span class="font-medium">{{ weight.grams|weigh:request.user }}</span> · {{ weight.date|date:"M j, Y" }}{% if weight.note %}<span class="block break-words text-neutral-600">{{ weight.note }}</span>{% endif %}</span>
-          <form method="post" action="{% url 'rabbit_weight_delete' weight.pk %}" data-confirm="Remove this weight?">
+          <form method="post" action="{% url 'rabbit_weight_delete' weight.pk %}" data-undo-remove="Weight removed.">
             {% csrf_token %}
             <button type="submit" class="text-neutral-600 underline">Remove<span class="sr-only"> {{ weight.grams|weigh:request.user }} on {{ weight.date|date:"M j, Y" }}</span></button>
           </form>

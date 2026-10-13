@@ -48,7 +48,7 @@
               </div>
               <div class="flex shrink-0 gap-3">
                 <a class="text-neutral-600 underline" href="?edit={{ expense.pk }}#add">Edit<span class="sr-only"> {{ expense.description }}</span></a>
-                <form method="post" action="{% url 'cost_delete' expense.pk %}" data-confirm="Remove this cost?">
+                <form method="post" action="{% url 'cost_delete' expense.pk %}" data-undo-remove="Cost removed.">
                   {% csrf_token %}<button type="submit" class="text-neutral-600 underline">Remove<span class="sr-only"> {{ expense.description }}</span></button>
                 </form>
               </div>

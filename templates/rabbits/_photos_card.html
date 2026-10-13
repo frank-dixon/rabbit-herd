@@ -73,7 +73,7 @@
               {% csrf_token %}<input type="hidden" name="back_to" value="{{ back_to|default:'detail' }}">
               {% include "components/button.html" with label="↻ Rotate right" type="submit" name="direction" value="right" variant="secondary" sr_suffix="(photo "|add:number|add:")" only %}
             </form>
-            <form class="sm:ml-auto" method="post" action="{% url 'rabbit_photo_delete' photo.pk %}" data-confirm="Remove this photo? This can't be undone.">
+            <form class="sm:ml-auto" method="post" action="{% url 'rabbit_photo_delete' photo.pk %}" data-undo-remove="Photo removed.">
               {% csrf_token %}<input type="hidden" name="back_to" value="{{ back_to|default:'detail' }}">
               {% include "components/button.html" with label="Remove" type="submit" variant="danger" sr_suffix="photo "|add:number only %}
             </form>

@@ -85,7 +85,10 @@ def task_done(request, pk):
     task = get_object_or_404(Task, owner=request.user, pk=pk)
     task.done_at = None if task.done_at else timezone.now()
     task.save(update_fields=["done_at"])
-    messages.success(request, f"{task.title}: {'done' if task.done_at else 'back on the list'}.")
+    if task.done_at:
+        messages.success(request, f"{task.title}: done.", extra_tags="undo|" + reverse("task_done", args=[task.pk]))
+    else:
+        messages.success(request, f"{task.title}: back on the list.")
     return redirect(safe_next(request, "task_list"))
 
 

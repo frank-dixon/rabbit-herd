@@ -86,3 +86,37 @@ class TabBarTests(TestCase):
         page = self.client.get(reverse("rabbit_list"))
         self.assertContains(page, 'id="tab-destinations"')
         self.assertContains(page, "data-tab-tray hidden")
+
+
+class UndoToastTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(email="undo@example.com", password="x-strong-Pass-1")
+        self.client.force_login(self.user)
+
+    def test_archive_toast_offers_undo_that_restores(self):
+        from rabbits.models import Rabbit
+        rabbit = Rabbit.objects.create(owner=self.user, name="Fern", sex="doe", birth_date="2025-01-01")
+        page = self.client.post(reverse("rabbit_archive", args=[rabbit.pk]), follow=True)
+        self.assertContains(page, "Fern was archived.")
+        self.assertContains(page, f'action="{reverse("rabbit_restore", args=[rabbit.pk])}" data-toast-undo')
+        self.client.post(reverse("rabbit_restore", args=[rabbit.pk]))
+        rabbit.refresh_from_db()
+        self.assertIsNone(rabbit.archived_at)
+
+    def test_task_done_toast_undo_puts_it_back(self):
+        import datetime
+        from rabbits.models import Task
+        task = Task.objects.create(owner=self.user, title="Trim nails", due_on=datetime.date.today())
+        page = self.client.post(reverse("task_done", args=[task.pk]), {"next": "/tasks/"}, follow=True)
+        self.assertContains(page, f'action="{reverse("task_done", args=[task.pk])}" data-toast-undo')
+        self.client.post(reverse("task_done", args=[task.pk]), {"next": "/tasks/"})
+        task.refresh_from_db()
+        self.assertIsNone(task.done_at)
+
+    def test_removes_use_undo_not_confirm(self):
+        from pathlib import Path
+        from django.conf import settings
+        for path in Path(settings.BASE_DIR, "templates").rglob("*.html"):
+            text = path.read_text()
+            if "data-confirm" in text:
+                self.assertIn("Start over", text, path)

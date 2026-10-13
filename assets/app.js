@@ -23,6 +23,8 @@ import { bindFilters } from "./filters.mjs";
 import { bindMenu } from "./menu.mjs";
 import { bindQuickDone } from "./quick-done.mjs";
 import { bindTabEdit } from "./tab-edit.mjs";
+import { bindToasts } from "./toast.mjs";
+import { bindUndoRemove } from "./undo-remove.mjs";
 
 /**
  * Read the CSRF token from the page.
@@ -317,6 +319,8 @@ function start() {
   bindMenu(document, window);
   bindQuickDone(document, window);
   bindTabEdit(document, window);
+  bindToasts(document, window);
+  bindUndoRemove(document, window);
 }
 
 if (document.readyState === "loading") {

@@ -4,6 +4,7 @@
  * and the page reloads.
  */
 import { leave } from "./motion.mjs";
+import { showToast } from "./toast.mjs";
 
 export function bindQuickDone(doc, win = window) {
   doc.addEventListener("submit", async (event) => {
@@ -11,6 +12,7 @@ export function bindQuickDone(doc, win = window) {
     if (!form) return;
     event.preventDefault();
     const row = form.closest("li");
+    const title = row?.querySelector("p")?.textContent.trim() || "Task";
     const button = form.querySelector("button");
     if (button) button.disabled = true;
     row?.classList.add("is-done");
@@ -31,6 +33,15 @@ export function bindQuickDone(doc, win = window) {
     doc.querySelectorAll('[data-tab="tasks"] .num').forEach((badge) => {
       const n = Math.max(0, parseInt(badge.textContent, 10) - 1);
       if (n) badge.firstChild.textContent = String(n); else badge.remove();
+    });
+    showToast(doc, `Done: ${title}`, {
+      win,
+      undo: async () => {
+        const body = new FormData(form);
+        if (body.has("done")) body.set("done", "0");
+        await win.fetch(form.action, { method: "POST", body, credentials: "same-origin" }).catch(() => {});
+        win.location.reload();
+      },
     });
     doc.dispatchEvent(new CustomEvent("bb:done", { detail: { form } }));
   });

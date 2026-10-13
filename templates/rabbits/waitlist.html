@@ -23,7 +23,7 @@
                 </div>
                 <div class="flex shrink-0 gap-3 text-sm">
                   <a class="text-neutral-600 underline" href="?edit={{ entry.pk }}#form">Edit<span class="sr-only"> {{ entry.buyer }}</span></a>
-                  <form method="post" action="{% url 'waitlist_delete' entry.pk %}" data-confirm="Remove {{ entry.buyer }} from the waitlist?">
+                  <form method="post" action="{% url 'waitlist_delete' entry.pk %}" data-undo-remove="Removed {{ entry.buyer }} from the waitlist.">
                     {% csrf_token %}<button type="submit" class="text-neutral-600 underline">Remove<span class="sr-only"> {{ entry.buyer }}</span></button>
                   </form>
                 </div>

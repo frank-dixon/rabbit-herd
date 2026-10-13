@@ -18,7 +18,7 @@
           </div>
           <div class="flex shrink-0 gap-3">
             <a class="text-neutral-600 underline" href="?show={{ entry.pk }}#shows">Edit<span class="sr-only"> {{ entry.show_name }}</span></a>
-            <form method="post" action="{% url 'rabbit_show_delete' entry.pk %}" data-confirm="Remove this show result?">
+            <form method="post" action="{% url 'rabbit_show_delete' entry.pk %}" data-undo-remove="Show result removed.">
               {% csrf_token %}
               <button type="submit" class="text-neutral-600 underline">Remove<span class="sr-only"> {{ entry.show_name }}</span></button>
             </form>

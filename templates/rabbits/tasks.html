@@ -36,7 +36,7 @@
             </div>
             <div class="flex gap-2">
               <form method="post" action="{% url 'task_done' task.pk %}">{% csrf_token %}{% include "components/button.html" with label="Undo" sr_suffix=task.title type="submit" variant="secondary" only %}</form>
-              <form method="post" action="{% url 'task_delete' task.pk %}">{% csrf_token %}{% include "components/button.html" with label="Remove" sr_suffix=task.title type="submit" variant="secondary" only %}</form>
+              <form method="post" action="{% url 'task_delete' task.pk %}" data-undo-remove="Task removed.">{% csrf_token %}{% include "components/button.html" with label="Remove" sr_suffix=task.title type="submit" variant="secondary" only %}</form>
             </div>
           </li>
         {% endfor %}

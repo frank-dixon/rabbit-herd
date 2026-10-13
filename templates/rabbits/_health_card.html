@@ -10,7 +10,7 @@
             {% if note.notes %}<p class="whitespace-pre-line break-words text-neutral-800">{{ note.notes }}</p>{% endif %}
             {% if note.follow_up_on %}<p class="text-neutral-600">Follow up {{ note.follow_up_on|date:"M j, Y" }}{% if note.task.done_at %} · done{% elif note.task %} · <a class="underline" href="{% url 'task_list' %}">on your tasks</a>{% endif %}</p>{% endif %}
           </div>
-          <form method="post" action="{% url 'rabbit_health_delete' note.pk %}" data-confirm="Remove this health note?">
+          <form method="post" action="{% url 'rabbit_health_delete' note.pk %}" data-undo-remove="Health note removed.">
             {% csrf_token %}
             <button type="submit" class="text-neutral-600 underline">Remove<span class="sr-only"> {{ note.get_kind_display }} on {{ note.date|date:"M j, Y" }}</span></button>
           </form>

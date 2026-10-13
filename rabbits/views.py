@@ -2,6 +2,7 @@ from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction
 from django.db.models import Q
@@ -277,7 +278,7 @@ def rabbit_archive(request, pk):
     if rabbit.archived_at is None:
         rabbit.archived_at = timezone.now()
         rabbit.save(update_fields=["archived_at", "updated_at"])
-    messages.success(request, f"{rabbit.name} was archived.")
+    messages.success(request, f"{rabbit.name} was archived.", extra_tags="undo|" + reverse("rabbit_restore", args=[rabbit.pk]))
     return redirect("rabbit_list")
 
 

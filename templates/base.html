@@ -16,11 +16,12 @@
 {% block main %}
   <p class="mb-6 rounded border border-neutral-400 bg-white px-3 py-2 text-sm font-medium" role="status" data-connection-status data-print-hide hidden></p>
   {% if messages %}
-    <div class="mb-8 space-y-2" data-print-hide>
-      {% for message in messages %}
-        {% include "components/alert.html" with text=message tags=message.tags only %}
-      {% endfor %}
-    </div>
+    {% for message in messages %}{% if message.level_tag == "error" %}
+      <div class="mb-6" data-print-hide>{% include "components/alert.html" with text=message tags=message.tags only %}</div>
+    {% endif %}{% endfor %}
+    {% include "components/toasts.html" %}
+  {% else %}
+    <div class="toasts" data-toasts aria-live="polite" data-print-hide></div>
   {% endif %}
   {% block content %}{% endblock %}
 {% endblock %}
