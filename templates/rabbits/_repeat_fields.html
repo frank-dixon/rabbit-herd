@@ -1,0 +1,15 @@
+{# Repeat dropdown plus the Custom "Every n days/weeks/months" fields. Pass values, errors, repeat_options, unit_options. Without JS the custom fields stay visible and only count when Custom is picked. #}
+{% include "components/select.html" with name="repeat" label="Repeat" options=repeat_options value=values.repeat placeholder="No repeat" data_role="repeat" only %}
+<fieldset class="repeat-custom min-w-0 sm:col-span-full" data-repeat-custom>
+  <legend class="block text-sm font-medium text-neutral-800">Custom repeat <span class="font-normal text-neutral-600">(used when Repeat is Custom)</span></legend>
+  <div class="mt-1 flex items-center gap-2">
+    <span class="text-neutral-800">Every</span>
+    <label class="sr-only" for="id_repeat_every">Number</label>
+    <input class="block w-20 min-w-0 rounded-lg border bg-white px-3 py-2 text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent {% if errors.repeat_every %}border-red-800{% else %}border-neutral-400{% endif %}" id="id_repeat_every" name="repeat_every" type="number" inputmode="numeric" min="1" max="365" value="{{ values.repeat_every }}"{% if errors.repeat_every %} aria-invalid="true" aria-describedby="id_repeat_every_error"{% endif %}>
+    <label class="sr-only" for="id_repeat_unit">Unit</label>
+    <select class="block min-w-0 rounded-lg border border-neutral-400 bg-white px-3 py-2 text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" id="id_repeat_unit" name="repeat_unit">
+      {% for v, l in unit_options %}<option value="{{ v }}"{% if v == values.repeat_unit %} selected{% endif %}>{{ l }}</option>{% endfor %}
+    </select>
+  </div>
+  {% include "components/field_errors.html" with name="repeat_every" errors=errors.repeat_every only %}
+</fieldset>

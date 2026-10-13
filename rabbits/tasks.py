@@ -4,6 +4,7 @@ listed together by date. Overdue items are marked."""
 import datetime
 
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -15,6 +16,53 @@ from .models import Litter, Rabbit, Task, prefs
 
 TITLE_REQUIRED = "Please say what needs doing, like Trim nails."
 DATE_REQUIRED = "Please enter a due date."
+EVERY_REQUIRED = "Please enter how often, like every 3 weeks."
+REPEAT_KEYS = ("repeat", "repeat_every", "repeat_unit")
+
+
+def repeat_options():
+    return [(value, label) for value, label in Task.Repeat.choices]
+
+
+def unit_options():
+    return [(value, label) for value, label in Task.Unit.choices]
+
+
+def parse_repeat(values, errors):
+    """Repeat fields from the form. Every and unit only count when Custom is chosen."""
+    repeat = values.get("repeat", "")
+    if repeat not in Task.Repeat.values:
+        return {"repeat": "", "repeat_every": None, "repeat_unit": ""}
+    if repeat != "custom":
+        return {"repeat": repeat, "repeat_every": None, "repeat_unit": ""}
+    every, unit = values.get("repeat_every", ""), values.get("repeat_unit", "")
+    if not every.isdigit() or not 1 <= int(every) <= 365 or unit not in Task.Unit.values:
+        errors["repeat_every"] = [EVERY_REQUIRED]
+        return {}
+    return {"repeat": "custom", "repeat_every": int(every), "repeat_unit": unit}
+
+
+def parse_task(request, values):
+    """Clean the add/edit form. Returns (fields, errors)."""
+    errors = {}
+    title = " ".join(values["title"].split())[:120]
+    try:
+        due = datetime.date.fromisoformat(values["due_on"])
+    except ValueError:
+        due = None
+    rabbit = None
+    if values["rabbit"].isdigit():
+        rabbit = Rabbit.objects.filter(owner=request.user, pk=int(values["rabbit"])).first()
+    if not title:
+        errors["title"] = [TITLE_REQUIRED]
+    if due is None:
+        errors["due_on"] = [DATE_REQUIRED]
+    repeat = parse_repeat(values, errors)
+    return {"title": title, "due_on": due, "rabbit": rabbit, **repeat}, errors
+
+
+def form_context(values, errors):
+    return {"values": values, "errors": errors, "repeat_options": repeat_options(), "unit_options": unit_options()}
 
 
 def open_items(user, today=None):
@@ -22,7 +70,7 @@ def open_items(user, today=None):
     today = today or timezone.localdate()
     items = []
     for task in Task.objects.filter(owner=user, done_at__isnull=True).select_related("rabbit"):
-        items.append({"kind": "task", "pk": task.pk, "title": task.title, "date": task.due_on,
+        items.append({"kind": "task", "pk": task.pk, "title": task.title, "date": task.due_on, "repeat": task.repeat_label(),
                       "rabbit": task.rabbit, "url": reverse("rabbit_detail", args=[task.rabbit_id]) if task.rabbit_id else ""})
     # Litters still to kindle, plus recent ones with wean or process dates
     # open; older litters are history and stay off the list.
@@ -52,29 +100,19 @@ def rabbit_options(user):
 @login_required
 def task_list(request):
     today = timezone.localdate()
-    values = {"title": "", "due_on": today.isoformat(), "rabbit": request.GET.get("rabbit", "")}
+    values = {"title": "", "due_on": today.isoformat(), "rabbit": request.GET.get("rabbit", ""),
+              "repeat": "", "repeat_every": "", "repeat_unit": "weeks"}
     errors = {}
     if request.method == "POST":
         values = {key: request.POST.get(key, "").strip() for key in values}
-        title = " ".join(values["title"].split())[:120]
-        try:
-            due = datetime.date.fromisoformat(values["due_on"])
-        except ValueError:
-            due = None
-        rabbit = None
-        if values["rabbit"].isdigit():
-            rabbit = Rabbit.objects.filter(owner=request.user, pk=int(values["rabbit"])).first()
-        if not title:
-            errors["title"] = [TITLE_REQUIRED]
-        if due is None:
-            errors["due_on"] = [DATE_REQUIRED]
+        fields, errors = parse_task(request, values)
         if not errors:
-            Task.objects.create(owner=request.user, title=title, due_on=due, rabbit=rabbit)
-            messages.success(request, f"Added: {title}.")
+            Task.objects.create(owner=request.user, **fields)
+            messages.success(request, f"Added: {fields['title']}.")
             return redirect("task_list")
     done = Task.objects.filter(owner=request.user, done_at__isnull=False).select_related("rabbit").order_by("-done_at")[:10]
     return render(request, "rabbits/tasks.html", {
-        "items": open_items(request.user, today), "done": done, "values": values, "errors": errors,
+        "items": open_items(request.user, today), "done": done, **form_context(values, errors),
         "rabbit_options": rabbit_options(request.user), "wide": True,
     })
 
@@ -83,13 +121,53 @@ def task_list(request):
 @require_POST
 def task_done(request, pk):
     task = get_object_or_404(Task, owner=request.user, pk=pk)
-    task.done_at = None if task.done_at else timezone.now()
-    task.save(update_fields=["done_at"])
+    with transaction.atomic():
+        set_done(task, not task.done_at)
     if task.done_at:
-        messages.success(request, f"{task.title}: done.", extra_tags="undo|" + reverse("task_done", args=[task.pk]))
+        extra = f" Next one is due {task.next_occurrence.due_on:%b} {task.next_occurrence.due_on.day}." if task.next_occurrence_id else ""
+        messages.success(request, f"{task.title}: done.{extra}", extra_tags="undo|" + reverse("task_done", args=[task.pk]))
     else:
         messages.success(request, f"{task.title}: back on the list.")
     return redirect(safe_next(request, "task_list"))
+
+
+def set_done(task, done):
+    """Mark a task done or not. Done on a repeating task adds the next one, counted from
+    its due date; undoing removes that next one again if it is still open."""
+    if done:
+        task.done_at = timezone.now()
+        due = task.next_due()
+        if due and not task.next_occurrence_id:
+            task.next_occurrence = Task.objects.create(
+                owner=task.owner, title=task.title, due_on=due, rabbit=task.rabbit,
+                repeat=task.repeat, repeat_every=task.repeat_every, repeat_unit=task.repeat_unit)
+    else:
+        task.done_at = None
+        nxt = task.next_occurrence
+        if nxt and nxt.done_at is None and not nxt.next_occurrence_id:
+            task.next_occurrence = None
+            nxt.delete()
+    task.save(update_fields=["done_at", "next_occurrence"])
+
+
+@login_required
+def task_edit(request, pk):
+    task = get_object_or_404(Task, owner=request.user, pk=pk)
+    values = {"title": task.title, "due_on": task.due_on.isoformat(), "rabbit": str(task.rabbit_id or ""),
+              "repeat": task.repeat, "repeat_every": str(task.repeat_every or ""), "repeat_unit": task.repeat_unit or "weeks"}
+    errors = {}
+    if request.method == "POST":
+        values = {key: request.POST.get(key, "").strip() for key in values}
+        fields, errors = parse_task(request, values)
+        if not errors:
+            for key, value in fields.items():
+                setattr(task, key, value)
+            task.save()
+            messages.success(request, f"Saved: {task.title}.")
+            return redirect("task_list")
+    return render(request, "rabbits/task_edit.html", {
+        "task": task, **form_context(values, errors), "rabbit_options": rabbit_options(request.user),
+    })
 
 
 @login_required

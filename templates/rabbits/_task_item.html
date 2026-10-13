@@ -3,13 +3,16 @@
   <div class="min-w-0">
     <p class="break-words font-semibold">{% if item.url %}<a class="underline" href="{{ item.url }}">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</p>
     <p class="text-sm {% if item.overdue %}font-semibold text-red-800{% else %}text-neutral-600{% endif %}">
-      {% if item.overdue %}Overdue · {% elif item.today %}Today · {% endif %}{{ item.date|date:"D, M j" }}{% if item.kind == "task" and item.rabbit %} · {{ item.rabbit.name }}{% endif %}
+      {% if item.overdue %}Overdue · {% elif item.today %}Today · {% endif %}{{ item.date|date:"D, M j" }}{% if item.kind == "task" and item.rabbit %} · {{ item.rabbit.name }}{% endif %}{% if item.repeat %} · <span class="whitespace-nowrap" data-repeat-badge><span aria-hidden="true">↻</span> {{ item.repeat }}</span>{% endif %}
     </p>
   </div>
   {% if item.kind == "task" %}
+    <div class="flex gap-2">
+    <a class="self-center text-sm underline" href="{% url 'task_edit' item.pk %}">Edit<span class="sr-only"> {{ item.title }}</span></a>
     <form method="post" action="{% url 'task_done' item.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
       {% include "components/button.html" with label="Mark done" sr_suffix=item.title type="submit" variant="secondary" only %}
     </form>
+    </div>
   {% elif item.key != "due" %}
     <form method="post" action="{% url 'litter_task' item.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}"><input type="hidden" name="task" value="{{ item.key }}"><input type="hidden" name="done" value="1">
       {% include "components/button.html" with label="Mark done" sr_suffix=item.title type="submit" variant="secondary" only %}

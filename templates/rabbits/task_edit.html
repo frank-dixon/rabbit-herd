@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Edit task · {{ app_name }}{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title="Edit task" subtitle=task.title secondary_label="All tasks" secondary_href="/tasks/" only %}
+  <form class="mt-6 grid max-w-xl grid-cols-1 gap-3" method="post">
+    {% csrf_token %}
+    {% include "components/text_input.html" with name="title" label="What needs doing" value=values.title errors=errors.title only %}
+    {% include "components/text_input.html" with name="due_on" label="Due" type="date" value=values.due_on errors=errors.due_on only %}
+    {% include "components/select.html" with name="rabbit" label="Rabbit (optional)" options=rabbit_options value=values.rabbit placeholder="No rabbit" only %}
+    {% include "rabbits/_repeat_fields.html" %}
+    <div>{% include "components/button.html" with label="Save task" type="submit" variant="primary" only %}</div>
+  </form>
+{% endblock %}

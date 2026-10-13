@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 from datetime import date, time as clock_time
 import uuid
@@ -793,11 +794,66 @@ class Task(models.Model):
     done_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Repeat(models.TextChoices):
+        DAILY = "daily", "Daily"
+        WEEKLY = "weekly", "Weekly"
+        BIWEEKLY = "biweekly", "Every 2 weeks"
+        MONTHLY = "monthly", "Monthly"
+        BIMONTHLY = "bimonthly", "Every 2 months"
+        QUARTERLY = "quarterly", "Every 3 months"
+        CUSTOM = "custom", "Custom"
+
+    class Unit(models.TextChoices):
+        DAYS = "days", "days"
+        WEEKS = "weeks", "weeks"
+        MONTHS = "months", "months"
+
+    # Blank repeat means a one-off task. Custom uses repeat_every and repeat_unit.
+    repeat = models.CharField(max_length=10, choices=Repeat.choices, blank=True, default="")
+    repeat_every = models.PositiveSmallIntegerField(null=True, blank=True)
+    repeat_unit = models.CharField(max_length=6, choices=Unit.choices, blank=True, default="")
+    # The occurrence made when this one was marked done; undo removes it.
+    next_occurrence = models.OneToOneField("self", related_name="previous", null=True, blank=True, on_delete=models.SET_NULL)
+
     class Meta:
         ordering = ["due_on", "pk"]
 
     def __str__(self):
         return self.title
+
+    PRESETS = {"daily": (1, "days"), "weekly": (1, "weeks"), "biweekly": (2, "weeks"),
+               "monthly": (1, "months"), "bimonthly": (2, "months"), "quarterly": (3, "months")}
+
+    def repeat_step(self):
+        """(n, unit) or None for a one-off."""
+        if self.repeat == "custom":
+            return (self.repeat_every, self.repeat_unit) if self.repeat_every and self.repeat_unit else None
+        return self.PRESETS.get(self.repeat)
+
+    def repeat_label(self):
+        step = self.repeat_step()
+        if not step:
+            return ""
+        if self.repeat != "custom":
+            return self.get_repeat_display()
+        n, unit = step
+        return f"Every {unit[:-1]}" if n == 1 else f"Every {n} {unit}"
+
+    def next_due(self):
+        step = self.repeat_step()
+        return add_interval(self.due_on, *step) if step else None
+
+
+def add_interval(day, n, unit):
+    """day plus n days, weeks or months. Months clamp to the month's end (Jan 31 + 1 month = Feb 28/29)."""
+    import calendar
+    if unit == "days":
+        return day + datetime.timedelta(days=n)
+    if unit == "weeks":
+        return day + datetime.timedelta(weeks=n)
+    months = day.month - 1 + n
+    year, month = day.year + months // 12, months % 12 + 1
+    return day.replace(year=year, month=month, day=min(day.day, calendar.monthrange(year, month)[1]))
 
 
 class HealthNote(models.Model):

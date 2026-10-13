@@ -209,3 +209,8 @@ html:has([data-refreshable]) { overscroll-behavior-y: contain; }
 .empty-compact { margin-top: 0.75rem; padding: 0.875rem 1rem; border-radius: 0.625rem; }
 .empty-mark { flex: none; display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 0.625rem; background: var(--accent-soft); color: var(--accent); }
 .empty-compact .empty-mark { width: 2rem; height: 2rem; border-radius: 0.5rem; }
+
+/* Task repeat: the custom fields ease in when Custom is picked. */
+@keyframes repeat-in { from { opacity: 0; transform: translateY(-4px); } }
+.repeat-custom.enter:not([hidden]) { animation: repeat-in var(--dur-2, 200ms) var(--ease-out, ease-out); }
+@media (prefers-reduced-motion: reduce) { .repeat-custom.enter { animation: none; } }

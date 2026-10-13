@@ -62,3 +62,73 @@ class TaskTests(TestCase):
         self.client.force_login(user("other@example.com"))
         self.assertEqual(self.client.post(reverse("task_done", args=[task.pk])).status_code, 404)
         self.assertNotContains(self.client.get(reverse("task_list")), "Zebra brush")
+
+
+class TaskRepeatTests(TestCase):
+    def setUp(self):
+        self.owner = user("repeat@example.com")
+        self.client.force_login(self.owner)
+
+    def test_interval_math_clamps_months(self):
+        from .models import add_interval
+        d = datetime.date
+        self.assertEqual(add_interval(d(2026, 1, 31), 1, "months"), d(2026, 2, 28))
+        self.assertEqual(add_interval(d(2028, 1, 31), 1, "months"), d(2028, 2, 29))
+        self.assertEqual(add_interval(d(2026, 11, 30), 3, "months"), d(2027, 2, 28))
+        self.assertEqual(add_interval(d(2026, 12, 15), 2, "months"), d(2027, 2, 15))
+        self.assertEqual(add_interval(d(2026, 10, 13), 2, "weeks"), d(2026, 10, 27))
+        self.assertEqual(add_interval(d(2026, 12, 31), 1, "days"), d(2027, 1, 1))
+
+    def test_presets_and_custom_labels(self):
+        t = Task(due_on=datetime.date(2026, 3, 31), repeat="bimonthly")
+        self.assertEqual(t.next_due(), datetime.date(2026, 5, 31))
+        self.assertEqual(t.repeat_label(), "Every 2 months")
+        t = Task(due_on=datetime.date(2026, 3, 1), repeat="custom", repeat_every=10, repeat_unit="days")
+        self.assertEqual(t.next_due(), datetime.date(2026, 3, 11))
+        self.assertEqual(t.repeat_label(), "Every 10 days")
+        self.assertIsNone(Task(due_on=datetime.date(2026, 3, 1)).next_due())
+
+    def test_add_ignores_custom_fields_unless_custom(self):
+        url = reverse("task_list")
+        self.client.post(url, {"title": "Hay", "due_on": "2026-10-13", "repeat": "weekly", "repeat_every": "9", "repeat_unit": "days"})
+        t = Task.objects.get(title="Hay")
+        self.assertEqual((t.repeat, t.repeat_every, t.repeat_unit), ("weekly", None, ""))
+        bad = self.client.post(url, {"title": "Odd", "due_on": "2026-10-13", "repeat": "custom", "repeat_every": "0", "repeat_unit": "weeks"})
+        self.assertContains(bad, "Please enter how often")
+        self.client.post(url, {"title": "Odd", "due_on": "2026-10-13", "repeat": "custom", "repeat_every": "3", "repeat_unit": "weeks"})
+        self.assertEqual(Task.objects.get(title="Odd").repeat_every, 3)
+        self.assertContains(self.client.get(url), "Every 3 weeks")
+
+    def test_done_makes_next_and_undo_removes_it(self):
+        t = Task.objects.create(owner=self.owner, title="Clean trays", due_on=datetime.date(2026, 1, 31), repeat="monthly")
+        done = reverse("task_done", args=[t.pk])
+        self.client.post(done)
+        t.refresh_from_db()
+        self.assertIsNotNone(t.done_at)
+        nxt = t.next_occurrence
+        self.assertEqual((nxt.due_on, nxt.repeat, nxt.done_at), (datetime.date(2026, 2, 28), "monthly", None))
+        self.client.post(done)  # Undo
+        t.refresh_from_db()
+        self.assertIsNone(t.done_at)
+        self.assertFalse(Task.objects.filter(pk=nxt.pk).exists())
+        self.assertEqual(Task.objects.filter(title="Clean trays").count(), 1)
+        self.client.post(done)
+        self.client.post(done)
+        self.client.post(done)
+        self.assertEqual(Task.objects.filter(title="Clean trays", done_at__isnull=True).count(), 1)
+
+    def test_one_off_done_makes_nothing(self):
+        t = Task.objects.create(owner=self.owner, title="Once", due_on=datetime.date(2026, 1, 1))
+        self.client.post(reverse("task_done", args=[t.pk]))
+        self.assertEqual(Task.objects.filter(title="Once").count(), 1)
+
+    def test_edit_changes_repeat(self):
+        t = Task.objects.create(owner=self.owner, title="Water", due_on=datetime.date(2026, 1, 1))
+        url = reverse("task_edit", args=[t.pk])
+        self.assertContains(self.client.get(url), 'data-repeat-custom')
+        self.client.post(url, {"title": "Water", "due_on": "2026-01-02", "rabbit": "", "repeat": "custom", "repeat_every": "2", "repeat_unit": "days"})
+        t.refresh_from_db()
+        self.assertEqual((t.due_on, t.repeat, t.repeat_every, t.repeat_unit), (datetime.date(2026, 1, 2), "custom", 2, "days"))
+        other = user("other@example.com")
+        self.client.force_login(other)
+        self.assertEqual(self.client.get(url).status_code, 404)
