@@ -37,7 +37,7 @@ def summary(user, prefs, today):
     tasks_url = f"https://{host}{reverse('task_list')}" if host else reverse("task_list")
     lines += [f"All tasks: {tasks_url}", "", "Change these emails in Settings, under Reminders."]
     count = len(items)
-    subject = f"{settings.APP_NAME}: {count} thing{'s' if count != 1 else ''} due {today:%a %b} {today.day}"
+    subject = f"{settings.APP_NAME}: {count} thing{'s' if count != 1 else ''} due {today:%a, %b} {today.day}"
     return subject, "\n".join(lines)
 
 

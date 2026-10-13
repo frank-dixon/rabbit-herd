@@ -100,7 +100,7 @@
 
 @layer utilities {
   /* Figures: weights, dates, tattoos, counts. */
-  .num { font-family: var(--font-mono); font-size: 0.93em; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+  .num { font-variant-numeric: tabular-nums; }
   .eyebrow { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
   /* A1 ruled section: a firm rule over the section instead of a boxed card. */
   .ruled { border-top: 1.5px solid var(--ink); }

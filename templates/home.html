@@ -31,11 +31,13 @@
             {% for card in herd_cards %}
               <li class="w-[150px] shrink-0 snap-start sm:w-auto">
                 <a class="block h-full overflow-hidden rounded-[10px] border border-line bg-surface transition-[transform,box-shadow] duration-[var(--dur-1)] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgb(46_42_36/0.08)] motion-reduce:hover:translate-y-0" href="{% url 'rabbit_detail' card.rabbit.pk %}">
-                  {% with main=card.rabbit.main_photo %}{% if main %}<img class="block aspect-[16/10] w-full object-cover" {% photo_src main "(min-width: 1024px) 240px, (min-width: 640px) 30vw, 150px" 640 %} alt="" loading="lazy" decoding="async">{% else %}<span class="grid aspect-[16/10] w-full place-items-center bg-gradient-to-br from-photo-1 to-photo-2 text-2xl font-semibold text-accent" aria-hidden="true">{{ card.rabbit.name|first|upper }}</span>{% endif %}{% endwith %}
-                  <span class="block px-3 pt-2 pb-2.5">
+                  {% with main=card.rabbit.main_photo %}{% if main %}<img class="block aspect-[16/10] w-full object-cover" {% photo_src main "(min-width: 1024px) 240px, (min-width: 640px) 30vw, 150px" 640 %} alt="" loading="lazy" decoding="async">{% endif %}
+                  <span class="flex items-start gap-2.5 px-3 pt-2.5 pb-2.5">{% if not main %}<span class="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft font-semibold text-accent" aria-hidden="true">{{ card.rabbit.name|first|upper }}</span>{% endif %}{% endwith %}
+                  <span class="block min-w-0 flex-1">
                     <span class="flex flex-wrap items-center gap-x-2 gap-y-1"><span class="font-semibold">{{ card.rabbit.name }}</span><span class="rounded-full border border-line px-2 text-[11px] text-muted sm:ml-auto" data-status-chip>{{ card.chip }}</span></span>
                     <span class="block text-[13px] text-muted">{{ card.rabbit.get_sex_display }} · {{ card.rabbit.breed_line }}</span>
                     {% if card.next %}<span class="mt-1.5 block text-xs font-medium {% if card.overdue %}text-danger{% else %}text-accent{% endif %}" data-next>{{ card.next }}</span>{% endif %}
+                  </span>
                   </span>
                 </a>
               </li>
@@ -77,7 +79,7 @@
               <ul class="divide-y divide-line border-t border-line" data-active-litters>
                 {% for row in litters %}
                   <li><a class="flex items-center gap-3 py-3 hover:bg-side/40" href="{% url 'litter_detail' row.litter.pk %}">
-                    <span class="min-w-0 flex-1"><span class="block font-semibold">{{ row.litter.pairing.doe.name }} × {{ row.litter.pairing.buck.name }}</span><span class="block text-sm text-muted">{{ row.kits }} kit{{ row.kits|pluralize }}{% if row.behind %} · <span class="text-danger">{{ row.behind }} behind</span>{% endif %}</span></span>
+                    <span class="min-w-0 flex-1"><span class="block font-semibold">{{ row.litter.pairing.doe.name }} × {{ row.litter.pairing.buck.name }}</span><span class="block text-sm text-muted">{{ row.kits }} kit{{ row.kits|pluralize }}{% if row.behind %} · <span class="text-second-ink">{{ row.behind }} behind</span>{% endif %}</span></span>
                     <span class="num shrink-0 text-right text-sm leading-tight"><span class="block">day {{ row.age }}</span>{% if row.average_text %}<span class="block text-muted">{{ row.average_text }} avg</span>{% endif %}</span>
                   </a></li>
                 {% endfor %}
