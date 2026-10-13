@@ -114,8 +114,15 @@ def home_context(user, limit=8):
         {"title": title, "when": day_label(when, today), "note": note, "rabbit": rabbit}
         for when, _, title, note, rabbit in events[:limit]
     ]
+    items = open_items(user, today)
+    week_end = today + datetime.timedelta(days=7)
     return {
         "wide": True,
+        "today": today,
+        "due_now": [i for i in items if i["date"] <= today],
+        "this_week": [i for i in items if today < i["date"] <= week_end],
+        "litters": active_litters(user, today),
+        "watch": watch_list(user, today),
         "herd": {
             "active": len(active),
             "does": sum(1 for r in active if r.sex == Rabbit.Sex.DOE),
@@ -125,5 +132,67 @@ def home_context(user, limit=8):
             "archived": len(rabbits) - len(live),
         },
         "recent": recent,
-        "next_up": open_items(user, today)[:5],
+        "next_up": items[:5],
     }
+
+
+UNDER_AVERAGE = 0.85  # a kit under 85% of its litter's average is watched
+
+
+def kit_weights(litter):
+    """Each surviving kit with its latest weight, and the litter average."""
+    kits = []
+    for kit in litter.kits.all():
+        if kit.archived_at or kit.status == "deceased":
+            continue
+        weights = list(kit.weights.all())
+        kits.append({"rabbit": kit, "weight": weights[-1] if weights else None})
+    weighed = [k["weight"].grams for k in kits if k["weight"]]
+    average = round(sum(weighed) / len(weighed)) if weighed else None
+    for kit in kits:
+        kit["behind"] = bool(average and kit["weight"] and kit["weight"].grams < average * UNDER_AVERAGE)
+    return kits, average
+
+
+def active_litters(user, today):
+    """Kindled litters not yet processed, youngest first, with kit age and weights."""
+    from rabbits.models import Litter, weight_text
+
+    rows = []
+    litters = (Litter.objects.filter(owner=user, kindled_on__isnull=False, processed=False)
+               .select_related("pairing__doe", "pairing__buck").prefetch_related("kits__weights"))
+    for litter in litters:
+        age = (today - litter.kindled_on).days
+        if age > Litter.PROCESS_AGE + 30:
+            continue
+        kits, average = kit_weights(litter)
+        rows.append({"litter": litter, "age": age, "kits": len(kits) or litter.survivors or 0,
+                     "behind": sum(1 for k in kits if k["behind"]), "average": average,
+                     "average_text": weight_text(average, next(k["weight"].unit for k in kits if k["weight"])) if average else ""})
+    rows.sort(key=lambda row: row["age"])
+    return rows
+
+
+def watch_list(user, today):
+    """Health follow-ups that are still open, and kits well under their litter's average."""
+    from rabbits.models import HealthNote
+
+    items = []
+    notes = (HealthNote.objects.filter(rabbit__owner=user, follow_up_on__isnull=False, task__done_at__isnull=True,
+                                       follow_up_on__lte=today + datetime.timedelta(days=7))
+             .select_related("rabbit", "task").order_by("follow_up_on"))
+    for note in notes:
+        days = (note.follow_up_on - today).days
+        when = "recheck today" if days == 0 else (f"recheck overdue {-days} day{'s' if days != -1 else ''}" if days < 0
+                                                  else f"recheck {note.follow_up_on:%a}")
+        items.append({"title": f"{note.rabbit.name} · {note.get_kind_display().lower()}",
+                      "detail": f"Noted {note.date:%b} {note.date.day} · {when}", "urgent": days <= 0,
+                      "url": f"/rabbits/{note.rabbit_id}/#health", "task": note.task})
+    for row in active_litters(user, today):
+        kits, average = kit_weights(row["litter"])
+        for kit in kits:
+            if kit["behind"]:
+                under = round(100 - kit["weight"].grams * 100 / average)
+                items.append({"title": kit["rabbit"].name, "detail": f"{kit['weight'].text} · {under}% under litter average",
+                              "urgent": True, "url": f"/rabbits/{kit['rabbit'].pk}/#weights", "task": None})
+    return items

@@ -1,70 +1,81 @@
 {% extends "base.html" %}
 
-{% block title %}Home · {{ app_name }}{% endblock %}
+{% block title %}Today · {{ app_name }}{% endblock %}
 
 {% block content %}
   {% url 'rabbit_list' as list_url %}
-  {% url 'rabbit_create' as add_url %}
-  <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Activity</h1>
-  <div class="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
-    <section class="lg:order-2" aria-labelledby="herd-heading">
-      <h2 class="text-sm font-semibold uppercase tracking-wide text-neutral-600" id="herd-heading">Your herd</h2>
-      <div class="mt-2 rounded border border-neutral-300 bg-white p-4" data-herd-summary>
-        {% if herd.active or herd.deceased or herd.archived %}
-          <p><a class="font-semibold underline" href="{{ list_url }}">{{ herd.active }} active rabbit{{ herd.active|pluralize }}</a></p>
-          <p class="text-sm text-neutral-600">{{ herd.does }} doe{{ herd.does|pluralize }} · {{ herd.bucks }} buck{{ herd.bucks|pluralize }}</p>
-          {% if herd.statuses %}
-            <ul class="mt-3 space-y-1 text-sm">
-              {% for status in herd.statuses %}
-                <li class="flex justify-between gap-3"><a class="underline" href="{{ list_url }}?status={{ status.value }}">{{ status.label }}</a><span>{{ status.count }}</span></li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-          {% if herd.deceased or herd.archived %}
-            <p class="mt-3 border-t border-neutral-200 pt-3 text-sm text-neutral-600">
-              {% if herd.deceased %}<a class="underline" href="{{ list_url }}?tab=deceased">{{ herd.deceased }} deceased</a>{% endif %}{% if herd.deceased and herd.archived %} · {% endif %}{% if herd.archived %}<a class="underline" href="{{ list_url }}?tab=archived">{{ herd.archived }} archived</a>{% endif %}
-            </p>
-          {% endif %}
-        {% else %}
-          <p class="text-neutral-600">No rabbits yet.</p>
-          <div class="mt-3">{% include "components/button.html" with label="Add a rabbit" href=add_url variant="primary" only %}</div>
+  <div class="mx-auto max-w-2xl">
+    <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Today</h1>
+    <p class="num mt-0.5 text-sm text-muted">{{ today|date:"D j M" }}</p>
+
+    {% if not herd.active and not herd.deceased and not herd.archived %}
+      <div class="ruled mt-6 pt-4" data-empty="herd">
+        <p class="font-semibold">No rabbits yet.</p>
+        <p class="mt-1 text-muted">Add your first rabbit. Its tasks, litters and weights gather here each day.</p>
+        <a class="mo-press mt-4 inline-flex min-h-10 items-center rounded-md bg-accent px-4 text-sm font-semibold text-on-accent hover:bg-accent/90" href="{% url 'rabbit_create' %}">Add a rabbit</a>
+      </div>
+    {% else %}
+      <section class="mt-6" aria-labelledby="due-heading">
+        <h2 class="eyebrow flex items-center gap-2" id="due-heading">Due now {% if due_now %}<span class="num text-second-ink" data-due-count>{{ due_now|length }}</span>{% endif %}</h2>
+        {% if due_now %}
+          <ul class="mo-stagger mt-2 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface" data-next-up data-due-now>
+            {% for item in due_now %}{% include "rabbits/_today_item.html" with item=item next="/" csrf_token=csrf_token only %}{% endfor %}
+          </ul>
         {% endif %}
-      </div>
-    </section>
-    <div class="flex flex-col gap-6 lg:order-1">
-    <section aria-labelledby="next-heading">
-      <div class="flex items-baseline justify-between gap-3">
-        <h2 class="text-sm font-semibold uppercase tracking-wide text-neutral-600" id="next-heading">Next up</h2>
-        <a class="text-sm text-neutral-600 underline" href="{% url 'task_list' %}">All tasks</a>
-      </div>
-      <div class="mt-2 rounded border border-neutral-300 bg-white px-4">
-        {% if next_up %}
-          <ul data-next-up>{% for item in next_up %}{% include "rabbits/_task_item.html" with item=item next="/" csrf_token=csrf_token only %}{% endfor %}</ul>
-        {% else %}
-          <p class="py-3 text-neutral-600">Nothing due. Add a task or start a litter and its dates show up here.</p>
-        {% endif %}
-      </div>
-    </section>
-    <section aria-labelledby="recent-heading">
-      <h2 class="text-sm font-semibold uppercase tracking-wide text-neutral-600" id="recent-heading">Recent</h2>
-      <div class="mt-2 rounded border border-neutral-300 bg-white px-4 py-1">
-        {% if recent %}
-          <ul data-recent>
-            {% for item in recent %}
-              <li class="flex gap-3 border-b border-neutral-200 py-3 last:border-b-0">
-                <span class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-neutral-500" aria-hidden="true"></span>
-                <div class="min-w-0">
-                  <a class="break-words font-semibold" href="{% url 'rabbit_detail' item.rabbit.pk %}">{{ item.title }}</a>
-                  <p class="text-sm text-neutral-600">{{ item.when }}{% if item.note %} · {{ item.note }}{% endif %}</p>
-                </div>
-              </li>
+        <p class="mt-2 rounded-lg border border-dashed border-line px-4 py-3 text-sm text-muted" data-due-empty{% if due_now %} hidden{% endif %}>All caught up. <a class="font-medium text-accent hover:underline" href="{% url 'task_list' %}">Add a task</a></p>
+      </section>
+
+      {% if this_week %}
+        <section class="mt-7" aria-labelledby="week-heading">
+          <h2 class="eyebrow" id="week-heading">This week</h2>
+          <ul class="mt-2 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface" data-this-week>
+            {% for item in this_week %}
+              <li><a class="flex items-center gap-4 px-4 py-3 hover:bg-side" href="{{ item.url|default:'/tasks/' }}">
+                <span class="num w-9 shrink-0 text-xs uppercase text-accent">{{ item.date|date:"D" }}</span>
+                <span class="min-w-0 flex-1"><span class="block truncate font-semibold">{{ item.title }}</span><span class="block truncate text-sm text-muted">{{ item.date|date:"M j" }}{% if item.kind == "task" and item.rabbit %} · {{ item.rabbit.name }}{% endif %}</span></span>
+              </a></li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+
+      <section class="mt-7" aria-labelledby="litters-heading">
+        <div class="flex items-baseline justify-between"><h2 class="eyebrow" id="litters-heading">Active litters</h2><a class="text-sm font-medium text-accent hover:underline" href="{% url 'litter_list' %}">All litters</a></div>
+        {% if litters %}
+          <ul class="mt-2 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface" data-active-litters>
+            {% for row in litters %}
+              <li><a class="flex items-center gap-3 px-4 py-3 hover:bg-side" href="{% url 'litter_detail' row.litter.pk %}">
+                <span class="h-11 w-11 shrink-0 rounded-md bg-gradient-to-br from-photo-1 to-photo-2" aria-hidden="true"></span>
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate font-semibold">{{ row.litter.pairing.doe.name }} × {{ row.litter.pairing.buck.name }}</span>
+                  <span class="block truncate text-sm text-muted">{{ row.kits }} kit{{ row.kits|pluralize }}{% if row.behind %} · <span class="text-danger">{{ row.behind }} behind</span>{% endif %}</span>
+                </span>
+                <span class="num shrink-0 text-right text-sm leading-tight"><span class="block">day {{ row.age }}</span>{% if row.average_text %}<span class="block text-muted">{{ row.average_text }} avg</span>{% endif %}</span>
+              </a></li>
             {% endfor %}
           </ul>
         {% else %}
-          <p class="py-3 text-neutral-600">Nothing yet. Rabbits and photos you add show up here.</p>
+          <p class="mt-2 rounded-lg border border-dashed border-line px-4 py-3 text-sm text-muted">No litters on the ground. <a class="font-medium text-accent hover:underline" href="{% url 'pairing_list' %}">Plan a pairing</a></p>
         {% endif %}
-      </div>
-    </section>
-    </div>
+      </section>
+
+      {% if watch %}
+        <section class="mt-7" aria-labelledby="watch-heading">
+          <h2 class="eyebrow" id="watch-heading">Watch list</h2>
+          <ul class="mt-2 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface" data-watch-list>
+            {% for w in watch %}
+              <li class="flex items-center gap-3 px-4 py-3">
+                <span class="h-2 w-2 shrink-0 rounded-full {% if w.urgent %}bg-second{% else %}bg-field{% endif %}" aria-hidden="true"></span>
+                <a class="min-w-0 flex-1" href="{{ w.url }}"><span class="block truncate font-semibold">{{ w.title }}</span><span class="block truncate text-sm {% if w.urgent %}text-second-ink{% else %}text-muted{% endif %}">{{ w.detail }}</span></a>
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
+
+      <p class="num mt-8 text-center text-xs text-muted" data-herd-summary>
+        <a class="hover:text-ink" href="{{ list_url }}">{{ herd.active }} rabbit{{ herd.active|pluralize }}</a> · {{ herd.does }} doe{{ herd.does|pluralize }} · {{ herd.bucks }} buck{{ herd.bucks|pluralize }}{% for status in herd.statuses %} · {{ status.count }} {{ status.label|lower }}{% endfor %}
+      </p>
+    {% endif %}
   </div>
 {% endblock %}

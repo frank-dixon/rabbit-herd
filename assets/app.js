@@ -21,6 +21,7 @@ import { bindOffline } from "./offline.mjs";
 import { bindSettings } from "./settings.mjs";
 import { bindFilters } from "./filters.mjs";
 import { bindMenu } from "./menu.mjs";
+import { bindQuickDone } from "./quick-done.mjs";
 
 /**
  * Read the CSRF token from the page.
@@ -313,6 +314,7 @@ function start() {
   bindSettings(document, window);
   bindFilters(document);
   bindMenu(document, window);
+  bindQuickDone(document, window);
 }
 
 if (document.readyState === "loading") {

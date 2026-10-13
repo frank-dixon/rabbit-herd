@@ -135,3 +135,7 @@ html[data-menu-open] .app-scrim { opacity: 1; pointer-events: auto; }
   html[data-menu-open] .app-panel { box-shadow: 0 0 48px -12px rgb(0 0 0 / 0.35); }
 }
 @media print { .app-panel, .app-scrim { display: none !important; } }
+
+/* Today: a checked row shows the tick before it leaves. */
+[data-today-item].is-done [data-quick-done] button { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+[data-today-item].is-done p { opacity: 0.55; transition: opacity var(--dur-1) var(--ease-out); }
