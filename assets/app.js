@@ -22,6 +22,7 @@ import { bindSettings } from "./settings.mjs";
 import { bindFilters } from "./filters.mjs";
 import { bindMenu } from "./menu.mjs";
 import { bindQuickDone } from "./quick-done.mjs";
+import { bindTabEdit } from "./tab-edit.mjs";
 
 /**
  * Read the CSRF token from the page.
@@ -315,6 +316,7 @@ function start() {
   bindFilters(document);
   bindMenu(document, window);
   bindQuickDone(document, window);
+  bindTabEdit(document, window);
 }
 
 if (document.readyState === "loading") {

@@ -49,6 +49,26 @@
 
   {% herd_settings_sections %}
 
+  <form class="ruled mt-10 scroll-mt-20 pt-4" id="tabs" method="post" action="{% url 'tab_bar' %}" aria-labelledby="tabs-heading">
+    {% csrf_token %}
+    <h2 class="text-base font-semibold" id="tabs-heading">Bottom bar</h2>
+    <p class="mt-1 text-sm text-muted">The tabs along the bottom on a phone, left to right. Three to five. On the phone you can also press and hold a tab to rearrange them.</p>
+    <div class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+      {% for slot in tab_slots %}
+        <label class="flex items-center gap-3 text-sm"><span class="num w-5 shrink-0 text-muted">{{ slot.index }}</span>
+          <select class="block h-10 min-w-0 flex-1 rounded-md border border-field/70 bg-surface px-2" name="tab" aria-label="Tab {{ slot.index }}">
+            {% if not slot.required %}<option value="">None</option>{% endif %}
+            {% for key, label in tab_destinations %}<option value="{{ key }}"{% if slot.value == key %} selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+        </label>
+      {% endfor %}
+    </div>
+    <div class="mt-4 flex flex-wrap gap-2">
+      {% include "components/button.html" with label="Save bottom bar" type="submit" variant="primary" only %}
+      {% include "components/button.html" with label="Reset" type="submit" name="reset" value="1" variant="secondary" only %}
+    </div>
+  </form>
+
   <section class="ruled mt-10 scroll-mt-20 pt-4" id="account" aria-labelledby="account-heading">
     <h2 class="text-base font-semibold" id="account-heading">Account</h2>
     <p class="mt-2 text-muted">{% if user.is_guest %}This is a guest session.{% else %}Signed in as <span class="text-ink">{{ user.email }}</span>.{% endif %}</p>

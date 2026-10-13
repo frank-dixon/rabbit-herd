@@ -45,3 +45,44 @@ class SettingsTests(TestCase):
     def test_logged_out_pages_use_the_default_theme(self):
         self.client.logout()
         self.assertContains(self.client.get(reverse("login")), 'data-theme="c1"')
+
+
+class TabBarTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(email="tabs@example.com", password="x-strong-Pass-1")
+        self.client.force_login(self.user)
+
+    def bar(self):
+        html = self.client.get(reverse("rabbit_list")).content.decode()
+        tabs = html[html.index("data-tab-list"):html.index("data-tab-tray")]
+        import re
+        return re.findall(r'data-tab="([a-z]+)"', tabs)
+
+    def test_default_is_n1(self):
+        self.assertEqual(self.bar(), ["today", "rabbits", "litters", "weights", "tasks"])
+
+    def test_saving_from_the_bar_renders_server_side(self):
+        response = self.client.post(reverse("tab_bar"), {"tab": ["tasks", "today", "pairings"]}, HTTP_X_REQUESTED_WITH="fetch")
+        self.assertEqual(response.json(), {"ok": True, "tabs": ["tasks", "today", "pairings"]})
+        self.assertEqual(self.bar(), ["tasks", "today", "pairings"])
+
+    def test_three_to_five_unique_known_tabs(self):
+        for bad in (["today", "rabbits"], ["today", "today", "rabbits"], ["today", "rabbits", "nope"],
+                    ["today", "rabbits", "litters", "weights", "tasks", "health"]):
+            response = self.client.post(reverse("tab_bar"), {"tab": bad}, HTTP_X_REQUESTED_WITH="fetch")
+            self.assertEqual(response.status_code, 400, bad)
+        self.assertEqual(self.bar(), ["today", "rabbits", "litters", "weights", "tasks"])
+
+    def test_settings_form_without_js_and_reset(self):
+        page = self.client.get(reverse("account"))
+        self.assertContains(page, 'aria-label="Tab 5"')
+        response = self.client.post(reverse("tab_bar"), {"tab": ["rabbits", "health", "shows", "", ""]})
+        self.assertRedirects(response, reverse("account") + "#tabs", fetch_redirect_response=False)
+        self.assertEqual(self.bar(), ["rabbits", "health", "shows"])
+        self.client.post(reverse("tab_bar"), {"reset": "1"})
+        self.assertEqual(self.bar(), ["today", "rabbits", "litters", "weights", "tasks"])
+
+    def test_bar_carries_the_destinations_for_edit_mode(self):
+        page = self.client.get(reverse("rabbit_list"))
+        self.assertContains(page, 'id="tab-destinations"')
+        self.assertContains(page, "data-tab-tray hidden")

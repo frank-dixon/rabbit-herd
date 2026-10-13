@@ -2,7 +2,8 @@ import datetime
 
 from django.conf import settings
 from django.utils import timezone
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.shortcuts import redirect, render
@@ -39,7 +40,39 @@ def account(request):
         {"key": key, "label": label, "swatch": THEME_SWATCHES[key], "current": key == user.ui_theme}
         for key, label in user.THEMES
     ]
-    return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes})
+    from .nav import DESTINATIONS, MAX_TABS, clean_tabs
+
+    current = clean_tabs(user.tab_bar)
+    slots = [{"index": i + 1, "value": current[i] if i < len(current) else "", "required": i < 3} for i in range(MAX_TABS)]
+    destinations = [(key, label) for key, (label, _url, _q) in DESTINATIONS.items()]
+    return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes,
+                                                  "tab_slots": slots, "tab_destinations": destinations})
+
+
+@login_required
+def tabs(request):
+    """Save the phone bottom bar: 3 to 5 destinations in order. Posted by the
+    edit mode on the bar (JSON reply) or the Settings form (redirect)."""
+    from .nav import DEFAULT_TABS, DESTINATIONS, MAX_TABS, MIN_TABS
+
+    if request.method == "POST":
+        if request.POST.get("reset"):
+            keys = list(DEFAULT_TABS)
+        else:
+            keys = [k for k in request.POST.getlist("tab") if k]
+        valid = (MIN_TABS <= len(keys) <= MAX_TABS and len(set(keys)) == len(keys)
+                 and all(k in DESTINATIONS for k in keys))
+        cleaned = keys if valid else []
+        if valid:
+            request.user.tab_bar = cleaned
+            request.user.save(update_fields=["tab_bar"])
+        if request.headers.get("X-Requested-With") == "fetch":
+            return JsonResponse({"ok": bool(valid), "tabs": cleaned}, status=200 if valid else 400)
+        if valid:
+            messages.success(request, "Bottom bar saved.")
+        else:
+            messages.error(request, "Pick 3 to 5 different tabs.")
+    return redirect(reverse("account") + "#tabs")
 
 
 @login_required

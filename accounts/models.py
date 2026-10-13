@@ -52,6 +52,8 @@ class User(AbstractUser):
     DENSITIES = [("roomy", "Roomy"), ("compact", "Compact")]
     ui_theme = models.CharField(max_length=8, choices=THEMES, default="c1")
     ui_density = models.CharField(max_length=8, choices=DENSITIES, default="roomy")
+    # Phone bottom bar: destination keys in order (pages.nav.DESTINATIONS). Empty means the default.
+    tab_bar = models.JSONField(default=list, blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

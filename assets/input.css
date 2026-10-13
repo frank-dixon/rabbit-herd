@@ -139,3 +139,17 @@ html[data-menu-open] .app-scrim { opacity: 1; pointer-events: auto; }
 /* Today: a checked row shows the tick before it leaves. */
 [data-today-item].is-done [data-quick-done] button { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 [data-today-item].is-done p { opacity: 0.55; transition: opacity var(--dur-1) var(--ease-out); }
+
+/* Bottom bar edit mode. */
+[data-app-tabs][data-editing] { box-shadow: 0 -12px 32px -16px rgb(0 0 0 / 0.3); touch-action: none; user-select: none; -webkit-user-select: none; }
+[data-app-tabs] [data-tab] a { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+[data-app-tabs][data-editing] [data-slot] .tab-edit-item > span:first-child { background: var(--accent-soft); color: var(--accent); }
+@media (prefers-reduced-motion: no-preference) {
+  [data-app-tabs][data-editing] [data-slot] .tab-edit-item > span:first-child { animation: tab-wiggle 1.6s ease-in-out infinite; }
+}
+@keyframes tab-wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-1.5deg); } 75% { transform: rotate(1.5deg); } }
+.tab-edit-item[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 0.5rem; }
+.tab-edit-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 0.5rem; }
+.tab-dragging { opacity: 0.35; }
+.tab-target { background: color-mix(in oklab, var(--accent) 12%, transparent); border-radius: 0.5rem; transition: background-color var(--dur-1) var(--ease-out); }
+.tab-ghost { position: fixed; left: 0; top: 0; z-index: 60; pointer-events: none; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: 0.75rem; box-shadow: 0 12px 28px -8px rgb(0 0 0 / 0.35); opacity: 0.95; }

@@ -1,16 +1,26 @@
-{# Bottom tabs on phones. Pages with their own fixed action bar (edit summary, cards) leave these out. #}
-<nav data-print-hide class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden" aria-label="Main" data-app-tabs>
+{# Bottom tabs on phones. Pages with their own fixed action bar (edit summary, cards) leave these out. Press and hold (or right-click) a tab to customize; tab-edit.mjs. #}
+<nav data-print-hide class="tabbar fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden" aria-label="Main" data-app-tabs data-save-url="{% url 'tab_bar' %}">
+  <div class="flex items-center justify-between gap-3 px-4 pt-3 pb-1" data-tab-edit-head hidden>
+    <p class="text-sm font-semibold">Customize tabs <span class="font-normal text-muted">· drag or tap to swap</span></p>
+    <button type="button" class="mo-press rounded-md bg-accent px-3.5 py-1.5 text-sm font-semibold text-on-accent" data-tab-done>Done</button>
+  </div>
   <ul class="grid" style="grid-template-columns: repeat({{ app_tabs|length }}, minmax(0, 1fr))" data-tab-list>
     {% for item in app_tabs %}
       <li data-tab="{{ item.key }}">
         <a href="{{ item.url }}" class="group flex min-h-[58px] flex-col items-center justify-center gap-0.5 px-1 pt-1.5 pb-1 text-[11px] font-medium focus:outline-none {% if item.active %}text-accent{% else %}text-muted{% endif %}"{% if item.active %} aria-current="page"{% endif %}>
           <span class="relative grid h-7 w-14 place-items-center rounded-full transition-colors duration-[var(--dur-1)] group-focus-visible:ring-2 group-focus-visible:ring-accent {% if item.active %}bg-accent-soft{% endif %}">
             {% include "components/icon.html" with d=item.icon only %}
-            {% if item.badge %}<span class="num absolute -top-1 right-2 min-w-[1.1rem] rounded-full bg-second-ink px-1 text-center text-[10px] leading-[1.1rem] font-medium text-on-accent ring-2 ring-surface">{{ item.badge }}<span class="sr-only"> due</span></span>{% endif %}
+            {% if item.badge %}<span class="num absolute -top-1 right-2 min-w-[1.1rem] rounded-full bg-second-ink px-1 text-center text-[10px] leading-[1.1rem] font-medium text-on-accent ring-2 ring-surface" data-badge>{{ item.badge }}<span class="sr-only"> due</span></span>{% endif %}
           </span>
           <span class="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{{ item.short }}</span>
         </a>
       </li>
     {% endfor %}
   </ul>
+  <div class="border-t border-line px-3 pt-3 pb-3" data-tab-tray hidden>
+    <p class="eyebrow px-1">More places</p>
+    <ul class="mt-2 grid grid-cols-4 gap-1.5" data-tray-list></ul>
+    <p class="mt-2 px-1 text-xs text-muted" data-tab-hint role="status"></p>
+  </div>
+  {{ app_destinations|json_script:"tab-destinations" }}
 </nav>
