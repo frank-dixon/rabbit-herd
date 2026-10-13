@@ -285,3 +285,11 @@ html[data-mode="dark"] .swatch-light { display: none; }
 }
 html[data-density="compact"] .list-row { padding-block: 0.3rem; }
 html[data-density="compact"] .list-thumb { width: 2.25rem; height: 2.25rem; }
+
+/* Anything you can click shows the pointer; anything disabled says so. */
+@layer base {
+  button, [role="button"], summary, select, label:has(> input[type="radio"]), label:has(> input[type="checkbox"]),
+  label[for], a[href], [data-tab] a, [data-tab] button, [data-place] button, input[type="radio"], input[type="checkbox"],
+  input[type="file"], input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; }
+  button:disabled, [aria-disabled="true"], select:disabled, input:disabled, label:has(> input:disabled), fieldset:disabled * { cursor: not-allowed; }
+}
