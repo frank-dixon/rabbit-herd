@@ -37,7 +37,9 @@ def manifest(request):
         "display": "standalone",
         "background_color": "#F5F6F5",
         "theme_color": "#F5F6F5",
+        "description": "Herd records, litters, weights and pedigrees for rabbit breeders.",
         "icons": [
+            {"src": static("icons/icon.svg"), "sizes": "any", "type": "image/svg+xml"},
             {"src": static("icons/icon-192.png"), "sizes": "192x192", "type": "image/png"},
             {"src": static("icons/icon-512.png"), "sizes": "512x512", "type": "image/png"},
             {"src": static("icons/maskable-512.png"), "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
