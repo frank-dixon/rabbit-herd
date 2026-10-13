@@ -18,7 +18,8 @@ def index(request):
 @login_required
 def account(request):
     """Who is signed in, password and passkey, and log out."""
-    return render(request, "pages/account.html")
+    kinds = [("rabbits", "Rabbits"), ("litters", "Litters"), ("weights", "Weights"), ("shows", "Show results"), ("costs", "Costs")]
+    return render(request, "pages/account.html", {"export_kinds": kinds})
 
 
 def components(request):
