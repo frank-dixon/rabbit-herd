@@ -3,11 +3,16 @@
 {% block title %}Contacts · {{ app_name }}{% endblock %}
 
 {% block content %}
-  {% url 'contact_create' as add_url %}
-  {% include "components/page_header.html" with title="Contacts" subtitle="Buyers, breeders and stud owners you deal with." primary_label="+ Add a contact" primary_href=add_url only %}
-  <nav class="mt-6 flex flex-wrap gap-1 border-b border-neutral-300" aria-label="Filter contacts">
+  <div class="flex items-center justify-between gap-3">
+    <div class="min-w-0">
+      <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Contacts</h1>
+      <p class="mt-0.5 text-sm text-muted">Buyers and breeders you deal with.</p>
+    </div>
+    <a href="{% url 'contact_create' %}" class="mo-press inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-md bg-accent px-3.5 text-sm font-semibold text-on-accent hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add<span class="sr-only sm:not-sr-only"> a contact</span></span></a>
+  </div>
+  <nav class="mt-5 flex gap-4 border-b border-line text-sm" aria-label="Filter contacts">
     {% for value, label in roles %}
-      <a href="{% if value %}?role={{ value }}{% else %}?{% endif %}" class="-mb-px rounded-t border px-3 py-1.5 text-sm {% if role == value %}border-neutral-300 border-b-neutral-200 bg-white font-medium{% else %}border-transparent text-neutral-600{% endif %}"{% if role == value %} aria-current="page"{% endif %}>{{ label }}</a>
+      <a href="{% if value %}?role={{ value }}{% else %}?{% endif %}" class="-mb-px border-b-2 py-2 {% if role == value %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if role == value %} aria-current="page"{% endif %}>{{ label }}</a>
     {% endfor %}
   </nav>
   {% if contacts %}
@@ -21,7 +26,7 @@
             </span>
             {% if contact.roles %}
               <span class="flex flex-wrap gap-1 sm:shrink-0">
-                {% for label in contact.roles %}<span class="rounded-full border border-neutral-400 px-2 py-0.5 text-xs">{{ label }}</span>{% endfor %}
+                {% for label in contact.roles %}<span class="rounded bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">{{ label }}</span>{% endfor %}
               </span>
             {% endif %}
           </a>
@@ -29,6 +34,6 @@
       {% endfor %}
     </ul>
   {% else %}
-    <p class="mt-4 text-neutral-600">{% if role %}No contacts with this role yet.{% else %}No contacts yet. Add the people you buy from, sell to, or use studs from.{% endif %}</p>
+    <p class="mt-4 text-neutral-600">{% if role %}No contacts with this role yet.{% else %}No contacts yet. Add the people you buy from or sell to.{% endif %}</p>
   {% endif %}
 {% endblock %}

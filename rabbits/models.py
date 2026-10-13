@@ -329,7 +329,7 @@ class Location(models.Model):
 
 
 class Contact(models.Model):
-    """A person or rabbitry the keeper deals with: buyers, breeders, stud owners."""
+    """A person or rabbitry the keeper deals with: buyers and breeders."""
 
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="contacts", on_delete=models.CASCADE)
     name = models.CharField(max_length=120)
@@ -340,7 +340,6 @@ class Contact(models.Model):
     notes = models.TextField(max_length=2000, blank=True)
     is_buyer = models.BooleanField(default=False)
     is_breeder = models.BooleanField(default=False)
-    is_stud_owner = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -357,7 +356,7 @@ class Contact(models.Model):
     @property
     def roles(self):
         return [label for flag, label in (
-            (self.is_buyer, "Buyer"), (self.is_breeder, "Breeder"), (self.is_stud_owner, "Stud owner"),
+            (self.is_buyer, "Buyer"), (self.is_breeder, "Breeder"),
         ) if flag]
 
 

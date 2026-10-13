@@ -18,13 +18,13 @@ class ContactTests(TestCase):
     def test_add_a_contact_with_roles(self):
         response = self.client.post(reverse("contact_create"), {
             "name": "  Ann   Lee ", "rabbitry": "Hollow Creek Rabbitry", "phone": "555-0101",
-            "email": "ann@example.com", "location": "Ithaca, NY", "notes": "Sells REWs", "is_breeder": "on", "is_stud_owner": "on",
+            "email": "ann@example.com", "location": "Ithaca, NY", "notes": "Sells REWs", "is_breeder": "on",
         })
         ann = Contact.objects.get()
         self.assertRedirects(response, reverse("contact_detail", args=[ann.pk]))
-        self.assertEqual((ann.owner, ann.name, ann.roles), (self.owner, "Ann Lee", ["Breeder", "Stud owner"]))
+        self.assertEqual((ann.owner, ann.name, ann.roles), (self.owner, "Ann Lee", ["Breeder"]))
         page = self.client.get(reverse("contact_detail", args=[ann.pk]))
-        for text in ("Hollow Creek Rabbitry", 'href="tel:555-0101"', "mailto:ann@example.com", "Ithaca, NY", "Sells REWs", "Stud owner"):
+        for text in ("Hollow Creek Rabbitry", 'href="tel:555-0101"', "mailto:ann@example.com", "Ithaca, NY", "Sells REWs"):
             self.assertContains(page, text)
 
     def test_a_name_is_required(self):
@@ -71,3 +71,39 @@ class ContactTests(TestCase):
     def test_contacts_are_in_the_nav(self):
         page = self.client.get(reverse("contact_list")).content.decode()
         self.assertRegex(page, r'href="/contacts/"[^>]*aria-current="page"')
+
+
+class StudOwnerRoleRemovedTests(TestCase):
+    def test_tabs_are_all_buyers_breeders(self):
+        from django.contrib.auth import get_user_model
+        user = get_user_model().objects.create_user(email="tabs@example.com", password="x-strong-Pass-1")
+        self.client.force_login(user)
+        page = self.client.get(reverse("contact_list"))
+        self.assertEqual([label for _, label in page.context["roles"]], ["All", "Buyers", "Breeders"])
+        self.assertNotContains(page, "Stud owner")
+
+    def test_migration_keeps_stud_owners_as_breeders(self):
+        import importlib
+        from django.apps import apps as real_apps
+        migration = importlib.import_module("rabbits.migrations.0028_contact_stud_owners_become_breeders")
+
+        class FakeQS:
+            def __init__(self):
+                self.calls = []
+            def filter(self, **kw):
+                self.calls.append(("filter", kw))
+                return self
+            def update(self, **kw):
+                self.calls.append(("update", kw))
+
+        qs = FakeQS()
+
+        class FakeModel:
+            objects = qs
+
+        class FakeApps:
+            def get_model(self, app, name):
+                return FakeModel
+
+        migration.stud_owners_to_breeders(FakeApps(), None)
+        self.assertEqual(qs.calls, [("filter", {"is_stud_owner": True}), ("update", {"is_breeder": True})])

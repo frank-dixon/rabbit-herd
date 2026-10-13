@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 from .contact_forms import ContactForm
 from .models import Contact, Rabbit
 
-ROLES = {"buyer": "is_buyer", "breeder": "is_breeder", "stud-owner": "is_stud_owner"}
+ROLES = {"buyer": "is_buyer", "breeder": "is_breeder"}
 
 
 def owned_contact(user, pk):
@@ -24,7 +24,7 @@ def contact_list(request):
         contacts = contacts.filter(**{ROLES[role]: True})
     return render(request, "rabbits/contacts/list.html", {
         "contacts": list(contacts), "role": role, "wide": True,
-        "roles": [("", "All"), ("buyer", "Buyers"), ("breeder", "Breeders"), ("stud-owner", "Stud owners")],
+        "roles": [("", "All"), ("buyer", "Buyers"), ("breeder", "Breeders")],
     })
 
 
