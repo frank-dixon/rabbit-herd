@@ -99,15 +99,35 @@ def shade(b, d, agouti=False):
     return {("B", "D"): "black", ("b", "D"): "chocolate", ("B", "d"): "blue", ("b", "d"): "lilac"}[(b, d)]
 
 
+def cap(name):
+    return name[0].upper() + name[1:]
+
+
+# Silvered (si/si) names on a full-color coat, keyed on the shown A and E
+# alleles and the base shade. Breed names are the usual examples.
+SILVERED = {
+    ("a", "E", "black"): "Silvered black (Champagne d'Argent or Silver Fox type)",
+    ("a", "E", "blue"): "Silvered blue (Argente Bleu or blue Silver Fox type)",
+    ("a", "E", "chocolate"): "Silvered chocolate (Argente Brun type)",
+    ("a", "E", "lilac"): "Silvered lilac",
+    ("a", "e", "black"): "Silvered cream (Crème d'Argent type)",
+    ("A", "E", "black"): "Silvered chestnut (Silver breed type)",
+}
+
+
 def color_name(a, b, c, d, e, v="V", si="Si"):
     """A common color name from the allele each locus shows. v and si are
-    the shown V and Si alleles: vv is blue-eyed white, sisi is silvered."""
+    the shown V and Si alleles: vv is blue-eyed white, sisi is silvered.
+    cc wins over vv: an albino that is also vv still has ruby eyes."""
     if c == "c":
         return "Ruby-eyed white"
     if v == "v":
         return "Blue-eyed white"
     name = _color_name(a, b, c, d, e)
     if si == "si" and c != "ch":
+        key = (a if a != "at" else "A", "e" if e == "e" else "E", shade(b, d))
+        if c not in CHINCHILLA and e not in {"ej", "Es"} and key in SILVERED:
+            return SILVERED[key]
         name += ", silvered"
     return name
 
@@ -117,36 +137,38 @@ def _color_name(a, b, c, d, e):
     if c == "ch":
         return f"Himalayan ({base} points)"
     chin = c in CHINCHILLA
+    shading = {"cchd": "", "cchm": " (medium shade)", "cchl": " (light shade)"}.get(c, "")
     if e == "ED":
-        name = f"{base} self (dominant black)"
-    elif e == "e":
+        return cap(f"{base} self (dominant black)" + (", chinchilla-shaded" if chin else ""))
+    if e == "e":
+        if chin and a != "a":
+            return "Frosted pearl" if base == "black" else cap(f"{base} frosted pearl")
+        if c == "cchl" and a == "a":
+            return "Sable point" if base == "black" else cap(f"{base} sable point")
         if a == "a":
             name = f"{base} tortoise"
         else:
-            name = {("B", "D"): "orange", ("b", "D"): "chocolate orange", ("B", "d"): "fawn", ("b", "d"): "cream"}[(b, d)]
+            name = {"black": "orange", "chocolate": "chocolate orange", "blue": "fawn", "lilac": "cream"}[base]
             if a == "at":
                 name += " with tan pattern"
-        if chin:
-            name += ", chinchilla-shaded"
-        return name[0].upper() + name[1:]
-    elif e == "ej":
-        name = f"{base} harlequin"
-    elif e == "Es" and a != "a":
-        name = f"{base} steel"
-    elif a == "A":
+        return cap(name + (", chinchilla-shaded" if chin else ""))
+    if e == "ej":
+        return cap(f"{base} harlequin" + (", chinchilla-shaded" if chin else ""))
+    if e == "Es" and a != "a":
+        # Steel needs agouti or tan; on a self (aa) it does not show.
+        return cap(f"{base} steel" + (", chinchilla-shaded" if chin else ""))
+    if a == "A":
         if chin:
             name = {"black": "chinchilla", "blue": "squirrel"}.get(base, f"{base} chinchilla")
-            return name[0].upper() + name[1:]
-        name = shade(b, d, agouti=True)
-    elif a == "at":
-        name = f"{base} {'silver marten' if chin else 'otter'}"
-        return name[0].upper() + name[1:]
-    else:
-        name = f"{base} sable" if chin else base
-        return name[0].upper() + name[1:]
+            return cap(name + shading)
+        return cap(shade(b, d, agouti=True))
+    if a == "at":
+        return cap(f"{base} {'silver marten' if chin else 'otter'}")
+    if c == "cchl":
+        return {"black": "Sable", "blue": "Smoke pearl"}.get(base, cap(f"{base} sable"))
     if chin:
-        name += ", chinchilla-shaded"
-    return name[0].upper() + name[1:]
+        return cap(f"{base}, chinchilla-shaded")
+    return cap(base)
 
 
 def pattern_name(pair):

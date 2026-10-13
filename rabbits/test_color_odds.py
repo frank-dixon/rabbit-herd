@@ -132,4 +132,25 @@ class ViennaSilverOddsTests(TestCase):
         Gene.objects.create(rabbit=self.buck, locus="Si", genotype="Si/si", certainty="known")
         colors = dict(color_odds.predict(self.doe, self.buck)["colors"])
         self.assertEqual(colors["Black"], "50%")
-        self.assertEqual(sum(float(v.rstrip("%")) for k, v in colors.items() if "ilver" in k), 50)
+        self.assertEqual(colors["Silvered black (Champagne d'Argent or Silver Fox type)"], "50%")
+
+
+class FullerNameTests(TestCase):
+    def test_names(self):
+        name = color_odds.color_name
+        self.assertEqual(name("a", "B", "C", "D", "E", v="v"), "Blue-eyed white")
+        self.assertEqual(name("a", "B", "c", "D", "E", v="v"), "Ruby-eyed white")
+        self.assertEqual(name("a", "B", "C", "D", "E", si="si"), "Silvered black (Champagne d'Argent or Silver Fox type)")
+        self.assertEqual(name("a", "B", "C", "D", "e", si="si"), "Silvered cream (Crème d'Argent type)")
+        self.assertEqual(name("a", "b", "C", "D", "E", si="si"), "Silvered chocolate (Argente Brun type)")
+        self.assertEqual(name("A", "B", "C", "D", "E", si="si"), "Silvered chestnut (Silver breed type)")
+        self.assertEqual(name("A", "B", "C", "D", "Es"), "Black steel")
+        self.assertEqual(name("a", "B", "C", "D", "Es"), "Black")
+        self.assertEqual(name("a", "B", "C", "D", "ED"), "Black self (dominant black)")
+        self.assertEqual(name("a", "B", "cchl", "D", "E"), "Sable")
+        self.assertEqual(name("a", "B", "cchl", "d", "E"), "Smoke pearl")
+        self.assertEqual(name("a", "B", "cchl", "D", "e"), "Sable point")
+        self.assertEqual(name("A", "B", "cchd", "D", "e"), "Frosted pearl")
+        self.assertEqual(name("A", "B", "cchl", "D", "E"), "Chinchilla (light shade)")
+        self.assertEqual(name("A", "B", "cchd", "D", "E"), "Chinchilla")
+        self.assertEqual(name("a", "B", "cchd", "D", "E"), "Black, chinchilla-shaded")
