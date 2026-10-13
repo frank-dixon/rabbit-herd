@@ -89,6 +89,13 @@
   h1 { letter-spacing: -0.025em; }
   ::selection { background: var(--accent-soft); color: var(--ink); }
   input, select, textarea { accent-color: var(--accent); }
+  /* iOS Safari gives native date/time inputs an intrinsic min-width that overflows narrow columns. */
+  input:is([type="date"], [type="time"], [type="datetime-local"], [type="month"]) {
+    display: block; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;
+    -webkit-appearance: none; appearance: none; min-height: 2.625rem; line-height: 1.5;
+  }
+  input:is([type="date"], [type="time"], [type="datetime-local"], [type="month"])::-webkit-date-and-time-value { text-align: left; min-height: 1.5em; }
+  form > div, .grid > div, .flex > div { min-width: 0; }
 }
 
 @layer utilities {
