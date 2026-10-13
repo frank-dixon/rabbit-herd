@@ -118,6 +118,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "pages.nav.app_nav",
                 "pages.nav.app_name",
+                "pages.nav.ui",
             ],
         },
     },

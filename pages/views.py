@@ -2,9 +2,13 @@ import datetime
 
 from django.conf import settings
 from django.utils import timezone
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.contrib import messages
+from django.shortcuts import redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
+
+from .nav import THEME_SWATCHES
 
 from .forms import ComponentExampleForm
 
@@ -17,9 +21,25 @@ def index(request):
 
 @login_required
 def account(request):
-    """Who is signed in, password and passkey, and log out."""
+    """Settings: appearance (theme, grid density), account, export, log out.
+    The appearance form posts back here and works without JS."""
+    user = request.user
+    if request.method == "POST":
+        theme = request.POST.get("ui_theme", user.ui_theme)
+        density = request.POST.get("ui_density", user.ui_density)
+        if theme in dict(user.THEMES) and density in dict(user.DENSITIES):
+            user.ui_theme, user.ui_density = theme, density
+            user.save(update_fields=["ui_theme", "ui_density"])
+            if request.headers.get("X-Requested-With") == "fetch":
+                return HttpResponse(status=204)
+            messages.success(request, "Settings saved.")
+        return redirect(request.POST.get("next") if url_has_allowed_host_and_scheme(request.POST.get("next", ""), {request.get_host()}) else "account")
     kinds = [("rabbits", "Rabbits"), ("litters", "Litters"), ("weights", "Weights"), ("shows", "Show results"), ("costs", "Costs")]
-    return render(request, "pages/account.html", {"export_kinds": kinds})
+    themes = [
+        {"key": key, "label": label, "swatch": THEME_SWATCHES[key], "current": key == user.ui_theme}
+        for key, label in user.THEMES
+    ]
+    return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes})
 
 
 def components(request):

@@ -24,7 +24,7 @@ class AppShellTests(TestCase):
         page = html[html.index('<aside'):html.index('</aside>')] + html[html.index('data-app-tabs'):]
         for missing in ("Breeding", "Weights", "coming soon", "Coming soon"):
             self.assertNotIn(missing, page)
-        for label in ("Home", "Rabbits", "Add a rabbit", "Archived", "Tasks", "Pairings", "Litters", "Account", "Log out"):
+        for label in ("Home", "Rabbits", "Add a rabbit", "Archived", "Tasks", "Pairings", "Litters", "Settings", "Log out"):
             self.assertIn(label, page)
 
     def test_the_current_section_is_marked(self):
@@ -48,4 +48,4 @@ class AppShellTests(TestCase):
             page = self.client.get(url)
             self.assertNotContains(page, 'aria-label="App"')
             self.assertNotContains(page, "data-app-tabs")
-        self.assertRedirects(self.client.get(reverse("account")), reverse("login") + "?next=/account/")
+        self.assertRedirects(self.client.get(reverse("account")), reverse("login") + "?next=/settings/")

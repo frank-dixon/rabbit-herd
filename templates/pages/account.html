@@ -1,44 +1,85 @@
 {% extends "base.html" %}
 
-{% block title %}Account · {{ app_name }}{% endblock %}
+{% block title %}Settings · {{ app_name }}{% endblock %}
 
 {% block content %}
+  <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Settings</h1>
+
   {% if app_more %}
-    <nav class="mb-6 md:hidden" aria-label="More sections">
-      <ul class="flex flex-col divide-y divide-neutral-200 overflow-hidden rounded border border-neutral-300 bg-white">
+    <nav class="mt-6 md:hidden" aria-label="More sections">
+      <ul class="flex flex-col divide-y divide-line overflow-hidden rounded-md border border-line bg-surface">
         {% for item in app_more %}
-          <li><a class="flex items-center gap-3 p-3 hover:bg-neutral-100" href="{{ item.url }}">{% include "components/icon.html" with d=item.icon only %}<span class="font-medium">{{ item.label }}</span></a></li>
+          <li><a class="flex items-center gap-3 px-4 py-3 hover:bg-side" href="{{ item.url }}">{% include "components/icon.html" with d=item.icon only %}<span class="font-medium">{{ item.label }}</span></a></li>
         {% endfor %}
       </ul>
     </nav>
   {% endif %}
-  {% if user.is_guest %}
-    {% include "components/card.html" with title="Account" body="This is a guest session." only %}
-  {% else %}
-    {% include "components/card.html" with title="Account" body="Signed in as "|add:user.email|add:"." only %}
-  {% endif %}
-  <div class="mt-8 flex flex-col items-start gap-3">
-    {% url 'rabbit_list' as rabbit_list_url %}
-    {% include "components/button.html" with label="Rabbits" href=rabbit_list_url variant="secondary" only %}
-    {% if not user.is_guest %}
-      {% if user.has_usable_password %}
-        {% url 'password_change' as password_change_url %}
-        {% include "components/button.html" with label="Change password" href=password_change_url variant="secondary" only %}
+
+  <form class="ruled mt-8 pt-4" method="post" action="{% url 'account' %}" data-appearance-form aria-labelledby="appearance-heading">
+    {% csrf_token %}
+    <div class="flex items-baseline justify-between gap-3">
+      <h2 class="text-base font-semibold" id="appearance-heading">Appearance</h2>
+      <p class="text-sm text-muted" role="status" data-appearance-status></p>
+    </div>
+    <fieldset class="mt-4">
+      <legend class="eyebrow">Theme</legend>
+      <p class="mt-1 text-sm text-muted">Light and dark follow your device.</p>
+      <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {% for theme in themes %}
+          <label class="group relative flex cursor-pointer items-center gap-3 rounded-md border border-line bg-surface px-3 py-3 hover:border-field has-checked:border-accent has-checked:bg-accent-soft has-focus-visible:ring-2 has-focus-visible:ring-accent">
+            <input class="sr-only" type="radio" name="ui_theme" value="{{ theme.key }}"{% if theme.current %} checked{% endif %}>
+            <span class="flex shrink-0 overflow-hidden rounded-[5px] border border-black/10" aria-hidden="true">
+              <span class="h-8 w-5" style="background: {{ theme.swatch.0 }}"></span>
+              <span class="h-8 w-3" style="background: {{ theme.swatch.1 }}"></span>
+              <span class="h-8 w-3" style="background: {{ theme.swatch.2 }}"></span>
+            </span>
+            <span class="min-w-0 flex-1 font-medium">{{ theme.label }}</span>
+            <svg class="invisible h-5 w-5 shrink-0 text-accent group-has-checked:visible" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12.5 10 17 19 7"/></svg>
+          </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    <fieldset class="mt-6">
+      <legend class="eyebrow">Rabbit grid</legend>
+      <div class="mt-3 inline-flex rounded-md border border-line bg-surface p-0.5">
+        {% for key, label in user.DENSITIES %}
+          <label class="cursor-pointer rounded-[5px] px-4 py-1.5 text-sm font-medium text-muted has-checked:bg-accent has-checked:text-on-accent has-focus-visible:ring-2 has-focus-visible:ring-accent">
+            <input class="sr-only" type="radio" name="ui_density" value="{{ key }}"{% if user.ui_density == key %} checked{% endif %}>{{ label }}
+          </label>
+        {% endfor %}
+      </div>
+      <p class="mt-2 text-sm text-muted">Compact shows two rabbits per row on a phone.</p>
+    </fieldset>
+    <div class="mt-5" data-appearance-save>
+      {% include "components/button.html" with label="Save" type="submit" variant="primary" only %}
+    </div>
+  </form>
+
+  <section class="ruled mt-10 pt-4" aria-labelledby="account-heading">
+    <h2 class="text-base font-semibold" id="account-heading">Account</h2>
+    <p class="mt-2 text-muted">{% if user.is_guest %}This is a guest session.{% else %}Signed in as <span class="text-ink">{{ user.email }}</span>.{% endif %}</p>
+    <div class="mt-4 flex flex-wrap gap-2">
+      {% if not user.is_guest %}
+        {% if user.has_usable_password %}
+          {% url 'password_change' as password_change_url %}
+          {% include "components/button.html" with label="Change password" href=password_change_url variant="secondary" only %}
+        {% endif %}
+        {% include "components/button.html" with label="Add a passkey" variant="secondary" id="passkey-register" data_authenticated="true" only %}
       {% endif %}
-      {% include "components/button.html" with label="Add a passkey" variant="secondary" id="passkey-register" data_authenticated="true" only %}
-    {% endif %}
-    <form method="post" action="{% url 'logout' %}">
-      {% csrf_token %}
-      {% include "components/button.html" with label="Log out" type="submit" variant="primary" only %}
-    </form>
-  </div>
-  <p class="mt-4 font-medium" data-passkey-error hidden></p>
-  <section class="mt-8 ruled pt-4" aria-labelledby="export-heading" data-export>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        {% include "components/button.html" with label="Log out" type="submit" variant="secondary" only %}
+      </form>
+    </div>
+    <p class="mt-4 font-medium text-danger" data-passkey-error hidden></p>
+  </section>
+
+  <section class="ruled mt-10 pt-4" aria-labelledby="export-heading" data-export>
     <h2 class="text-base font-semibold" id="export-heading">Export</h2>
-    <p class="mt-1 text-sm text-neutral-600">Download your records as CSV files for a spreadsheet. Each rabbit's pedigree prints from its page.</p>
+    <p class="mt-1 text-sm text-muted">Download your records as CSV files for a spreadsheet. Each rabbit's pedigree prints from its page.</p>
     <ul class="mt-3 flex flex-wrap gap-2">
       {% for kind, label in export_kinds %}
-        <li><a class="inline-flex items-center rounded border border-neutral-500 bg-white px-3 py-1.5 text-sm font-medium hover:border-neutral-900" href="{% url 'export_csv' kind %}" download>{{ label }}</a></li>
+        <li><a class="inline-flex min-h-10 items-center rounded-md border border-line bg-surface px-3 text-sm font-medium hover:border-field" href="{% url 'export_csv' kind %}" download>{{ label }}</a></li>
       {% endfor %}
     </ul>
   </section>

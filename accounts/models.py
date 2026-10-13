@@ -41,6 +41,17 @@ class User(AbstractUser):
     email_confirmed = models.BooleanField(default=False)
     email_confirmed_at = models.DateTimeField(null=True, blank=True)
     confirmation_sent_at = models.DateTimeField(null=True, blank=True)
+    # Appearance, chosen in Settings and applied server-side on <html>.
+    THEMES = [
+        ("c1", "Teal & Coral"),
+        ("c2", "Cobalt & Saffron"),
+        ("c3", "Forest & Terracotta"),
+        ("c4", "Plum & Sage"),
+        ("c5", "Red & Slate"),
+    ]
+    DENSITIES = [("roomy", "Roomy"), ("compact", "Compact")]
+    ui_theme = models.CharField(max_length=8, choices=THEMES, default="c1")
+    ui_density = models.CharField(max_length=8, choices=DENSITIES, default="roomy")
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

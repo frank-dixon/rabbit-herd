@@ -5,6 +5,30 @@ from django.conf import settings
 from django.urls import reverse
 
 
+# Swatches shown in the Settings theme picker: (accent, secondary, canvas).
+THEME_SWATCHES = {
+    "c1": ("#0F5E63", "#D65A3E", "#F5F6F5"),
+    "c2": ("#2347B5", "#E0A019", "#F5F5F3"),
+    "c3": ("#22573B", "#B9582F", "#F5F4F0"),
+    "c4": ("#5E2B62", "#6E8F68", "#F6F5F4"),
+    "c5": ("#B3261E", "#44576C", "#F6F5F4"),
+}
+# Browser chrome colour per theme: (light canvas, dark canvas).
+THEME_COLOR = {'c1': ('#F5F6F5', '#121717'), 'c2': ('#F5F5F3', '#121318'), 'c3': ('#F5F4F0', '#131613'), 'c4': ('#F6F5F4', '#161317'), 'c5': ('#F6F5F4', '#151515')}
+
+
+def ui(request):
+    """The signed-in user's theme and grid density, rendered onto <html> so
+    the page paints in the right colours with no flash and no JS."""
+    user = getattr(request, "user", None)
+    if user is not None and user.is_authenticated:
+        theme, density = user.ui_theme or "c1", user.ui_density or "roomy"
+    else:
+        theme, density = "c1", "roomy"
+    return {"ui_theme": theme, "ui_density": density, "ui_theme_color": THEME_COLOR.get(theme, THEME_COLOR["c1"])[0],
+            "ui_theme_color_dark": THEME_COLOR.get(theme, THEME_COLOR["c1"])[1]}
+
+
 def app_name(request):
     """The user-facing app name, from settings.APP_NAME."""
     return {"app_name": settings.APP_NAME}
@@ -23,6 +47,7 @@ ICONS = {
     "costs": "M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 2 2.6 4.5 3 4.5 1.3 4.5 3-2 3-4.5 3-4.5-1.3-4.5-3",
     "waitlist": "M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01",
     "more": "M5 12h.01M12 12h.01M19 12h.01",
+    "settings": "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z",
     "account": "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0",
 }
 
@@ -51,7 +76,7 @@ def active_key(request):
         return "costs"
     if path.startswith("/contacts/"):
         return "contacts"
-    if path.startswith("/account/") or path.startswith("/accounts/password"):
+    if path.startswith("/settings/") or path.startswith("/account/") or path.startswith("/accounts/password"):
         return "account"
     return ""
 
@@ -73,7 +98,7 @@ def app_nav(request):
         ("waitlist", "Waitlist", reverse("waitlist")),
         ("costs", "Costs", reverse("cost_list")),
         ("contacts", "Contacts", reverse("contact_list")),
-        ("account", "Account", reverse("account")),
+        ("account", "Settings", reverse("account")),
     ]
     # Phones get four tabs; everything else sits under More (the account page).
     phone = {"home", "rabbits", "add"}
@@ -90,7 +115,7 @@ def app_nav(request):
         ],
         "app_nav": [
             {"key": key, "label": label, "short": "Add" if key == "add" else label,
-             "url": url, "icon": ICONS[key], "active": key == current}
+             "url": url, "icon": ICONS["settings" if key == "account" else key], "active": key == current}
             for key, label, url in items
         ]
     }

@@ -18,6 +18,7 @@ import { bindDeleteDialog } from "./delete-dialog.mjs";
 import { bindPhotoTiles } from "./photo-tiles.mjs";
 import { bindDeathFields } from "./death-fields.mjs";
 import { bindOffline } from "./offline.mjs";
+import { bindSettings } from "./settings.mjs";
 
 /**
  * Read the CSRF token from the page.
@@ -307,6 +308,7 @@ function start() {
   bindPhotoTiles(document);
   bindDeathFields(document);
   bindOffline(document, window);
+  bindSettings(document, window);
 }
 
 if (document.readyState === "loading") {
