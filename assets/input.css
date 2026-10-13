@@ -160,6 +160,8 @@ html[data-menu-open] .app-scrim { opacity: 1; pointer-events: auto; }
 .tab-dragging { opacity: 0.35; }
 .tab-target { background: color-mix(in oklab, var(--accent) 12%, transparent); border-radius: 0.5rem; transition: background-color var(--dur-1) var(--ease-out); }
 .tab-ghost { position: fixed; left: 0; top: 0; z-index: 60; pointer-events: none; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: 0.75rem; box-shadow: 0 12px 28px -8px rgb(0 0 0 / 0.35); opacity: 0.95; }
+.tab-insert { position: absolute; top: 10px; bottom: 10px; width: 2px; border-radius: 1px; background: var(--accent); pointer-events: none; transition: left var(--dur-1) var(--ease-out); }
+@media (prefers-reduced-motion: reduce) { .tab-insert { transition: none; } }
 
 /* Toasts: bottom centre, above the phone tab bar. */
 .toasts { position: fixed; z-index: 50; left: 50%; bottom: calc(76px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(calc(100vw - 2rem), 26rem); display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }

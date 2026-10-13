@@ -1,16 +1,18 @@
 /*
  * Customizable bottom bar. Press and hold a tab (about 450 ms) or right-click
- * it to enter edit mode: the bar lifts and a tray of other places slides up
- * beneath it. Drag a place onto a tab to replace it (the displaced one goes
- * back to the tray), drag tabs to reorder, or drag a tab into the tray to
- * remove it. Tapping works too: tap one item, then the slot to swap with,
- * which is also the keyboard path. 3 to 5 tabs. Done, Esc or a tap outside
- * saves and exits. Settings has a plain form for the same thing.
+ * it to enter edit mode: the bar lifts, empty slots show, and the other pages
+ * slide up beneath it. Drag a page or tab between tabs or to either end to
+ * insert it there (an indicator marks the spot and the tabs reflow); once
+ * the bar is full a drop swaps with the tab under it. Drag a tab down to
+ * remove it. Tapping a page fills the next empty slot; with a full bar, tap
+ * the page and then the tab it replaces. Arrow keys move a focused tab,
+ * Delete removes it. 3 to 5 tabs. Done, Esc or a tap outside saves. Settings
+ * has a plain form for the same thing. Rules live in tab-order.mjs.
  */
+import { MAX, MIN, addNext, insertAt, insertionIndex, removeTab } from "./tab-order.mjs";
+
 const HOLD_MS = 450;
 const MOVE_SLOP = 8;
-const MIN = 3;
-const MAX = 5;
 
 export function bindTabEdit(doc, win = window) {
   const nav = doc.querySelector("[data-app-tabs]");
@@ -52,14 +54,49 @@ export function bindTabEdit(doc, win = window) {
     return `<li data-place="${key}"><button type="button" class="tab-edit-item flex h-16 w-full flex-col items-center justify-center gap-1 rounded-md border border-line bg-canvas text-[11px] font-medium text-ink" aria-pressed="${sel}" aria-label="${p.label}, not in the bar">${icon(p.icon)}<span class="max-w-full overflow-hidden text-ellipsis whitespace-nowrap px-1">${p.label}</span></button></li>`;
   }
 
+  const emptySlot = (i) => `<li data-empty aria-hidden="true"><span class="tab-empty flex min-h-[58px] items-center justify-center"><span class="h-7 w-10 rounded-full border border-dashed border-line"></span></span><span class="sr-only">Empty slot ${i + 1}</span></li>`;
+
   function render() {
-    bar.style.gridTemplateColumns = `repeat(${tabs.length}, minmax(0, 1fr))`;
-    bar.innerHTML = tabs.map(barItem).join("");
+    const slots = editing ? MAX : tabs.length;
+    bar.style.gridTemplateColumns = `repeat(${slots}, minmax(0, 1fr))`;
+    const before = reduce ? null : rects();
+    bar.innerHTML = tabs.map(barItem).join("") + (editing ? Array.from({ length: MAX - tabs.length }, (_, i) => emptySlot(tabs.length + i)).join("") : "");
+    if (before) reflow(before);
     if (editing) {
       const rest = Object.keys(places).filter((k) => !tabs.includes(k));
       trayList.innerHTML = rest.map(trayItem).join("");
     }
   }
+
+  // Slide tabs from their old spot to the new one (FLIP), so a change reads as a move.
+  function rects() {
+    return Object.fromEntries([...bar.querySelectorAll("[data-tab]")].map((li) => [li.dataset.tab, li.getBoundingClientRect().left]));
+  }
+  function reflow(before) {
+    bar.querySelectorAll("[data-tab]").forEach((li) => {
+      const was = before[li.dataset.tab];
+      if (was === undefined) return;
+      const dx = was - li.getBoundingClientRect().left;
+      if (Math.abs(dx) > 1) li.animate([{ transform: `translateX(${dx}px)` }, { transform: "none" }], { duration: 220, easing: "cubic-bezier(0.2, 0.7, 0.2, 1)" });
+    });
+  }
+
+  let indicator = null;
+  function showIndicator(index) {
+    if (!indicator) {
+      indicator = doc.createElement("span");
+      indicator.className = "tab-insert";
+      indicator.setAttribute("aria-hidden", "true");
+      bar.style.position = "relative";
+      bar.append(indicator);
+    }
+    const items = [...bar.querySelectorAll("[data-tab]")];
+    const box = bar.getBoundingClientRect();
+    const edge = index < items.length ? items[index].getBoundingClientRect().left : items.length ? items[items.length - 1].getBoundingClientRect().right : box.left;
+    indicator.style.left = `${edge - box.left - 1}px`;
+    indicator.hidden = false;
+  }
+  function hideIndicator() { if (indicator) { indicator.remove(); indicator = null; } }
 
   function say(text) { if (hint) hint.textContent = text; }
 
@@ -73,7 +110,7 @@ export function bindTabEdit(doc, win = window) {
     head.hidden = false;
     tray.hidden = false;
     render();
-    say("Drag a place onto a tab, or tap one and then the tab to swap.");
+    say("");
     if (!reduce) {
       const after = bar.getBoundingClientRect().top;
       bar.animate([{ transform: `translateY(${before - after}px)` }, { transform: "none" }], { duration: 260, easing: "cubic-bezier(0.2, 0.7, 0.2, 1)" });
@@ -115,24 +152,18 @@ export function bindTabEdit(doc, win = window) {
     } catch { /* kept locally until the next save */ }
   }
 
-  // Apply a move. from/to: {zone: "bar"|"tray", key}. Returns a message or "".
-  function move(from, to) {
-    if (!to || (from.zone === to.zone && from.key === to.key)) return "";
-    if (from.zone === "tray" && to.zone === "bar") {
-      if (to.key) tabs[tabs.indexOf(to.key)] = from.key;
-      else if (tabs.length < MAX) tabs.push(from.key);
-      else return `The bar holds ${MAX}. Drop onto a tab to replace it.`;
-    } else if (from.zone === "bar" && to.zone === "bar") {
-      const a = tabs.indexOf(from.key);
-      const b = to.key ? tabs.indexOf(to.key) : tabs.length - 1;
-      tabs.splice(a, 1);
-      tabs.splice(b, 0, from.key);
-    } else if (from.zone === "bar" && to.zone === "tray") {
-      if (tabs.length <= MIN) return `Keep at least ${MIN} tabs.`;
-      tabs = tabs.filter((k) => k !== from.key);
-    } else return "";
+  // Apply a change: a new tab list, or a message when it isn't allowed.
+  function apply(next, key, refusal) {
+    if (!next) return refusal;
+    tabs = next;
     render();
-    flash(from.key);
+    flash(key);
+    return "";
+  }
+  function move(from, to) {
+    if (!to) return "";
+    if (to.zone === "bar") return apply(insertAt(tabs, from.key, to.index ?? (to.key ? tabs.indexOf(to.key) : tabs.length)), from.key, "");
+    if (from.zone === "bar" && to.zone === "tray") return apply(removeTab(tabs, from.key), from.key, `Keep at least ${MIN} tabs.`);
     return "";
   }
 
@@ -144,9 +175,15 @@ export function bindTabEdit(doc, win = window) {
   function zoneAt(x, y) {
     const el = doc.elementFromPoint(x, y);
     if (!el) return null;
-    const slot = el.closest("[data-slot]");
-    if (slot && bar.contains(slot)) return { zone: "bar", key: slot.dataset.tab, el: slot };
-    if (bar.contains(el)) return { zone: "bar", key: null, el: bar };
+    if (bar.contains(el) || el === bar) {
+      const items = [...bar.querySelectorAll("[data-tab]")].filter((li) => li !== drag?.source);
+      const index = insertionIndex(x, items.map((li) => { const r = li.getBoundingClientRect(); return [r.left, r.right]; }));
+      const slot = el.closest("[data-slot]");
+      // A full bar swaps with the tab under the pointer; otherwise insert between.
+      if (tabs.length >= MAX && drag?.from.zone === "tray" && slot) return { zone: "bar", key: slot.dataset.tab, index: tabs.indexOf(slot.dataset.tab), el: slot };
+      const key = items[index]?.dataset.tab;
+      return { zone: "bar", key: null, index: key ? tabs.indexOf(key) : tabs.length, insert: index, el: bar };
+    }
     if (tray.contains(el)) return { zone: "tray", key: el.closest("[data-place]")?.dataset.place || null, el: tray };
     return null;
   }
@@ -194,8 +231,10 @@ export function bindTabEdit(doc, win = window) {
     const over = zoneAt(event.clientX, event.clientY);
     if (drag.over?.el !== over?.el) {
       drag.over?.el.classList.remove("tab-target");
-      over?.el.classList.add("tab-target");
+      if (over && over.el !== bar) over.el.classList.add("tab-target");
     }
+    if (over && over.insert !== undefined) showIndicator(over.insert);
+    else hideIndicator();
     drag.over = over;
   }, { passive: false });
 
@@ -206,6 +245,7 @@ export function bindTabEdit(doc, win = window) {
     drag = null;
     source.classList.remove("tab-dragging");
     over?.el.classList.remove("tab-target");
+    hideIndicator();
     if (!ghost) return; // a tap; handled by click
     ghost.remove();
     say(move(from, over) || "");
@@ -225,21 +265,25 @@ export function bindTabEdit(doc, win = window) {
     const li = event.target.closest("[data-tab], [data-place]");
     if (!li) return;
     const here = li.dataset.tab ? { zone: "bar", key: li.dataset.tab } : { zone: "tray", key: li.dataset.place };
+    if (!selected && here.zone === "tray" && tabs.length < MAX) {
+      say(apply(addNext(tabs, here.key), here.key, ""));
+      return;
+    }
     if (!selected) {
       selected = here;
       render();
-      say(here.zone === "bar" ? "Now tap another tab to swap, or a place below to replace it." : "Now tap the tab it should replace.");
+      say(here.zone === "bar" ? "Now tap where it should go." : "Now tap the tab it replaces.");
       focusItem(here);
       return;
     }
     const first = selected;
     selected = null;
     let message = "";
-    if (first.zone === "tray" && here.zone === "bar") message = move(first, here);
-    else if (first.zone === "bar" && here.zone === "tray") message = move({ zone: "tray", key: here.key }, { zone: "bar", key: first.key });
+    if (first.zone === "tray" && here.zone === "bar") message = move(first, { zone: "bar", key: here.key, index: tabs.indexOf(here.key) });
+    else if (first.zone === "bar" && here.zone === "tray") message = move({ zone: "tray", key: here.key }, { zone: "bar", key: first.key, index: tabs.indexOf(first.key) });
     else if (first.zone === "bar" && here.zone === "bar" && first.key !== here.key) {
       const a = tabs.indexOf(first.key), b = tabs.indexOf(here.key);
-      [tabs[a], tabs[b]] = [tabs[b], tabs[a]];
+      message = apply(insertAt(tabs, first.key, a < b ? b + 1 : b), first.key, "");
     }
     render();
     say(message);
@@ -258,6 +302,13 @@ export function bindTabEdit(doc, win = window) {
     if (li && (event.key === "Delete" || event.key === "Backspace")) {
       event.preventDefault();
       say(move({ zone: "bar", key: li.dataset.tab }, { zone: "tray", key: null }));
+    }
+    if (li && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
+      event.preventDefault();
+      const i = tabs.indexOf(li.dataset.tab);
+      const to = event.key === "ArrowLeft" ? Math.max(0, i - 1) : Math.min(tabs.length, i + 2);
+      apply(insertAt(tabs, li.dataset.tab, to), li.dataset.tab, "");
+      focusItem({ zone: "bar", key: li.dataset.tab });
     }
   });
 
