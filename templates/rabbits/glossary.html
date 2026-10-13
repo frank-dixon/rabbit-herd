@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Glossary · {{ app_name }}{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title="Glossary" subtitle="What the terms in Bramble Burrow mean, with the published source for each." only %}
+  <div class="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[12rem_minmax(0,1fr)]">
+    <nav class="min-w-0 lg:sticky lg:top-20 lg:self-start" aria-label="Glossary sections" data-glossary-nav>
+      <ul class="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:gap-0.5">
+        {% for section in sections %}<li class="shrink-0"><a class="flex min-h-9 items-center rounded-md border border-line px-3 text-sm text-muted hover:bg-side hover:text-ink lg:border-0" href="#{{ section.slug }}">{{ section.title }}</a></li>{% endfor %}
+        <li class="shrink-0"><a class="flex min-h-9 items-center rounded-md border border-line px-3 text-sm text-muted hover:bg-side hover:text-ink lg:border-0" href="#sources">Sources</a></li>
+      </ul>
+    </nav>
+    <div class="min-w-0 max-w-3xl">
+      {% for section in sections %}
+        <section class="ruled pt-4{% if not forloop.first %} mt-8{% endif %}" id="{{ section.slug }}" aria-labelledby="{{ section.slug }}-heading">
+          <h2 class="text-base font-semibold" id="{{ section.slug }}-heading">{{ section.title }}</h2>
+          <dl class="mt-3 divide-y divide-line">
+            {% for t in section.terms %}
+              <div class="py-3 sm:grid sm:grid-cols-[11rem_minmax(0,1fr)] sm:gap-4" id="{{ t.slug }}" data-term>
+                <dt class="font-semibold">{{ t.term }}{% if t.symbol %} <span class="num ml-1 rounded bg-side px-1.5 py-0.5 text-xs font-medium text-muted">{{ t.symbol }}</span>{% endif %}</dt>
+                <dd class="mt-1 text-[0.95rem] leading-relaxed sm:mt-0">{{ t.text }}{% for n in t.refs %}<sup class="ml-0.5"><a class="num text-xs font-medium text-accent hover:underline" href="#source-{{ n }}" aria-label="Source {{ n }}">[{{ n }}]</a></sup>{% endfor %}</dd>
+              </div>
+            {% endfor %}
+          </dl>
+        </section>
+      {% endfor %}
+      <section class="ruled mt-10 pt-4" id="sources" aria-labelledby="sources-heading">
+        <h2 class="text-base font-semibold" id="sources-heading">Sources</h2>
+        <ol class="mt-3 space-y-2 text-sm" data-sources>
+          {% for r in references %}
+            <li class="flex gap-3" id="source-{{ r.n }}"><span class="num w-6 shrink-0 text-right text-muted">{{ r.n }}.</span><span class="min-w-0 break-words">{{ r.text }} <a class="break-all text-accent underline" href="{{ r.url }}" rel="noopener noreferrer" target="_blank">{{ r.url }}</a></span></li>
+          {% endfor %}
+        </ol>
+      </section>
+    </div>
+  </div>
+{% endblock %}
