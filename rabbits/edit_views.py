@@ -18,11 +18,11 @@ from .flow_views import row_anchor, step_context
 from .models import Rabbit
 
 # A card can only be shown once the cards it depends on pass.
-NEEDS = {"breed": ["breed-type"], "color": ["breed-type", "breed"]}
+NEEDS = {"breed": ["breed-type"], "color": ["breed-type", "breed"], "genes": ["breed-type", "breed"]}
 LABELS = {
     "name": "Name", "sex": "Sex", "birth-date": "Birth date", "status": "Status",
     "breed-type": "Breed type", "breed": "Breed", "color": "Color", "line": "Line",
-    "relatives": "Relatives",
+    "relatives": "Relatives", "genes": "Genes",
 }
 
 
@@ -43,6 +43,12 @@ def load(request, rabbit):
     key = flow.edit_key(rabbit.pk)
     if not flow.has_draft(request.session, key):
         flow.save_draft(request.session, flow.draft_from_rabbit(rabbit), key)
+    elif "gene_auto" not in request.session[key]:
+        # A draft begun before the genes card: take the genes from the rabbit.
+        fresh = flow.draft_from_rabbit(rabbit)
+        stored = dict(request.session[key])
+        stored.update({k: fresh[k] for k in flow.GENE_KEYS + ("eye_color", "gene_auto")})
+        flow.save_draft(request.session, stored, key)
     return flow.load_draft(request.session, key), key
 
 
@@ -55,7 +61,7 @@ def overview_rows(draft, user, rabbit):
     answers = [
         ("name", values["Name"]), ("sex", values["Sex"]), ("birth-date", values["Birth date"]),
         ("relatives", None), ("status", values["Status"]), ("breed-type", breed_types.get(draft["breed_type"], "")),
-        ("breed", values["Breed"]), ("color", values["Color"]), ("line", draft["line"].strip()),
+        ("breed", values["Breed"]), ("color", values["Color"]), ("genes", values["Genes"]), ("line", draft["line"].strip()),
     ]
     out = []
     for slug, answer in answers:
@@ -117,6 +123,11 @@ def rabbit_edit_step(request, pk, step):
     if request.method == "POST":
         flow.update_draft(draft, step, request.POST)
         action = request.POST.get("action", "next")
+        if step == "genes":
+            flow.fill_genes(draft, request.user)
+            if action == "fill":
+                flow.save_draft(request.session, draft, key)
+                return redirect(card_url(rabbit.pk, step))
         if action == "save":
             flow.save_draft(request.session, draft, key)
             if request.headers.get("X-Autosave") == "1":
@@ -156,6 +167,8 @@ def rabbit_edit_step(request, pk, step):
         return redirect(card_url(rabbit.pk, step, check=True))
 
     cleared = flow.reconcile_color(draft) if step == "color" else ""
+    if step == "genes":
+        flow.fill_genes(draft, request.user)
     flow.save_draft(request.session, draft, key)
     form = None
     if request.GET.get("check"):

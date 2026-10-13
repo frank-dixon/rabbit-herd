@@ -54,12 +54,15 @@ def question(slug, draft):
         return f"Do you know any of {who}'s relatives?"
     if slug == "line":
         return f"Which line is {who} from?"
+    if slug == "genes":
+        return f"Which genes does {who} carry?"
     return f"Please check {who}'s details"
 
 
 HINTS = {
     "name": "Use whatever you go by to tell this rabbit apart.",
     "review": "If something needs changing, use Back to return to it.",
+    "genes": "Optional. Filled from the breed, color and eye color where they prove a gene. _ means the second allele isn't known yet.",
     "line": "Optional. The line or strain, such as a breeder's herd name, to tell same-breed lines apart.",
 }
 
@@ -191,6 +194,7 @@ def review_rows(draft, user):
         ("Color", flow.draft_color(draft)),
         ("Status", status_text(draft, statuses)),
         ("Breed", flow.draft_breed_line(draft)),
+        ("Genes", flow.genes_line(draft) or "Not recorded"),
     ]
     labels = dict(flow_forms.Relative.Relationship.choices)
     relatives = []
@@ -318,6 +322,8 @@ def step_context(slug, draft, user, form, exclude=None):
                 "can_add_relative": len(draft["relatives"]) < flow_forms.MAX_RELATIVES,
             }
         )
+    if slug == "genes":
+        context.update(genes_context(draft, user, errors))
     if slug == "review":
         context["review_rows"], context["review_relatives"] = review_rows(draft, user)
     return context
@@ -363,6 +369,46 @@ def trait_context(number, row, errors, parent_colors, breed):
     }
 
 
+def genes_context(draft, user, errors):
+    """The genes card: an eye color select, a dropdown per locus with the
+    filled ones marked, and the suggestions for each eye color so the
+    script can refill live without a round trip."""
+    from . import gene_fill
+
+    auto = flow.parse_auto(draft["gene_auto"])
+    rows = []
+    for locus in gene_fill.LOCI:
+        value = draft[f"gene_{locus}"].strip()
+        options = [(option, option) for option in gene_fill.options(locus)]
+        if value and value not in gene_fill.options(locus):
+            options.insert(0, (value, f"{value} (as recorded)"))
+        rows.append({
+            "locus": locus,
+            "name": f"gene_{locus}",
+            "label": f"{locus} · {gene_fill.LOCUS_NAMES[locus]}",
+            "value": value,
+            "options": options,
+            "auto": locus in auto,
+            "error": errors.get(f"gene_{locus}", []),
+        })
+    by_eye = {eye: flow.gene_suggestions(draft, user, eye=eye) for eye in [""] + [e for e, _ in gene_fill.EYE_COLORS]}
+    breed = flow_forms.purebred_breed(draft)
+    source = ", ".join(part for part in (breed.name if breed else "", flow.draft_color(draft)) if part)
+    return {
+        "gene_rows": rows,
+        "eye_options": gene_fill.EYE_COLORS,
+        "eye_color": draft["eye_color"],
+        "eye_error": errors.get("eye_color", []),
+        "gene_other": draft["gene_other"],
+        "gene_other_auto": "other" in auto,
+        "gene_other_error": errors.get("gene_other", []),
+        "gene_auto": draft["gene_auto"],
+        "gene_source": source,
+        "gene_filled_any": bool(auto),
+        "gene_suggestions_json": by_eye,
+    }
+
+
 def row_anchor(action, draft):
     """Where to land after adding or removing a row."""
     if action == "add-cross":
@@ -395,6 +441,11 @@ def rabbit_flow_step(request, step):
         flow.update_draft(draft, step, request.POST)
         action = request.POST.get("action", "next")
         index = flow.step_index(step)
+        if step == "genes":
+            flow.fill_genes(draft, request.user)
+            if action == "fill":
+                flow.save_draft(request.session, draft)
+                return redirect(step_url(step))
         if action == "save":
             flow.save_draft(request.session, draft)
             if request.headers.get("X-Autosave") == "1":
@@ -434,6 +485,8 @@ def rabbit_flow_step(request, step):
 
     draft["step"] = step
     cleared = flow.reconcile_color(draft) if step == "color" else ""
+    if step == "genes":
+        flow.fill_genes(draft, request.user)
     flow.save_draft(request.session, draft)
     form = None
     if request.GET.get("check") and flow.STEPS[flow.step_index(step)].form_class:

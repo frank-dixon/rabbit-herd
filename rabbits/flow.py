@@ -17,7 +17,7 @@ from decimal import Decimal
 
 from django.db import transaction
 
-from . import flow_forms
+from . import flow_forms, gene_fill
 from .models import Breed, BreedShare, Gene, OutsideRabbit, Rabbit, Relative, color_text, parse_share, share_text
 
 SESSION_KEY = "rabbit_draft"
@@ -27,6 +27,8 @@ TEXT_KEYS = (
     "name", "sex", "birth_date", "color_choice", "color", "status", "breed_type", "purebred",
     "line", "legacy_breed", "death_date", "death_cause", "tattoo", "self_pk",
 )
+GENE_KEYS = tuple(f"gene_{locus}" for locus in gene_fill.LOCI) + ("gene_other",)
+TEXT_KEYS += ("eye_color",) + GENE_KEYS + ("gene_auto",)
 # The edit flow keeps one draft per rabbit, under this key plus the rabbit's id.
 EDIT_SESSION_KEY = "rabbit_edit_draft_{pk}"
 
@@ -50,13 +52,15 @@ STEPS = [
     Step("breed-type", flow_forms.BreedTypeForm, ("breed_type",)),
     Step("breed", flow_forms.BreedForm, ("purebred",)),
     Step("color", flow_forms.ColorForm, ("color_choice", "color")),
+    # Genes come right after the color, so they can be filled from it.
+    Step("genes", flow_forms.GenesForm, ("eye_color",) + GENE_KEYS + ("gene_auto",), optional=True),
     Step("review", None),
 ]
 SLUGS = [step.slug for step in STEPS]
 
 # Editing uses the same cards and checks, plus the rabbit's own line, and
 # an overview card instead of the review card.
-EDIT_STEPS = STEPS[:8] + [
+EDIT_STEPS = STEPS[:9] + [
     Step("line", flow_forms.LineForm, ("line",), optional=True),
 ]
 EDIT_SLUGS = [step.slug for step in EDIT_STEPS]
@@ -99,6 +103,9 @@ def empty_draft():
         "death_cause": "",
         "tattoo": "",
         "self_pk": "",
+        "eye_color": "",
+        **{key: "" for key in GENE_KEYS},
+        "gene_auto": "",
         "step": SLUGS[0],
     }
 
@@ -375,6 +382,7 @@ def save_rabbit(draft, user):
     """Check every step again and save the rabbit, its breed shares, and
     its relatives in one transaction. Raises DraftNotReady with the first
     step that fails."""
+    fill_genes(draft, user)
     with transaction.atomic():
         answers = {}
         for step in STEPS:
@@ -396,6 +404,7 @@ def save_rabbit(draft, user):
             birth_date=answers["birth_date"],
             color=answers["color"],
             color_is_standard=answers["color_is_standard"],
+            eye_color=answers["eye_color"],
             status=answers["status"],
             death_date=answers["death_date"],
             death_cause=answers["death_cause"],
@@ -407,6 +416,7 @@ def save_rabbit(draft, user):
             BreedShare(rabbit=rabbit, breed=breed, percent=percent) for breed, percent in shares
         )
         save_relatives(rabbit, user, answers["relatives"])
+        save_genes(rabbit, answers["genes"], auto_loci(draft))
     return rabbit
 
 
@@ -517,9 +527,15 @@ def draft_from_rabbit(rabbit):
             "death_cause": rabbit.death_cause,
             "tattoo": rabbit.tattoo,
             "self_pk": str(rabbit.pk),
+            "eye_color": rabbit.eye_color,
             "step": EDIT_SLUGS[0],
         }
     )
+    for gene in rabbit.genes.all():
+        key = "gene_other" if gene.locus == Gene.Locus.OTHER else f"gene_{gene.locus}"
+        if key in draft:
+            value = gene.genotype if gene.locus == Gene.Locus.OTHER else gene_fill.canonical(gene.locus, gene.genotype)
+            draft[key] = clean_text(gene.genotype if value is None else value)
     shares = [(share.breed, share.percent) for share in rabbit.breed_shares.select_related("breed")]
     if rabbit.breed_type == Rabbit.BreedType.PUREBRED and rabbit.purebred_id:
         parsed = (Rabbit.BreedType.PUREBRED.value, rabbit.purebred, [])
@@ -560,6 +576,7 @@ def update_rabbit(draft, user, rabbit):
     """Check every edit card again and save the changes to the rabbit, its
     breed shares, and its relatives in one transaction. Raises DraftNotReady
     with the first card that fails."""
+    fill_genes(draft, user)
     with transaction.atomic():
         rabbit = Rabbit.objects.select_for_update().get(pk=rabbit.pk, owner=user)
         answers = {}
@@ -572,7 +589,7 @@ def update_rabbit(draft, user, rabbit):
             raise DraftNotReady("relatives")
         purebred = Breed.objects.get(pk=answers["purebred"]) if answers["purebred"] else None
         shares = [(Breed.objects.get(pk=pk), percent) for pk, percent in answers["shares"]]
-        for field in ("name", "tattoo", "sex", "birth_date", "color", "color_is_standard", "status", "death_date", "death_cause", "breed_type", "line"):
+        for field in ("name", "tattoo", "sex", "birth_date", "color", "color_is_standard", "status", "death_date", "death_cause", "breed_type", "line", "eye_color"):
             setattr(rabbit, field, answers[field])
         rabbit.purebred = purebred
         rabbit.breed = short_breed(breed_line(purebred, shares))
@@ -583,6 +600,7 @@ def update_rabbit(draft, user, rabbit):
         )
         rabbit.relatives.all().delete()
         save_relatives(rabbit, user, answers["relatives"])
+        save_genes(rabbit, answers["genes"], auto_loci(draft))
     return rabbit
 
 
@@ -634,3 +652,138 @@ def prefill_breed_from_parents(draft, rows):
         order = sorted(combined, key=lambda pk: -combined[pk])
         draft["cross"] = [{"breed": str(pk), "percent": share_text(combined[pk])} for pk in order]
     return draft_breed_line(draft)
+
+
+# Genes filled from the breed and color ----------------------------------
+#
+# The genes card fills empty loci with what the breed, color and eye color
+# prove (rabbits/gene_fill.py). The draft's gene_auto remembers each value
+# it filled, as "A=aa;D=dd". A locus whose value still equals what was
+# filled is still automatic, so a new color or eye color refreshes it. A
+# locus people changed, or that held a value before, is theirs and is
+# never touched. The script keeps gene_auto in step as it fills live.
+
+AUTO_LOCI = gene_fill.LOCI + [gene_fill.OTHER]
+
+
+def parse_auto(text):
+    out = {}
+    for part in str(text or "").split(";"):
+        locus, sep, value = part.partition("=")
+        if sep and locus in AUTO_LOCI:
+            out[locus] = value
+    return out
+
+
+def auto_text(auto):
+    return ";".join(f"{locus}={auto[locus]}" for locus in AUTO_LOCI if locus in auto)
+
+
+def auto_loci(draft):
+    return set(parse_auto(draft["gene_auto"]))
+
+
+def gene_key(locus):
+    return f"gene_{locus}"
+
+
+def draft_color_text(draft):
+    """The color as the rules read it: the color, plus its hint from the
+    breed's list when the hint names the eyes (New Zealand "White" is
+    listed as ruby-eyed white). Other hints describe shading and would
+    only confuse the rules."""
+    color = draft_color(draft)
+    breed = flow_forms.purebred_breed(draft)
+    for listed in flow_forms.offered_colors(breed):
+        hint = listed.get("hint", "").casefold()
+        if listed["name"] == draft["color_choice"] and ("eyed white" in hint or "ruby eyes" in hint):
+            color = f"{color} {listed['hint']}"
+    return color
+
+
+def parent_genes(draft, user):
+    """The dam's and sire's genes as recorded on the relatives card, or on
+    the herd rabbit when the card leaves them blank."""
+    out = []
+    for row in draft["relatives"]:
+        if row["relationship"] not in ("dam", "sire"):
+            continue
+        genes = {locus: row.get(gene_key(locus), "") for locus in gene_fill.LOCI if row.get(gene_key(locus))}
+        target = flow_forms.resolve_ref(user, row["ref"]) if row["ref"].startswith("h:") else None
+        if isinstance(target, Rabbit):
+            for gene in target.genes.all():
+                genes.setdefault(gene.locus, gene.genotype)
+        out.append(genes)
+    return out
+
+
+def gene_suggestions(draft, user, eye=None):
+    """{locus: genotype} the breed, color and eye color prove, narrowed by
+    the parents. `eye` overrides the draft's eye color."""
+    breed = flow_forms.purebred_breed(draft)
+    found = gene_fill.from_breed_and_color(
+        breed.name if breed else "", draft_color_text(draft), draft["eye_color"] if eye is None else eye
+    )
+    return gene_fill.narrow_with_parents(found, parent_genes(draft, user))
+
+
+def fill_genes(draft, user, suggestions=None):
+    """Fill empty or still-automatic loci from the suggestions. Returns the
+    set of loci that hold a filled value afterwards."""
+    if suggestions is None:
+        suggestions = gene_suggestions(draft, user)
+    before = parse_auto(draft["gene_auto"])
+    auto = {}
+    for locus in AUTO_LOCI:
+        key = gene_key(locus)
+        current = draft[key].strip()
+        still_auto = locus in before and current == before[locus]
+        if current and not still_auto:
+            continue
+        if suggestions.get(locus):
+            draft[key] = suggestions[locus]
+            auto[locus] = suggestions[locus]
+        elif still_auto:
+            draft[key] = ""
+    draft["gene_auto"] = auto_text(auto)
+    return set(auto)
+
+
+def save_genes(rabbit, genes, auto):
+    """Write the genes card to the rabbit. A blank clears that locus. A
+    filled value proven by the color is saved as known; anything else
+    keeps its certainty, or starts as probable."""
+    for locus in gene_fill.LOCI + [Gene.Locus.OTHER]:
+        value = genes.get(locus, "").strip()
+        existing = rabbit.genes.filter(locus=locus).first()
+        if not value:
+            if existing:
+                existing.delete()
+            continue
+        if existing and locus in auto:
+            # A filled value never replaces a gene already on the rabbit,
+            # such as one recorded on the genes page after this draft began.
+            continue
+        if existing:
+            same = existing.genotype == value or (
+                locus != Gene.Locus.OTHER and gene_fill.canonical(locus, existing.genotype) == value
+            )
+            if not same:
+                existing.genotype = value
+                if locus in auto:
+                    existing.certainty = Gene.Certainty.KNOWN
+                existing.save()
+            continue
+        certainty = Gene.Certainty.KNOWN if locus in auto and locus != Gene.Locus.OTHER else Gene.Certainty.PROBABLE
+        Gene.objects.create(rabbit=rabbit, locus=locus, genotype=value, certainty=certainty)
+
+
+def genes_line(draft):
+    """The genes for the review card and the edit summary: "aa B_ C_ D_ E_
+    enen · brown eyes", or "" when nothing is recorded."""
+    parts = [draft[gene_key(locus)].strip() for locus in gene_fill.LOCI if draft[gene_key(locus)].strip()]
+    eye = dict(gene_fill.EYE_COLORS).get(draft["eye_color"], "")
+    text = " ".join(parts)
+    if eye:
+        text = f"{text} · {eye.split(' (')[0].lower()} eyes" if text else f"{eye.split(' (')[0]} eyes"
+    return text

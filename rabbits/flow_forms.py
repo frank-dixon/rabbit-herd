@@ -587,3 +587,41 @@ class RelativesForm(StepForm):
             "breed": self.text(f"{base}-breed"),
             "genes": genes,
         }
+
+
+GENE_UNREADABLE = "Please choose a genotype from the list, or leave it as Not recorded."
+EYE_COLOR_UNKNOWN = "Please choose an eye color from the list, or leave it blank."
+
+
+class GenesForm(StepForm):
+    """The rabbit's own genes, one dropdown per locus, plus eye color and
+    free-text other genes. Every field is optional. A genotype recorded
+    before the dropdowns, in a spelling the list can't read, is kept as
+    written so editing never loses it."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in ["eye_color", "gene_other", "gene_auto"] + [f"gene_{locus}" for locus in GENE_LOCI]:
+            self.fields[name] = forms.CharField(required=False)
+
+    def clean(self):
+        from . import gene_fill
+
+        out = {"eye_color": self.text("eye_color")}
+        if out["eye_color"] and out["eye_color"] not in dict(gene_fill.EYE_COLORS):
+            self.add_error("eye_color", EYE_COLOR_UNKNOWN)
+        genes = {}
+        for locus in GENE_LOCI:
+            raw = self.text(f"gene_{locus}")
+            value = gene_fill.canonical(locus, raw)
+            if value is None:
+                if len(raw) > 40:
+                    self.add_error(f"gene_{locus}", GENE_UNREADABLE)
+                value = raw
+            genes[locus] = value
+        other = self.text("gene_other")
+        if len(other) > 200:
+            self.add_error("gene_other", OTHER_GENES_TOO_LONG)
+        genes["other"] = other
+        out["genes"] = genes
+        return out

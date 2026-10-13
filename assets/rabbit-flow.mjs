@@ -198,6 +198,98 @@ function bindConfirm(root) {
   });
 }
 
+export function parseAuto(text) {
+  const out = {};
+  String(text || "").split(";").forEach(function (part) {
+    const at = part.indexOf("=");
+    if (at > 0) {
+      out[part.slice(0, at)] = part.slice(at + 1);
+    }
+  });
+  return out;
+}
+
+export function autoText(auto, loci) {
+  return loci.filter(function (locus) { return locus in auto; }).map(function (locus) {
+    return locus + "=" + auto[locus];
+  }).join(";");
+}
+
+/**
+ * The same rule as flow.fill_genes on the server: fill a locus that is
+ * empty or still holds the value filled before; leave the rest alone.
+ * Returns { values, auto }.
+ */
+export function refillGenes(values, auto, suggestions) {
+  const nextValues = Object.assign({}, values);
+  const nextAuto = {};
+  Object.keys(values).forEach(function (locus) {
+    const current = (values[locus] || "").trim();
+    const stillAuto = locus in auto && current === auto[locus];
+    if (current && !stillAuto) {
+      return;
+    }
+    if (suggestions[locus]) {
+      nextValues[locus] = suggestions[locus];
+      nextAuto[locus] = suggestions[locus];
+    } else if (stillAuto) {
+      nextValues[locus] = "";
+    }
+  });
+  return { values: nextValues, auto: nextAuto };
+}
+
+/** Live fill on the genes card when the eye color changes. */
+function bindGeneFill(form) {
+  const data = document.getElementById("gene-suggestions");
+  const hidden = form.querySelector("[data-gene-auto]");
+  const eye = form.querySelector("#id_eye_color");
+  if (!data || !hidden || !eye) {
+    return;
+  }
+  const byEye = JSON.parse(data.textContent);
+  const fields = Array.from(form.querySelectorAll("[data-gene]"));
+  const loci = fields.map(function (field) { return field.getAttribute("data-gene"); });
+  const refill = form.querySelector("[data-gene-refill]");
+  if (refill) {
+    refill.hidden = true;
+  }
+  function show(auto) {
+    fields.forEach(function (field) {
+      const hint = field.parentElement.querySelector("[data-gene-filled]");
+      if (hint) {
+        hint.classList.toggle("hidden", !(field.getAttribute("data-gene") in auto));
+      }
+    });
+  }
+  eye.addEventListener("change", function () {
+    const values = {};
+    fields.forEach(function (field) { values[field.getAttribute("data-gene")] = field.value; });
+    const result = refillGenes(values, parseAuto(hidden.value), byEye[eye.value] || {});
+    fields.forEach(function (field) {
+      const value = result.values[field.getAttribute("data-gene")];
+      if (field.tagName === "SELECT" && value && !Array.from(field.options).some(function (o) { return o.value === value; })) {
+        return;
+      }
+      field.value = value;
+    });
+    hidden.value = autoText(result.auto, loci);
+    show(result.auto);
+  });
+  form.addEventListener("change", function (event) {
+    const locus = event.target.getAttribute && event.target.getAttribute("data-gene");
+    if (!locus) {
+      return;
+    }
+    const auto = parseAuto(hidden.value);
+    if (locus in auto && auto[locus] !== event.target.value) {
+      delete auto[locus];
+      hidden.value = autoText(auto, loci);
+      show(auto);
+    }
+  });
+}
+
 /** Errors first, then a row that was just added, then the question. */
 function placeFocus(form) {
   const summary = document.getElementById("error-summary");
@@ -227,6 +319,7 @@ export function bindRabbitFlow(root) {
   bindTotal(form);
   bindRelationships(form);
   bindColorChoice(form);
+  bindGeneFill(form);
   bindAutosave(form);
   placeFocus(form);
 }

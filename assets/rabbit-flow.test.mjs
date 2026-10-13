@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { crossTotal, needsColorText, relationshipChoices, totalText, totalTone } from "./rabbit-flow.mjs";
+import { autoText, crossTotal, needsColorText, parseAuto, refillGenes, relationshipChoices, totalText, totalTone } from "./rabbit-flow.mjs";
 
 const ALL = [
   ["dam", "Dam (mother)"],
@@ -41,4 +41,21 @@ test("the color description box is needed only for Another color", () => {
   assert.equal(needsColorText("__other__", "__other__"), true);
   assert.equal(needsColorText("Creme", "__other__"), false);
   assert.equal(needsColorText("", "__other__"), false);
+});
+
+test("gene refill fills empty and still-filled loci, never ones set by hand", () => {
+  const result = refillGenes({ A: "", B: "Bb", C: "C_", D: "" }, { C: "C_" }, { A: "aa", B: "B_", C: "cc" });
+  assert.deepEqual(result.values, { A: "aa", B: "Bb", C: "cc", D: "" });
+  assert.deepEqual(result.auto, { A: "aa", C: "cc" });
+});
+
+test("a filled locus the new color no longer proves is cleared", () => {
+  const result = refillGenes({ A: "aa" }, { A: "aa" }, {});
+  assert.deepEqual(result.values, { A: "" });
+  assert.deepEqual(result.auto, {});
+});
+
+test("gene_auto round-trips", () => {
+  assert.deepEqual(parseAuto("A=aa;En=enen"), { A: "aa", En: "enen" });
+  assert.equal(autoText({ En: "enen", A: "aa" }, ["A", "B", "En"]), "A=aa;En=enen");
 });

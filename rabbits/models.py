@@ -116,6 +116,7 @@ class Rabbit(models.Model):
     # with Another color although the breed has a list. None: not checked
     # (crossbreds, any-color breeds, older records, or a color edited by hand).
     color_is_standard = models.BooleanField(null=True, blank=True, default=None)
+    eye_color = models.CharField(max_length=20, blank=True)
     birth_date = models.DateField()
     status = models.CharField(
         max_length=16,

@@ -1,0 +1,33 @@
+{# The genes card: eye color, one dropdown per locus, and other genes. Loci filled from the breed and color are marked; changing one makes it yours. "Fill from color" refills empty and still-filled loci without JavaScript. #}
+<input type="hidden" name="gene_auto" value="{{ gene_auto }}" data-gene-auto>
+{{ gene_suggestions_json|json_script:"gene-suggestions" }}
+{% include "components/select.html" with name="eye_color" label="Eye color" value=eye_color options=eye_options errors=eye_error placeholder="Not recorded" help="Ruby eyes on a white coat prove cc. Blue eyes on a white coat point to Vienna." only %}
+<p class="rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3 text-sm text-neutral-800" id="gene-source" data-gene-source>
+  {% if gene_filled_any %}Empty dropdowns were filled from {{ gene_source }}. Change any of them to set it yourself.{% elif gene_source %}{{ gene_source }} doesn't prove any genes on its own. Set them below if you know them.{% else %}Pick a breed and color to fill these in.{% endif %}
+</p>
+<fieldset class="grid gap-4 sm:grid-cols-2" data-gene-grid>
+  <legend class="sr-only">Genotype at each locus</legend>
+  {% for row in gene_rows %}
+    <div data-gene-row="{{ row.locus }}">
+      <label class="block text-sm font-medium text-neutral-800" for="id_{{ row.name }}">{{ row.label }}</label>
+      <select class="mt-1 block w-full rounded-lg border bg-white px-3 py-2.5 font-mono text-base text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent {% if row.error %}border-red-800{% else %}border-neutral-400{% endif %}"
+        id="id_{{ row.name }}" name="{{ row.name }}" data-gene="{{ row.locus }}"
+        aria-describedby="id_{{ row.name }}_filled{% if row.error %} id_{{ row.name }}_error{% endif %}">
+        <option value="">Not recorded</option>
+        {% for value, label in row.options %}<option value="{{ value }}"{% if value == row.value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+      <p class="mt-1 text-xs text-neutral-600{% if not row.auto %} hidden{% endif %}" id="id_{{ row.name }}_filled" data-gene-filled>Filled from color</p>
+      {% include "components/field_errors.html" with name=row.name errors=row.error only %}
+    </div>
+  {% endfor %}
+</fieldset>
+<div data-gene-row="other">
+  <label class="block text-sm font-medium text-neutral-800" for="id_gene_other">Other genes</label>
+  <input class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2.5 text-base text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" type="text" id="id_gene_other" name="gene_other" value="{{ gene_other }}" maxlength="200" data-gene="other" aria-describedby="id_gene_other_filled">
+  <p class="mt-1 text-xs text-neutral-600{% if not gene_other_auto %} hidden{% endif %}" id="id_gene_other_filled" data-gene-filled>Filled from breed</p>
+  {% include "components/field_errors.html" with name="gene_other" errors=gene_other_error only %}
+</div>
+<div data-gene-refill>
+  <button type="submit" name="action" value="fill" class="text-sm font-medium underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Fill from color again</button>
+  <span class="text-sm text-neutral-600">Only fills empty dropdowns and ones it filled before.</span>
+</div>

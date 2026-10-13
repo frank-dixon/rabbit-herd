@@ -79,7 +79,7 @@ class CardFlowTests(TestCase):
         response = self.client.get(step("name"))
         self.assertContains(response, "What is this rabbit&#x27;s name or ear tag?")
         self.assertContains(response, "Use whatever you go by to tell this rabbit apart.")
-        self.assertContains(response, "Question 1 of 9")
+        self.assertContains(response, "Question 1 of 10")
         self.assertContains(response, '<label class="sr-only" for="id_name">Name or ear tag</label>', html=False)
         self.assertContains(response, "min-h-14")
         self.assertContains(response, "Start over")
@@ -120,11 +120,11 @@ class CardFlowTests(TestCase):
     def test_color_comes_right_after_the_breed(self):
         self.assertEqual(
             flow.SLUGS,
-            ["name", "sex", "birth-date", "relatives", "status", "breed-type", "breed", "color", "review"],
+            ["name", "sex", "birth-date", "relatives", "status", "breed-type", "breed", "color", "genes", "review"],
         )
         self.walk_to_breed("purebred")
         self.assertRedirects(self.answer("breed", purebred=breed_id("Creme d'Argent")), step("color"))
-        self.assertRedirects(self.answer("color", color="Creme"), step("review"))
+        self.assertRedirects(self.answer("color", color="Creme"), step("genes"))
         # The color card waits for a breed.
         self.client.post(reverse("rabbit_flow_restart"))
         self.walk_to_breed("purebred")
