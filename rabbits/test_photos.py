@@ -276,7 +276,7 @@ class PhotoPageTests(PhotoTestCase):
 
     def test_problems_are_explained(self):
         missing = self.client.post(self.page(), {"notes": "x"}, follow=True)
-        self.assertContains(missing, "An upload needs a photo. Please choose one from your device.")
+        self.assertContains(missing, "An upload needs a photo. Choose one from your device.")
         wrong = self.client.post(self.page(), {"image": SimpleUploadedFile("photo.gif", image_bytes("GIF"))}, follow=True)
         self.assertContains(wrong, "A photo needs to be a JPEG, PNG, WebP or HEIC image.")
         long_notes = self.send(notes="x" * 501)

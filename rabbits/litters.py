@@ -16,11 +16,11 @@ from django.views.decorators.http import require_POST
 from . import costs, flow
 from .models import Breed, BreedShare, Cover, Litter, Pairing, Rabbit, Relative
 
-DATE_REQUIRED = "Please enter the date, like {example}."
-DATE_FUTURE = "That date is in the future. Please check it."
-COUNT_INVALID = "Please enter a whole number of kits, 0 or more."
-KIT_NAME_REQUIRED = "Please give the kit a name."
-KIT_SEX_REQUIRED = "Please choose doe or buck for the kit."
+DATE_REQUIRED = "Enter the date, like {example}."
+DATE_FUTURE = "That date is in the future."
+COUNT_INVALID = "Enter a whole number of kits, 0 or more."
+KIT_NAME_REQUIRED = "Give the kit a name."
+KIT_SEX_REQUIRED = "Choose doe or buck for the kit."
 NO_KITS_LEFT = "All {count} surviving kits are already in your herd."
 TATTOO_TAKEN = "Another rabbit in your herd already has the ear tattoo {tattoo}."
 
@@ -125,13 +125,13 @@ def litter_kindle(request, pk):
     dead = parse_count(request.POST.get("born_dead"), 0)
     lost = parse_count(request.POST.get("died_after"), 0)
     if kindled_on is None or kindled_on < litter.bred_on:
-        messages.error(request, "Please enter the kindling date, on or after the breed date.")
+        messages.error(request, "Enter the kindling date. It can't be before the breed date.")
     elif kindled_on > timezone.localdate():
         messages.error(request, DATE_FUTURE)
     elif alive is None or -1 in (alive, dead, lost):
         messages.error(request, COUNT_INVALID)
     elif lost > alive:
-        messages.error(request, f"{lost} lost is more than the {alive} born alive. Please check the numbers.")
+        messages.error(request, f"{lost} lost is more than the {alive} born alive. Check the numbers.")
     elif alive - lost < litter.kits.count():
         messages.error(request, f"{litter.kits.count()} kits from this litter are already in your herd, so survivors can't be fewer.")
     else:

@@ -18,7 +18,7 @@ from django.urls import reverse
 from . import flow, flow_forms
 from .models import Gene, PedigreeEntry, Rabbit, Relative
 
-BIRTH_DATE_REQUIRED = "Please add a birth date, or your best guess. You can change it later."
+BIRTH_DATE_REQUIRED = "Add a birth date, or your best guess. You can change it later."
 
 
 def owned_outside_relative(user, pk):

@@ -292,7 +292,7 @@ def rabbit_c_carrier(request, pk):
                 certainty=Gene.Certainty.PROBABLE,
                 note="From a c/c (albino) parent.",
             )
-            messages.success(request, f"{rabbit.name} is now recorded as a probable carrier of c.")
+            messages.success(request, f"{rabbit.name} is now recorded as a probable albino (c) carrier.")
         elif request.POST.get("action") == "remove":
             rabbit.c_carrier_dismissed = True
             rabbit.save(update_fields=["c_carrier_dismissed", "updated_at"])

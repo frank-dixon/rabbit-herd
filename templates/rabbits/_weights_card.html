@@ -38,7 +38,7 @@
   <form class="mt-4 border-t border-neutral-200 pt-4" method="post" action="{% url 'rabbit_weight_add' rabbit.pk %}" data-offline-queue="Weight" novalidate>
     {% csrf_token %}
     <h3 class="font-medium">Add a weight</h3>
-    {% if weight_errors %}<p class="mt-2 rounded-md border border-danger bg-danger-soft px-3 py-2 text-sm text-danger" role="alert" data-weight-error>The weight wasn't saved. Please fix the field marked below.</p>{% endif %}
+    {% if weight_errors %}<p class="mt-2 rounded-md border border-danger bg-danger-soft px-3 py-2 text-sm text-danger" role="alert" data-weight-error>The weight wasn't saved. Fix the field marked below.</p>{% endif %}
     {% if weight_unit == "kg" %}
       <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]" data-weight-unit="kg">
         {% include "components/text_input.html" with name="date" label="Date" value=weight_values.date|default:today type="date" max=today errors=weight_errors.date only %}

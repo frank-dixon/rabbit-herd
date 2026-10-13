@@ -1,7 +1,7 @@
 {# items: a list of {anchor, message}. Lists every problem above a form, each linking to its field. #}
 {% if items %}
   <div id="error-summary" class="rounded-lg border-2 border-red-800 bg-red-50 p-4 text-red-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-800" role="alert" tabindex="-1" aria-labelledby="error-summary-title">
-    <h2 id="error-summary-title" class="font-semibold">{% if items|length == 1 %}Please check one thing before continuing:{% else %}Please check these {{ items|length }} things before continuing:{% endif %}</h2>
+    <h2 id="error-summary-title" class="font-semibold">{% if items|length == 1 %}Check one thing before continuing:{% else %}Check these {{ items|length }} things before continuing:{% endif %}</h2>
     <ul class="mt-2 list-disc space-y-1 pl-5">
       {% for item in items %}<li><a class="underline" href="#{{ item.anchor }}">{{ item.message }}</a></li>{% endfor %}
     </ul>

@@ -56,7 +56,7 @@ def question(slug, draft):
         return f"Which line is {who} from?"
     if slug == "genes":
         return f"Which genes does {who} carry?"
-    return f"Please check {who}'s details"
+    return f"Check {who}'s details"
 
 
 HINTS = {

@@ -29,7 +29,7 @@ class ContactTests(TestCase):
 
     def test_a_name_is_required(self):
         response = self.client.post(reverse("contact_create"), {"name": " "})
-        self.assertContains(response, "A contact needs a name. Please add one.")
+        self.assertContains(response, "A contact needs a name. Add one.")
         self.assertFalse(Contact.objects.exists())
 
     def test_the_list_filters_by_role_and_is_owner_scoped(self):

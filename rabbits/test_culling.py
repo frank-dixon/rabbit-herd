@@ -46,7 +46,7 @@ class CullingTests(TestCase):
     def test_bad_input(self):
         url = reverse("rabbit_cull_add", args=[self.kit.pk])
         for data, msg in (
-            ({"cull_date": "", "cull_decision": "keep"}, "Please enter the date"),
+            ({"cull_date": "", "cull_decision": "keep"}, "Enter the evaluation date"),
             ({"cull_date": (self.today + datetime.timedelta(days=1)).isoformat(), "cull_decision": "keep"}, "in the future"),
             ({"cull_date": self.today.isoformat(), "cull_decision": "maybe"}, "keep, cull or undecided"),
         ):

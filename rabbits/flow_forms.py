@@ -21,10 +21,10 @@ from .models import Breed, Gene, OutsideRabbit, Rabbit, Relative, parse_share, s
 MAX_CROSS_ROWS = 8
 MAX_RELATIVES = 12
 GENE_LOCI = [value for value in Gene.Locus.values if value != Gene.Locus.OTHER]
-TRAIT_TOO_LONG = "Please keep this to 80 characters or fewer."
-GENE_TOO_LONG = "Please keep each genotype to 40 characters or fewer, for example c/c."
-OTHER_GENES_TOO_LONG = "Please keep other genes to 200 characters or fewer."
-RELATIVE_COLOR_NOT_LISTED = "Please choose one of the listed colors, or describe the color instead."
+TRAIT_TOO_LONG = "Keep this to 80 characters or fewer."
+GENE_TOO_LONG = "Keep each genotype to 40 characters or fewer, for example c/c."
+OTHER_GENES_TOO_LONG = "Keep other genes to 200 characters or fewer."
+RELATIVE_COLOR_NOT_LISTED = "Choose one of the listed colors, or describe the color instead."
 
 
 def trait_parts():
@@ -56,50 +56,50 @@ def parent_color_values(breed):
 def blank_traits():
     return {part: "" for part in trait_parts()}
 
-NAME_REQUIRED = "Each rabbit needs a name or an ear tag. Please add one."
-NAME_TOO_LONG = "A name or ear tag can be up to 120 characters. Please shorten it."
-SEX_REQUIRED = "Each rabbit is recorded as a doe or a buck. Please choose one."
-BIRTH_DATE_REQUIRED = "A birth date is required. Please pick one from the calendar."
-BIRTH_DATE_FUTURE = "The birth date can't be in the future. Please pick today or an earlier date."
-COLOR_REQUIRED = "A coat color helps tell rabbits apart, so it's required. Please describe the color."
-COLOR_TOO_LONG = "A color can be up to 80 characters. Please shorten it."
+NAME_REQUIRED = "Add a name or ear tag."
+NAME_TOO_LONG = "A name or ear tag can be up to 120 characters. Shorten it."
+SEX_REQUIRED = "Each rabbit is recorded as a doe or a buck. Choose one."
+BIRTH_DATE_REQUIRED = "A birth date is required. Pick one from the calendar."
+BIRTH_DATE_FUTURE = "The birth date can't be in the future. Pick today or an earlier date."
+COLOR_REQUIRED = "Describe the coat color. It helps tell rabbits apart."
+COLOR_TOO_LONG = "A color can be up to 80 characters. Shorten it."
 COLOR_CHOICE_REQUIRED = (
-    "Each rabbit needs a coat color. Please choose one of the {breed} colors, "
+    "Each rabbit needs a coat color. Choose one of the {breed} colors, "
     "or choose Another color and describe it."
 )
 COLOR_NOT_LISTED = (
     "That color isn't one of the recognized {breed} colors. "
-    "Please choose a color from the list, or choose Another color and describe it."
+    "Choose a color from the list, or choose Another color and describe it."
 )
 COLOR_CLEARED = (
     "{color} isn't a recognized color for the {breed}, so it has been cleared. "
-    "Please check the color below before you go on."
+    "Check the color below before you go on."
 )
 COLOR_OTHER_REQUIRED = (
-    "Another color needs a short description. Please describe the coat, for example broken black."
+    "Another color needs a short description. Describe the coat, for example broken black."
 )
-STATUS_REQUIRED = "Each rabbit needs a status. Please choose one."
-BREED_TYPE_REQUIRED = "Each rabbit is either purebred or crossbred. Please choose one."
+STATUS_REQUIRED = "Each rabbit needs a status. Choose one."
+BREED_TYPE_REQUIRED = "Each rabbit is either purebred or crossbred. Choose one."
 BREED_TYPE_FIRST = (
     "The breed choices depend on whether the rabbit is purebred or crossbred. "
-    "Please choose that first."
+    "Choose that first."
 )
-PUREBRED_REQUIRED = "A purebred rabbit needs a breed from the list. Please choose one."
-CROSS_BREED_REQUIRED = "Each row in the mix needs a breed. Please choose one, or clear the share."
-TATTOO_TOO_LONG = "An ear tattoo can be up to 20 characters. Please shorten it."
+PUREBRED_REQUIRED = "A purebred rabbit needs a breed from the list. Choose one."
+CROSS_BREED_REQUIRED = "Each row in the mix needs a breed. Choose one, or clear the share."
+TATTOO_TOO_LONG = "An ear tattoo can be up to 20 characters. Shorten it."
 TATTOO_TAKEN = "{name} already has the ear tattoo {tattoo}. Each tattoo can be used once in your herd."
 CROSS_BREED_REPEATED = (
     "Each breed can be listed only once in a mix. "
-    "Please choose a different breed, or combine the shares."
+    "Choose a different breed, or combine the shares."
 )
-CROSS_PERCENT = "Each share is a number more than 0 and less than 100, with up to two decimals (like 12.5 or 6.25). Please adjust this share."
-CROSS_TWO_BREEDS = "A crossbred rabbit has at least two breeds. Please add another breed to the mix."
+CROSS_PERCENT = "Enter a share between 0 and 100, with up to two decimals (like 12.5 or 6.25)."
+CROSS_TWO_BREEDS = "A crossbred rabbit has at least two breeds. Add another breed to the mix."
 CROSS_TOTAL = (
     "The shares need to add up to exactly 100%, and right now they add up to {total}%. "
-    "Please adjust the shares."
+    "Adjust the shares."
 )
 RELATIONSHIP_REQUIRED = (
-    "Each relative needs a relationship. Please choose how this rabbit is related."
+    "Each relative needs a relationship. Choose how this rabbit is related."
 )
 ONE_PARENT = (
     "A rabbit can have only one {role}, and Relative {first} is already listed as the {role}. "
@@ -112,9 +112,9 @@ ONE_RABBIT_PER_PLACE = (
     "Each place holds one rabbit. Choose one from the list or add an outside rabbit, but not both."
 )
 OUTSIDE_NAME_REQUIRED = "An outside rabbit needs a name. Add a name, or clear the details."
-OUTSIDE_NAME_TOO_LONG = "An outside rabbit's name can be up to 120 characters. Please shorten it."
-OUTSIDE_DETAILS_TOO_LONG = "Details can be up to 200 characters. Please shorten them."
-RABBIT_GONE = "That rabbit is no longer in your list. Please choose again."
+OUTSIDE_NAME_TOO_LONG = "An outside rabbit's name can be up to 120 characters. Shorten it."
+OUTSIDE_DETAILS_TOO_LONG = "Details can be up to 200 characters. Shorten them."
+RABBIT_GONE = "That rabbit is no longer in your list. Choose again."
 WRONG_SEX = "The {role} has to be a {sex}. {name} is a {actual}, so pick a {sex} here."
 
 # Short hints shown under each tile, so a newcomer knows the terms.
@@ -130,10 +130,10 @@ STATUS_CHOICES = [
     ("deceased", "Deceased", "Died. You can add the date and cause."),
 ]
 DEATH_CAUSES = ["Died kindling", "Illness", "Injury", "Culled", "Unknown"]
-DEATH_DATE_INVALID = "Please pick the date of death from the calendar, or leave it blank."
+DEATH_DATE_INVALID = "Pick the date of death from the calendar, or leave it blank."
 DEATH_DATE_FUTURE = "The date of death can't be in the future."
 DEATH_BEFORE_BIRTH = "The date of death can't be before the birth date."
-DEATH_CAUSE_TOO_LONG = "Please keep the cause to 120 characters or fewer."
+DEATH_CAUSE_TOO_LONG = "Keep the cause to 120 characters or fewer."
 BREED_TYPE_CHOICES = [
     ("purebred", "Purebred", "All one breed. Parents of the same breed in different colors still make a purebred."),
     ("crossbred", "Crossbred", "A mix of two or more different breeds, each with a share in percent."),
@@ -323,7 +323,7 @@ class BirthDateForm(StepForm):
         return {"birth_date": birth_date}
 
 
-LINE_TOO_LONG = "A line can be up to 80 characters. Please shorten it."
+LINE_TOO_LONG = "A line can be up to 80 characters. Shorten it."
 
 
 class LineForm(StepForm):
@@ -633,9 +633,9 @@ class RelativesForm(StepForm):
         }
 
 
-HERD_BORN_REQUIRED = "Please enter the birth date to add this rabbit to your herd. Guess the month if you need to."
-GENE_UNREADABLE = "Please choose a genotype from the list, or leave it as Not recorded."
-EYE_COLOR_UNKNOWN = "Please choose an eye color from the list, or leave it blank."
+HERD_BORN_REQUIRED = "Enter the birth date to add this rabbit to your herd. Guess the month if you need to."
+GENE_UNREADABLE = "Choose a genotype from the list, or leave it as Not recorded."
+EYE_COLOR_UNKNOWN = "Choose an eye color from the list, or leave it blank."
 
 
 class GenesForm(StepForm):

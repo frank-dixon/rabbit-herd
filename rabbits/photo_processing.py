@@ -35,10 +35,10 @@ FORMATS = {"JPEG": "jpg", "PNG": "png", "WEBP": "webp"}
 # (which Pillow also uses for HEIC) is converted to JPEG.
 SAVE_AS = {"MPO": "JPEG", "HEIF": "JPEG"}
 
-WRONG_TYPE = "A photo needs to be a JPEG, PNG, WebP or HEIC image. Please choose a different file."
-TOO_BIG = "A photo can be up to 10 MB. Please choose a smaller file."
-UNREADABLE = "That file couldn't be opened as a photo. Please choose a different one."
-TOO_MANY_PIXELS = "That photo is too large to process. Please choose a smaller one."
+WRONG_TYPE = "A photo needs to be a JPEG, PNG, WebP or HEIC image. Choose a different file."
+TOO_BIG = "A photo can be up to 10 MB. Choose a smaller file."
+UNREADABLE = "That file couldn't be opened as a photo. Choose a different one."
+TOO_MANY_PIXELS = "That photo is too large to process. Choose a smaller one."
 
 
 EXIF_IFD = 0x8769

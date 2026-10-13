@@ -57,7 +57,7 @@ class CostTests(TestCase):
     def test_bad_input_keeps_values(self):
         response = self.client.post(self.url, self.data(amount="lots", description="", weight_lb="-3"))
         self.assertEqual(response.status_code, 400)
-        for text in ("Please enter the amount", "Please say what it was", "Please enter pounds"):
+        for text in ("Enter the amount", "Say what it was", "Enter pounds"):
             self.assertContains(response, text, status_code=400)
         future = (self.today + datetime.timedelta(days=1)).isoformat()
         self.assertContains(self.client.post(self.url, self.data(date=future)), "in the future", status_code=400)

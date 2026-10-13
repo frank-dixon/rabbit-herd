@@ -41,15 +41,15 @@ def _save(request, rabbit, entry):
     out_of, out_of_ok = _number(post.get("out_of"))
     error = ""
     if not values["show_name"]:
-        error = "Please enter the show's name."
+        error = "Enter the show's name."
     elif day is None:
-        error = "Please enter the show's date."
+        error = "Enter the show's date."
     elif day > timezone.localdate():
-        error = "The show's date is in the future. Please check it."
+        error = "The show's date is in the future."
     elif not placing_ok or not out_of_ok:
-        error = "Please enter the placing and class size as whole numbers, like 2 of 9."
+        error = "Enter the placing and class size as whole numbers, like 2 of 9."
     elif placing and out_of and placing > out_of:
-        error = "The placing is larger than the class size. Please check it."
+        error = "The placing is larger than the class size."
     if error:
         messages.error(request, error)
         return redirect(f"/rabbits/{rabbit.pk}/?show={entry.pk}#shows" if entry.pk else f"/rabbits/{rabbit.pk}/#shows")

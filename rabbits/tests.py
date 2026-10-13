@@ -165,7 +165,7 @@ class RabbitRecordTests(TestCase):
         rabbit = self.clover()
         card = lambda slug: reverse("rabbit_edit_step", args=[rabbit.pk, slug])
         missing = self.client.post(card("name"), {"name": "", "action": "next"}, follow=True)
-        self.assertContains(missing, "Each rabbit needs a name or an ear tag.")
+        self.assertContains(missing, "Add a name or ear tag.")
 
         tomorrow = (timezone.localdate() + timedelta(days=1)).isoformat()
         future = self.client.post(card("birth-date"), {"birth_date": tomorrow, "action": "next"}, follow=True)

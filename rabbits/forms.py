@@ -4,8 +4,8 @@ from . import photo_processing
 from .models import Gene
 
 
-PHOTO_REQUIRED = "An upload needs a photo. Please choose one from your device."
-NOTES_TOO_LONG = "Notes can be up to 500 characters. Please shorten them."
+PHOTO_REQUIRED = "An upload needs a photo. Choose one from your device."
+NOTES_TOO_LONG = "Notes can be up to 500 characters. Shorten them."
 
 
 class PhotoUploadForm(forms.Form):

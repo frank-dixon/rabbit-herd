@@ -84,7 +84,7 @@ def rabbit_source(request, pk):
     elif raw.isdigit() and Contact.objects.filter(owner=request.user, pk=int(raw)).exists():
         rabbit.source_id = int(raw)
     else:
-        messages.error(request, "Please choose one of your contacts.")
+        messages.error(request, "Choose one of your contacts.")
         return redirect("rabbit_detail", pk=rabbit.pk)
     rabbit.save(update_fields=["source", "updated_at"])
     messages.success(request, "Where it came from was saved.")

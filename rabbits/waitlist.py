@@ -24,23 +24,23 @@ def _clean(request):
     errors = {}
     day = parse(values["requested_on"])
     if not values["buyer"]:
-        errors["buyer"] = ["Please enter the buyer's name."]
+        errors["buyer"] = ["Enter the buyer's name."]
     if day is None:
-        errors["requested_on"] = ["Please enter the date they asked."]
+        errors["requested_on"] = ["Enter the date they asked."]
     elif day > timezone.localdate():
-        errors["requested_on"] = ["That date is in the future. Please check it."]
+        errors["requested_on"] = ["That date is in the future."]
     if values["sex"] not in WaitlistEntry.Sex.values:
-        errors["sex"] = ["Please choose doe, buck or either."]
+        errors["sex"] = ["Choose doe, buck or either."]
     if values["status"] not in WaitlistEntry.Status.values:
-        errors["status"] = ["Please choose a status."]
+        errors["status"] = ["Choose a status."]
     deposit, ok = _decimal(values["deposit"], 100000)
     if not ok:
-        errors["deposit"] = ["Please enter the deposit as an amount, like 25."]
+        errors["deposit"] = ["Enter the deposit as an amount, like 25."]
     rabbit = None
     if values["rabbit"]:
         rabbit = Rabbit.objects.filter(owner=request.user, pk=values["rabbit"]).first() if values["rabbit"].isdigit() else None
         if rabbit is None:
-            errors["rabbit"] = ["Please choose one of your rabbits."]
+            errors["rabbit"] = ["Choose one of your rabbits."]
     cleaned = {key: values[key][:limit] for key, limit in LIMITS.items()}
     cleaned.update(requested_on=day, sex=values["sex"], status=values["status"], deposit=deposit, rabbit=rabbit)
     return values, errors, cleaned

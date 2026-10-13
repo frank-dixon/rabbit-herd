@@ -13,13 +13,13 @@ from django.views.decorators.http import require_POST
 
 from .models import GRAMS_PER_OUNCE, Rabbit, Weight, prefs, weight_text
 
-DATE_REQUIRED = "A weight needs a date. Please enter the day it was weighed."
-DATE_FUTURE = "The date can't be in the future. Please check it."
-DATE_BEFORE_BIRTH = "The date can't be before the rabbit was born. Please check it."
-WEIGHT_REQUIRED = "Please enter a weight, like 4 lb 6 oz or 2.1 kg."
-WEIGHT_RANGE = "That weight looks off. Please enter a weight more than 0 and up to 30 kg (66 lb)."
+DATE_REQUIRED = "A weight needs a date. Enter the day it was weighed."
+DATE_FUTURE = "The date can't be in the future."
+DATE_BEFORE_BIRTH = "The date can't be before the rabbit was born."
+WEIGHT_REQUIRED = "Enter a weight, like 4 lb 6 oz or 2.1 kg."
+WEIGHT_RANGE = "That weight looks off. Enter a weight more than 0 and up to 30 kg (66 lb)."
 BOTH_UNITS = "Enter the weight in lb and oz, or in kg, but not both."
-NOTE_TOO_LONG = "A note can be up to 200 characters. Please shorten it."
+NOTE_TOO_LONG = "A note can be up to 200 characters. Shorten it."
 
 
 def number(text):

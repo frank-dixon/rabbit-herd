@@ -54,24 +54,24 @@ class SimpleStepTests(FlowTestMixin, TestCase):
     def test_each_basic_question_states_the_rule_then_what_to_do(self):
         draft = flow.empty_draft()
         draft["status"] = ""
-        self.assertEqual(self.errors("name", draft), {"name": ["Each rabbit needs a name or an ear tag. Please add one."]})
-        self.assertEqual(self.errors("sex", draft), {"sex": ["Each rabbit is recorded as a doe or a buck. Please choose one."]})
-        self.assertEqual(self.errors("birth-date", draft), {"birth_date": ["A birth date is required. Please pick one from the calendar."]})
+        self.assertEqual(self.errors("name", draft), {"name": ["Add a name or ear tag."]})
+        self.assertEqual(self.errors("sex", draft), {"sex": ["Each rabbit is recorded as a doe or a buck. Choose one."]})
+        self.assertEqual(self.errors("birth-date", draft), {"birth_date": ["A birth date is required. Pick one from the calendar."]})
         self.assertEqual(
             self.errors("color", draft),
-            {"color": ["A coat color helps tell rabbits apart, so it's required. Please describe the color."]},
+            {"color": ["Describe the coat color. It helps tell rabbits apart."]},
         )
-        self.assertEqual(self.errors("status", draft), {"status": ["Each rabbit needs a status. Please choose one."]})
+        self.assertEqual(self.errors("status", draft), {"status": ["Each rabbit needs a status. Choose one."]})
         self.assertEqual(
             self.errors("breed-type", draft),
-            {"breed_type": ["Each rabbit is either purebred or crossbred. Please choose one."]},
+            {"breed_type": ["Each rabbit is either purebred or crossbred. Choose one."]},
         )
 
     def test_birth_date_cannot_be_in_the_future_or_malformed(self):
         tomorrow = (timezone.localdate() + datetime.timedelta(days=1)).isoformat()
         self.assertEqual(
             self.errors("birth-date", self.draft(birth_date=tomorrow)),
-            {"birth_date": ["The birth date can't be in the future. Please pick today or an earlier date."]},
+            {"birth_date": ["The birth date can't be in the future. Pick today or an earlier date."]},
         )
         self.assertIn("birth_date", self.errors("birth-date", self.draft(birth_date="2024-02-30")))
         self.assertEqual(self.errors("birth-date", self.draft(birth_date=timezone.localdate().isoformat())), {})
@@ -97,7 +97,7 @@ class BreedStepTests(FlowTestMixin, TestCase):
     def test_purebred_needs_a_breed_from_the_catalog(self):
         self.assertEqual(
             self.errors("breed", self.draft(purebred="")),
-            {"purebred": ["A purebred rabbit needs a breed from the list. Please choose one."]},
+            {"purebred": ["A purebred rabbit needs a breed from the list. Choose one."]},
         )
         self.assertIn("purebred", self.errors("breed", self.draft(purebred="999999")))
         self.assertEqual(self.errors("breed", self.draft()), {})
@@ -105,14 +105,14 @@ class BreedStepTests(FlowTestMixin, TestCase):
     def test_breed_type_comes_first(self):
         self.assertEqual(
             self.errors("breed", self.draft(breed_type="")),
-            {"__all__": ["The breed choices depend on whether the rabbit is purebred or crossbred. Please choose that first."]},
+            {"__all__": ["The breed choices depend on whether the rabbit is purebred or crossbred. Choose that first."]},
         )
 
     def test_shares_must_total_exactly_100(self):
         rex, dutch = breed_id("Rex"), breed_id("Dutch")
         self.assertEqual(
             self.errors("breed", self.cross((rex, "60"), (dutch, "30"))),
-            {"__all__": ["The shares need to add up to exactly 100%, and right now they add up to 90%. Please adjust the shares."]},
+            {"__all__": ["The shares need to add up to exactly 100%, and right now they add up to 90%. Adjust the shares."]},
         )
         self.assertIn("110%", self.errors("breed", self.cross((rex, "60"), (dutch, "50")))["__all__"][0])
         self.assertEqual(self.errors("breed", self.cross((rex, "60"), (dutch, "40"))), {})
@@ -123,22 +123,22 @@ class BreedStepTests(FlowTestMixin, TestCase):
         rex, dutch = breed_id("Rex"), breed_id("Dutch")
         self.assertEqual(
             self.errors("breed", self.cross((rex, "50"))),
-            {"__all__": ["A crossbred rabbit has at least two breeds. Please add another breed to the mix."]},
+            {"__all__": ["A crossbred rabbit has at least two breeds. Add another breed to the mix."]},
         )
         repeated = self.errors("breed", self.cross((rex, "50"), (rex, "50")))
         self.assertEqual(
             repeated["cross-1-breed"],
-            ["Each breed can be listed only once in a mix. Please choose a different breed, or combine the shares."],
+            ["Each breed can be listed only once in a mix. Choose a different breed, or combine the shares."],
         )
         for bad in ("0", "100", "12.555", "-5", "ten", "0.00"):
             errors = self.errors("breed", self.cross((rex, bad), (dutch, "50")))
             self.assertEqual(
                 errors["cross-0-percent"],
-                ["Each share is a number more than 0 and less than 100, with up to two decimals (like 12.5 or 6.25). Please adjust this share."],
+                ["Enter a share between 0 and 100, with up to two decimals (like 12.5 or 6.25)."],
                 bad,
             )
         missing = self.errors("breed", self.cross(("", "50"), (dutch, "50")))
-        self.assertEqual(missing["cross-0-breed"], ["Each row in the mix needs a breed. Please choose one, or clear the share."])
+        self.assertEqual(missing["cross-0-breed"], ["Each row in the mix needs a breed. Choose one, or clear the share."])
 
     def test_generational_mixes_take_fractional_shares(self):
         rex, dutch, lop = breed_id("Rex"), breed_id("Dutch"), breed_id("Mini Lop")
@@ -147,7 +147,7 @@ class BreedStepTests(FlowTestMixin, TestCase):
         short = self.errors("breed", self.cross((rex, "75"), (dutch, "12.5"), (lop, "12.49")))
         self.assertEqual(
             short["__all__"],
-            ["The shares need to add up to exactly 100%, and right now they add up to 99.99%. Please adjust the shares."],
+            ["The shares need to add up to exactly 100%, and right now they add up to 99.99%. Adjust the shares."],
         )
 
     def test_empty_rows_are_ignored(self):
@@ -214,7 +214,7 @@ class RelativesStepTests(FlowTestMixin, TestCase):
         self.assertEqual(errors["relatives-2-ref"], ["Each relative needs a rabbit. Choose one from the list or add an outside rabbit."])
         self.assertEqual(
             errors["relatives-3-relationship"],
-            ["Each relative needs a relationship. Please choose how this rabbit is related."],
+            ["Each relative needs a relationship. Choose how this rabbit is related."],
         )
         details_only = self.errors(
             "relatives",
@@ -227,7 +227,7 @@ class RelativesStepTests(FlowTestMixin, TestCase):
         outside = OutsideRabbit.objects.create(owner=self.other, name="Theirs")
         for ref in (f"h:{stranger.pk}", f"o:{outside.pk}", "h:999999", "x:1", "h:abc"):
             errors = self.errors("relatives", self.with_relatives({"relationship": "dam", "ref": ref}))
-            self.assertEqual(errors["relatives-0-ref"], ["That rabbit is no longer in your list. Please choose again."], ref)
+            self.assertEqual(errors["relatives-0-ref"], ["That rabbit is no longer in your list. Choose again."], ref)
 
     def test_relationship_choices_hide_a_taken_dam_or_sire(self):
         rows = [dict(flow.blank_relative(), relationship="dam"), flow.blank_relative()]

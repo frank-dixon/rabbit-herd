@@ -187,9 +187,9 @@ def photo_date(request, pk):
     except ValueError:
         value = None
     if value is None:
-        messages.error(request, "Please pick the date from the calendar.")
+        messages.error(request, "Pick the date from the calendar.")
     elif valid_taken_date(value, photo.rabbit.birth_date) is None:
-        messages.error(request, "A photo's date can't be in the future or before the rabbit was born.")
+        messages.error(request, "Pick a date between the rabbit's birth and today.")
     else:
         photo.taken_at, photo.taken_from_metadata = value, False
         photo.save(update_fields=["taken_at", "taken_from_metadata"])

@@ -601,7 +601,7 @@ def draft_from_rabbit(rabbit):
     return draft
 
 
-SELF_RELATIVE = "A rabbit can't be its own relative. Please choose a different rabbit."
+SELF_RELATIVE = "A rabbit can't be its own relative. Choose a different rabbit."
 
 
 def update_rabbit(draft, user, rabbit):

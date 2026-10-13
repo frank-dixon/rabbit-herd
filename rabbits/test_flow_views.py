@@ -88,9 +88,9 @@ class CardFlowTests(TestCase):
     def test_next_checks_the_card_and_shows_the_error_summary(self):
         response = self.fails("name", name="  ")
         self.assertEqual(self.draft()["step"], "name")
-        self.assertContains(response, "Please check one thing before continuing:")
+        self.assertContains(response, "Check one thing before continuing:")
         self.assertContains(response, 'href="#id_name"')
-        self.assertContains(response, "Each rabbit needs a name or an ear tag. Please add one.")
+        self.assertContains(response, "Add a name or ear tag.")
         self.assertContains(response, 'aria-invalid="true"')
         self.assertContains(response, 'aria-describedby="id_name_error"')
 
@@ -115,7 +115,7 @@ class CardFlowTests(TestCase):
         response = self.client.get(step("breed"))
         self.assertRedirects(response, step("name") + "?check=1", fetch_redirect_response=False)
         page = self.client.get(step("name") + "?check=1")
-        self.assertContains(page, "Each rabbit needs a name or an ear tag. Please add one.")
+        self.assertContains(page, "Add a name or ear tag.")
 
     def test_color_comes_right_after_the_breed(self):
         self.assertEqual(
@@ -143,7 +143,7 @@ class CardFlowTests(TestCase):
         response = self.fails("birth-date", birth_date=tomorrow)
         self.assertContains(
             response,
-            "The birth date can&#x27;t be in the future. Please pick today or an earlier date.",
+            "The birth date can&#x27;t be in the future. Pick today or an earlier date.",
         )
 
     def test_purebred_shows_one_grouped_select(self):
@@ -177,7 +177,7 @@ class CardFlowTests(TestCase):
         )
         self.assertContains(
             response,
-            "The shares need to add up to exactly 100%, and right now they add up to 110%. Please adjust the shares.",
+            "The shares need to add up to exactly 100%, and right now they add up to 110%. Adjust the shares.",
         )
         self.assertContains(response, "That&#x27;s 10% over, so lower a share.")
         self.answer("breed", action="remove-cross-2")
@@ -262,7 +262,7 @@ class CardFlowTests(TestCase):
                "relatives-0-new_details": "Tag OH-4"},
         )
         review = self.client.get(step("review"))
-        self.assertContains(review, "Please check Hazel&#x27;s details")
+        self.assertContains(review, "Check Hazel&#x27;s details")
         self.assertContains(review, "Sire (father): Oak Hollow Major (Tag OH-4)")
         self.assertContains(review, ">Save Hazel<")
         response = self.answer("review")
@@ -319,7 +319,7 @@ class CardFlowTests(TestCase):
         response = self.fails(
             "relatives", **{"relatives-0-relationship": "dam", "relatives-0-ref": f"h:{theirs.pk}"},
         )
-        self.assertContains(response, "That rabbit is no longer in your list. Please choose again.")
+        self.assertContains(response, "That rabbit is no longer in your list. Choose again.")
 
 
 class ParentTraitsTests(CardFlowTests):
@@ -366,4 +366,4 @@ class ParentTraitsTests(CardFlowTests):
             "relatives", **{"relatives-0-relationship": "dam", "relatives-0-new_name": "Snow",
                             "relatives-0-color_choice": "Plaid"},
         )
-        self.assertContains(page, "Please choose one of the listed colors, or describe the color instead.")
+        self.assertContains(page, "Choose one of the listed colors, or describe the color instead.")

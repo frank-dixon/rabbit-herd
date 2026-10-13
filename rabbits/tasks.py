@@ -14,9 +14,9 @@ from django.views.decorators.http import require_POST
 
 from .models import Litter, Rabbit, Task, prefs
 
-TITLE_REQUIRED = "Please say what needs doing, like Trim nails."
-DATE_REQUIRED = "Please enter a due date."
-EVERY_REQUIRED = "Please enter how often, like every 3 weeks."
+TITLE_REQUIRED = "Say what needs doing, like Trim nails."
+DATE_REQUIRED = "Enter a due date."
+EVERY_REQUIRED = "Enter how often, like every 3 weeks."
 REPEAT_KEYS = ("repeat", "repeat_every", "repeat_unit")
 
 

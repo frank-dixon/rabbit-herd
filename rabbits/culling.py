@@ -27,11 +27,11 @@ def _save(request, rabbit, note):
     decision = request.POST.get("cull_decision", "")
     reason = request.POST.get("cull_reason", "").strip()[:1000]
     if day is None:
-        messages.error(request, "Please enter the date of the evaluation.")
+        messages.error(request, "Enter the evaluation date.")
     elif day > timezone.localdate():
-        messages.error(request, "The evaluation's date is in the future. Please check it.")
+        messages.error(request, "The evaluation date is in the future.")
     elif decision not in CullNote.Decision.values:
-        messages.error(request, "Please choose keep, cull or undecided.")
+        messages.error(request, "Choose keep, cull or undecided.")
     else:
         editing = note.pk is not None
         note.date, note.decision, note.reason = day, decision, reason

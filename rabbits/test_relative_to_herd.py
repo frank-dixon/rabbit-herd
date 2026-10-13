@@ -49,7 +49,7 @@ class RelativeToHerdTests(FlowTestMixin, TestCase):
     def test_birth_date_is_required_and_the_fields_show_without_js(self):
         response = self.post()
         page = self.client.get(response["Location"]) if response.status_code == 302 else response
-        self.assertContains(page, "Please enter the birth date to add this rabbit", status_code=page.status_code)
+        self.assertContains(page, "Enter the birth date to add this rabbit", status_code=page.status_code)
         self.assertContains(page, "data-to-herd-fields", status_code=page.status_code)
         self.assertFalse(Rabbit.objects.filter(name="Willow").exists())
 

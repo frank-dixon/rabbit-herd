@@ -13,7 +13,7 @@ class ContactForm(forms.ModelForm):
             "is_buyer": "Buyer", "is_breeder": "Breeder",
         }
         widgets = {"notes": forms.Textarea(attrs={"rows": 3})}
-        error_messages = {"name": {"required": "A contact needs a name. Please add one."}}
+        error_messages = {"name": {"required": "A contact needs a name. Add one."}}
 
     def clean_name(self):
         return " ".join(self.cleaned_data["name"].split())

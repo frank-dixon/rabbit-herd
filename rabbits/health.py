@@ -31,15 +31,15 @@ def health_add(request, pk):
     raw_follow = request.POST.get("health_follow_up", "").strip()
     follow = parse(raw_follow) if raw_follow else None
     if day is None:
-        messages.error(request, "Please enter the date of the health note.")
+        messages.error(request, "Enter the date of the health note.")
     elif day > timezone.localdate():
-        messages.error(request, "The health note's date is in the future. Please check it.")
+        messages.error(request, "The health note's date is in the future.")
     elif kind not in HealthNote.Kind.values:
-        messages.error(request, "Please choose a type: treatment, illness, injury, checkup or other.")
+        messages.error(request, "Choose a type: treatment, illness, injury, checkup or other.")
     elif raw_follow and follow is None:
-        messages.error(request, "Please enter the follow-up date as a date.")
+        messages.error(request, "Enter the follow-up date as a date.")
     elif follow and follow < day:
-        messages.error(request, "The follow-up date is before the note's date. Please check it.")
+        messages.error(request, "The follow-up date is before the note's date.")
     else:
         with transaction.atomic():
             note = HealthNote(rabbit=rabbit, date=day, kind=kind, notes=notes, follow_up_on=follow)

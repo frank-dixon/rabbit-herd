@@ -42,8 +42,8 @@ class WeightTests(TestCase):
             ({"date": "", "lb": "2"}, "A weight needs a date."),
             ({"date": tomorrow, "lb": "2"}, "can&#x27;t be in the future"),
             ({"date": "2026-01-01", "lb": "2"}, "can&#x27;t be before the rabbit was born"),
-            ({"date": "2026-07-01"}, "Please enter a weight"),
-            ({"date": "2026-07-01", "lb": "two"}, "Please enter a weight"),
+            ({"date": "2026-07-01"}, "Enter a weight"),
+            ({"date": "2026-07-01", "lb": "two"}, "Enter a weight"),
             ({"date": "2026-07-01", "kg": "45"}, "That weight looks off."),
             ({"date": "2026-07-01", "lb": "2", "kg": "1"}, "but not both"),
         ]

@@ -36,9 +36,9 @@ class HealthTests(TestCase):
         self.client.post(self.url, {"health_date": self.today.isoformat(), "health_kind": "checkup"})
         self.assertEqual(HealthNote.objects.get().task, None)
         for data, msg in (
-            ({"health_date": "", "health_kind": "checkup"}, "Please enter the date"),
+            ({"health_date": "", "health_kind": "checkup"}, "Enter the date"),
             ({"health_date": (self.today + datetime.timedelta(days=1)).isoformat(), "health_kind": "checkup"}, "in the future"),
-            ({"health_date": self.today.isoformat(), "health_kind": "spa"}, "Please choose a type"),
+            ({"health_date": self.today.isoformat(), "health_kind": "spa"}, "Choose a type"),
             ({"health_date": self.today.isoformat(), "health_kind": "injury", "health_follow_up": "2000-01-01"}, "before the note"),
         ):
             self.assertContains(self.client.post(self.url, data, follow=True), msg)

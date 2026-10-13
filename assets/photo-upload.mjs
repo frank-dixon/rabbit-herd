@@ -12,7 +12,7 @@ export const MAX_SIDE = 2560;
 // Stay safely under Vercel's 4.5 MB limit, leaving room for the notes and form fields.
 export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 export const TOO_BIG =
-  "This photo is too big to upload, even after shrinking. Please choose a photo under 4 MB.";
+  "This photo is too big to upload, even after shrinking. Choose a photo under 4 MB.";
 
 /** Width and height that fit inside MAX_SIDE, keeping the shape. */
 export function fitWithin(width, height, maxSide = MAX_SIDE) {

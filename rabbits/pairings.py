@@ -12,8 +12,8 @@ from .models import Pairing, PedigreeEntry, Rabbit, Relative, prefs
 
 MAX_GENERATIONS = 4
 PARENT_STEPS = {"dam": 1, "sire": 1, "granddam": 2, "grandsire": 2}
-CHOOSE_DOE = "Please choose a doe from your herd."
-CHOOSE_BUCK = "Please choose a buck from your herd."
+CHOOSE_DOE = "Choose a doe from your herd."
+CHOOSE_BUCK = "Choose a buck from your herd."
 
 
 def _key(herd_rabbit_id, outside_id):

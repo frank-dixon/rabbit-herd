@@ -40,7 +40,7 @@ class ColorRuleTests(FlowTestMixin, TestCase):
         self.assertEqual(
             self.errors("color", self.purebred("New Zealand")),
             {"color_choice": [
-                "Each rabbit needs a coat color. Please choose one of the New Zealand colors, "
+                "Each rabbit needs a coat color. Choose one of the New Zealand colors, "
                 "or choose Another color and describe it."
             ]},
         )
@@ -50,19 +50,19 @@ class ColorRuleTests(FlowTestMixin, TestCase):
             self.errors("color", self.purebred("New Zealand", color_choice="Lilac")),
             {"color_choice": [
                 "That color isn't one of the recognized New Zealand colors. "
-                "Please choose a color from the list, or choose Another color and describe it."
+                "Choose a color from the list, or choose Another color and describe it."
             ]},
         )
 
     def test_another_color_needs_a_description(self):
         self.assertEqual(
             self.errors("color", self.purebred("Creme d'Argent", color_choice=OTHER)),
-            {"color": ["Another color needs a short description. Please describe the coat, for example broken black."]},
+            {"color": ["Another color needs a short description. Describe the coat, for example broken black."]},
         )
         self.assertEqual(self.color(self.purebred("Creme d'Argent", color_choice=OTHER, color="Broken orange")), "Broken orange")
         self.assertEqual(
             self.errors("color", self.purebred("Creme d'Argent", color_choice=OTHER, color="x" * 81)),
-            {"color": ["A color can be up to 80 characters. Please shorten it."]},
+            {"color": ["A color can be up to 80 characters. Shorten it."]},
         )
 
     def test_typing_a_listed_color_counts_as_that_color(self):
@@ -77,7 +77,7 @@ class ColorRuleTests(FlowTestMixin, TestCase):
         crossbred = self.draft(breed_type="crossbred", purebred="", color="")
         self.assertEqual(
             self.errors("color", crossbred),
-            {"color": ["A coat color helps tell rabbits apart, so it's required. Please describe the color."]},
+            {"color": ["Describe the coat color. It helps tell rabbits apart."]},
         )
 
 
@@ -148,7 +148,7 @@ class ColorCardViewTests(TestCase):
         response = self.answer("color")
         page = self.client.get(response["Location"])
         self.assertContains(page, 'href="#id_color_choice_0"')
-        self.assertContains(page, "Please choose one of the New Zealand colors")
+        self.assertContains(page, "Choose one of the New Zealand colors")
 
     def test_crossbreds_and_any_color_breeds_get_a_text_box(self):
         page = self.to_color(crossbred=True)
@@ -179,7 +179,7 @@ class BreedChangeTests(ColorCardViewTests):
         self.assertContains(
             page,
             "Blue isn&#x27;t a recognized color for the Creme d&#x27;Argent, so it has been cleared. "
-            "Please check the color below before you go on.",
+            "Check the color below before you go on.",
         )
         self.assertContains(page, 'name="color_choice" value="Creme" checked')
         # The note shows once; a refresh is calm.
@@ -194,7 +194,7 @@ class BreedChangeTests(ColorCardViewTests):
         self.assertContains(page, "Red isn&#x27;t a recognized color for the Dutch")
         self.assertNotContains(page, " selected>")
         response = self.answer("color")
-        self.assertContains(self.client.get(response["Location"]), "Please choose one of the Dutch colors")
+        self.assertContains(self.client.get(response["Location"]), "Choose one of the Dutch colors")
 
     def test_a_color_the_new_breed_recognizes_stays(self):
         self.to_color("New Zealand")

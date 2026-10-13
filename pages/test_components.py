@@ -274,14 +274,14 @@ class CardFlowPartialTests(SimpleTestCase):
 
     def test_error_summary_counts_and_links_each_problem(self):
         one = render_to_string("components/error_summary.html", {"items": [{"anchor": "id_name", "message": "Add a name."}]})
-        self.assertIn("Please check one thing before continuing:", one)
+        self.assertIn("Check one thing before continuing:", one)
         self.assertIn('href="#id_name"', one)
         self.assertIn('role="alert"', one)
         two = render_to_string(
             "components/error_summary.html",
             {"items": [{"anchor": "a", "message": "One."}, {"anchor": "b", "message": "Two."}]},
         )
-        self.assertIn("Please check these 2 things before continuing:", two)
+        self.assertIn("Check these 2 things before continuing:", two)
         self.assertEqual(render_to_string("components/error_summary.html", {"items": []}).strip(), "")
 
     def test_choice_tiles_are_labelled_radios_with_hints(self):

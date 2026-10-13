@@ -9,8 +9,8 @@ from django.views.decorators.http import require_POST
 from .models import Location, Rabbit
 
 NAME_REQUIRED = "A location needs a name, like Hutch 3 or Barn row A."
-NAME_TOO_LONG = "A location's name can be up to 80 characters. Please shorten it."
-NAME_TAKEN = "You already have a location called {name}. Please choose another name."
+NAME_TOO_LONG = "A location's name can be up to 80 characters. Shorten it."
+NAME_TAKEN = "You already have a location called {name}. Choose another name."
 
 
 def clean_name(user, raw, exclude=None):
@@ -78,7 +78,7 @@ def rabbit_location(request, pk):
     elif raw.isdigit() and Location.objects.filter(owner=request.user, pk=int(raw)).exists():
         rabbit.location_id = int(raw)
     else:
-        messages.error(request, "Please choose one of your locations.")
+        messages.error(request, "Choose one of your locations.")
         return redirect(f"/rabbits/{rabbit.pk}/#location")
     rabbit.save(update_fields=["location", "updated_at"])
     messages.success(request, f"{rabbit.name} is now in {rabbit.location.name}." if rabbit.location else f"{rabbit.name} has no location now.")

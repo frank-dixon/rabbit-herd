@@ -46,28 +46,28 @@ def _clean(request):
     errors = {}
     day = parse(values["date"])
     if day is None:
-        errors["date"] = ["Please enter the date."]
+        errors["date"] = ["Enter the date."]
     elif day > timezone.localdate():
-        errors["date"] = ["That date is in the future. Please check it."]
+        errors["date"] = ["That date is in the future."]
     if values["category"] not in Expense.Category.values:
-        errors["category"] = ["Please choose a category."]
+        errors["category"] = ["Choose a category."]
     if not values["description"]:
-        errors["description"] = ["Please say what it was, like 50 lb pellets."]
+        errors["description"] = ["Say what it was, like 50 lb pellets."]
     amount, ok = _decimal(values["amount"], Decimal("1000000"))
     if amount is None:
-        errors["amount"] = ["Please enter the amount, like 18.99."]
+        errors["amount"] = ["Enter the amount, like 18.99."]
     weight, ok = _decimal(values["weight_lb"], Decimal("100000"))
     if not ok:
-        errors["weight_lb"] = ["Please enter pounds as a number, like 50."]
+        errors["weight_lb"] = ["Enter pounds as a number, like 50."]
     rabbit = litter = None
     if values["rabbit"]:
         rabbit = Rabbit.objects.filter(owner=request.user, pk=values["rabbit"]).first() if values["rabbit"].isdigit() else None
         if rabbit is None:
-            errors["rabbit"] = ["Please choose one of your rabbits."]
+            errors["rabbit"] = ["Choose one of your rabbits."]
     if values["litter"]:
         litter = Litter.objects.filter(owner=request.user, pk=values["litter"]).first() if values["litter"].isdigit() else None
         if litter is None:
-            errors["litter"] = ["Please choose one of your litters."]
+            errors["litter"] = ["Choose one of your litters."]
     cleaned = {"date": day, "category": values["category"], "description": values["description"][:120],
                "amount": amount, "weight_lb": weight, "rabbit": rabbit, "litter": litter}
     return values, errors, cleaned
