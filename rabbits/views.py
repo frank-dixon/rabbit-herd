@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 
 from . import genetics
 from .forms import GenesForm, PhotoUploadForm
-from .models import Contact, Gene, Location, Rabbit, Weight
+from .models import Contact, Gene, HealthNote, Location, Rabbit, Weight
 
 def owned_rabbits(user):
     return Rabbit.objects.filter(owner=user)
@@ -181,6 +181,9 @@ def rabbit_detail(request, pk):
             "photos": photos,
             "relatives": relatives,
             **weight_context(request, rabbit),
+            "health_notes": list(rabbit.health_notes.select_related("task")),
+            "health_kinds": HealthNote.Kind.choices,
+            "today_iso": timezone.localdate().isoformat(),
             "location_choices": location_options(request.user)[:-1],
             "contact_options": [(str(c.pk), str(c)) for c in Contact.objects.filter(owner=request.user)],
             "kindling_note": rabbit.kindling_note(relatives),

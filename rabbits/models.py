@@ -765,3 +765,28 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class HealthNote(models.Model):
+    """A dated health record for one rabbit. A follow-up date adds a task."""
+
+    class Kind(models.TextChoices):
+        TREATMENT = "treatment", "Treatment"
+        ILLNESS = "illness", "Illness"
+        INJURY = "injury", "Injury"
+        CHECKUP = "checkup", "Checkup"
+        OTHER = "other", "Other"
+
+    rabbit = models.ForeignKey(Rabbit, related_name="health_notes", on_delete=models.CASCADE)
+    date = models.DateField()
+    kind = models.CharField(max_length=12, choices=Kind.choices)
+    notes = models.TextField(max_length=1000, blank=True)
+    follow_up_on = models.DateField(null=True, blank=True)
+    task = models.OneToOneField(Task, related_name="health_note", null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date", "-pk"]
+
+    def __str__(self):
+        return f"{self.get_kind_display()} · {self.date}"
