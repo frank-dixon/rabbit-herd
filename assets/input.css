@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./themes.css";
+@import "./motion.css";
 
 /* Self-hosted fonts (SIL OFL, licences in static/fonts) so the installed app
    renders the same offline. Instrument Sans for text, DM Mono for numbers. */

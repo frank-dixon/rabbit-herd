@@ -3,7 +3,7 @@
   <a
     href="{{ href }}"
     {% if id %}id="{{ id }}"{% endif %}
-    class="inline-flex items-center justify-center {% if size == 'large' %}min-h-14 rounded-md px-5 text-lg font-semibold{% else %}min-h-10 rounded-md px-4 py-2 font-medium{% endif %}{% if grow %} flex-1{% endif %}{% if full %} w-full{% endif %} {% if variant == 'secondary' %}border border-line bg-surface text-ink hover:border-field{% elif variant == 'danger' %}border border-line bg-surface text-danger hover:border-danger{% else %}bg-accent text-on-accent hover:bg-accent/90{% endif %} focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas transition-colors{% if disabled %} pointer-events-none cursor-not-allowed opacity-50{% endif %}"
+    class="inline-flex items-center justify-center {% if size == 'large' %}min-h-14 rounded-md px-5 text-lg font-semibold{% else %}min-h-10 rounded-md px-4 py-2 font-medium{% endif %}{% if grow %} flex-1{% endif %}{% if full %} w-full{% endif %} {% if variant == 'secondary' %}border border-line bg-surface text-ink hover:border-field{% elif variant == 'danger' %}border border-line bg-surface text-danger hover:border-danger{% else %}bg-accent text-on-accent hover:bg-accent/90{% endif %} focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas mo-press{% if disabled %} pointer-events-none cursor-not-allowed opacity-50{% endif %}"
     {% if disabled %}aria-disabled="true" tabindex="-1"{% endif %}
   >{{ label }}{% if sr_suffix %}<span class="sr-only"> {{ sr_suffix }}</span>{% endif %}</a>
 {% else %}
@@ -15,7 +15,7 @@
     {% if data_next %}data-next="{{ data_next }}"{% endif %}
     {% if data_email_field %}data-email-field="{{ data_email_field }}"{% endif %}
     {% if data_authenticated %}data-authenticated="{{ data_authenticated }}"{% endif %}
-    class="inline-flex items-center justify-center {% if size == 'large' %}min-h-14 rounded-md px-5 text-lg font-semibold{% else %}min-h-10 rounded-md px-4 py-2 font-medium{% endif %}{% if grow %} flex-1{% endif %}{% if full %} w-full{% endif %} {% if variant == 'secondary' %}border border-line bg-surface text-ink hover:border-field{% elif variant == 'danger' %}border border-line bg-surface text-danger hover:border-danger{% else %}bg-accent text-on-accent hover:bg-accent/90{% endif %} focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas transition-colors{% if disabled %} cursor-not-allowed opacity-50{% endif %}"
+    class="inline-flex items-center justify-center {% if size == 'large' %}min-h-14 rounded-md px-5 text-lg font-semibold{% else %}min-h-10 rounded-md px-4 py-2 font-medium{% endif %}{% if grow %} flex-1{% endif %}{% if full %} w-full{% endif %} {% if variant == 'secondary' %}border border-line bg-surface text-ink hover:border-field{% elif variant == 'danger' %}border border-line bg-surface text-danger hover:border-danger{% else %}bg-accent text-on-accent hover:bg-accent/90{% endif %} focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas mo-press{% if disabled %} cursor-not-allowed opacity-50{% endif %}"
     {% if disabled %}disabled{% endif %}
   >{{ label }}{% if sr_suffix %}<span class="sr-only"> {{ sr_suffix }}</span>{% endif %}</button>
 {% endif %}
