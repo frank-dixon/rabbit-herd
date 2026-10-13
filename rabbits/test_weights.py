@@ -58,7 +58,7 @@ class WeightTests(TestCase):
         (p1, p2) = c["points"]
         self.assertEqual((p1["x"], p2["x"]), (c["left"], c["right"]))
         self.assertGreater(p1["y"], p2["y"])
-        self.assertEqual([t["label"] for t in c["ticks"]][-1], "4 lb")
+        self.assertEqual([t["label"] for t in c["ticks"]][-1], "4")
         self.assertIsNone(chart([], "lb"))
 
     def test_remove_and_owner_checks(self):
@@ -69,3 +69,23 @@ class WeightTests(TestCase):
         self.client.force_login(self.owner)
         self.client.post(reverse("rabbit_weight_delete", args=[weight.pk]))
         self.assertFalse(Weight.objects.exists())
+
+
+class ChartAxisTests(TestCase):
+    def test_axes_have_titles_and_date_ticks(self):
+        import datetime
+        from types import SimpleNamespace
+        from .weights import chart
+        rows = [SimpleNamespace(date=datetime.date(2026, 3, 1) + datetime.timedelta(days=d), grams=g)
+                for d, g in ((0, 600), (14, 900), (28, 1250), (56, 1900))]
+        c = chart(rows, "lb")
+        self.assertEqual((c["y_title"], c["x_title"]), ("Weight (lb)", "Date weighed"))
+        labels = [t["label"] for t in c["x_ticks"]]
+        self.assertEqual(labels[0], "Mar 1")
+        self.assertEqual(labels[-1], "Apr 26")
+        self.assertEqual(len(labels), 5)
+        self.assertEqual(len(set(labels)), len(labels))
+        self.assertEqual(chart(rows, "kg")["y_title"], "Weight (kg)")
+        self.assertEqual(len(chart(rows[:1], "lb")["x_ticks"]), 1)
+        long = [SimpleNamespace(date=datetime.date(2025, 1, 1), grams=500), SimpleNamespace(date=datetime.date(2026, 2, 1), grams=3000)]
+        self.assertEqual(chart(long, "lb")["x_ticks"][0]["label"], "Jan ’25")

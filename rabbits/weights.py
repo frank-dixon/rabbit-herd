@@ -1,5 +1,6 @@
 """Weights: quick entry per rabbit and a server-rendered SVG growth chart."""
 
+from datetime import timedelta
 import math
 from decimal import Decimal, InvalidOperation
 
@@ -123,7 +124,7 @@ def chart(weights, unit, width=400, height=200):
     Returns None with fewer than one weight."""
     if not weights:
         return None
-    left, right, top, bottom = 44, 10, 10, 26
+    left, right, top, bottom = 58, 14, 10, 44
     to_unit = (lambda g: g / 1000) if unit == Weight.Unit.KG else (lambda g: g / float(GRAMS_PER_OUNCE) / 16)
     values = [to_unit(w.grams) for w in weights]
     step = nice_step(max(max(values), 0.5))
@@ -140,13 +141,26 @@ def chart(weights, unit, width=400, height=200):
 
     points = [{"x": x(w.date), "y": y(v), "label": f"{w.date:%b} {w.date.day}, {w.date.year}: {weight_text(w.grams, unit)}"}
               for w, v in zip(weights, values)]
-    suffix = " kg" if unit == Weight.Unit.KG else " lb"
     ticks = []
     value = 0.0
     while value <= top_value + 1e-9:
-        ticks.append({"y": y(value), "label": f"{value:g}{suffix}"})
+        ticks.append({"y": y(value), "label": f"{value:g}"})
         value += step
+    # Date ticks along the bottom: up to five, evenly spread, never repeating a label.
+    long_span = (last - first).days > 300
+    spans = 0 if len(weights) == 1 else min(4, (last - first).days)
+    x_ticks, seen = [], set()
+    for i in range(spans + 1):
+        day = first + timedelta(days=round((last - first).days * i / spans)) if spans else first
+        label = f"{day:%b} ’{day.year % 100:02d}" if long_span else f"{day:%b} {day.day}"
+        if label in seen:
+            continue
+        seen.add(label)
+        anchor = "start" if i == 0 and spans else "end" if i == spans and spans else "middle"
+        x_ticks.append({"x": x(day), "label": label, "anchor": anchor})
     return {
+        "x_ticks": x_ticks, "y_title": "Weight (kg)" if unit == Weight.Unit.KG else "Weight (lb)",
+        "x_title": "Date weighed", "mid_y": round(top + plot_h / 2, 1), "mid_x": round(left + plot_w / 2, 1),
         "width": width, "height": height, "left": left, "right": width - right, "bottom": height - bottom, "top": top,
         "points": points, "polyline": " ".join(f"{p['x']},{p['y']}" for p in points), "ticks": ticks,
         "first": f"{first:%b} {first.day}", "last": f"{last:%b} {last.day}", "single": len(weights) == 1,
