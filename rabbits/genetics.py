@@ -97,7 +97,7 @@ def hidden_notes(pairs):
         notes.append("Carries red (e). Bred to another carrier, about 1 in 4 kits are red-based: "
                      "orange, fawn or tortoise.")
     if e is not None and e[0] == "Es" and _homo(a, "a"):
-        notes.append("Carries steel (Es), which does not show on a self (a/a). Bred to an agouti, steel kits can appear.")
+        notes.append("Carries steel (Es), which doesn't show on a self (a/a). Bred to an agouti, steel kits can appear.")
     if _has(si, "si") and not _homo(si, "si"):
         notes.append("Carries silvering (si) without showing it. Bred to another carrier, about 1 in 4 kits are silvered.")
     if _homo(en, "En"):

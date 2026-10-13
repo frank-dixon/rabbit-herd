@@ -56,8 +56,10 @@ def send_confirmation_email(request, user):
     send_account_mail(
         f"Confirm your {settings.APP_NAME} account",
         (
-            f"Confirm your email to finish creating your {settings.APP_NAME} account.\n\n"
-            f"{url}\n"
+            f"Confirm your email to finish creating your {settings.APP_NAME} account:\n\n"
+            f"{url}\n\n"
+            "If you didn't sign up, you can ignore this email.\n\n"
+            f"{settings.APP_NAME}\n"
         ),
         user.email,
     )

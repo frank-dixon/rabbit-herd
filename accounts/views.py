@@ -104,7 +104,7 @@ class AppPasswordChangeView(PasswordChangeView):
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated and request.user.is_guest:
-            messages.error(request, "Guest sessions do not have a password.")
+            messages.error(request, "Guest sessions don't have a password. Create an account to set one.")
             return redirect("index")
         return super().dispatch(request, *args, **kwargs)
 

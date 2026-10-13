@@ -51,7 +51,7 @@ class EmailConfigTests(SimpleTestCase):
             {
                 "EMAIL_PROVIDER": "resend",
                 "RESEND_API_KEY": "test-key",
-                "DEFAULT_FROM_EMAIL": "Rabbit Herd <onboarding@resend.dev>",
+                "DEFAULT_FROM_EMAIL": "Bramble Burrow <onboarding@resend.dev>",
                 "EMAIL_HOST": "smtp.example.com",
             }
         )
@@ -65,7 +65,7 @@ class EmailConfigTests(SimpleTestCase):
             email_settings(
                 {
                     "EMAIL_PROVIDER": "resend",
-                    "DEFAULT_FROM_EMAIL": "Rabbit Herd <onboarding@resend.dev>",
+                    "DEFAULT_FROM_EMAIL": "Bramble Burrow <onboarding@resend.dev>",
                 }
             )
         with self.assertRaisesMessage(ImproperlyConfigured, "DEFAULT_FROM_EMAIL"):

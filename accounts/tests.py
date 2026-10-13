@@ -70,7 +70,7 @@ class PasswordAccountTests(TestCase):
 
     @override_settings(
         APP_HOSTNAME="rabbit-herd.vercel.app",
-        DEFAULT_FROM_EMAIL="Rabbit Herd <onboarding@resend.dev>",
+        DEFAULT_FROM_EMAIL="Bramble Burrow <onboarding@resend.dev>",
     )
     def test_confirmation_link_uses_the_https_app_host(self):
         response = self.client.post(
@@ -84,7 +84,7 @@ class PasswordAccountTests(TestCase):
 
         self.assertRedirects(response, reverse("signup_done"))
         message = mail.outbox[0]
-        self.assertEqual(message.from_email, "Rabbit Herd <onboarding@resend.dev>")
+        self.assertEqual(message.from_email, "Bramble Burrow <onboarding@resend.dev>")
         self.assertEqual(message.to, ["frank@example.com"])
         self.assertIn(
             "https://rabbit-herd.vercel.app/accounts/confirm/",

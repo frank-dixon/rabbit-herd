@@ -146,7 +146,7 @@ class MessageDisplayTests(TestCase):
 
         home = self.client.get(reverse("index"))
 
-        self.assertContains(home, "Guest sessions do not have a password.")
+        self.assertContains(home, "Guest sessions don&#x27;t have a password. Create an account to set one.")
         self.assertContains(home, 'role="alert"')
 
 

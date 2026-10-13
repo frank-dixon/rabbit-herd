@@ -74,7 +74,7 @@ class SignupForm(forms.Form):
         password1 = cleaned.get("password1")
         password2 = cleaned.get("password2")
         if password1 and password2 and password1 != password2:
-            self.add_error("password2", "The two passwords do not match.")
+            self.add_error("password2", "The passwords don't match.")
         if password1:
             try:
                 validate_password(password1)

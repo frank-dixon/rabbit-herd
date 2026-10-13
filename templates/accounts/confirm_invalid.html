@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Link expired · {{ app_name }}{% endblock %}
+{% block title %}Link expired or used · {{ app_name }}{% endblock %}
 
 {% block content %}
-  <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">That link does not work</h1>
+  <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">This link has expired or was already used</h1>
   <p class="mt-4 leading-relaxed">
-    The confirmation link is invalid or has already been used.
+    Sign in to check whether your account is confirmed, or sign up again with the same email to get a new link.
   </p>
-  <div class="mt-8">
-    {% url 'signup' as signup_url %}
-    {% include "components/button.html" with label="Create an account" href=signup_url variant="secondary" only %}
+  <div class="mt-8 flex flex-wrap gap-3">
+    {% url 'login' as login_url %}{% url 'signup' as signup_url %}
+    {% include "components/button.html" with label="Sign in" href=login_url variant="primary" only %}
+    {% include "components/button.html" with label="Sign up again" href=signup_url variant="secondary" only %}
   </div>
 {% endblock %}
