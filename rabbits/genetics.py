@@ -1,6 +1,6 @@
 """Small, plain helpers for recorded genes and colors.
 
-Nothing here predicts litters. It only reads what keepers recorded and
+Litter color odds live in color_odds. This module only reads what keepers recorded and
 spots one well-known case: a parent that is c/c (albino, such as a
 ruby-eyed white) passes a c to every kit, so a non-albino kit of that
 parent carries c.

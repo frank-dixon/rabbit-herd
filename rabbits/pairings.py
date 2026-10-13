@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from . import color_odds
 from .models import Pairing, PedigreeEntry, Rabbit, Relative
 
 MAX_GENERATIONS = 4
@@ -125,11 +126,14 @@ def pairing_list(request):
 
 @login_required
 def pairing_detail(request, pk):
-    pairing = get_object_or_404(Pairing.objects.select_related("doe", "buck"), owner=request.user, pk=pk)
+    pairing = get_object_or_404(
+        Pairing.objects.select_related("doe", "buck").prefetch_related("doe__genes", "buck__genes"),
+        owner=request.user, pk=pk)
     from django.utils import timezone
 
     context = {"pairing": pairing, "warnings": inbreeding_warnings(pairing.doe, pairing.buck), "wide": True,
-               "litters": pairing.litters.all(), "today": timezone.localdate()}
+               "litters": pairing.litters.all(), "today": timezone.localdate(),
+               "odds": color_odds.predict(pairing.doe, pairing.buck)}
     return render(request, "rabbits/pairing_detail.html", context)
 
 
