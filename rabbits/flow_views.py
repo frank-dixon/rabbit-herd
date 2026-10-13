@@ -274,7 +274,8 @@ def step_context(slug, draft, user, form, exclude=None):
         context["tiles"] = tiles(flow_forms.BREED_TYPE_CHOICES, draft["breed_type"])
     if slug == "color":
         context.update(color_context(draft, errors))
-    if slug == "breed":
+    if slug in ("breed", "breed-type"):
+        flow.pad_cross(draft)
         groups = flow_forms.breed_groups()
         total = cross_total(draft)
         context.update(
@@ -514,15 +515,19 @@ def rabbit_flow_step(request, step):
                 return redirect(step_url(not_ready.slug, check=True))
             flow.clear_draft(request.session)
             return redirect("rabbit_flow_done", pk=rabbit.pk)
-        if step == "breed":
+        if step == "breed-type" and flow.type_needs_round_trip(draft, request.POST):
+            flow.save_draft(request.session, draft)
+            return redirect(step_url(step, anchor="breed-section"))
+        if step in ("breed", "breed-type"):
             flow.merge_mix(draft)
-        form = flow.bound_form(step, draft, request.user)
+        form = flow.card_form(step, draft, request.user)
         if form.is_valid():
             if step == "relatives":
                 filled = flow.prefill_breed_from_parents(draft, form.cleaned_data["relatives"])
                 if filled:
                     messages.info(request, f"The breed was filled in from the parents: {filled}. You can change it on the breed cards.")
-            draft["step"] = flow.SLUGS[index + 1]
+            # The breed type card answers the breed card too, so skip it.
+            draft["step"] = flow.SLUGS[index + (2 if step == "breed-type" else 1)]
             flow.save_draft(request.session, draft)
             return redirect(step_url(draft["step"]))
         # Show the problems on a plain page, so a refresh never posts again.
@@ -537,7 +542,7 @@ def rabbit_flow_step(request, step):
     flow.save_draft(request.session, draft)
     form = None
     if request.GET.get("check") and flow.STEPS[flow.step_index(step)].form_class:
-        form = flow.bound_form(step, draft, request.user)
+        form = flow.card_form(step, draft, request.user)
         form.is_valid()
     context = step_context(step, draft, request.user, form)
     context["color_cleared"] = cleared

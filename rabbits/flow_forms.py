@@ -418,6 +418,24 @@ class BreedTypeForm(StepForm):
         return {"breed_type": breed_type}
 
 
+class BreedTypeAndBreedForm(StepForm):
+    """The breed type card with the breed answer on the same card: Purebred
+    reveals the breed picker, Crossbred the mix rows."""
+
+    def __init__(self, *args, rows=2, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.kind = BreedTypeForm(*args, **kwargs)
+        self.breed = BreedForm(*args, rows=rows, **kwargs)
+
+    def clean(self):
+        for part in (self.kind, self.breed):
+            if not part.is_valid():
+                for name, errors in part.errors.items():
+                    self._errors.setdefault(name, self.error_class()).extend(errors)
+                return {}
+        return self.breed.cleaned_data
+
+
 class BreedForm(StepForm):
     """Purebred: one breed from the catalog. Crossbred: two or more rows of
     breed and share, with the shares totalling exactly 100."""

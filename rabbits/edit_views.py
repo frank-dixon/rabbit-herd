@@ -139,9 +139,12 @@ def rabbit_edit_step(request, pk, step):
         if action == "back":
             flow.save_draft(request.session, draft, key)
             return redirect("rabbit_edit", pk=rabbit.pk)
-        if step == "breed":
+        if step == "breed-type" and flow.type_needs_round_trip(draft, request.POST):
+            flow.save_draft(request.session, draft, key)
+            return redirect(card_url(rabbit.pk, step, anchor="breed-section"))
+        if step in ("breed", "breed-type"):
             flow.merge_mix(draft)
-        form = flow.bound_form(step, draft, request.user)
+        form = flow.card_form(step, draft, request.user)
         if step == "relatives" and form.is_valid():
             if any(row["target"] == rabbit for row in form.cleaned_data["relatives"]):
                 flow.save_draft(request.session, draft, key)
@@ -172,7 +175,7 @@ def rabbit_edit_step(request, pk, step):
     flow.save_draft(request.session, draft, key)
     form = None
     if request.GET.get("check"):
-        form = flow.bound_form(step, draft, request.user)
+        form = flow.card_form(step, draft, request.user)
         form.is_valid()
     context = step_context(step, draft, request.user, form, exclude=rabbit.pk)
     context.update({
@@ -246,9 +249,12 @@ def rabbit_quick_edit(request, pk, step):
         if flow.apply_row_action(draft, action):
             flow.save_draft(request.session, draft, key)
             return redirect(quick_url(rabbit.pk, step, keep=True, anchor=row_anchor(action, draft)))
-        if step == "breed":
+        if step == "breed-type" and flow.type_needs_round_trip(draft, request.POST):
+            flow.save_draft(request.session, draft, key)
+            return redirect(quick_url(rabbit.pk, step, keep=True, anchor="breed-section"))
+        if step in ("breed", "breed-type"):
             flow.merge_mix(draft)
-        form = flow.bound_form(step, draft, request.user)
+        form = flow.card_form(step, draft, request.user)
         if not form.is_valid():
             if inline:
                 return JsonResponse({"errors": quick_errors(form)}, status=400)
@@ -296,7 +302,7 @@ def rabbit_quick_edit(request, pk, step):
     flow.save_draft(request.session, draft, key)
     form = None
     if request.GET.get("check"):
-        form = flow.bound_form(step, draft, request.user)
+        form = flow.card_form(step, draft, request.user)
         form.is_valid()
     context = step_context(step, draft, request.user, form, exclude=rabbit.pk)
     context.update({

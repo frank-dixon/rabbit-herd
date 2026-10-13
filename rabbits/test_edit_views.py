@@ -100,10 +100,10 @@ class EditFlowTests(FlowTestMixin, TestCase):
         done = self.client.post(self.card("name"), {"name": "", "action": "next"})
         self.assertRedirects(done, self.card("name") + "?check=1", fetch_redirect_response=False)
 
-    def test_done_that_leaves_another_card_out_of_date_says_so_on_the_summary(self):
+    def test_a_new_breed_type_asks_for_the_breed_on_the_same_card(self):
         done = self.client.post(self.card("breed-type"), {"breed_type": "purebred", "action": "next"}, follow=True)
-        self.assertRedirects(done, self.overview)
-        self.assertContains(done, "Your change means the Breed card needs another look before you save.")
+        self.assertRedirects(done, self.card("breed-type") + "?check=1")
+        self.assertContains(done, 'data-breed-section="purebred">')
 
     def test_unreadable_legacy_breed_asks_for_the_breed(self):
         self.pepper.breed = "barn mix"

@@ -1,4 +1,14 @@
 {% if editing and draft.legacy_breed and not draft.breed_type %}
-  <p class="rounded-lg border border-amber-400 bg-amber-50 p-3 text-neutral-800" id="legacy-breed">This rabbit's breed was saved as "{{ draft.legacy_breed }}", which doesn't match the breed list. Please choose purebred or crossbred, then pick the breed.</p>
+  <p class="rounded-lg border border-amber-400 bg-amber-50 p-3 text-neutral-800" id="legacy-breed">This rabbit's breed was saved as "{{ draft.legacy_breed }}", which doesn't match the breed list. Choose purebred or crossbred, then pick the breed.</p>
 {% endif %}
 {% include "components/choice_tiles.html" with name="breed_type" legend="Breed type" tiles=tiles errors=error quiet=True only %}
+{# The type this card was drawn with. Without JavaScript, Done after picking the other type comes back here with that section shown. #}
+<input type="hidden" name="breed_shown" value="{{ draft.breed_type }}" data-breed-shown>
+<div id="breed-section" class="space-y-5" data-breed-sections>
+  <div data-breed-section="purebred"{% if draft.breed_type != "purebred" %} hidden{% endif %}>
+    {% include "components/select.html" with name="purebred" label="Breed" value=draft.purebred groups=breed_groups errors=purebred_error placeholder="Choose a breed…" help_template="rabbits/flow/_breed_sources.html" large=True only %}
+  </div>
+  <div data-breed-section="crossbred"{% if draft.breed_type != "crossbred" %} hidden{% endif %}>
+    {% with crossbred=True %}{% include "rabbits/flow/_breed.html" %}{% endwith %}
+  </div>
+</div>

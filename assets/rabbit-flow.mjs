@@ -158,6 +158,38 @@ function bindColorChoice(form) {
   update();
 }
 
+/** Which breed section a breed type shows: the picker or the mix rows. */
+export function breedSection(type) {
+  return type === "purebred" || type === "crossbred" ? type : "";
+}
+
+function bindBreedType(form) {
+  const sections = form.querySelectorAll("[data-breed-section]");
+  const shown = form.querySelector("[data-breed-shown]");
+  if (!sections.length) {
+    return;
+  }
+  form.addEventListener("change", function (event) {
+    if (!event.target || event.target.name !== "breed_type") {
+      return;
+    }
+    const want = breedSection(event.target.value);
+    sections.forEach(function (section) {
+      const show = section.getAttribute("data-breed-section") === want;
+      if (show && section.hidden) {
+        section.hidden = false;
+        enter(section);
+      } else if (!show) {
+        section.hidden = true;
+      }
+    });
+    // The right section is on screen now, so Done can check it right away.
+    if (shown) {
+      shown.value = want;
+    }
+  });
+}
+
 function bindAutosave(form) {
   let timer = null;
   function save() {
@@ -358,6 +390,7 @@ export function bindRabbitFlow(root) {
   bindTotal(form);
   bindRelationships(form);
   bindColorChoice(form);
+  bindBreedType(form);
   bindGeneFill(form);
   bindToHerd(form);
   bindAutosave(form);

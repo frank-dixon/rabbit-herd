@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { autoText, crossTotal, needsColorText, parseAuto, refillGenes, relationshipChoices, totalText, totalTone } from "./rabbit-flow.mjs";
+import { autoText, breedSection, crossTotal, needsColorText, parseAuto, refillGenes, relationshipChoices, totalText, totalTone } from "./rabbit-flow.mjs";
 
 const ALL = [
   ["dam", "Dam (mother)"],
@@ -58,4 +58,11 @@ test("a filled locus the new color no longer proves is cleared", () => {
 test("gene_auto round-trips", () => {
   assert.deepEqual(parseAuto("A=aa;En=enen"), { A: "aa", En: "enen" });
   assert.equal(autoText({ En: "enen", A: "aa" }, ["A", "B", "En"]), "A=aa;En=enen");
+});
+
+test("breed type picks the breed section shown on the same card", () => {
+  assert.equal(breedSection("purebred"), "purebred");
+  assert.equal(breedSection("crossbred"), "crossbred");
+  assert.equal(breedSection(""), "");
+  assert.equal(breedSection("Unknown"), "");
 });

@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     "accounts",
     "rabbits",
     "pages",
+    "e2e",
 ]
 
 MIDDLEWARE = [

@@ -180,7 +180,10 @@ def update_draft(draft, slug, post):
     for field in step.fields:
         if field in post:
             draft[field] = clean_text(post.get(field))
-    if slug == "breed":
+    if slug == "breed-type" and "purebred" in post:
+        draft["purebred"] = clean_text(post.get("purebred"))
+    if slug in ("breed", "breed-type"):
+        pad_cross(draft)
         for index, row in enumerate(draft["cross"]):
             for part in ("breed", "percent"):
                 key = f"cross-{index}-{part}"
@@ -192,6 +195,12 @@ def update_draft(draft, slug, post):
                 key = f"relatives-{index}-{part}"
                 if key in post:
                     row[part] = clean_text(post.get(key))
+
+
+def pad_cross(draft):
+    """A mix always offers at least two rows."""
+    while len(draft["cross"]) < 2:
+        draft["cross"].append(blank_cross_row())
 
 
 def apply_row_action(draft, action):
@@ -265,6 +274,22 @@ def bound_form(slug, draft, user):
     if slug == "relatives":
         kwargs["rows"] = len(draft["relatives"])
     return step.form_class(**kwargs)
+
+
+def card_form(slug, draft, user):
+    """The form a card's Done or Next checks. The breed type card carries
+    the breed answer too, so it checks both."""
+    if slug == "breed-type":
+        return flow_forms.BreedTypeAndBreedForm(data=form_data(draft), user=user, rows=len(draft["cross"]))
+    return bound_form(slug, draft, user)
+
+
+def type_needs_round_trip(draft, post):
+    """Without JavaScript the card shows only the breed section for the type
+    it was drawn with. Picking the other type and pressing Done comes back to
+    the same card with that section shown, instead of an error."""
+    shown = post.get("breed_shown")
+    return shown is not None and shown != draft["breed_type"]
 
 
 def first_invalid_step(draft, user, before=None, steps=STEPS):
