@@ -5,9 +5,9 @@
   {% if entries %}
     <ul class="mo-stagger mt-5 divide-y divide-line overflow-hidden rounded-md border border-line bg-surface">
       {% for e in entries %}
-        <li><a class="block px-4 py-3 hover:bg-side" href="{% url 'rabbit_detail' e.rabbit_id %}#shows">
+        <li><a class="flex items-center gap-3 px-4 py-3 hover:bg-side" href="{% url 'rabbit_detail' e.rabbit_id %}#shows">{% include "components/rabbit_avatar.html" with rabbit=e.rabbit size="sm" only %}<span class="min-w-0 flex-1">
           <span class="flex items-baseline justify-between gap-3"><span class="truncate font-semibold">{{ e.rabbit.name }} · {{ e.show_name }}</span><span class="num shrink-0 text-xs text-muted">{{ e.date|date:"M j, Y" }}</span></span>
-          <span class="mt-0.5 block truncate text-sm text-muted">{{ e.placing_text }}{% if e.award %} · {{ e.award }}{% endif %}{% if e.leg %} · Leg{% endif %}</span>
+          <span class="mt-0.5 block truncate text-sm text-muted">{{ e.placing_text }}{% if e.award %} · {{ e.award }}{% endif %}{% if e.leg %} · Leg{% endif %}</span></span>
         </a></li>
       {% endfor %}
     </ul>

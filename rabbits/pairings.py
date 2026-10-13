@@ -134,7 +134,7 @@ def pairing_list(request):
         buck = pick(request.user, values["buck"], Rabbit.Sex.BUCK)
         if doe and buck:
             check = {"doe": doe, "buck": buck, "warnings": inbreeding_warnings(doe, buck), "age": age_warnings(doe, buck)}
-    pairings = Pairing.objects.filter(owner=request.user).select_related("doe", "buck")
+    pairings = Pairing.objects.filter(owner=request.user).select_related("doe", "buck").prefetch_related("doe__photos", "buck__photos")
     return render(request, "rabbits/pairings.html", {
         "pairings": pairings, "errors": errors, "values": values, "check": check, "wide": True,
         "doe_options": herd_choices(request.user, Rabbit.Sex.DOE),

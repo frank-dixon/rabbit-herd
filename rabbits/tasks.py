@@ -69,7 +69,7 @@ def open_items(user, today=None):
     """Every open task and litter date, soonest first, as plain dicts."""
     today = today or timezone.localdate()
     items = []
-    for task in Task.objects.filter(owner=user, done_at__isnull=True).select_related("rabbit"):
+    for task in Task.objects.filter(owner=user, done_at__isnull=True).select_related("rabbit").prefetch_related("rabbit__photos"):
         items.append({"kind": "task", "pk": task.pk, "title": task.title, "date": task.due_on, "repeat": task.repeat_label(),
                       "rabbit": task.rabbit, "url": reverse("rabbit_detail", args=[task.rabbit_id]) if task.rabbit_id else ""})
     # Litters still to kindle, plus recent ones with wean or process dates

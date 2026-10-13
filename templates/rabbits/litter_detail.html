@@ -6,7 +6,7 @@
   {% url 'pairing_detail' litter.pairing.pk as pairing_url %}
   {% include "components/page_header.html" with title=litter.pairing|stringformat:"s" subtitle=subtitle back_label="Pairing" back_href=pairing_url rabbit=litter.pairing.doe rabbit2=litter.pairing.buck only %}
   <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-    <section class="scroll-mt-4 ruled pt-4" id="dates" aria-labelledby="dates-heading">
+    <section class="scroll-mt-20 ruled pt-4" id="dates" aria-labelledby="dates-heading">
       <h2 class="text-base font-semibold" id="dates-heading">Dates</h2>
       <p class="mt-1 text-sm text-neutral-600">Bred {{ litter.bred_on|date:"l, M j, Y" }} · {{ litter.schedule_name }} schedule.</p>
       <ul class="mt-3 flex flex-col divide-y divide-neutral-200 rounded border border-neutral-300" data-tasks>
@@ -26,7 +26,7 @@
         {% endfor %}
       </ul>
     </section>
-    <section class="scroll-mt-4 ruled pt-4" id="kindling" aria-labelledby="kindling-heading">
+    <section class="scroll-mt-20 ruled pt-4" id="kindling" aria-labelledby="kindling-heading">
       <h2 class="text-base font-semibold" id="kindling-heading">Kindling</h2>
       {% if litter.kindled_on %}
         <dl class="mt-3 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm" data-kindling>
@@ -51,11 +51,11 @@
         </form>
       </details>
     </section>
-    <section class="scroll-mt-4 ruled pt-4 lg:col-span-2" id="kits" aria-labelledby="kits-heading">
+    <section class="scroll-mt-20 ruled pt-4 lg:col-span-2" id="kits" aria-labelledby="kits-heading">
       <h2 class="text-base font-semibold" id="kits-heading">Kits in your herd</h2>
       {% if kits %}
         <ul class="mt-3 flex flex-col divide-y divide-neutral-200 rounded border border-neutral-300" data-kits>
-          {% for kit in kits %}<li class="flex flex-wrap items-start justify-between gap-2 p-3 text-sm"><span class="min-w-0"><a class="font-semibold underline" href="{% url 'rabbit_detail' kit.pk %}">{{ kit.name }}</a> · {{ kit.get_sex_display }}{% if kit.tattoo %} · {{ kit.tattoo }}{% endif %} · {{ kit.short_breed }}{% if kit.latest_cull.reason %}<span class="mt-1 block break-words text-neutral-600" data-kit-cull-reason>{{ kit.latest_cull.reason|truncatechars:140 }}</span>{% endif %}</span>{% if kit.latest_cull %}<a class="shrink-0 rounded-full border border-neutral-400 px-2 py-0.5 text-xs font-medium" href="{% url 'rabbit_detail' kit.pk %}#culling" data-kit-decision="{{ kit.latest_cull.decision }}">{{ kit.latest_cull.get_decision_display }} · {{ kit.latest_cull.date|date:"M j" }}</a>{% else %}<a class="shrink-0 text-xs text-neutral-600 underline" href="{% url 'rabbit_detail' kit.pk %}#culling">Evaluate<span class="sr-only"> {{ kit.name }}</span></a>{% endif %}</li>{% endfor %}
+          {% for kit in kits %}<li class="flex flex-wrap items-start justify-between gap-2 p-3 text-sm"><span class="flex min-w-0 items-start gap-2">{% include "components/rabbit_avatar.html" with rabbit=kit size="sm" only %}<span class="min-w-0"><a class="font-semibold underline" href="{% url 'rabbit_detail' kit.pk %}">{{ kit.name }}</a> · {{ kit.get_sex_display }}{% if kit.tattoo %} · {{ kit.tattoo }}{% endif %} · {{ kit.short_breed }}{% if kit.latest_cull.reason %}<span class="mt-1 block break-words text-neutral-600" data-kit-cull-reason>{{ kit.latest_cull.reason|truncatechars:140 }}</span>{% endif %}</span></span>{% if kit.latest_cull %}<a class="shrink-0 rounded-full border border-neutral-400 px-2 py-0.5 text-xs font-medium" href="{% url 'rabbit_detail' kit.pk %}#culling" data-kit-decision="{{ kit.latest_cull.decision }}">{{ kit.latest_cull.get_decision_display }} · {{ kit.latest_cull.date|date:"M j" }}</a>{% else %}<a class="shrink-0 text-xs text-neutral-600 underline" href="{% url 'rabbit_detail' kit.pk %}#culling">Evaluate<span class="sr-only"> {{ kit.name }}</span></a>{% endif %}</li>{% endfor %}
         </ul>
         <p class="mt-3 flex flex-wrap items-center gap-3 text-sm"><a class="mo-press inline-flex min-h-10 items-center gap-2 rounded-md bg-accent px-4 font-semibold text-on-accent hover:bg-accent/90" href="{% url 'litter_weigh_in' litter.pk %}" data-weigh-link><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v16M7 20h10M5 8h14M5 8l-3 6a3 3 0 0 0 6 0zM19 8l-3 6a3 3 0 0 0 6 0z"/></svg>Weigh kits</a><a class="underline" href="{% url 'litter_compare' litter.pk %}" data-compare-link>Compare kit photos</a></p>
       {% endif %}

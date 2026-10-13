@@ -16,7 +16,7 @@ def weights_hub(request):
         .exclude(status=Rabbit.Status.DECEASED)
         .annotate(last_grams=Subquery(latest.values("grams")[:1]), last_unit=Subquery(latest.values("unit")[:1]),
                   last_date=Subquery(latest.values("date")[:1]))
-        .order_by("name")
+        .order_by("name").prefetch_related("photos")
     )
     from .models import prefs, weight_text
 
@@ -30,11 +30,11 @@ def weights_hub(request):
 
 @login_required
 def health_list(request):
-    notes = HealthNote.objects.filter(rabbit__owner=request.user).select_related("rabbit")[:100]
+    notes = HealthNote.objects.filter(rabbit__owner=request.user).select_related("rabbit").prefetch_related("rabbit__photos")[:100]
     return render(request, "hub/health.html", {"notes": notes})
 
 
 @login_required
 def show_list(request):
-    entries = ShowEntry.objects.filter(rabbit__owner=request.user).select_related("rabbit")[:100]
+    entries = ShowEntry.objects.filter(rabbit__owner=request.user).select_related("rabbit").prefetch_related("rabbit__photos")[:100]
     return render(request, "hub/shows.html", {"entries": entries})

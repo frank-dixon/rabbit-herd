@@ -12,6 +12,7 @@
   {% else %}
     <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-second-soft text-second-ink" aria-hidden="true"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"/></svg></span>
   {% endif %}
+  {% if item.kind == "task" and item.rabbit %}{% include "components/rabbit_avatar.html" with rabbit=item.rabbit size="sm" only %}{% endif %}
   <div class="min-w-0 flex-1">
     <p class="truncate font-semibold">{% if item.url %}<a class="hover:underline" href="{{ item.url }}">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</p>
     <p class="truncate text-sm {% if item.overdue %}text-danger{% else %}text-muted{% endif %}">

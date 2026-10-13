@@ -8,6 +8,7 @@
       {% for row in rows %}
         <li>
           <a class="flex items-center gap-3 px-4 py-3 hover:bg-side focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent" href="{% url 'rabbit_detail' row.rabbit.pk %}#weights">
+            {% include "components/rabbit_avatar.html" with rabbit=row.rabbit size="sm" only %}
             <span class="min-w-0 flex-1">
               <span class="block truncate font-semibold">{{ row.rabbit.name }}</span>
               <span class="block truncate text-sm text-muted">{{ row.rabbit.get_sex_display }} · {{ row.rabbit.age_text }}</span>

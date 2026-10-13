@@ -1,11 +1,11 @@
 {# One open item from rabbits.tasks.open_items. item, next (where to come back to). #}
 <li class="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200 py-3 last:border-b-0" data-task-item{% if item.kind == "task" or item.key != "due" %} data-swipe="form" data-swipe-label="Done"{% endif %}{% if item.overdue %} data-overdue{% endif %}>
-  <div class="min-w-0">
+  <div class="flex min-w-0 items-center gap-3">{% if item.kind == "task" and item.rabbit %}{% include "components/rabbit_avatar.html" with rabbit=item.rabbit size="sm" only %}{% endif %}<div class="min-w-0">
     <p class="break-words font-semibold">{% if item.url %}<a class="underline" href="{{ item.url }}">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</p>
     <p class="text-sm {% if item.overdue %}font-semibold text-red-800{% else %}text-neutral-600{% endif %}">
       {% if item.overdue %}Overdue · {% elif item.today %}Today · {% endif %}{{ item.date|date:"D, M j" }}{% if item.kind == "task" and item.rabbit %} · {{ item.rabbit.name }}{% endif %}{% if item.repeat %} · <span class="whitespace-nowrap" data-repeat-badge><span aria-hidden="true">↻</span> {{ item.repeat }}</span>{% endif %}
     </p>
-  </div>
+  </div></div>
   {% if item.kind == "task" %}
     <div class="flex gap-2">
     <a class="self-center text-sm underline" href="{% url 'task_edit' item.pk %}">Edit<span class="sr-only"> {{ item.title }}</span></a>
