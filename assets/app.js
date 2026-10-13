@@ -29,6 +29,7 @@ import { bindSwipe } from "./swipe.mjs";
 import { bindWeighIn } from "./weigh-in.mjs";
 import { bindPullRefresh } from "./ptr.mjs";
 import { bindRepeatFields } from "./repeat-fields.mjs";
+import { bindPressReset } from "./press-reset.mjs";
 import { bindPrefetch } from "./prefetch.mjs";
 
 /**
@@ -330,6 +331,7 @@ function start() {
   bindWeighIn(document, window);
   bindPullRefresh(document, window);
   bindRepeatFields(document);
+  bindPressReset(document, window);
   bindPrefetch(document, window);
   // Arriving to log a weight (a swipe or the Log weight button): focus the entry.
   if (new URLSearchParams(window.location.search).has("weigh")) {

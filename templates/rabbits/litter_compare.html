@@ -37,7 +37,7 @@
                     {% if photos %}
                       {% with photo=photos.0 %}
                         <a href="{% url 'rabbit_photos' photo.rabbit_id %}" class="block">
-                          <img class="aspect-square w-32 rounded object-cover sm:w-44" {% photo_src photo "(min-width: 640px) 176px, 128px" 640 %} alt="{{ photo.rabbit.name }}, {{ photo.date_badge|lower }}" loading="lazy" decoding="async">
+                          <img draggable="false" class="aspect-square w-32 rounded object-cover sm:w-44" {% photo_src photo "(min-width: 640px) 176px, 128px" 640 %} alt="{{ photo.rabbit.name }}, {{ photo.date_badge|lower }}" loading="lazy" decoding="async">
                         </a>
                         <span class="mt-1 block text-neutral-600">{{ photo.badge_parts.1 }}{% if photos|length > 1 %} · {{ photos|length|add:"-1" }} more{% endif %}</span>
                       {% endwith %}
