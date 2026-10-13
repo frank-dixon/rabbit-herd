@@ -1,7 +1,9 @@
-{# One pedigree box. slot: {position, label, sex, cell}. #}
-<div class="flex h-full flex-col justify-center rounded border border-neutral-400 bg-white px-2 py-1.5 text-xs leading-snug" data-pedigree-cell="{{ slot.position }}">
-  <p class="text-neutral-600">{{ slot.label }}</p>
+{# One pedigree box. slot: {position, label, sex, cell}. The thumbnail shrinks with each generation; nothing for Not recorded. #}
+<div class="flex h-full items-center gap-2.5 rounded border border-neutral-400 bg-white px-2 py-1.5 text-xs leading-snug" data-pedigree-cell="{{ slot.position }}">
   {% with c=slot.cell %}
+    {% if c %}{% include "components/rabbit_avatar.html" with rabbit=c.rabbit size=c.avatar only %}{% endif %}
+    <div class="min-w-0 flex-1">
+    <p class="text-neutral-600">{{ slot.label }}</p>
     {% if c %}
       <p class="break-words font-semibold text-neutral-900">{% if c.herd %}<a class="underline print:no-underline" href="{% url 'rabbit_detail' c.pk %}">{{ c.name }}</a>{% else %}{{ c.name }}{% endif %}{% if c.tattoo %} · {{ c.tattoo }}{% endif %}</p>
       {% if c.breed or c.color %}<p class="break-words">{{ c.breed }}{% if c.breed and c.color %} · {% endif %}{{ c.color }}</p>{% endif %}
@@ -9,5 +11,6 @@
     {% else %}
       <p class="text-neutral-500">Not recorded</p>
     {% endif %}
+    </div>
   {% endwith %}
 </div>

@@ -46,3 +46,25 @@ class PedigreeTests(TestCase):
         self.assertContains(self.client.get(reverse("rabbit_detail", args=[self.kit.pk])), 'href="/rabbits/%d/pedigree/"' % self.kit.pk)
         self.client.force_login(user("x@example.com"))
         self.assertEqual(self.client.get(reverse("rabbit_pedigree", args=[self.kit.pk])).status_code, 404)
+
+
+class PedigreeThumbTests(TestCase):
+    def test_each_recorded_ancestor_gets_a_thumbnail_sized_to_its_generation(self):
+        from datetime import date
+        from django.contrib.auth import get_user_model
+        from django.urls import reverse
+        from .models import OutsideRabbit, Rabbit, Relative
+        user = get_user_model().objects.create_user(email="pt@example.com", password="x-strong-Pass-1")
+        self.client.force_login(user)
+        kit = Rabbit.objects.create(owner=user, name="Kit", sex="doe", breed="Rex", birth_date=date(2025, 1, 1))
+        dam = Rabbit.objects.create(owner=user, name="Maple", sex="doe", breed="Rex", birth_date=date(2023, 1, 1))
+        Relative.objects.create(rabbit=kit, relationship="dam", herd_rabbit=dam)
+        Relative.objects.create(rabbit=dam, relationship="dam", outside=OutsideRabbit.objects.create(owner=user, name="Olive"))
+        body = self.client.get(reverse("rabbit_pedigree", args=[kit.pk])).content.decode()
+        tree = body[body.index("data-pedigree-tree"):body.index("data-pedigree-list")]
+        cell = lambda pos: tree[tree.index(f'data-pedigree-cell="{pos}"'):][:900]
+        self.assertIn("md:h-14", cell("d"))
+        self.assertIn(">M</span>", cell("d"))
+        self.assertIn("h-12 w-12 rounded-lg text-base", cell("dd"))
+        self.assertIn(">O</span>", cell("dd"))
+        self.assertNotIn("data-avatar", cell("s")[:cell("s").index("</div>\n</div>")])

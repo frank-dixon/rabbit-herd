@@ -41,6 +41,7 @@ def cell(position, other, row):
     breed = (other.short_breed if herd else "") or (row.breed if row else "") or ("" if herd else other.details)
     return {
         "position": position, "label": position_label(position), "name": other.name, "herd": herd,
+        "rabbit": other, "avatar": {1: "lg", 2: "md"}.get(len(position), "sm"),
         "pk": other.pk if herd else None, "tattoo": other.tattoo if herd else "",
         "breed": breed, "color": color, "line": (other.line if herd else "") or (row.line if row else ""),
         "born": other.birth_date if herd else None,
