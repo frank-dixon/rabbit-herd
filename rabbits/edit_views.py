@@ -9,7 +9,7 @@ post, so it works without JavaScript. Only the owner can open any of it.
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -185,5 +185,126 @@ def rabbit_edit_step(request, pk, step):
         "hint": context["hint"] if step != "review" else "",
         "color_cleared": cleared,
         "wide": True,
+    })
+    return render(request, "rabbits/flow/step.html", context)
+
+
+# One-card edits from the rabbit page: change one answer and save it at once,
+# with every card's checks (flow.update_rabbit). Each detail row links here, so
+# it works without JavaScript; rabbit-inline.mjs posts the simple ones in place.
+QUICK_SLUGS = ("name", "sex", "birth-date", "status", "breed-type", "breed", "color", "genes", "line")
+# Cards whose answers stand alone, and the rabbit fields each one sets.
+SIMPLE = {"name": ("name", "tattoo"), "sex": ("sex",), "birth-date": ("birth_date",), "line": ("line",),
+          "status": ("status", "death_date", "death_cause")}
+
+
+def quick_key(pk):
+    return flow.edit_key(pk) + "_quick"
+
+
+def quick_url(pk, slug, keep=False, check=False, anchor=""):
+    url = reverse("rabbit_quick_edit", args=[pk, slug])
+    params = "&".join(p for p, on in (("keep=1", keep), ("check=1", check)) if on)
+    return url + (f"?{params}" if params else "") + (f"#{anchor}" if anchor else "")
+
+
+def quick_errors(form):
+    return {name: [str(e) for e in errors] for name, errors in form.errors.items()}
+
+
+@login_required
+def rabbit_quick_edit(request, pk, step):
+    if step not in QUICK_SLUGS:
+        raise Http404("No such card.")
+    rabbit = owned(request, pk)
+    key = quick_key(pk)
+    detail = reverse("rabbit_detail", args=[rabbit.pk]) + "#facts"
+    keep = request.method == "POST" or request.GET.get("keep") or request.GET.get("check")
+    if keep and flow.has_draft(request.session, key):
+        draft = flow.load_draft(request.session, key)
+    else:
+        draft = flow.draft_from_rabbit(rabbit)
+    inline = request.headers.get("X-Requested-With") == "fetch"
+
+    if request.method == "POST":
+        action = request.POST.get("action", "next")
+        if action in ("back", "cancel"):
+            flow.clear_draft(request.session, key)
+            return redirect(detail)
+        flow.update_draft(draft, step, request.POST)
+        if action == "save":
+            # The flow's autosave: keep the answer in the draft, save nothing yet.
+            flow.save_draft(request.session, draft, key)
+            if request.headers.get("X-Autosave") == "1":
+                return HttpResponse(status=204)
+            return redirect(quick_url(rabbit.pk, step, keep=True))
+        if step == "genes":
+            flow.fill_genes(draft, request.user)
+            if action == "fill":
+                flow.save_draft(request.session, draft, key)
+                return redirect(quick_url(rabbit.pk, step, keep=True))
+        if flow.apply_row_action(draft, action):
+            flow.save_draft(request.session, draft, key)
+            return redirect(quick_url(rabbit.pk, step, keep=True, anchor=row_anchor(action, draft)))
+        if step == "breed":
+            flow.merge_mix(draft)
+        form = flow.bound_form(step, draft, request.user)
+        if not form.is_valid():
+            if inline:
+                return JsonResponse({"errors": quick_errors(form)}, status=400)
+            flow.save_draft(request.session, draft, key)
+            return redirect(quick_url(rabbit.pk, step, check=True))
+        if step in SIMPLE:
+            # A self-contained answer: save just its fields, so an older rabbit
+            # with other answers still missing can be corrected one row at a time.
+            for field in SIMPLE[step]:
+                setattr(rabbit, field, form.cleaned_data[field])
+            rabbit.save(update_fields=list(SIMPLE[step]))
+            flow.clear_draft(request.session, key)
+            if inline:
+                return JsonResponse({"saved": True})
+            messages.success(request, f"{rabbit.name} was saved.")
+            return redirect(detail)
+        blocked = blocked_card(draft, request.user)
+        if blocked:
+            # The change leaves another card out of date (a new breed type, say):
+            # carry on in the full edit, which explains what needs a look.
+            flow.clear_draft(request.session, key)
+            if inline:
+                return JsonResponse({"errors": {"__all__": ["This change needs other answers updated. Use Edit."]}}, status=400)
+            flow.save_draft(request.session, draft, flow.edit_key(rabbit.pk))
+            messages.error(request, f"Your change means the {LABELS.get(blocked, blocked)} card needs another look before you save.")
+            return redirect(card_url(rabbit.pk, blocked, check=True))
+        try:
+            rabbit = flow.update_rabbit(draft, request.user, rabbit)
+        except flow.DraftNotReady as not_ready:
+            flow.save_draft(request.session, draft, flow.edit_key(rabbit.pk))
+            return redirect(card_url(rabbit.pk, not_ready.slug, check=True))
+        flow.clear_draft(request.session, key)
+        if inline:
+            return JsonResponse({"saved": True})
+        messages.success(request, f"{rabbit.name} was saved.")
+        return redirect(detail)
+
+    for needed in NEEDS.get(step, []):
+        if not flow.bound_form(needed, draft, request.user).is_valid():
+            flow.save_draft(request.session, draft, flow.edit_key(rabbit.pk))
+            return redirect(card_url(rabbit.pk, needed, check=True))
+    cleared = flow.reconcile_color(draft) if step == "color" else ""
+    if step == "genes":
+        flow.fill_genes(draft, request.user)
+    flow.save_draft(request.session, draft, key)
+    form = None
+    if request.GET.get("check"):
+        form = flow.bound_form(step, draft, request.user)
+        form.is_valid()
+    context = step_context(step, draft, request.user, form, exclude=rabbit.pk)
+    context.update({
+        "editing": rabbit, "quick": True,
+        "form_action": reverse("rabbit_quick_edit", args=[rabbit.pk, step]),
+        "overview_url": detail,
+        "has_back": True, "back_label": "Cancel", "next_label": "Save",
+        "hint": context["hint"] if step != "review" else "",
+        "color_cleared": cleared, "wide": True,
     })
     return render(request, "rabbits/flow/step.html", context)

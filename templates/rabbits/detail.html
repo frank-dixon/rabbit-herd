@@ -14,7 +14,7 @@
   </dialog>
 
   <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
-    <section class="flex flex-col overflow-hidden rounded border border-neutral-300 bg-white sm:flex-row lg:flex-col" aria-label="Details">
+    <section class="flex flex-col overflow-hidden rounded border border-neutral-300 bg-white sm:flex-row lg:flex-col" id="facts" aria-label="Details">
       <figure class="sm:w-2/5 sm:shrink-0 lg:w-full">
         {% if main_photo %}
           <img draggable="false" class="aspect-[4/3] w-full object-cover sm:h-full lg:h-auto" {% photo_src main_photo "(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" %} alt="{{ rabbit.name }}, main photo" fetchpriority="high" decoding="async">
@@ -23,19 +23,21 @@
           <span class="flex aspect-[4/3] w-full items-center justify-center bg-neutral-100 text-5xl font-semibold text-neutral-500 sm:h-full lg:h-auto" aria-hidden="true">{{ rabbit.name|first|upper }}</span>
         {% endif %}
       </figure>
-      <dl class="grid flex-1 grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 p-4">
-        <dt class="text-neutral-600">Sex</dt><dd>{{ rabbit.get_sex_display }}</dd>
-        <dt class="text-neutral-600">Breed</dt><dd class="break-words">{{ rabbit.breed_line }}{% if purebred_info %} <span class="ml-1 inline-block rounded-full border border-neutral-400 px-2 py-0.5 align-middle text-xs" data-purebred="{{ purebred_info.source }}">Purebred{% if purebred_info.source == "parents" %} · from both parents{% endif %}</span>{% if purebred_info.source == "parents" and rabbit.breed_line != purebred_info.breed %}<span class="block text-sm text-neutral-600">Both parents are {{ purebred_info.breed }}.</span>{% endif %}{% endif %}</dd>
-        <dt class="text-neutral-600">Color</dt><dd class="break-words">{{ rabbit.color_line }}</dd>
-        <dt class="text-neutral-600">Line</dt><dd class="break-words">{{ rabbit.line|default:"—" }}</dd>
-        <dt class="text-neutral-600">Born</dt><dd>{{ rabbit.birth_date|date:"M j, Y" }} · {{ rabbit.age_text }}</dd>
-        {% if rabbit.tattoo %}<dt class="text-neutral-600">Ear tattoo</dt><dd class="break-words" data-tattoo>{{ rabbit.tattoo }}</dd>{% endif %}
-        <dt class="text-neutral-600">Status</dt><dd>{{ rabbit.get_status_display }}</dd>
-        <dt class="text-neutral-600">Location</dt><dd class="break-words" data-location>{% if rabbit.location %}{{ rabbit.location.name }}{% else %}<span class="text-neutral-600">Not set</span>{% endif %} · <a class="text-sm underline" href="#location">Change</a></dd>
+      {% url 'rabbit_quick_edit' rabbit.pk 'sex' as sex_href %}{% url 'rabbit_quick_edit' rabbit.pk 'breed' as breed_href %}{% url 'rabbit_quick_edit' rabbit.pk 'color' as color_href %}{% url 'rabbit_quick_edit' rabbit.pk 'line' as line_href %}{% url 'rabbit_quick_edit' rabbit.pk 'birth-date' as birth_date_href %}{% url 'rabbit_quick_edit' rabbit.pk 'name' as name_href %}{% url 'rabbit_quick_edit' rabbit.pk 'status' as status_href %}
+      <dl class="flex flex-1 flex-col p-2" data-facts>
+        {% include "rabbits/facts/row_start.html" with label="Sex" slug="sex" href=sex_href only %}{{ rabbit.get_sex_display }}{% include "rabbits/facts/row_end.html" %}
+        {% include "rabbits/facts/row_start.html" with label="Breed" slug="breed" href=breed_href only %}{{ rabbit.breed_line|default:"Not set" }}{% if purebred_info %} <span class="ml-1 inline-block rounded-full bg-accent-soft px-2 py-0.5 align-middle text-xs font-medium text-accent" data-purebred="{{ purebred_info.source }}">Purebred{% if purebred_info.source == "parents" %} · from both parents{% endif %}</span>{% if purebred_info.source == "parents" and rabbit.breed_line != purebred_info.breed %}<span class="block text-sm text-muted">Both parents are {{ purebred_info.breed }}.</span>{% endif %}{% endif %}{% include "rabbits/facts/row_end.html" %}
+        {% include "rabbits/facts/row_start.html" with label="Color" slug="color" href=color_href only %}{% if rabbit.color_line %}{{ rabbit.color_line }}{% else %}<span class="text-muted">Add color</span>{% endif %}{% include "rabbits/facts/row_end.html" %}
+        {% include "rabbits/facts/row_start.html" with label="Line" slug="line" href=line_href inline_name="line" inline_value=rabbit.line only %}{% if rabbit.line %}{{ rabbit.line }}{% else %}<span class="text-muted">Add line</span>{% endif %}{% include "rabbits/facts/row_end.html" %}
+        {% include "rabbits/facts/row_start.html" with label="Born" slug="birth-date" href=birth_date_href inline_name="birth_date" inline_type="date" inline_value=rabbit.birth_date|date:"Y-m-d" only %}<span class="num">{{ rabbit.birth_date|date:"M j, Y" }}</span> <span class="text-sm text-muted">{{ rabbit.age_text }}</span>{% include "rabbits/facts/row_end.html" %}
+        {% include "rabbits/facts/row_start.html" with label="Ear tattoo" slug="name" href=name_href inline_name="tattoo" inline_value=rabbit.tattoo only %}{% if rabbit.tattoo %}<span class="num" data-tattoo>{{ rabbit.tattoo }}</span>{% else %}<span class="text-muted">Add tattoo</span>{% endif %}{% include "rabbits/facts/row_end.html" %}
+        {% include "rabbits/facts/row_start.html" with label="Status" slug="status" href=status_href only %}{{ rabbit.get_status_display }}{% include "rabbits/facts/row_end.html" %}
+        {% include "rabbits/facts/row_start.html" with label="Location" slug="location" href="#location" only %}<span data-location>{% if rabbit.location %}{{ rabbit.location.name }}{% else %}<span class="text-muted">Set location</span>{% endif %}</span>{% include "rabbits/facts/row_end.html" %}
         {% if rabbit.is_deceased and rabbit.death_date or rabbit.is_deceased and rabbit.death_cause %}
-          <dt class="text-neutral-600">Died</dt><dd class="break-words">{% if rabbit.death_date %}{{ rabbit.death_date|date:"M j, Y" }}{% endif %}{% if rabbit.death_date and rabbit.death_cause %} · {% endif %}{{ rabbit.death_cause }}</dd>
+          {% include "rabbits/facts/row_start.html" with label="Died" slug="status" href=status_href only %}{% if rabbit.death_date %}{{ rabbit.death_date|date:"M j, Y" }}{% endif %}{% if rabbit.death_date and rabbit.death_cause %} · {% endif %}{{ rabbit.death_cause }}{% include "rabbits/facts/row_end.html" %}
         {% endif %}
       </dl>
+      <p class="sr-only" role="status" data-facts-status></p>
     </section>
 
     <div class="flex flex-col gap-4">

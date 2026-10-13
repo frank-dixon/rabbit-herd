@@ -39,8 +39,8 @@ class DetailLayoutTests(TestCase):
         self.assertLess(body.index(">Archive<"), body.index(">Edit<"))
         self.assertNotIn(">Back to rabbits<", body)
         for label in ("Sex", "Breed", "Color", "Line", "Born", "Status"):
-            self.assertContains(page, f'<dt class="text-neutral-600">{label}</dt>')
-        self.assertContains(page, "Jan 15, 2025 · ")
+            self.assertRegex(body, rf'<dt class="[^"]*">{label}</dt>')
+        self.assertContains(page, '<span class="num">Jan 15, 2025</span>')
         self.assertContains(page, "No photos yet.")
         self.assertContains(page, "No parents recorded.")
         self.assertContains(page, "No genes recorded.")
