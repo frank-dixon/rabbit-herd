@@ -1,12 +1,14 @@
 {# Bottom tabs on phones. Pages with their own fixed action bar (edit summary, cards) leave these out. #}
 <nav data-print-hide class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden" aria-label="Main" data-app-tabs>
-  <ul class="grid grid-cols-4">
+  <ul class="grid" style="grid-template-columns: repeat({{ app_tabs|length }}, minmax(0, 1fr))" data-tab-list>
     {% for item in app_tabs %}
-      <li>
-        <a href="{{ item.url }}" class="relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[11px] font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent {% if item.active %}text-accent{% else %}text-muted{% endif %}"{% if item.active %} aria-current="page"{% endif %}>
-          {% if item.active %}<span class="absolute inset-x-6 top-0 h-0.5 rounded-b bg-second" aria-hidden="true"></span>{% endif %}
-          {% include "components/icon.html" with d=item.icon only %}
-          <span>{{ item.short }}</span>
+      <li data-tab="{{ item.key }}">
+        <a href="{{ item.url }}" class="group flex min-h-[58px] flex-col items-center justify-center gap-0.5 px-1 pt-1.5 pb-1 text-[11px] font-medium focus:outline-none {% if item.active %}text-accent{% else %}text-muted{% endif %}"{% if item.active %} aria-current="page"{% endif %}>
+          <span class="relative grid h-7 w-14 place-items-center rounded-full transition-colors duration-[var(--dur-1)] group-focus-visible:ring-2 group-focus-visible:ring-accent {% if item.active %}bg-accent-soft{% endif %}">
+            {% include "components/icon.html" with d=item.icon only %}
+            {% if item.badge %}<span class="num absolute -top-1 right-2 min-w-[1.1rem] rounded-full bg-second-ink px-1 text-center text-[10px] leading-[1.1rem] font-medium text-on-accent ring-2 ring-surface">{{ item.badge }}<span class="sr-only"> due</span></span>{% endif %}
+          </span>
+          <span class="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{{ item.short }}</span>
         </a>
       </li>
     {% endfor %}
