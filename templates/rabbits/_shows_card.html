@@ -1,0 +1,59 @@
+{# Show results, newest first, with grand champion legs counted. One form adds a result or, with ?show=<id>, edits that one. #}
+<section class="scroll-mt-4 rounded border border-neutral-300 bg-white p-4" id="shows" aria-labelledby="shows-heading">
+  <div class="flex flex-wrap items-baseline justify-between gap-2">
+    <h2 class="text-lg font-semibold" id="shows-heading">Shows</h2>
+    {% if show_legs %}<p class="text-sm" data-show-legs>{% if show_legs >= legs_for_grand %}<span class="font-semibold">{{ show_legs }} legs</span> · enough for grand champion{% else %}<span class="font-semibold">{{ show_legs }} of {{ legs_for_grand }} legs</span> toward grand champion{% endif %}</p>{% endif %}
+  </div>
+  {% if show_entries %}
+    <ul class="mt-3 divide-y divide-neutral-200 text-sm" data-show-entries>
+      {% for entry in show_entries %}
+        <li class="flex items-start justify-between gap-3 py-2{% if entry == show_editing %} bg-neutral-100{% endif %}">
+          <div class="min-w-0">
+            <p><span class="font-medium">{{ entry.show_name }}</span> · {{ entry.date|date:"M j, Y" }}{% if entry.location %} · {{ entry.location }}{% endif %}</p>
+            {% if entry.show_class or entry.placing or entry.award or entry.leg %}
+              <p>{% if entry.show_class %}{{ entry.show_class }}{% endif %}{% if entry.show_class and entry.placing %}: {% endif %}{% if entry.placing %}<span class="font-medium">{{ entry.placing_text }}</span>{% endif %}{% if entry.award %}{% if entry.show_class or entry.placing %} · {% endif %}{{ entry.award }}{% endif %}{% if entry.leg %} <span class="ml-1 rounded-full border border-neutral-400 px-2 py-0.5 text-xs font-medium" data-leg>Leg</span>{% endif %}</p>
+            {% endif %}
+            {% if entry.judge %}<p class="text-neutral-600">Judge: {{ entry.judge }}</p>{% endif %}
+            {% if entry.notes %}<p class="mt-1 whitespace-pre-line break-words text-neutral-800">{{ entry.notes }}</p>{% endif %}
+          </div>
+          <div class="flex shrink-0 gap-3">
+            <a class="text-neutral-600 underline" href="?show={{ entry.pk }}#shows">Edit<span class="sr-only"> {{ entry.show_name }}</span></a>
+            <form method="post" action="{% url 'rabbit_show_delete' entry.pk %}" data-confirm="Remove this show result?">
+              {% csrf_token %}
+              <button type="submit" class="text-neutral-600 underline">Remove<span class="sr-only"> {{ entry.show_name }}</span></button>
+            </form>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="mt-2 text-sm text-neutral-600">No show results yet.</p>
+  {% endif %}
+  {% if show_editing %}{% url 'rabbit_show_edit' show_editing.pk as show_action %}{% else %}{% url 'rabbit_show_add' rabbit.pk as show_action %}{% endif %}
+  <form class="mt-4 border-t border-neutral-200 pt-4" method="post" action="{{ show_action }}">
+    {% csrf_token %}
+    <h3 class="font-semibold">{% if show_editing %}Edit {{ show_editing.show_name }}{% else %}Add a show result{% endif %}</h3>
+    <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div class="col-span-2">{% include "components/text_input.html" with name="show_name" label="Show" value=show_editing.show_name only %}</div>
+      <div class="col-span-2 sm:col-span-1">{% if show_editing %}{% include "components/text_input.html" with name="show_date" label="Date" type="date" value=show_editing.date|date:"Y-m-d" max=today_iso only %}{% else %}{% include "components/text_input.html" with name="show_date" label="Date" type="date" value=today_iso max=today_iso only %}{% endif %}</div>
+      <div class="col-span-2 sm:col-span-1">{% include "components/text_input.html" with name="location" label="Location (optional)" value=show_editing.location only %}</div>
+      <div class="col-span-2">{% include "components/text_input.html" with name="show_class" label="Class (optional)" value=show_editing.show_class only %}</div>
+      {% include "components/text_input.html" with name="placing" label="Placed" type="number" min="1" max="999" inputmode="numeric" value=show_editing.placing|default_if_none:"" only %}
+      {% include "components/text_input.html" with name="out_of" label="Of (class size)" type="number" min="1" max="999" inputmode="numeric" value=show_editing.out_of|default_if_none:"" only %}
+      <div class="col-span-2">{% include "components/text_input.html" with name="award" label="Award (optional)" value=show_editing.award only %}</div>
+      <div class="col-span-2">{% include "components/text_input.html" with name="judge" label="Judge (optional)" value=show_editing.judge only %}</div>
+    </div>
+    <label class="mt-3 flex items-center gap-2 text-sm font-medium text-neutral-800">
+      <input class="h-5 w-5 rounded border-neutral-400" type="checkbox" name="leg"{% if show_editing.leg %} checked{% endif %}>
+      Earned a grand champion leg
+    </label>
+    <div class="mt-2">
+      <label class="block text-sm font-medium text-neutral-800" for="id_show_notes">Notes</label>
+      <textarea class="mt-1 block w-full rounded-lg border border-neutral-400 bg-white px-3 py-2 text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900" id="id_show_notes" name="notes" rows="3" maxlength="1000">{{ show_editing.notes }}</textarea>
+    </div>
+    <div class="mt-3 flex flex-wrap items-center gap-3">
+      {% include "components/button.html" with label=show_editing|yesno:"Save show result,Add show result" type="submit" variant="secondary" only %}
+      {% if show_editing %}<a class="text-sm underline" href="?#shows">Cancel</a>{% endif %}
+    </div>
+  </form>
+</section>

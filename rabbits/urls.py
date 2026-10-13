@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import culling, pedigree, health, contact_views, location_views, weights, adopt_views, edit_views, flow_views, photo_views, views
+from . import culling, shows, pedigree, health, contact_views, location_views, weights, adopt_views, edit_views, flow_views, photo_views, views
 
 urlpatterns = [
     path("", views.rabbit_list, name="rabbit_list"),
@@ -11,6 +11,9 @@ urlpatterns = [
     path("<int:pk>/culling/", culling.cull_add, name="rabbit_cull_add"),
     path("culling/<int:pk>/", culling.cull_edit, name="rabbit_cull_edit"),
     path("culling/<int:pk>/delete/", culling.cull_delete, name="rabbit_cull_delete"),
+    path("<int:pk>/shows/", shows.show_add, name="rabbit_show_add"),
+    path("shows/<int:pk>/", shows.show_edit, name="rabbit_show_edit"),
+    path("shows/<int:pk>/delete/", shows.show_delete, name="rabbit_show_delete"),
     path("<int:pk>/location/", location_views.rabbit_location, name="rabbit_location"),
     path("<int:pk>/source/", contact_views.rabbit_source, name="rabbit_source"),
     path("archived/", views.rabbit_archived, name="rabbit_archived"),

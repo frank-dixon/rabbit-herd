@@ -811,3 +811,37 @@ class CullNote(models.Model):
 
     def __str__(self):
         return f"{self.get_decision_display()} · {self.date}"
+
+
+class ShowEntry(models.Model):
+    """One rabbit's result at one show. A leg is an ARBA grand champion leg;
+    three make a grand champion."""
+
+    LEGS_FOR_GRAND = 3
+
+    rabbit = models.ForeignKey(Rabbit, related_name="show_entries", on_delete=models.CASCADE)
+    show_name = models.CharField(max_length=120)
+    date = models.DateField()
+    location = models.CharField(max_length=120, blank=True)
+    show_class = models.CharField(max_length=80, blank=True, help_text="Such as Senior Doe or Junior Buck.")
+    placing = models.PositiveSmallIntegerField(null=True, blank=True)
+    out_of = models.PositiveSmallIntegerField(null=True, blank=True, help_text="How many were in the class.")
+    award = models.CharField(max_length=80, blank=True, help_text="Such as Best of Breed or Best Opposite Sex.")
+    judge = models.CharField(max_length=120, blank=True)
+    leg = models.BooleanField(default=False)
+    notes = models.TextField(max_length=1000, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date", "-pk"]
+
+    def __str__(self):
+        return f"{self.show_name} · {self.date}"
+
+    @property
+    def placing_text(self):
+        if not self.placing:
+            return ""
+        n = self.placing
+        suffix = "th" if 10 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+        return f"{n}{suffix}" + (f" of {self.out_of}" if self.out_of else "")
