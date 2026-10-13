@@ -120,3 +120,30 @@ class UndoToastTests(TestCase):
             text = path.read_text()
             if "data-confirm" in text:
                 self.assertIn("Start over", text, path)
+
+
+class FlatThemeTests(TestCase):
+    def setUp(self):
+        from accounts.models import User
+        self.user = User.objects.create_user(email="flat@example.com", password="pw-12345678x")
+        self.client.force_login(self.user)
+
+    def test_d_themes_are_offered_saved_and_styled(self):
+        from pathlib import Path
+        from django.conf import settings as dj
+        page = self.client.get(reverse("account"))
+        for key, name in [("d1", "Charcoal &amp; Ink Blue"), ("d3", "Soft Gray &amp; Dusty Teal"), ("d6", "Fawn &amp; Sage")]:
+            self.assertContains(page, name)
+            self.client.post(reverse("account"), {"ui_theme": key, "ui_density": "roomy"})
+            self.user.refresh_from_db()
+            self.assertEqual(self.user.ui_theme, key)
+            self.assertContains(self.client.get(reverse("account")), f'data-theme="{key}"')
+        css = (Path(dj.BASE_DIR) / "assets" / "themes.css").read_text()
+        for key in ("d1", "d2", "d3", "d4", "d5", "d6"):
+            self.assertEqual(css.count(f'html[data-theme="{key}"]'), 2, key)
+        self.assertIn("--canvas: #DEDEDC;", css)
+        self.assertIn("--surface: #E9E9E7;", css)
+
+    def test_c1_stays_the_default(self):
+        from accounts.models import User
+        self.assertEqual(User._meta.get_field("ui_theme").default, "c1")

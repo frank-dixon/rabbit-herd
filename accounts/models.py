@@ -48,6 +48,12 @@ class User(AbstractUser):
         ("c3", "Forest & Terracotta"),
         ("c4", "Plum & Sage"),
         ("c5", "Red & Slate"),
+        ("d1", "Charcoal & Ink Blue"),
+        ("d2", "Charcoal & Moss"),
+        ("d3", "Soft Gray & Dusty Teal"),
+        ("d4", "Soft Gray & Muted Rust"),
+        ("d5", "Fawn & Umber"),
+        ("d6", "Fawn & Sage"),
     ]
     DENSITIES = [("roomy", "Roomy"), ("compact", "Compact")]
     ui_theme = models.CharField(max_length=8, choices=THEMES, default="c1")
