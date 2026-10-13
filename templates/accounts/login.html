@@ -1,21 +1,22 @@
-{% extends "base.html" %}
-
+{% extends "accounts/_auth_base.html" %}
 {% block title %}Sign in · {{ app_name }}{% endblock %}
-
-{% block content %}
-  <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Sign in</h1>
-  <div class="mt-8">
-    {% url 'login' as login_url %}
-    {% include "components/form.html" with form=form submit_label="Sign in" action=login_url include_next=True %}
+{% block auth_title %}Sign in{% endblock %}
+{% block auth_form %}
+  {% url 'login' as login_url %}{% url 'password_reset' as reset_url %}
+  <form method="post" action="{{ login_url }}" class="mt-6 space-y-5" data-auth-form novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    {% include "accounts/_auth_field.html" with field=form.username type="email" autocomplete="username webauthn" inputmode="email" invalid=form.non_field_errors only %}
+    {% include "accounts/_auth_field.html" with field=form.password type="password" autocomplete="current-password" toggle=True invalid=form.non_field_errors aside_url=reset_url aside_label="Forgot password?" only %}
+    {% include "accounts/_auth_submit.html" with label="Sign in" busy="Signing in…" only %}
+  </form>
+  <div class="mt-3 text-center">
+    <button type="button" id="passkey-login" data-next="{{ next }}" class="inline-flex min-h-11 cursor-pointer items-center rounded-sm text-sm font-medium text-accent underline underline-offset-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Sign in with a passkey</button>
+    <p class="mt-2 text-sm font-medium text-danger" role="alert" data-passkey-error hidden></p>
   </div>
-  <div class="mt-4">
-    {% include "components/button.html" with label="Sign in with a passkey" variant="secondary" id="passkey-login" data_next=next only %}
-  </div>
-  <p class="mt-4 font-medium" data-passkey-error hidden></p>
-  <div class="mt-8 flex flex-col items-start gap-3">
-    {% url 'password_reset' as password_reset_url %}
-    {% url 'signup' as signup_url %}
-    {% include "components/button.html" with label="Forgot your password?" href=password_reset_url variant="secondary" only %}
-    {% include "components/button.html" with label="Create an account" href=signup_url variant="secondary" only %}
-  </div>
+{% endblock %}
+{% block auth_footer %}
+  {% url 'signup' as signup_url %}
+  <a href="{{ signup_url }}" class="mo-press flex h-12 w-full items-center justify-center rounded-lg border border-line bg-surface text-base font-medium text-ink hover:border-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas">Create an account</a>
+  {% include "accounts/_auth_guest.html" %}
 {% endblock %}

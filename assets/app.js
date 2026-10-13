@@ -37,6 +37,7 @@ import { bindScrollSpy } from "./scrollspy.mjs";
 import { bindRabbitInline } from "./rabbit-inline.mjs";
 import { bindSegmented } from "./segmented.mjs";
 import { bindListSwap } from "./list-swap.mjs";
+import { bindAuthForms } from "./auth-form.mjs";
 import { bindAddSheets, bindMoreMenus } from "./add-sheet.mjs";
 import { focusSmooth, reducedMotion } from "./motion.mjs";
 
@@ -359,6 +360,7 @@ function start() {
   bindRabbitInline(document, window);
   bindSegmented(document);
   bindListSwap(document, window);
+  bindAuthForms(document, window);
   bindAddSheets(document);
   bindMoreMenus(document);
   // Arriving to log a weight (a swipe or the Log weight button): focus the entry.

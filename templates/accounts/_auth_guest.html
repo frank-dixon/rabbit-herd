@@ -1,0 +1,4 @@
+<form method="post" action="{% url 'guest' %}">
+  {% csrf_token %}
+  <button type="submit" class="inline-flex min-h-11 cursor-pointer items-center rounded-sm text-sm text-muted underline underline-offset-4 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Continue as a guest</button>
+</form>

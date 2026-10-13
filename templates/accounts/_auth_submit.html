@@ -1,0 +1,4 @@
+{# Full-width solid primary submit. label, busy (the loading label, such as "Signing in…"). #}
+<button type="submit" class="mo-press inline-flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-accent text-base font-semibold text-on-accent hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas aria-disabled:cursor-progress" data-busy-label="{{ busy }}">
+  <span class="auth-spinner" aria-hidden="true" hidden></span><span data-submit-label>{{ label }}</span>
+</button>

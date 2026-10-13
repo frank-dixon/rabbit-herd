@@ -13,6 +13,7 @@
   <div class="flex min-h-screen flex-col{% if app_nav %} md:flex-row{% endif %}" data-shell>
     {% if app_nav %}{% include "components/app_rail.html" %}{% endif %}
     <div class="flex min-h-screen min-w-0 flex-1 flex-col">
+      {% block page_header %}
       <header data-print-hide class="sticky top-0 z-20 border-b border-line bg-canvas/90 backdrop-blur supports-[backdrop-filter]:bg-canvas/80">
         <div class="mx-auto flex h-14 {% if wide %}max-w-6xl{% else %}max-w-lg{% endif %} items-center gap-2 px-4 {% if app_nav %}md:max-w-none md:px-6{% endif %}">
           {% block header %}
@@ -27,16 +28,19 @@
           {% endblock %}
         </div>
       </header>
+      {% endblock %}
       <main class="mx-auto w-full {% if wide %}max-w-6xl{% else %}max-w-lg{% endif %} flex-1 px-4 py-6 md:px-8 md:py-10{% if app_nav %} pb-[calc(88px+env(safe-area-inset-bottom))] md:pb-10{% endif %}">
         {% block main %}
           {% block content %}{% endblock %}
         {% endblock %}
       </main>
+      {% block page_footer %}
       <footer data-print-hide class="border-t border-line{% if app_nav %} hidden md:block{% endif %}">
         <div class="mx-auto {% if wide %}max-w-6xl{% else %}max-w-lg{% endif %} px-4 py-4 text-sm text-muted md:px-8">
           {% block footer %}{% endblock %}
         </div>
       </footer>
+      {% endblock %}
     </div>
     {% if app_nav %}{% block tabs %}{% include "components/app_tabs.html" %}{% endblock %}{% endif %}
   </div>

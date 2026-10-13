@@ -239,12 +239,15 @@ class ButtonPartialTests(SimpleTestCase):
 
 class PageShellTests(TestCase):
     def test_public_and_auth_pages_use_the_shell(self):
+        response = self.client.get("/")
+        self.assertContains(response, "<header")
+        self.assertContains(response, "<footer")
         for url in ("/", reverse("login"), reverse("signup")):
             response = self.client.get(url)
-            self.assertContains(response, "<header")
             self.assertContains(response, "<main")
-            self.assertContains(response, "<footer")
             self.assertContains(response, 'href="/"')
+        # Signed-out forms: one wordmark, no top bar or footer rule.
+        self.assertNotContains(self.client.get(reverse("login")), "<header")
 
     def test_signed_in_page_uses_the_shell(self):
         user = User.objects.create_user(

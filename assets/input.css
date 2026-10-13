@@ -315,3 +315,9 @@ html[data-density="compact"] .list-thumb { width: 2.25rem; height: 2.25rem; }
 .divide-line { --divide-c: var(--color-line); }
 .divide-neutral-200 { --divide-c: var(--color-neutral-200); }
 .divide-neutral-300 { --divide-c: var(--color-neutral-300); }
+
+/* Signed-out submit loading spinner; reduced motion shows it still (the label says what's happening). */
+.auth-spinner { width: 1rem; height: 1rem; border-radius: 9999px; border: 2px solid currentColor; border-right-color: transparent; animation: auth-spin 0.8s linear infinite; }
+.auth-spinner[hidden] { display: none; }
+@keyframes auth-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .auth-spinner { animation: none; border-right-color: currentColor; opacity: 0.6; } }
