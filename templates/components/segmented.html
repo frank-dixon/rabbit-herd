@@ -1,13 +1,20 @@
-{% comment %}A segmented control made of links, styled like Settings > Mode: a bordered track with the chosen
-segment filled in the accent. A thumb slides under the choice (segmented.mjs moves it at once on click; CSS
-eases it, and reduced motion makes it instant). Works without JS: each segment is a plain link.
-label (for screen readers), options: [{href, label, selected, icon}], icon_only.{% endcomment %}
-<div class="seg relative inline-grid shrink-0 auto-cols-fr grid-flow-col rounded-md border border-line bg-canvas p-0.5" role="group" aria-label="{{ label }}" data-segmented>
-  <span class="seg-thumb pointer-events-none absolute inset-y-0.5 left-0.5 rounded-[5px] bg-accent shadow-sm" aria-hidden="true" data-seg-thumb></span>
+{% comment %}The one segmented control, app-wide: a bordered track; one indicator slides behind the chosen option
+(segmented.mjs measures it; motion.css eases it, reduced motion makes it instant). Without JS the chosen option
+shows the static active style. Links by default (each segment a plain link); pass name for radio segments
+inside a form (options: value, label, selected).
+label (for screen readers), options: [{href, label, selected, icon} or {value, label, selected}], icon_only, name.{% endcomment %}
+<div class="seg relative inline-grid shrink-0 auto-cols-fr grid-flow-col rounded-md border border-line bg-canvas p-0.5" {% if name %}role="radiogroup"{% else %}role="group"{% endif %} aria-label="{{ label }}" data-segmented>
+  <span class="seg-thumb shadow-sm" aria-hidden="true" data-seg-thumb></span>
   {% for option in options %}
-    <a href="{{ option.href }}" class="relative z-[1] inline-flex {% if icon_only %}min-h-10 min-w-10 md:min-h-[34px] md:min-w-0{% else %}min-h-[34px]{% endif %} items-center justify-center gap-1.5 rounded-[5px] px-3 text-sm font-medium whitespace-nowrap transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 {% if option.selected %}text-on-accent{% else %}text-muted hover:text-ink{% endif %}"{% if option.selected %} aria-current="true" data-selected{% endif %} data-seg-option{% if icon_only %} title="{{ option.label }}"{% endif %}>
-      {% if option.icon == "grid" %}<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>{% elif option.icon == "list" %}<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>{% endif %}
-      <span class="{% if icon_only %}sr-only lg:not-sr-only{% endif %}">{{ option.label }}</span>
-    </a>
+    {% if name %}
+      <label class="inline-flex min-h-[34px] cursor-pointer items-center justify-center rounded-[5px] px-4 text-sm font-medium whitespace-nowrap has-focus-visible:ring-2 has-focus-visible:ring-accent" data-seg-option>
+        <input class="sr-only" type="radio" name="{{ name }}" value="{{ option.value }}"{% if option.selected %} checked{% endif %}>{{ option.label }}
+      </label>
+    {% else %}
+      <a href="{{ option.href }}" class="inline-flex {% if icon_only %}min-h-10 min-w-10 md:min-h-[34px] md:min-w-0{% else %}min-h-[34px]{% endif %} items-center justify-center gap-1.5 rounded-[5px] px-3 text-sm font-medium whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"{% if option.selected %} aria-current="true" data-selected{% endif %} data-seg-option{% if icon_only %} title="{{ option.label }}"{% endif %}>
+        {% if option.icon == "grid" %}<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>{% elif option.icon == "list" %}<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>{% endif %}
+        <span class="{% if icon_only %}sr-only lg:not-sr-only{% endif %}">{{ option.label }}</span>
+      </a>
+    {% endif %}
   {% endfor %}
 </div>

@@ -6,10 +6,11 @@
   {% include "components/page_header.html" with title="Rabbits" subtitle=subtitle actions_template="rabbits/_list_add.html" compact_actions=True %}
 
   <div class="mt-5 flex items-end justify-between gap-2 border-b border-line">
-    <nav class="-mb-px flex min-w-0 gap-4 overflow-x-auto text-sm" aria-label="Active, former or archived">
-      <a href="?{{ active_qs }}" class="shrink-0 border-b-2 py-2 {% if filters.tab == 'active' %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if filters.tab == 'active' %} aria-current="page"{% endif %}>Active <span class="num text-muted">{{ active_count }}</span></a>
-      <a href="?{{ former_qs }}" class="shrink-0 border-b-2 py-2 {% if filters.tab == 'former' %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if filters.tab == 'former' %} aria-current="page"{% endif %}>Former <span class="num text-muted">{{ former_count }}</span></a>
-      <a href="?{{ archived_qs }}" class="shrink-0 border-b-2 py-2 {% if filters.tab == 'archived' %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if filters.tab == 'archived' %} aria-current="page"{% endif %}>Archived <span class="num text-muted">{{ archived_count }}</span></a>
+    <nav class="seg seg-underline relative -mb-px flex min-w-0 gap-4 overflow-x-auto text-sm" aria-label="Active, former or archived" data-segmented>
+      <span class="seg-thumb" aria-hidden="true" data-seg-thumb></span>
+      <a href="?{{ active_qs }}" class="shrink-0 py-2 {% if filters.tab == 'active' %}font-semibold{% endif %}" data-seg-option data-current="page"{% if filters.tab == 'active' %} data-selected{% endif %}{% if filters.tab == 'active' %} aria-current="page"{% endif %}>Active <span class="num text-muted">{{ active_count }}</span></a>
+      <a href="?{{ former_qs }}" class="shrink-0 py-2 {% if filters.tab == 'former' %}font-semibold{% endif %}" data-seg-option data-current="page"{% if filters.tab == 'former' %} data-selected{% endif %}{% if filters.tab == 'former' %} aria-current="page"{% endif %}>Former <span class="num text-muted">{{ former_count }}</span></a>
+      <a href="?{{ archived_qs }}" class="shrink-0 py-2 {% if filters.tab == 'archived' %}font-semibold{% endif %}" data-seg-option data-current="page"{% if filters.tab == 'archived' %} data-selected{% endif %}{% if filters.tab == 'archived' %} aria-current="page"{% endif %}>Archived <span class="num text-muted">{{ archived_count }}</span></a>
     </nav>
   </div>
 

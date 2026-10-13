@@ -95,7 +95,7 @@ def account(request):
     current_theme = dict(user.THEMES).get(user.ui_theme, "")
     sections = settings_sections(current_theme)
     return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes, "settings_sections": sections, "settings_nav": settings_nav(sections), "wide": True,
-                                                  "tab_slots": slots, "tab_destinations": destinations})
+                                                  "tab_slots": slots, "mode_options": [{"value": k, "label": l, "selected": user.ui_mode == k} for k, l in user.MODES], "tab_destinations": destinations})
 
 
 @login_required

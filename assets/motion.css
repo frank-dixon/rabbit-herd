@@ -83,13 +83,21 @@ html { scrollbar-gutter: stable; }
 /* Settings sub-nav: the section in view (aria-current, set by scrollspy.mjs). */
 [data-settings-nav] a { transition: color var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), background-color var(--dur-1) var(--ease-out); }
 
-/* Segmented controls (components/segmented.html): the thumb sits under the
-   chosen segment and eases across when the choice changes. */
-.seg { --seg-n: 2; --seg-i: 0; }
-.seg-thumb { width: calc((100% - 0.25rem) / var(--seg-n)); transform: translateX(calc(100% * var(--seg-i))); transition: transform var(--dur-3) var(--ease-in-out); }
-.seg:not(:has([data-selected])) .seg-thumb { opacity: 0; }
-.seg:has(> a:nth-of-type(3)) { --seg-n: 3; }
-.seg:has(> a:nth-of-type(2)[data-selected]) { --seg-i: 1; }
-.seg:has(> a:nth-of-type(3)[data-selected]) { --seg-i: 2; }
+/* Segmented controls (components/segmented.html, segmented.mjs): one indicator per group slides
+   (transform + width) to the chosen option; text colors crossfade. Without JS (no data-seg-ready)
+   the chosen option carries the static active style itself. */
+.seg-thumb { position: absolute; left: 0; top: 2px; bottom: 2px; width: var(--seg-w, 0); transform: translateX(var(--seg-x, 0)); border-radius: 5px; background: var(--accent); opacity: 0; pointer-events: none; }
+.seg[data-seg-ready] .seg-thumb { opacity: 1; transition: transform 200ms var(--ease-out), width 200ms var(--ease-out); }
+.seg [data-seg-option] { position: relative; z-index: 1; color: var(--muted); transition: color 200ms var(--ease-out); }
+.seg [data-seg-option]:hover { color: var(--ink); }
+.seg [data-seg-option]:is([data-selected], :has(input:checked)) { color: var(--on-accent); }
+.seg:not(.seg-underline):not([data-seg-ready]) [data-seg-option]:is([data-selected], :has(input:checked)) { background: var(--accent); }
+/* Underline tabs: a 2px bar under the chosen tab. */
+.seg-underline .seg-thumb { top: auto; bottom: -1px; height: 2px; border-radius: 1px; }
+.seg-underline [data-seg-option]:is([data-selected], :has(input:checked)) { color: var(--ink); background: none; }
+.seg-underline:not([data-seg-ready]) [data-seg-option][data-selected] { box-shadow: inset 0 -2px 0 var(--accent); }
+@media (prefers-reduced-motion: reduce) {
+  .seg[data-seg-ready] .seg-thumb, .seg [data-seg-option] { transition: none; }
+}
 /* Settings sections land below the sticky header. */
 .settings-section > [id] { scroll-margin-top: 5.5rem; }

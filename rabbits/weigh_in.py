@@ -72,7 +72,7 @@ def weigh_in(request, pk):
         last_value = None
     return render(request, "rabbits/weigh_in.html", {
         "litter": litter, "kit": kit, "index": index, "count": len(kits), "position": index + 1,
-        "unit": unit, "units": UNITS, "last": last, "last_value": last_value, "error": error,
+        "unit": unit, "units": UNITS, "unit_options": [{"value": k, "label": k, "selected": unit == k} for k in UNITS], "last": last, "last_value": last_value, "error": error,
         "value": request.POST.get("value", "") if error else "",
         "done_today": [k.pk for k in kits if k.weights.filter(date=timezone.localdate()).exists()],
         "kits": kits,
