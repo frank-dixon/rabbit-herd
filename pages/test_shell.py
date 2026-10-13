@@ -22,9 +22,9 @@ class AppShellTests(TestCase):
     def test_only_built_sections_are_listed(self):
         html = self.client.get(reverse("index")).content.decode()
         page = html[html.index('<aside'):html.index('</aside>')] + html[html.index('data-app-tabs'):]
-        for missing in ("Breeding", "Tasks", "Weights", "coming soon", "Coming soon"):
+        for missing in ("Breeding", "Weights", "coming soon", "Coming soon"):
             self.assertNotIn(missing, page)
-        for label in ("Home", "Rabbits", "Add a rabbit", "Archived", "Pairings", "Litters", "Account", "Log out"):
+        for label in ("Home", "Rabbits", "Add a rabbit", "Archived", "Tasks", "Pairings", "Litters", "Account", "Log out"):
             self.assertIn(label, page)
 
     def test_the_current_section_is_marked(self):

@@ -63,6 +63,7 @@ def home_context(user, limit=8):
     """Only real data: herd counts by status and the latest things that
     happened (rabbits added, photos added, deaths, archiving)."""
     from rabbits.models import Rabbit, RabbitPhoto
+    from rabbits.tasks import open_items
 
     today = timezone.localdate()
     rabbits = list(Rabbit.objects.filter(owner=user))
@@ -97,4 +98,5 @@ def home_context(user, limit=8):
             "archived": len(rabbits) - len(live),
         },
         "recent": recent,
+        "next_up": open_items(user, today)[:5],
     }

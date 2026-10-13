@@ -747,3 +747,21 @@ class Litter(models.Model):
 
     def next_task(self):
         return next((task for task in self.tasks() if not task["done"]), None)
+
+
+class Task(models.Model):
+    """A to-do with a due date, added by hand or by a health note's follow-up.
+    Litter dates are not stored here; they come from Litter.tasks()."""
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="tasks", on_delete=models.CASCADE)
+    title = models.CharField(max_length=120)
+    due_on = models.DateField()
+    rabbit = models.ForeignKey(Rabbit, related_name="tasks", null=True, blank=True, on_delete=models.CASCADE)
+    done_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["due_on", "pk"]
+
+    def __str__(self):
+        return self.title

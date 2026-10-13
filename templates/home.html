@@ -31,7 +31,21 @@
         {% endif %}
       </div>
     </section>
-    <section class="lg:order-1" aria-labelledby="recent-heading">
+    <div class="flex flex-col gap-6 lg:order-1">
+    <section aria-labelledby="next-heading">
+      <div class="flex items-baseline justify-between gap-3">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-neutral-600" id="next-heading">Next up</h2>
+        <a class="text-sm text-neutral-600 underline" href="{% url 'task_list' %}">All tasks</a>
+      </div>
+      <div class="mt-2 rounded border border-neutral-300 bg-white px-4">
+        {% if next_up %}
+          <ul data-next-up>{% for item in next_up %}{% include "rabbits/_task_item.html" with item=item next="/" csrf_token=csrf_token only %}{% endfor %}</ul>
+        {% else %}
+          <p class="py-3 text-neutral-600">Nothing due. Add a task or start a litter and its dates show up here.</p>
+        {% endif %}
+      </div>
+    </section>
+    <section aria-labelledby="recent-heading">
       <h2 class="text-sm font-semibold uppercase tracking-wide text-neutral-600" id="recent-heading">Recent</h2>
       <div class="mt-2 rounded border border-neutral-300 bg-white px-4 py-1">
         {% if recent %}
@@ -51,5 +65,6 @@
         {% endif %}
       </div>
     </section>
+    </div>
   </div>
 {% endblock %}
