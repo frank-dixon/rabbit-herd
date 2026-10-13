@@ -1,5 +1,5 @@
 {% if editing and draft.legacy_breed and not draft.breed_type %}
-  <p class="rounded-lg border border-amber-400 bg-amber-50 p-3 text-neutral-800" id="legacy-breed">This rabbit's breed was saved as "{{ draft.legacy_breed }}", which doesn't match the breed list. Choose purebred or crossbred, then pick the breed.</p>
+  <p class="flex gap-2 rounded-lg border border-line bg-side/60 p-3 text-sm text-ink" id="legacy-breed"><svg class="mt-0.5 h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8h.01"/></svg><span>{{ draft.name|default:"This rabbit" }}'s breed is "{{ draft.legacy_breed }}". Pick purebred or crossbred, then choose breeds.</span></p>
 {% endif %}
 {% include "components/choice_tiles.html" with name="breed_type" legend="Breed type" tiles=tiles errors=error quiet=True only %}
 {# The type this card was drawn with. Without JavaScript, Done after picking the other type comes back here with that section shown. #}
