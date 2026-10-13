@@ -1,73 +1,135 @@
 {% extends "base.html" %}
+{% load photos %}
 
 {% block title %}Today · {{ app_name }}{% endblock %}
 
 {% block content %}<span data-refreshable hidden></span>
   {% url 'rabbit_list' as list_url %}
-  <div class="mx-auto max-w-2xl">
-    <h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">Today</h1>
-    <p class="num mt-0.5 text-sm text-muted">{{ today|date:"D j M" }}</p>
+  <div class="mx-auto max-w-5xl" data-today>
+    <div class="flex items-end gap-3">
+      <div class="min-w-0">
+        <h1 class="text-[1.75rem] leading-tight font-semibold tracking-tight md:text-[2.25rem]">Today</h1>
+        <p class="mt-0.5 text-sm text-muted">{{ today|date:"D, M j" }}</p>
+      </div>
+      {% if herd.active or herd.deceased or herd.archived %}
+        <div class="ml-auto flex gap-2">
+          <a class="mo-press hidden rounded-md border border-line bg-surface px-3.5 py-2 text-sm font-medium hover:border-field sm:inline-flex" href="{% url 'weights_hub' %}">Log a weight</a>
+          <a class="mo-press inline-flex items-center gap-1 rounded-md bg-accent px-3.5 py-2 text-sm font-semibold text-on-accent" href="{% url 'rabbit_create' %}"><span aria-hidden="true">+</span> Add</a>
+        </div>
+      {% endif %}
+    </div>
 
     {% if not herd.active and not herd.deceased and not herd.archived %}
 {% url "rabbit_create" as a_url %}{% include "components/empty.html" with title="No rabbits yet." text="Add your first rabbit. Its tasks, litters and weights gather here each day." href=a_url action="Add a rabbit" kind="herd" icon=ui_icons.today only %}
     {% else %}
-      <section class="mt-6" aria-labelledby="due-heading">
-        <h2 class="eyebrow flex items-center gap-2" id="due-heading">Due now {% if due_now %}<span class="num text-second-ink" data-due-count>{{ due_now|length }}</span>{% endif %}</h2>
-        {% if due_now %}
-          <ul class="mo-stagger mt-2 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface" data-next-up data-due-now>
-            {% for item in due_now %}{% include "rabbits/_today_item.html" with item=item next="/" csrf_token=csrf_token only %}{% endfor %}
-          </ul>
-        {% endif %}
-        <p class="mt-2 rounded-lg border border-dashed border-line px-4 py-3 text-sm text-muted" data-due-empty{% if due_now %} hidden{% endif %}>All caught up. <a class="font-medium text-accent hover:underline" href="{% url 'task_list' %}">Add a task</a></p>
-      </section>
-
-      {% if this_week %}
-        <section class="mt-7" aria-labelledby="week-heading">
-          <h2 class="eyebrow" id="week-heading">This week</h2>
-          <ul class="mt-2 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface" data-this-week>
-            {% for item in this_week %}
-              <li><a class="flex items-center gap-4 px-4 py-3 hover:bg-side" href="{{ item.url|default:'/tasks/' }}">
-                <span class="num w-9 shrink-0 text-xs uppercase text-accent">{{ item.date|date:"D" }}</span>
-                <span class="min-w-0 flex-1"><span class="block truncate font-semibold">{{ item.title }}</span><span class="block truncate text-sm text-muted">{{ item.date|date:"M j" }}{% if item.kind == "task" and item.rabbit %} · {{ item.rabbit.name }}{% endif %}</span></span>
-              </a></li>
-            {% endfor %}
-          </ul>
-        </section>
-      {% endif %}
-
-      <section class="mt-7" aria-labelledby="litters-heading">
-        <div class="flex items-baseline justify-between"><h2 class="eyebrow" id="litters-heading">Active litters</h2><a class="text-sm font-medium text-accent hover:underline" href="{% url 'litter_list' %}">All litters</a></div>
-        {% if litters %}
-          <ul class="mt-2 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface" data-active-litters>
-            {% for row in litters %}
-              <li><a class="flex items-center gap-3 px-4 py-3 hover:bg-side" href="{% url 'litter_detail' row.litter.pk %}">
-                <span class="h-11 w-11 shrink-0 rounded-md bg-gradient-to-br from-photo-1 to-photo-2" aria-hidden="true"></span>
-                <span class="min-w-0 flex-1">
-                  <span class="block truncate font-semibold">{{ row.litter.pairing.doe.name }} × {{ row.litter.pairing.buck.name }}</span>
-                  <span class="block truncate text-sm text-muted">{{ row.kits }} kit{{ row.kits|pluralize }}{% if row.behind %} · <span class="text-danger">{{ row.behind }} behind</span>{% endif %}</span>
-                </span>
-                <span class="num shrink-0 text-right text-sm leading-tight"><span class="block">day {{ row.age }}</span>{% if row.average_text %}<span class="block text-muted">{{ row.average_text }} avg</span>{% endif %}</span>
-              </a></li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p class="mt-2 rounded-lg border border-dashed border-line px-4 py-3 text-sm text-muted">No litters on the ground. <a class="font-medium text-accent hover:underline" href="{% url 'pairing_list' %}">Plan a pairing</a></p>
-        {% endif %}
-      </section>
-
-      {% if watch %}
-        <section class="mt-7" aria-labelledby="watch-heading">
-          <h2 class="eyebrow" id="watch-heading">Watch list</h2>
-          <ul class="mt-2 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface" data-watch-list>
-            {% for w in watch %}
-              <li class="flex items-center gap-3 px-4 py-3">
-                <span class="h-2 w-2 shrink-0 rounded-full {% if w.urgent %}bg-second{% else %}bg-field{% endif %}" aria-hidden="true"></span>
-                <a class="min-w-0 flex-1" href="{{ w.url }}"><span class="block truncate font-semibold">{{ w.title }}</span><span class="block truncate text-sm {% if w.urgent %}text-second-ink{% else %}text-muted{% endif %}">{{ w.detail }}</span></a>
+      <section class="mt-6" aria-labelledby="herd-heading" data-herd-cards>
+        <div class="flex items-baseline"><h2 class="text-[17px] font-semibold" id="herd-heading">Herd</h2><a class="ml-auto text-sm text-muted underline hover:text-ink" href="{{ list_url }}">All rabbits{% if herd_more %} ({{ tiles.herd }}){% endif %}</a></div>
+        {% if herd_cards %}
+          <ul class="mo-stagger -mr-4 mt-3 flex snap-x gap-2.5 overflow-x-auto pr-4 pb-1 sm:mr-0 sm:grid sm:grid-cols-3 sm:gap-3 sm:overflow-visible sm:pr-0 lg:grid-cols-4">
+            {% for card in herd_cards %}
+              <li class="w-[150px] shrink-0 snap-start sm:w-auto">
+                <a class="block h-full overflow-hidden rounded-[10px] border border-line bg-surface transition-[transform,box-shadow] duration-[var(--dur-1)] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgb(46_42_36/0.08)] motion-reduce:hover:translate-y-0" href="{% url 'rabbit_detail' card.rabbit.pk %}">
+                  {% with main=card.rabbit.main_photo %}{% if main %}<img class="block aspect-[16/10] w-full object-cover" {% photo_src main "(min-width: 1024px) 240px, (min-width: 640px) 30vw, 150px" 640 %} alt="" loading="lazy" decoding="async">{% else %}<span class="grid aspect-[16/10] w-full place-items-center bg-gradient-to-br from-photo-1 to-photo-2 text-2xl font-semibold text-accent" aria-hidden="true">{{ card.rabbit.name|first|upper }}</span>{% endif %}{% endwith %}
+                  <span class="block px-3 pt-2 pb-2.5">
+                    <span class="flex flex-wrap items-center gap-x-2 gap-y-1"><span class="font-semibold">{{ card.rabbit.name }}</span><span class="rounded-full border border-line px-2 text-[11px] text-muted sm:ml-auto" data-status-chip>{{ card.chip }}</span></span>
+                    <span class="block text-[13px] text-muted">{{ card.rabbit.get_sex_display }} · {{ card.rabbit.breed_line }}</span>
+                    {% if card.next %}<span class="mt-1.5 block text-xs font-medium {% if card.overdue %}text-danger{% else %}text-accent{% endif %}" data-next>{{ card.next }}</span>{% endif %}
+                  </span>
+                </a>
               </li>
             {% endfor %}
           </ul>
-        </section>
+        {% else %}
+          <div class="mt-3 flex items-center gap-4 rounded-[10px] border border-dashed border-line px-4 py-3"><p class="flex-1 text-sm">No rabbits in the herd right now.</p><a class="rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-on-accent" href="{% url 'rabbit_create' %}">Add a rabbit</a></div>
+        {% endif %}
+      </section>
+
+      {% if former_chips %}
+        <ul class="mt-3 flex flex-wrap gap-2.5" aria-label="Former herd" data-former>
+          {% for chip in former_chips %}
+            <li><a class="flex items-center gap-2 rounded-full border border-line bg-surface py-1 pr-3 pl-1 text-[13px] hover:border-field" href="{% url 'rabbit_detail' chip.rabbit.pk %}">{% with main=chip.rabbit.main_photo %}{% if main %}<img class="h-[26px] w-[26px] rounded-full object-cover" {% photo_src main "26px" 160 %} alt="" loading="lazy">{% else %}<span class="grid h-[26px] w-[26px] place-items-center rounded-full bg-accent-soft text-xs font-semibold text-accent" aria-hidden="true">{{ chip.rabbit.name|first|upper }}</span>{% endif %}{% endwith %}{{ chip.rabbit.name }} <span class="text-muted">{{ chip.note }}</span></a></li>
+          {% endfor %}
+        </ul>
       {% endif %}
+
+      <dl class="mt-6 grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3" data-tiles>
+        <div class="rounded-[10px] border border-line bg-surface px-4 py-3.5"><dt class="text-[13px] text-muted">In the herd</dt><dd class="text-[22px] font-semibold md:text-[26px]">{{ tiles.herd }}</dd><dd class="text-[13px] text-muted">{{ tiles.bucks }} buck{{ tiles.bucks|pluralize }} · {{ tiles.does }} doe{{ tiles.does|pluralize }}</dd></div>
+        <div class="rounded-[10px] border border-line bg-surface px-4 py-3.5"><dt class="text-[13px] text-muted">Bred</dt><dd class="text-[22px] font-semibold md:text-[26px]">{{ tiles.bred }}</dd><dd class="text-[13px] text-muted">{{ tiles.bred_names|default:"None right now" }}</dd></div>
+        <div class="rounded-[10px] border border-line bg-surface px-4 py-3.5"><dt class="text-[13px] text-muted">Next kindling</dt>{% if tiles.next_kindling %}<dd class="text-[22px] font-semibold md:text-[26px]">{{ tiles.next_kindling.due|date:"D, M j" }}</dd><dd class="text-[13px] text-muted">{{ tiles.next_kindling.litter.pairing.doe.name }} · {% if tiles.next_days > 0 %}{{ tiles.next_days }} day{{ tiles.next_days|pluralize }}{% elif tiles.next_days == 0 %}today{% else %}overdue{% endif %}</dd>{% else %}<dd class="text-[22px] font-semibold md:text-[26px]">None</dd><dd class="text-[13px] text-muted">No does bred</dd>{% endif %}</div>
+        <div class="rounded-[10px] border border-line bg-surface px-4 py-3.5"><dt class="text-[13px] text-muted">Sold</dt><dd class="text-[22px] font-semibold md:text-[26px]">{{ tiles.sold }}</dd><dd class="text-[13px] text-muted">{{ tiles.culled }} culled · {{ tiles.deceased }} deceased</dd></div>
+      </dl>
+
+      <div class="mt-6 grid gap-5 md:grid-cols-[1.25fr_1fr]">
+        <div class="space-y-5">
+          <section class="rounded-[10px] border border-line bg-surface px-4 pt-1 pb-3" aria-labelledby="pairings-heading" data-pairings-progress>
+            <h2 class="flex items-center gap-2 pt-3 pb-2 text-[15px] font-semibold" id="pairings-heading">Pairings and litters {% if progress_count %}<span class="num rounded-full bg-accent-soft px-2 text-xs text-accent">{{ progress_count }}</span>{% endif %}<a class="ml-auto text-[13px] font-normal text-muted underline hover:text-ink" href="{% url 'pairing_list' %}">All pairings</a></h2>
+            {% for p in pairings_progress %}
+              <a class="block border-t border-line py-3 hover:bg-side/40" href="{% url 'litter_detail' p.litter.pk %}">
+                <span class="flex items-center gap-2.5"><span class="flex">{% include "components/rabbit_avatar.html" with rabbit=p.doe size="sm" only %}<span class="-ml-3 rounded-md ring-2 ring-surface">{% include "components/rabbit_avatar.html" with rabbit=p.buck size="sm" only %}</span></span><span class="font-semibold">{{ p.doe.name }} × {{ p.buck.name }}</span></span>
+                <ol class="mt-2.5 grid grid-cols-3">
+                  {% for step in p.steps %}<li class="relative pt-3 text-xs text-muted before:absolute before:inset-x-0 before:top-0 before:h-[3px] {% if step.state == 'done' %}before:bg-accent{% elif step.state == 'next' %}before:bg-[linear-gradient(90deg,var(--accent)_40%,var(--line)_40%)]{% else %}before:bg-line{% endif %}"><span class="block text-[13px] font-medium text-ink">{{ step.label }}</span>{{ step.date|date:"D, M j" }}</li>{% endfor %}
+                </ol>
+              </a>
+            {% endfor %}
+            {% if litters %}
+              <ul class="divide-y divide-line border-t border-line" data-active-litters>
+                {% for row in litters %}
+                  <li><a class="flex items-center gap-3 py-3 hover:bg-side/40" href="{% url 'litter_detail' row.litter.pk %}">
+                    <span class="min-w-0 flex-1"><span class="block font-semibold">{{ row.litter.pairing.doe.name }} × {{ row.litter.pairing.buck.name }}</span><span class="block text-sm text-muted">{{ row.kits }} kit{{ row.kits|pluralize }}{% if row.behind %} · <span class="text-danger">{{ row.behind }} behind</span>{% endif %}</span></span>
+                    <span class="num shrink-0 text-right text-sm leading-tight"><span class="block">day {{ row.age }}</span>{% if row.average_text %}<span class="block text-muted">{{ row.average_text }} avg</span>{% endif %}</span>
+                  </a></li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="flex items-center gap-3.5 border-t border-line pt-3.5 pb-1.5"><p class="flex-1 text-sm">No litters on the ground.{% if tiles.next_kindling %}<span class="block text-[13px] text-muted">{{ tiles.next_kindling.litter.pairing.doe.name }}’s litter is the next one, due {{ tiles.next_kindling.due|date:"D, M j" }}.</span>{% endif %}</p><a class="mo-press shrink-0 rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-on-accent" href="{% url 'pairing_list' %}?new=1#new-pairing">Plan a pairing</a></div>
+            {% endif %}
+          </section>
+
+          <section class="rounded-[10px] border border-line bg-surface px-4 pt-1 pb-3" aria-labelledby="due-heading">
+            <h2 class="flex items-center gap-2 pt-3 pb-2 text-[15px] font-semibold" id="due-heading">Due in the next 7 days {% if week_now or week_later %}<span class="num rounded-full bg-accent-soft px-2 text-xs text-accent" data-due-count>{{ week_count }}</span>{% endif %}<a class="ml-auto text-[13px] font-normal text-muted underline hover:text-ink" href="{% url 'task_list' %}">All tasks</a></h2>
+            {% if week_now %}
+              <p class="pt-2 pb-1 text-xs font-semibold text-muted">Overdue and today</p>
+              <ul class="-mx-4 divide-y divide-line border-y border-line" data-next-up data-due-now>{% for item in week_now %}{% include "rabbits/_today_item.html" with item=item next="/" csrf_token=csrf_token only %}{% endfor %}</ul>
+            {% endif %}
+            {% if week_later %}
+              <p class="pt-3 pb-1 text-xs font-semibold text-muted">This week</p>
+              <ul class="-mx-4 divide-y divide-line border-y border-line" data-this-week>{% for item in week_later %}{% include "rabbits/_today_item.html" with item=item next="/" csrf_token=csrf_token only %}{% endfor %}</ul>
+            {% endif %}
+            <p class="border-t border-line pt-3 text-sm text-muted" data-due-empty{% if week_now or week_later %} hidden{% endif %}>All caught up.</p>
+            <div class="pt-2.5"><a class="mo-press inline-flex rounded-md border border-line px-2.5 py-1.5 text-[13px] font-medium hover:border-field" href="{% url 'task_list' %}?new=1#new-task">+ Add a task</a></div>
+          </section>
+        </div>
+
+        <div class="space-y-5">
+          <section class="rounded-[10px] border border-line bg-surface px-4 pt-1 pb-3" aria-labelledby="weights-heading" data-recent-weights>
+            <h2 class="flex items-center gap-2 pt-3 pb-2 text-[15px] font-semibold" id="weights-heading">Recent weights<a class="ml-auto text-[13px] font-normal text-muted underline hover:text-ink" href="{% url 'weights_hub' %}">Weights</a></h2>
+            {% for row in recent_weights %}
+              <a class="flex items-center gap-3 border-t border-line py-2.5 hover:bg-side/40" href="{% url 'rabbit_detail' row.rabbit.pk %}#weights">
+                {% include "components/rabbit_avatar.html" with rabbit=row.rabbit size="sm" only %}
+                <span class="min-w-0 flex-1">{{ row.rabbit.name }}<span class="block text-[13px] text-muted">{{ row.weight.date|date:"D, M j" }}</span></span>
+                <span class="num shrink-0 text-right text-[13px] text-muted"><span class="block font-semibold text-ink">{{ row.weight.text }}</span>{{ row.delta }}</span>
+              </a>
+            {% empty %}
+              <p class="border-t border-line pt-3 text-sm text-muted">No weights yet.</p>
+            {% endfor %}
+            <div class="pt-2.5"><a class="mo-press inline-flex rounded-md border border-line px-2.5 py-1.5 text-[13px] font-medium hover:border-field" href="{% url 'weights_hub' %}">+ Log a weight</a></div>
+          </section>
+
+          {% if watch %}
+            <section class="rounded-[10px] border border-line bg-surface px-4 pt-1 pb-3" aria-labelledby="watch-heading">
+              <h2 class="pt-3 pb-2 text-[15px] font-semibold" id="watch-heading">Watch list</h2>
+              <ul class="divide-y divide-line border-t border-line" data-watch-list>
+                {% for w in watch %}
+                  <li class="flex items-center gap-3 py-2.5">
+                    <span class="h-2 w-2 shrink-0 rounded-full {% if w.urgent %}bg-second{% else %}bg-field{% endif %}" aria-hidden="true"></span>
+                    <a class="min-w-0 flex-1" href="{{ w.url }}"><span class="block font-semibold">{{ w.title }}</span><span class="block text-sm {% if w.urgent %}text-second-ink{% else %}text-muted{% endif %}">{{ w.detail }}</span></a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </section>
+          {% endif %}
+        </div>
+      </div>
 
       <p class="num mt-8 text-center text-xs text-muted" data-herd-summary>
         <a class="hover:text-ink" href="{{ list_url }}">{{ herd.active }} rabbit{{ herd.active|pluralize }}</a> · {{ herd.does }} doe{{ herd.does|pluralize }} · {{ herd.bucks }} buck{{ herd.bucks|pluralize }}{% for status in herd.statuses %} · {{ status.count }} {{ status.label|lower }}{% endfor %}

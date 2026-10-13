@@ -173,7 +173,7 @@ def home_context(user, limit=8):
     ]
     items = open_items(user, today)
     week_end = today + datetime.timedelta(days=7)
-    return {
+    context = {
         "wide": True,
         "today": today,
         "due_now": [i for i in items if i["date"] <= today],
@@ -190,7 +190,98 @@ def home_context(user, limit=8):
         },
         "recent": recent,
         "next_up": items[:5],
+        **herd_first(user, today, active, rabbits, items),
     }
+    context["progress_count"] = len(context["pairings_progress"]) + len(context["litters"])
+    context["week_count"] = len(context["week_now"]) + len(context["week_later"])
+    return context
+
+
+HERD_CARDS = 8
+FORMER_CHIPS = 6
+
+
+def herd_first(user, today, active, rabbits, items):
+    """Today, herd first: rabbit cards with their next date, the former herd,
+    stat tiles, pairings in progress and recent weights. Real data only."""
+    from rabbits.models import Litter, Rabbit, Weight
+
+    week_end = today + datetime.timedelta(days=7)
+    photos = {r.pk: r for r in Rabbit.objects.filter(owner=user).prefetch_related("photos")}
+    next_for = {}
+    for item in items:
+        rabbit = item.get("rabbit")
+        if rabbit and rabbit.pk not in next_for:
+            next_for[rabbit.pk] = item
+    latest_weight = {}
+    for w in Weight.objects.filter(rabbit__owner=user).order_by("rabbit_id", "-date", "-pk"):
+        latest_weight.setdefault(w.rabbit_id, w)
+    living = [r for r in active if r.status in (Rabbit.Status.BREEDING, Rabbit.Status.GROWING)]
+    living.sort(key=lambda r: (next_for[r.pk]["date"] if r.pk in next_for else datetime.date.max, r.name))
+    open_litters = list(Litter.objects.filter(owner=user, kindled_on__isnull=True).select_related("pairing__doe", "pairing__buck")
+                        .prefetch_related("pairing__doe__photos", "pairing__buck__photos").order_by("bred_on"))
+    bred_status = {lit.pairing.doe_id for lit in open_litters}
+    cards = []
+    for r in living[:HERD_CARDS]:
+        item = next_for.get(r.pk)
+        weight = latest_weight.get(r.pk)
+        if item:
+            when = "today" if item["date"] == today else f"{item['date']:%a, %b} {item['date'].day}"
+            label = item["title"].split(":")[0] if item["kind"] == "litter" else item["title"]
+            nxt = f"{label} {when}" if item["date"] >= today else f"{label}, overdue"
+        elif weight:
+            nxt = f"Weighed {weight.date:%a, %b} {weight.date.day}"
+        else:
+            nxt = ""
+        chip = "Bred" if r.pk in bred_status else r.get_status_display()
+        cards.append({"rabbit": photos.get(r.pk, r), "chip": chip, "next": nxt, "overdue": bool(item and item["date"] < today)})
+    former = [r for r in rabbits if r.archived_at is None and r.status in (Rabbit.Status.SOLD, Rabbit.Status.CULLED, Rabbit.Status.DECEASED)]
+    former.sort(key=lambda r: (r.death_date or datetime.date.min, r.pk), reverse=True)
+    former_chips = [{"rabbit": photos.get(r.pk, r), "note": r.get_status_display() + (f" {r.death_date:%a, %b} {r.death_date.day}" if r.death_date else "")}
+                    for r in former[:FORMER_CHIPS]]
+    pairings = []
+    for lit in open_litters:
+        s = lit.schedule
+        palpate, due = lit.day(s.palpate_day), lit.due_on
+        stage = 2 if lit.palpated else (1 if today >= lit.bred_on else 0)
+        pairings.append({"litter": lit, "doe": photos.get(lit.pairing.doe_id, lit.pairing.doe), "buck": photos.get(lit.pairing.buck_id, lit.pairing.buck),
+                         "steps": [{"label": "Bred", "date": lit.bred_on, "state": "done"},
+                                   {"label": "Palpated" if lit.palpated else "Palpate", "date": palpate, "state": "done" if lit.palpated else ("next" if stage == 1 else "")},
+                                   {"label": "Due", "date": due, "state": "next" if lit.palpated else ""}],
+                         "due": due})
+    next_kindling = min(pairings, key=lambda p: p["due"]) if pairings else None
+    weights = []
+    for w in Weight.objects.filter(rabbit__owner=user, rabbit__archived_at__isnull=True).select_related("rabbit").order_by("-date", "-pk")[:4]:
+        before = Weight.objects.filter(rabbit=w.rabbit, date__lt=w.date).order_by("-date", "-pk").first()
+        delta = w.grams - before.grams if before else None
+        weights.append({"weight": w, "rabbit": photos.get(w.rabbit_id, w.rabbit), "delta": delta_text(delta, w.unit) if delta else ""})
+    week = [i for i in items if i["date"] <= week_end]
+    return {
+        "herd_cards": cards,
+        "herd_more": max(len(living) - HERD_CARDS, 0),
+        "former_chips": former_chips,
+        "tiles": {
+            "herd": len(living), "bucks": sum(1 for r in living if r.sex == Rabbit.Sex.BUCK),
+            "does": sum(1 for r in living if r.sex == Rabbit.Sex.DOE),
+            "bred": len(pairings), "bred_names": ", ".join(p["litter"].pairing.doe.name for p in pairings[:3]),
+            "next_kindling": next_kindling, "next_days": (next_kindling["due"] - today).days if next_kindling else None,
+            "sold": sum(1 for r in former if r.status == Rabbit.Status.SOLD),
+            "culled": sum(1 for r in former if r.status == Rabbit.Status.CULLED),
+            "deceased": sum(1 for r in former if r.status == Rabbit.Status.DECEASED),
+        },
+        "pairings_progress": pairings,
+        "week_now": [i for i in week if i["date"] <= today],
+        "week_later": [i for i in week if i["date"] > today],
+        "recent_weights": weights,
+    }
+
+
+def delta_text(grams, unit):
+    """A signed weight change, like +4 oz or −120 g."""
+    from rabbits.models import weight_text
+
+    sign = "+" if grams > 0 else "−"
+    return sign + weight_text(abs(grams), unit)
 
 
 UNDER_AVERAGE = 0.85  # a kit under 85% of its litter's average is watched
