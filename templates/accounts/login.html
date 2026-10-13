@@ -15,7 +15,7 @@
   <div class="mt-8 flex flex-col items-start gap-3">
     {% url 'password_reset' as password_reset_url %}
     {% url 'signup' as signup_url %}
-    {% include "components/button.html" with label="Forgot password" href=password_reset_url variant="secondary" only %}
+    {% include "components/button.html" with label="Forgot your password?" href=password_reset_url variant="secondary" only %}
     {% include "components/button.html" with label="Create an account" href=signup_url variant="secondary" only %}
   </div>
 {% endblock %}

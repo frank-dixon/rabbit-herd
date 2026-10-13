@@ -32,13 +32,13 @@ def shell_assets():
 def manifest(request):
     data = {
         "name": settings.APP_NAME,
-        "short_name": settings.APP_NAME,
+        "short_name": "Bramble",  # fits under a home-screen icon
         "start_url": "/",
         "scope": "/",
         "display": "standalone",
         "background_color": "#F5F6F5",
         "theme_color": "#F5F6F5",
-        "description": "Herd records, litters, weights and pedigrees for rabbit breeders.",
+        "description": "Private records for your rabbitry: herd, pedigrees, litters, weights and breeder contacts.",
         "icons": [
             {"src": static("icons/icon.svg"), "sizes": "any", "type": "image/svg+xml"},
             {"src": static("icons/icon-192.png"), "sizes": "192x192", "type": "image/png"},

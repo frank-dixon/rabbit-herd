@@ -25,7 +25,7 @@
         {% for item in items %}{% include "rabbits/_task_item.html" with item=item next="/tasks/" csrf_token=csrf_token only %}{% endfor %}
       </ul>
     {% else %}
-{% include "components/empty.html" with title="Nothing to do." text="Litter dates and follow-ups show up here on their own. Add your own with New task." kind="tasks" icon=ui_icons.tasks compact=True only %}
+{% include "components/empty.html" with title="No tasks due." text="Litter dates and follow-ups show up here on their own. Add your own with New task." kind="tasks" icon=ui_icons.tasks compact=True only %}
     {% endif %}
   </section>
   {% if done %}

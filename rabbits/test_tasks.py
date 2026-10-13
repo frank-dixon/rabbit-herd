@@ -45,7 +45,7 @@ class TaskTests(TestCase):
         home = self.client.get("/")
         nxt = home.content.decode().split("data-next-up", 1)[1]
         self.assertIn("csrfmiddlewaretoken", nxt.split("</ul>", 1)[0])
-        self.assertContains(home, "Due now")
+        self.assertContains(home, "Due in the next 7 days")
         self.assertContains(home, "Palpate: Hazel")
         self.client.post(reverse("litter_task", args=[litter.pk]), {"task": "palpate", "done": "1", "next": "/tasks/"})
         self.assertNotContains(self.client.get(reverse("task_list")), "Palpate: Hazel")

@@ -162,4 +162,4 @@ class LandingPageTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Bramble Burrow")
-        self.assertContains(response, "private record keeper")
+        self.assertContains(response, "Private records for your rabbitry")

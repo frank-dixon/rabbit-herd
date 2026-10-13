@@ -20,7 +20,7 @@
     </div>
 
     {% if not herd.active and not herd.deceased and not herd.archived %}
-{% url "rabbit_create" as a_url %}{% include "components/empty.html" with title="No rabbits yet." text="Add your first rabbit. Its tasks, litters and weights gather here each day." href=a_url action="Add a rabbit" kind="herd" icon=ui_icons.today only %}
+{% url "rabbit_create" as a_url %}{% include "components/empty.html" with title="No rabbits yet." text="Add your first rabbit. Its tasks, litters and weights show up here each day." href=a_url action="Add a rabbit" kind="herd" icon=ui_icons.today only %}
     {% else %}
       <section class="mt-6" aria-labelledby="herd-heading" data-herd-cards>
         <div class="flex items-baseline"><h2 class="text-[17px] font-semibold" id="herd-heading">Herd</h2><a class="ml-auto text-sm text-muted underline hover:text-ink" href="{{ list_url }}">All rabbits{% if herd_more %} ({{ tiles.herd }}){% endif %}</a></div>
