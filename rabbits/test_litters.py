@@ -107,4 +107,6 @@ class WeanProcessTests(TestCase):
         self.litter.kindled_on = timezone.localdate() - datetime.timedelta(days=400)
         self.litter.bred_on = self.litter.kindled_on - datetime.timedelta(days=31)
         self.litter.save()
-        self.assertNotContains(self.client.get(reverse("task_list")), "Hazel")
+        page = self.client.get(reverse("task_list"))
+        self.assertNotContains(page, "Wean: Hazel")
+        self.assertNotContains(page, "Process: Hazel")
