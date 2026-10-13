@@ -6,7 +6,7 @@
       {% for row in cross_rows %}
         <li class="grid grid-cols-[1fr_6rem] items-end gap-2 sm:grid-cols-[1fr_7rem_auto]">
           {% include "components/select.html" with name=row.breed_name label=row.breed_label value=row.breed groups=breed_groups errors=row.breed_error placeholder="Choose a breed…" only %}
-          {% include "components/text_input.html" with name=row.percent_name label="Share (%)" value=row.percent errors=row.percent_error type="number" inputmode="decimal" step="0.01" min="0.01" max="99.99" data_role="share" only %}
+          {% include "components/text_input.html" with name=row.percent_name label="Share" suffix="%" value=row.percent errors=row.percent_error type="number" inputmode="decimal" step="0.01" min="0.01" max="99.99" data_role="share" only %}
           {% if can_remove_cross %}
             <div class="col-span-2 sm:col-span-1 sm:mb-1">
               {% include "components/button.html" with label="Remove" sr_suffix=row.sr_name type="submit" name="action" value=row.remove_action variant="secondary" full=True only %}
