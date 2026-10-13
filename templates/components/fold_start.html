@@ -1,0 +1,8 @@
+{% comment %} Opens a collapsible card section (close it with components/fold_end.html). Collapsed when empty, open when it has data. Pass fold_id, heading_id, title, summary (a count or short line for the header), open. Works without JS: it is a <details>. {% endcomment %}
+<details class="fold scroll-mt-4 ruled pt-4" id="{{ fold_id }}"{% if open %} open{% endif %} data-fold>
+  <summary class="fold-summary flex min-h-10 cursor-pointer list-none items-center gap-3 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-accent [&::-webkit-details-marker]:hidden">
+    <h2 class="text-base font-semibold" id="{{ heading_id }}">{{ title }}</h2>
+    {% if summary %}<span class="min-w-0 truncate text-sm text-muted" data-fold-summary>{{ summary }}</span>{% endif %}
+    <svg class="fold-chevron ml-auto h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+  </summary>
+  <div class="fold-body">

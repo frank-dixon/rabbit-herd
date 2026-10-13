@@ -46,3 +46,21 @@ class DetailLayoutTests(TestCase):
         self.assertContains(page, "No genes recorded.")
         self.assertContains(page, 'href="' + reverse("rabbit_genes", args=[rabbit.pk]) + '"')
         self.assertNotContains(page, "Buck. Creme d&#x27;Argent. Creme. Born")
+
+
+class FoldTests(TestCase):
+    def test_empty_sections_start_closed_and_ones_with_data_open(self):
+        from .models import HealthNote
+        user = get_user_model().objects.create_user("f@example.com", "pw-12345678")
+        self.client.force_login(user)
+        rabbit = Rabbit.objects.create(owner=user, name="Fern", sex="doe", breed="Rex", birth_date=date(2025, 1, 1))
+        HealthNote.objects.create(rabbit=rabbit, date=date(2026, 1, 2), kind="checkup")
+        body = self.client.get(reverse("rabbit_detail", args=[rabbit.pk])).content.decode()
+        tag = lambda key: body[body.index(f'id="{key}"') - 60:body.index(f'id="{key}"') + 40]
+        self.assertIn("open", tag("health"))
+        self.assertNotIn("open", tag("shows"))
+        self.assertIn("1 note", body)
+        self.assertIn("None yet", body)
+        # Add forms sit behind an Add button even when the section is open.
+        self.assertIn('data-add-fold>', body)
+        self.assertIn(">Add a health note</summary>", body.replace("</svg>", ">").replace(">>", ">"))

@@ -246,3 +246,17 @@ html[data-mode="dark"] .swatch-light { display: none; }
   html:not([data-mode="light"]) .swatch-dark { display: grid; }
   html:not([data-mode="light"]) .swatch-light { display: none; }
 }
+
+/* Collapsible sections: smooth height where the browser can animate to auto, instant otherwise. */
+.fold, .add-fold { interpolate-size: allow-keywords; }
+.fold::details-content, .add-fold::details-content {
+  block-size: 0; overflow: clip;
+  transition: block-size var(--dur-3, 240ms) var(--ease-out, ease-out), content-visibility var(--dur-3, 240ms) allow-discrete;
+}
+.fold[open]::details-content, .add-fold[open]::details-content { block-size: auto; }
+.fold-chevron { transition: transform var(--dur-2, 180ms) var(--ease-out, ease-out); }
+.fold[open] > summary .fold-chevron { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) {
+  .fold::details-content, .add-fold::details-content, .fold-chevron { transition: none; }
+}
+@media print { .fold::details-content { block-size: auto; content-visibility: visible; } .fold-chevron, .add-fold { display: none; } }

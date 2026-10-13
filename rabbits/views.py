@@ -192,10 +192,7 @@ def rabbit_detail(request, pk):
     )
     photos = list(rabbit.photos.all())
     main = next((photo for photo in photos if photo.is_main), None)
-    return render(
-        request,
-        "rabbits/detail.html",
-        {
+    context = {
             "rabbit": rabbit,
             "wide": True,
             "main_photo": main,
@@ -226,8 +223,9 @@ def rabbit_detail(request, pk):
                 for relative in rabbit.relatives.select_related("herd_rabbit", "outside")
                 if relative.genes.exists()
             ],
-        },
-    )
+    }
+    context["folds"] = fold_context(context, rabbit)
+    return render(request, "rabbits/detail.html", context)
 
 
 @login_required
@@ -334,6 +332,32 @@ def rabbit_delete(request, pk):
     if error:
         response.status_code = 400
     return response
+
+
+def legs_text(legs, grand):
+    if legs >= grand:
+        return f" · {legs} legs, enough for grand champion"
+    return f" · {legs} of {grand} legs"
+
+
+def fold_context(ctx, rabbit):
+    """Collapsed when empty, open when there is something to see: a header summary and open flag per section."""
+    def plural(n, word):
+        return f"{n} {word}{'' if n == 1 else 's'}"
+    shows, legs = ctx.get("show_entries") or [], ctx.get("show_legs") or 0
+    notes, culls = ctx.get("health_notes") or [], ctx.get("cull_notes") or []
+    editing = ctx.get("show_editing") or ctx.get("cull_editing")
+    latest_cull = culls[0] if culls else None
+    return {
+        "shows": {"open": bool(shows) or bool(ctx.get("show_editing")),
+                  "summary": (plural(len(shows), "result") + (legs_text(legs, ctx.get("legs_for_grand") or 3) if legs else "")) if shows else "None yet"},
+        "health": {"open": bool(notes), "summary": plural(len(notes), "note") if notes else "None yet", "add_open": False},
+        "culling": {"open": bool(culls) or bool(ctx.get("cull_editing")),
+                    "summary": f"{latest_cull.get_decision_display()} · {latest_cull.date:%b} {latest_cull.date.day}" if latest_cull else "Not evaluated"},
+        "location": {"open": bool(rabbit.location_id), "summary": str(rabbit.location) if rabbit.location_id else "Not set"},
+        "source": {"open": bool(rabbit.source_id), "summary": rabbit.source.name if rabbit.source_id else "Not recorded"},
+        "_editing": bool(editing),
+    }
 
 
 def doe_schedule_context(request, rabbit):

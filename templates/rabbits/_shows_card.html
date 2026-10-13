@@ -1,9 +1,5 @@
 {# Show results, newest first, with grand champion legs counted. One form adds a result or, with ?show=<id>, edits that one. #}
-<section class="scroll-mt-4 ruled pt-4" id="shows" aria-labelledby="shows-heading">
-  <div class="flex flex-wrap items-baseline justify-between gap-2">
-    <h2 class="text-base font-semibold" id="shows-heading">Shows</h2>
-    {% if show_legs %}<p class="text-sm" data-show-legs>{% if show_legs >= legs_for_grand %}<span class="font-semibold">{{ show_legs }} legs</span> · enough for grand champion{% else %}<span class="font-semibold">{{ show_legs }} of {{ legs_for_grand }} legs</span> toward grand champion{% endif %}</p>{% endif %}
-  </div>
+{% include "components/fold_start.html" with fold_id="shows" heading_id="shows-heading" title="Shows" summary=folds.shows.summary open=folds.shows.open only %}
   {% if show_entries %}
     <ul class="mt-3 divide-y divide-neutral-200 text-sm" data-show-entries>
       {% for entry in show_entries %}
@@ -29,6 +25,7 @@
   {% else %}
     <p class="mt-2 text-sm text-neutral-600">No show results yet.</p>
   {% endif %}
+  {% include "components/add_fold_start.html" with label="Add a show result" open=show_editing only %}
   {% if show_editing %}{% url 'rabbit_show_edit' show_editing.pk as show_action %}{% else %}{% url 'rabbit_show_add' rabbit.pk as show_action %}{% endif %}
   <form class="mt-4 border-t border-neutral-200 pt-4" method="post" action="{{ show_action }}">
     {% csrf_token %}
@@ -56,4 +53,5 @@
       {% if show_editing %}<a class="text-sm underline" href="?#shows">Cancel</a>{% endif %}
     </div>
   </form>
-</section>
+
+  {% include "components/add_fold_end.html" %}{% include "components/fold_end.html" %}

@@ -1,6 +1,5 @@
 {# Keep or cull: dated evaluations, newest first. One form adds a new one or, with ?cull=<id>, edits that one. #}
-<section class="scroll-mt-4 ruled pt-4" id="culling" aria-labelledby="culling-heading">
-  <h2 class="text-base font-semibold" id="culling-heading">Keep or cull</h2>
+{% include "components/fold_start.html" with fold_id="culling" heading_id="culling-heading" title="Keep or cull" summary=folds.culling.summary open=folds.culling.open only %}
   {% if cull_notes %}
     <ul class="mt-3 divide-y divide-neutral-200 text-sm" data-cull-notes>
       {% for note in cull_notes %}
@@ -22,6 +21,7 @@
   {% else %}
     <p class="mt-2 text-sm text-neutral-600">No evaluations yet.</p>
   {% endif %}
+  {% include "components/add_fold_start.html" with label="Add an evaluation" open=cull_editing only %}
   {% if cull_editing %}{% url 'rabbit_cull_edit' cull_editing.pk as cull_action %}{% else %}{% url 'rabbit_cull_add' rabbit.pk as cull_action %}{% endif %}
   <form class="mt-4 border-t border-neutral-200 pt-4" method="post" action="{{ cull_action }}">
     {% csrf_token %}
@@ -44,4 +44,5 @@
       {% if cull_editing %}<a class="text-sm underline" href="?#culling">Cancel</a>{% endif %}
     </div>
   </form>
-</section>
+
+  {% include "components/add_fold_end.html" %}{% include "components/fold_end.html" %}

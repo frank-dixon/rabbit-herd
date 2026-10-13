@@ -1,9 +1,5 @@
 {% load money %}{# Costs linked to one rabbit or litter. Pass cost_items, cost_total, add_url, heading_id. #}
-<section class="ruled pt-4" aria-labelledby="{{ heading_id }}" data-linked-costs>
-  <div class="flex items-baseline justify-between gap-2">
-    <h2 class="text-base font-semibold" id="{{ heading_id }}">Costs</h2>
-    {% if cost_items %}<p class="font-semibold">{{ cost_total|money }}</p>{% endif %}
-  </div>
+{% if cost_items %}{% with total=cost_total|money %}{% include "components/fold_start.html" with fold_id=heading_id|add:"-fold" heading_id=heading_id title="Costs" summary=total open=True only %}{% endwith %}{% else %}{% include "components/fold_start.html" with fold_id=heading_id|add:"-fold" heading_id=heading_id title="Costs" summary="None linked" open=False only %}{% endif %}
   {% if cost_items %}
     <ul class="mt-2 divide-y divide-neutral-200 text-sm">
       {% for item in cost_items|slice:":5" %}<li class="flex justify-between gap-3 py-1.5"><span class="min-w-0 break-words">{{ item.description }} · <span class="text-neutral-600">{{ item.date|date:"M j, Y" }}</span></span><span class="shrink-0">{{ item.amount|money }}</span></li>{% endfor %}
@@ -13,4 +9,4 @@
     <p class="mt-2 text-sm text-neutral-600">No costs linked yet.</p>
   {% endif %}
   <p class="mt-2 text-sm"><a class="underline" href="{{ add_url }}">Add a cost</a> · <a class="underline" href="{% url 'cost_list' %}">All costs</a></p>
-</section>
+{% include "components/fold_end.html" %}

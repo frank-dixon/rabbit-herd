@@ -1,0 +1,4 @@
+{% comment %} An add form tucked behind an Add button inside a section. Pass label and open (true while editing or after an error). Close with components/add_fold_end.html. {% endcomment %}
+<details class="add-fold mt-4" data-add-fold{% if open %} open{% endif %}>
+  <summary class="mo-press inline-flex min-h-10 cursor-pointer list-none items-center gap-1.5 rounded-md border border-line bg-surface px-3.5 text-sm font-medium text-ink hover:border-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent [&::-webkit-details-marker]:hidden"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>{{ label }}</summary>
+  <div class="fold-body">

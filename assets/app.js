@@ -334,6 +334,14 @@ function start() {
   bindRepeatFields(document);
   bindPressReset(document, window);
   bindAccountMenu(document);
+  // A link to a folded section (such as #health from the Health list) opens it.
+  const openFold = () => {
+    const target = location.hash && document.getElementById(location.hash.slice(1));
+    const fold = target && target.closest("details[data-fold]");
+    if (fold && !fold.open) fold.open = true;
+  };
+  openFold();
+  window.addEventListener("hashchange", openFold);
   bindPrefetch(document, window);
   // Arriving to log a weight (a swipe or the Log weight button): focus the entry.
   if (new URLSearchParams(window.location.search).has("weigh")) {
