@@ -1,4 +1,4 @@
-from django.db import IntegrityError, transaction
+from django.db import DataError, IntegrityError, transaction
 from django.test import TestCase
 
 from accounts.models import User
@@ -55,11 +55,13 @@ class LineageModelTests(TestCase):
         with self.assertRaises(IntegrityError), transaction.atomic():
             BreedShare.objects.create(rabbit=self.rabbit, breed=breed, percent=50)
 
-    def test_a_share_cannot_be_100_percent(self):
+    def test_a_share_cannot_be_0_or_100_percent(self):
+        rex = Breed.objects.get(name="Rex")
         with self.assertRaises(IntegrityError), transaction.atomic():
-            BreedShare.objects.create(
-                rabbit=self.rabbit, breed=Breed.objects.get(name="Rex"), percent=100
-            )
+            BreedShare.objects.create(rabbit=self.rabbit, breed=rex, percent=0)
+        # The column holds at most 99.99, so 100 never reaches the check.
+        with self.assertRaises(DataError), transaction.atomic():
+            BreedShare.objects.create(rabbit=self.rabbit, breed=rex, percent=100)
 
     def test_relative_points_at_exactly_one_rabbit(self):
         dam = make_rabbit(self.owner, name="Maple")
