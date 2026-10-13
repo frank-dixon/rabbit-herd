@@ -274,6 +274,7 @@ def smart_gene_context(rabbit):
     card = gene_card.rows(rabbit, genes)
     return {
         "gene_card": card, "gene_card_summary": gene_card.summary(card), "gene_levels": gene_card.LEVELS,
+        "gene_card_any": any(row["level"] != "unknown" for row in card) or bool(genes),
         "other_genes": [gene for gene in genes if gene.locus not in {row["locus"] for row in card}],
     }
 

@@ -44,3 +44,11 @@ class SmartGeneCardTests(FlowTestMixin, TestCase):
         self.assertContains(page, 'data-gene-level="possible"')
         self.assertContains(page, "What the levels mean")
         self.assertContains(page, "From breed and colour")
+
+    def test_nothing_recorded_or_implied_keeps_the_short_empty_state(self):
+        self.bun.breed, self.bun.color = "", ""
+        self.bun.save()
+        self.client.force_login(self.user)
+        page = self.client.get(reverse("rabbit_detail", args=[self.bun.pk]))
+        self.assertContains(page, "No genes recorded.")
+        self.assertNotContains(page, "data-gene-card")
