@@ -43,54 +43,8 @@
     <section class="scroll-mt-4 ruled pt-4 lg:col-span-2" id="color-odds" aria-labelledby="odds-heading" data-color-odds>
       <h2 class="text-base font-semibold" id="odds-heading">Color odds</h2>
       <p class="mt-1 text-sm text-neutral-600">From the genes recorded on {{ pairing.doe.name }} and {{ pairing.buck.name }}. Each kit gets one allele per gene from each parent.</p>
-      {% if odds.colors %}
-        <ul class="mt-3 flex flex-col divide-y divide-neutral-200 rounded border border-neutral-300" data-colors>
-          {% for color in odds.color_rows %}
-            <li class="flex items-baseline justify-between gap-4 p-3 text-sm"><span class="min-w-0 break-words">{{ color.name }}<span class="block text-xs text-neutral-600" data-eyes>{{ color.eyes }} eyes</span></span><span class="shrink-0 font-semibold tabular-nums">{{ color.chance }}</span></li>
-          {% endfor %}
-        </ul>
-        <p class="mt-2 text-xs text-neutral-600">Common color names; some breed standards use others. A ruby-eyed or blue-eyed white hides any broken pattern.</p>
-        {% if odds.assumed %}<p class="mt-1 text-xs text-neutral-600" data-assumed>Assumes no {% if "V" in odds.assumed %}Vienna (V){% if "Si" in odds.assumed %} or {% endif %}{% endif %}{% if "Si" in odds.assumed %}silvering (Si){% endif %}: not recorded with both alleles on both rabbits.</p>{% endif %}
-      {% else %}
-        <p class="mt-3 text-sm" data-colors-missing>Record {{ odds.colors_missing|join:", " }} with both alleles on both rabbits to see likely kit colors. Gene odds that can be worked out are below.</p>
-      {% endif %}
-      {% if odds.pattern %}
-        <p class="mt-3 text-sm" data-pattern><span class="font-semibold">Pattern:</span> {% for name, chance in odds.pattern %}{{ name }} {{ chance }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
-      {% endif %}
-      {% if odds.probable %}
-        <p class="mt-2 text-sm text-neutral-600">Uses probable, not confirmed, genes for {{ odds.probable|join:" and " }}.</p>
-      {% endif %}
-      {% if differing %}
-        <p class="mt-3 text-sm" data-differing><span class="font-semibold">Genes that differ:</span> {% for locus, doe_g, buck_g in differing %}<span class="inline-block whitespace-nowrap font-mono">{{ locus }} {{ doe_g }} × {{ buck_g }}</span>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
-      {% endif %}
-      {% if hidden_notes %}
-        <h3 class="mt-4 text-sm font-semibold">Hidden genes</h3>
-        <ul class="mt-1 space-y-1 text-sm" data-hidden-notes>
-          {% for note in hidden_notes %}<li>{{ note }}</li>{% endfor %}
-        </ul>
-      {% endif %}
-      {% for name, locus, text in odds.unreadable %}
-        <p class="mt-2 text-sm text-red-800">{{ name }}'s {{ locus }} gene, “{{ text }}”, can't be read as a genotype. Write it like A/at, using _ for an unknown allele.</p>
-      {% endfor %}
-      <div class="mt-4 overflow-x-auto">
-        <table class="w-full min-w-[20rem] text-left text-sm" data-loci>
-          <thead class="text-neutral-600"><tr><th class="py-1 pr-3 font-medium">Gene</th><th class="py-1 pr-3 font-medium">{{ pairing.doe.name }} × {{ pairing.buck.name }}</th><th class="py-1 font-medium">Kits</th></tr></thead>
-          <tbody class="divide-y divide-neutral-200">
-            {% for row in odds.loci %}
-              <tr class="align-top">
-                <th scope="row" class="py-2 pr-3 font-medium">{{ row.label }}</th>
-                {% if row.missing %}
-                  <td class="py-2 text-neutral-600" colspan="2">Not recorded for {{ row.missing|join:" or " }}</td>
-                {% else %}
-                  <td class="whitespace-nowrap py-2 pr-3 font-mono">{{ row.parents.0 }} × {{ row.parents.1 }}</td>
-                  <td class="py-2 font-mono">{% for genotype, chance in row.kits %}<span class="mr-3 inline-block whitespace-nowrap">{{ genotype }} {{ chance }}</span>{% endfor %}</td>
-                {% endif %}
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      <p class="mt-3 text-sm text-neutral-600">Add or change genes on each rabbit's page: <a class="underline" href="{% url 'rabbit_detail' pairing.doe.pk %}">{{ pairing.doe.name }}</a>, <a class="underline" href="{% url 'rabbit_detail' pairing.buck.pk %}">{{ pairing.buck.name }}</a>.</p>
+      {% include "rabbits/_color_odds.html" with odds=odds differing=differing hidden_notes=hidden_notes doe_label=pairing.doe.name buck_label=pairing.buck.name only %}
+      <p class="mt-3 text-sm text-neutral-600"><a class="underline" href="{% url 'genetics_cross' %}?doe=r{{ pairing.doe.pk }}&amp;buck=r{{ pairing.buck.pk }}">Try this cross with other genes</a>. Add or change genes on each rabbit's page: <a class="underline" href="{% url 'rabbit_detail' pairing.doe.pk %}">{{ pairing.doe.name }}</a>, <a class="underline" href="{% url 'rabbit_detail' pairing.buck.pk %}">{{ pairing.buck.name }}</a>.</p>
     </section>
   </div>
 {% endblock %}

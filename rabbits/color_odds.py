@@ -231,21 +231,32 @@ def predict(doe, buck):
     naming what to record; assumed: V and/or Si when the names take them as
     V_ and Si_ because they are not recorded on both parents; pattern: broken odds when En is recorded on both; probable: names of rabbits whose genes used are
     only probable; unreadable: (rabbit name, locus, text) that did not parse."""
-    parents = [("doe", doe, _genes(doe)), ("buck", buck, _genes(buck))]
+    return predict_sides(side(doe), side(buck))
+
+
+def side(rabbit):
+    """A rabbit as predict_sides reads it: (name, {locus: (text, probable)})."""
+    return rabbit.name, {locus: (gene.genotype, gene.certainty == Gene.Certainty.PROBABLE)
+                         for locus, gene in _genes(rabbit).items()}
+
+
+def predict_sides(doe_side, buck_side):
+    """predict() for any two parents, each (name, {locus: (genotype text,
+    probable)}), so the cross page can use breeds and typed genotypes."""
     loci, crosses, unreadable, probable = [], {}, [], set()
     for locus in SERIES:
         pairs, missing = [], []
-        for _, rabbit, genes in parents:
-            gene = genes.get(locus)
-            pair = parse(locus, gene.genotype) if gene else None
-            if gene and pair is None:
-                unreadable.append((rabbit.name, locus, gene.genotype))
+        for name, genes in (doe_side, buck_side):
+            text, is_probable = genes.get(locus, (None, False))
+            pair = parse(locus, text) if text else None
+            if text and pair is None:
+                unreadable.append((name, locus, text))
             if pair is None:
-                missing.append(rabbit.name)
+                missing.append(name)
             else:
                 pairs.append(pair)
-                if gene.certainty == Gene.Certainty.PROBABLE:
-                    probable.add(rabbit.name)
+                if is_probable:
+                    probable.add(name)
         row = {"locus": locus, "label": Gene.Locus(locus).label, "missing": missing}
         if not missing:
             odds = cross(locus, *pairs)

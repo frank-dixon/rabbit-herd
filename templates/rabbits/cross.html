@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}What-if cross · {{ app_name }}{% endblock %}
+
+{% block content %}
+  {% include "components/page_header.html" with title="What-if cross" subtitle="Kit color odds for any two rabbits or breeds. Nothing here is saved; the page address holds the cross." only %}
+  <form class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2" method="get" action="{% url 'genetics_cross' %}" data-cross-form>
+    {% include "components/select.html" with name="doe" label="First parent" groups=groups value=values.doe errors=errors.doe placeholder="Choose a rabbit or breed…" only %}
+    {% include "components/select.html" with name="buck" label="Second parent" groups=groups value=values.buck errors=errors.buck placeholder="Choose a rabbit or breed…" only %}
+    <div class="sm:col-span-2">{% include "components/button.html" with label="Show odds" type="submit" variant="primary" only %}</div>
+  </form>
+  {% if result %}
+    <section class="mt-6 ruled pt-4 mo-enter" aria-labelledby="cross-heading" data-cross-result>
+      <h2 class="text-base font-semibold" id="cross-heading">{{ result.doe_label }} × {{ result.buck_label }}</h2>
+      {% if result.breeds %}<p class="mt-1 text-sm text-neutral-600" data-breed-note>{{ result.breeds|join:" and " }}: typical genes for the variety, with each unfixed allele read as a second copy of the one shown (B_ as B/B). Your lines may differ.</p>{% endif %}
+      {% include "rabbits/_color_odds.html" with odds=result.odds differing=result.differing hidden_notes=result.hidden_notes doe_label=result.doe_label buck_label=result.buck_label only %}
+    </section>
+  {% elif not values.doe and not values.buck %}
+    <p class="mt-6 text-neutral-600">Choose two parents to see their kits' likely colors.</p>
+  {% elif not errors %}
+    <p class="mt-6 text-neutral-600">Choose the other parent too.</p>
+  {% endif %}
+{% endblock %}
