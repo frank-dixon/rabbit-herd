@@ -1,0 +1,40 @@
+{% load photos %}{# Weights Chart view (Option B): list on the left, the selected rabbit's growth chart on the right. #}
+<form id="weigh-group" method="get" action="{% url 'weigh_group' %}" data-weigh-group><input type="hidden" name="all" value="{% for row in rows %}{{ row.rabbit.pk }}{% if not forloop.last %},{% endif %}{% endfor %}"></form>
+<div class="wt-split" data-view="chart">
+  <div class="wt-card wt-list">
+    <div class="wt-list-head"><span>Rabbit</span>{% for h in headers %}{% if h.on %}<a href="{{ h.href }}" class="is-on">{{ h.label }} <span aria-hidden="true">{{ h.desc|yesno:"↓,↑" }}</span></a>{% endif %}{% endfor %}</div>
+    <ul>{% for row in rows %}{% with r=row.rabbit %}
+      <li><a class="wt-li{% if sel and sel.rabbit.pk == r.pk %} is-sel{% endif %}" href="{{ row.sel_href }}"{% if sel and sel.rabbit.pk == r.pk %} aria-current="true"{% endif %}>
+        {% include "rabbits/_rabbit_thumb.html" with rabbit=r main=r.main_photo size_class="wt-thumb shrink-0 text-sm" only %}
+        <span class="min-w-0 flex-1"><span class="block truncate font-semibold">{{ r.name }}</span><span class="block truncate text-xs text-muted">{{ r.get_sex_display }} · {{ r.age_text }} · {% if row.date %}{{ row.date|date:"M j" }}{% else %}never{% endif %}</span></span>
+        <span class="shrink-0 text-right"><span class="num block text-sm font-semibold">{{ row.text|default:"—" }}</span><span class="num block text-xs {% if row.change > 0 %}wt-up{% elif row.change < 0 %}wt-down{% else %}text-muted{% endif %}">{{ row.change_text }}</span></span>
+      </a></li>
+    {% endwith %}{% endfor %}</ul>
+  </div>
+  {% if sel %}{% with r=sel.rabbit %}
+  <section class="wt-card wt-detail" aria-labelledby="wt-sel-name">
+    <div class="wt-detail-head">
+      {% include "rabbits/_rabbit_thumb.html" with rabbit=r main=r.main_photo size_class="wt-thumb-xl shrink-0 text-xl" only %}
+      <div class="min-w-0 flex-1"><h2 id="wt-sel-name" class="text-xl font-semibold">{{ r.name }}</h2><p class="text-sm text-muted">{{ r.short_breed }}{% if r.color %} · {{ r.color }}{% endif %} · {{ r.get_sex_display }} · {{ r.age_text }}{% if r.litter %} · {{ r.litter.pairing.doe.name }} × {{ r.litter.pairing.buck.name }}{% endif %}</p></div>
+      <span class="wt-detail-act"><a class="wt-btn" href="{% url 'rabbit_detail' r.pk %}">Open card</a>{% with row=sel %}{% include "hub/_weight_log.html" %}{% endwith %}</span>
+    </div>
+    <dl class="wt-band">
+      <div><dt>Current</dt><dd class="num">{{ sel.text|default:"—" }}</dd></div>
+      <div><dt>30-day change</dt><dd class="num {% if sel.change > 0 %}wt-up{% elif sel.change < 0 %}wt-down{% endif %}">{{ sel.change_text|default:"—" }}</dd></div>
+      <div><dt>{% if sel.ref_week != None %}Vs curve, wk {{ sel.ref_week }}{% else %}Vs curve{% endif %}</dt><dd class="num">{{ sel.vs_pct|default:"—" }}</dd></div>
+      <div><dt>Daily gain, 30 days</dt><dd class="num">{{ sel.daily|default:"—" }}</dd></div>
+    </dl>
+    {% if sel.chart %}{% with c=sel.chart %}
+      <div class="wt-chart-head"><p class="font-semibold">{% if c.by_age %}Growth vs breed curve{% else %}Weight, last 12 months{% endif %}</p>{% if c.by_age %}<p class="oc-legend"><span><b style="background:var(--accent)"></b>{{ r.name }}</span><span><b style="background:var(--wt-curve)"></b>{{ c.label }} ±10%</span></p>{% endif %}</div>
+      <svg class="wt-chart" viewBox="0 0 {{ c.w }} {{ c.h }}" role="img" aria-label="Weight chart for {{ r.name }}">
+        {% for t in c.ticks_y %}<line x1="{{ c.left }}" x2="{{ c.right }}" y1="{{ t.y }}" y2="{{ t.y }}" class="wt-grid"/><text x="{{ c.left|add:'-8' }}" y="{{ t.y }}" dy="4" text-anchor="end">{{ t.label }}</text>{% endfor %}
+        {% for t in c.ticks_x %}<text x="{{ t.x }}" y="{{ c.bottom|add:'20' }}" text-anchor="middle">{{ t.label }}</text>{% endfor %}
+        {% if c.band %}<polygon points="{{ c.band }}" class="wt-bandpoly"/><polyline points="{{ c.curve }}" class="wt-curve"/>{% endif %}
+        <polyline points="{{ c.line }}" class="wt-line"/>
+        {% for d in c.dots %}<circle cx="{{ d.x }}" cy="{{ d.y }}" r="3" class="wt-dot"/>{% endfor %}
+      </svg>
+    {% endwith %}{% else %}<p class="py-8 text-sm text-muted">No weigh-ins yet.</p>{% endif %}
+    {% if sel.log %}<table class="wt-log-table"><thead><tr><th>Date</th><th class="r">Weight</th><th class="r">Gain</th></tr></thead><tbody>{% for w in sel.log %}<tr><td class="text-muted">{{ w.date|date:"M j, Y" }}</td><td class="r num">{{ w.text }}</td><td class="r num {% if w.gain|first == '+' %}wt-up{% elif w.gain|first == '−' %}wt-down{% else %}text-muted{% endif %}">{{ w.gain|default:"—" }}</td></tr>{% endfor %}</tbody></table>{% endif %}
+  </section>
+  {% endwith %}{% endif %}
+</div>

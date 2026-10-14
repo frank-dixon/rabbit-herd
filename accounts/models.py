@@ -51,6 +51,9 @@ class User(AbstractUser):
     # The Rabbits page layout, remembered per account.
     LIST_VIEWS = [("grid", "Grid"), ("list", "List")]
     ui_list_view = models.CharField(max_length=8, choices=LIST_VIEWS, default="grid")
+    # The Weights page: Table or Chart (split list + growth chart), remembered per account.
+    WEIGHTS_VIEWS = [("table", "Table"), ("chart", "Chart")]
+    ui_weights_view = models.CharField(max_length=8, choices=WEIGHTS_VIEWS, default="table")
     # Phone bottom bar: destination keys in order (pages.nav.DESTINATIONS). Empty means the default.
     tab_bar = models.JSONField(default=list, blank=True)
     # The side menu's order: destination keys, main section then Records. Empty = default.

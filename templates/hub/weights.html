@@ -1,45 +1,81 @@
 {% extends "base.html" %}
-{% load herd_settings %}
+{% load photos %}
 {% block title %}Weights · {{ app_name }}{% endblock %}
 {% block content %}<span data-refreshable hidden></span>
-  {% include "components/page_header.html" with title="Weights" only %}
-  <div data-swap-root>
-  {% if rows %}
-    <div class="mt-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-      <p class="text-sm text-muted" data-swap="hint">{{ sort_hint }}</p>
-      <div data-swap="sort">{% include "components/segmented.html" with label="Sort by" options=sort_options only %}</div>
+  {% include "components/page_header.html" with title="Weights" actions_template="hub/_weights_actions.html" compact_actions=True %}
+  <div data-swap-root data-weights-page>
+  {% if all_count %}
+  <div data-swap="stats"><dl class="wt-stats" data-weight-stats>
+    <div class="wt-stat"><dt>Herd avg, adults</dt><dd class="num">{{ stats.avg }}</dd><p>{% if stats.avg_change %}{{ stats.avg_change }} over 30 days{% else %}&nbsp;{% endif %}</p></div>
+    <div class="wt-stat"><dt>Juniors behind curve</dt><dd class="num">{{ stats.behind }} <span>of {{ stats.juniors }}</span></dd><p>vs NZ growth curve</p></div>
+    <div class="wt-stat"><dt>Overdue weigh-ins</dt><dd class="num">{{ stats.overdue }}</dd><p>adults 30 days · juniors 7</p></div>
+    <div class="wt-stat"><dt>Weighed this week</dt><dd class="num">{{ stats.week }}</dd><p>of {{ stats.herd }} in the herd</p></div>
+  </dl></div>
+
+  <div class="tabrow flex items-end justify-between gap-2">
+    <nav class="seg seg-underline tabs relative flex min-w-0 overflow-x-auto" aria-label="Saved views" data-segmented data-swap-sync>
+      <span class="seg-thumb" aria-hidden="true" data-seg-thumb></span>
+      {% for t in tabs %}<a href="{{ t.href }}" class="tab shrink-0" data-seg-option data-current="page"{% if t.on %} data-selected aria-current="page"{% endif %}>{{ t.label }} <span class="num text-muted">{{ t.count }}</span></a>{% endfor %}
+    </nav>
+  </div>
+
+  <form method="get" role="search" aria-label="Search and filter weights" data-filter-form>
+    <span data-swap="hidden">{% if f.tab != 'all' %}<input type="hidden" name="tab" value="{{ f.tab }}">{% endif %}{% if desc != None %}<input type="hidden" name="dir" value="{{ desc|yesno:'desc,asc' }}">{% endif %}</span>
+    <div class="flex items-center gap-2">
+      <label class="relative min-w-0 flex-1 md:max-w-xs">
+        <span class="sr-only">Search by name or tattoo</span>
+        <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-3.5-3.5"/></svg>
+        <input class="wt-search pl-9" name="q" type="search" value="{{ f.q }}" placeholder="Name or tattoo" autocomplete="off" enterkeyhint="search">
+      </label>
+      <details class="group/f static sm:relative" data-filter-panel>
+        <summary data-swap="filter-button" class="filter-btn mo-press{% if filter_count %} is-active{% endif %}">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+          <span class="sr-only sm:not-sr-only">Filter</span>{% if filter_count %} <span class="filter-count num"><span class="sr-only">(</span>{{ filter_count }}<span class="sr-only"> active)</span></span>{% endif %}
+        </summary>
+        <div class="popover filter-pop" role="group" aria-label="Filters">
+          <p class="filter-pop-title">Sort and filter</p>
+          <div class="filter-grid">
+            <label class="filter-field col-span-2 md:hidden">Sort by
+              <select class="filter-select" name="sort" data-sort-select>{% for o in sort_options %}<option value="{{ o.value|cut:':desc'|cut:':asc' }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}</select>
+            </label>
+            <label class="filter-field">Sex
+              <select class="filter-select" name="sex"><option value="">Any</option>{% for v, l in sex_options %}<option value="{{ v }}"{% if f.sex == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+            </label>
+            <label class="filter-field">Status
+              <select class="filter-select" name="status"><option value="">Any</option>{% for v, l in status_options %}<option value="{{ v }}"{% if f.status == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+            </label>
+            <label class="filter-field">Breed
+              <select class="filter-select" name="breed"><option value="">Any</option>{% for n in breed_options %}<option value="{{ n }}"{% if f.breed == n %} selected{% endif %}>{{ n }}</option>{% endfor %}</select>
+            </label>
+            <label class="filter-field">Age group
+              <select class="filter-select" name="age"><option value="">Any</option>{% for v, l in age_options %}<option value="{{ v }}"{% if f.age == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+            </label>
+            <label class="filter-field col-span-2">Litter
+              <select class="filter-select" name="litter"><option value="">Any litter</option>{% for v, l in litter_options %}<option value="{{ v }}"{% if f.litter == v|stringformat:'s' %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>
+            </label>
+          </div>
+          <div class="filter-foot">
+            {% if filtering %}<a class="filter-reset" href="?{{ clear_qs }}">Reset</a>{% else %}<span class="filter-reset is-off" aria-hidden="true">Reset</span>{% endif %}
+            <button type="submit" class="filter-done mo-press" data-filter-apply>Apply</button>
+            <button type="button" class="filter-done mo-press" data-filter-done hidden>Done</button>
+          </div>
+        </div>
+      </details>
+      <div class="ml-auto flex shrink-0 items-center gap-2" data-swap="controls">{% include "components/segmented.html" with label="View" options=view_options icon_only=True only %}</div>
     </div>
-    <div data-swap="results">
-    <ul class="mo-stagger mt-3 divide-y divide-line overflow-hidden rounded-md border border-line bg-surface" data-weights-hub>
-      {% for row in rows %}
-        <li>
-          <a class="flex items-center gap-3 px-4 py-3 hover:bg-side focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent" href="{% url 'rabbit_detail' row.rabbit.pk %}#weights">
-            {% include "components/rabbit_avatar.html" with rabbit=row.rabbit size="sm" only %}
-            <span class="min-w-0 flex-1">
-              <span class="block truncate font-semibold">{{ row.rabbit.name }}</span>
-              <span class="block truncate text-sm text-muted">{{ row.rabbit.get_sex_display }} · <span title="{{ row.rabbit.age_title }}">{{ row.rabbit.age_text }}</span></span>
-            </span>
-            <span class="shrink-0 text-right">
-              {% if row.text %}<span class="num block text-ink">{{ row.text }}{% if row.change_text %} <span class="text-xs {% if row.change > 0 %}text-accent{% else %}text-muted{% endif %}">{{ row.change_text }}</span>{% endif %}</span><span class="num block text-xs text-muted">{{ row.date|date:"D, M j" }}</span>{% else %}<span class="text-sm text-muted">Not weighed</span>{% endif %}
-            </span>
-            <svg class="h-4 w-4 shrink-0 text-field" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
-          </a>
-        </li>
-      {% endfor %}
-    </ul>
-    </div>
+  </form>
+
+  <div data-swap="results">
+  {% if not rows %}
+    {% with href="?"|add:clear_qs %}{% include "components/empty.html" with title="No rabbits match." text="Try a different search or view." href=href action="Clear the search and filters" kind="filtered" secondary=True icon=ui_icons.weights only %}{% endwith %}
+  {% elif view == "chart" %}
+    {% include "hub/_weights_chart.html" %}
+  {% else %}
+    {% include "hub/_weights_table.html" %}
+  {% endif %}
+  </div>
   {% else %}
 {% url "rabbit_create" as a_url %}{% include "components/empty.html" with title="No rabbits to weigh yet." text="Add a rabbit, then log its weight from here or its page." href=a_url action="Add a rabbit" icon=ui_icons.weights only %}
   {% endif %}
   </div>
-  {% if recent %}
-    <section class="ruled mt-10 pt-4" aria-labelledby="recent-weights">
-      <h2 class="eyebrow" id="recent-weights">Recent weigh-ins</h2>
-      <ul class="mt-2 divide-y divide-line">
-        {% for w in recent %}
-          <li class="flex items-baseline justify-between gap-3 py-2"><a class="min-w-0 truncate hover:underline" href="{% url 'rabbit_detail' w.rabbit_id %}#weights">{{ w.rabbit.name }}</a><span class="num shrink-0">{{ w.grams|weigh:request.user }} <span class="text-muted">· {{ w.date|date:"D, M j" }}</span></span></li>
-        {% endfor %}
-      </ul>
-    </section>
-  {% endif %}
 {% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Weigh a group · {{ app_name }}{% endblock %}
+{% block content %}
+  {% url 'weights_hub' as back %}
+  {% include "components/page_header.html" with title="Weigh a group" subtitle="Enter each weight as you go. Blank rows are skipped." back_label="Weights" back_href=back only %}
+  {% if rows %}
+  <form method="post" class="mt-4" data-weigh-group-form>{% csrf_token %}<input type="hidden" name="ids" value="{{ ids }}">
+    <label class="wt-group-date">Date <input type="date" name="date" value="{{ today|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}"></label>
+    <div class="wt-card mt-4"><table class="wt-table wt-group">
+      <thead><tr><th>Rabbit</th><th class="r">Last</th><th>New weight</th></tr></thead>
+      <tbody>{% for row in rows %}{% with r=row.rabbit %}<tr>
+        <td><span class="wt-name">{% include "rabbits/_rabbit_thumb.html" with rabbit=r main=r.main_photo size_class="wt-thumb shrink-0 text-sm" only %}<span class="font-semibold">{{ r.name }}</span></span></td>
+        <td class="r num text-muted">{{ row.last|default:"—" }}{% if row.last_date %} · {{ row.last_date|date:"M j" }}{% endif %}</td>
+        <td><span class="wt-group-in">{% if unit == "kg" %}<label><input name="w{{ r.pk }}-kg" value="{{ row.values.kg }}" inputmode="decimal" aria-label="{{ r.name }} kg"> kg</label>{% else %}<label><input name="w{{ r.pk }}-lb" value="{{ row.values.lb }}" inputmode="numeric" aria-label="{{ r.name }} lb"> lb</label><label><input name="w{{ r.pk }}-oz" value="{{ row.values.oz }}" inputmode="decimal" aria-label="{{ r.name }} oz"> oz</label>{% endif %}</span>{% if row.error %}<p class="text-sm text-danger">{{ row.error }}</p>{% endif %}</td>
+      </tr>{% endwith %}{% endfor %}</tbody>
+    </table></div>
+    <div class="mt-4 flex gap-2"><button type="submit" class="wt-btn wt-btn-pri">Save weights</button><a class="wt-btn" href="{{ back }}">Cancel</a></div>
+  </form>
+  {% else %}<p class="mt-4 text-muted">No rabbits chosen. Go back to Weights and tick the ones to weigh.</p>{% endif %}
+{% endblock %}

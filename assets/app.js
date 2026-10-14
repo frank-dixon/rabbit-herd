@@ -37,6 +37,7 @@ import { bindScrollSpy } from "./scrollspy.mjs";
 import { bindRabbitInline } from "./rabbit-inline.mjs";
 import { bindSegmented } from "./segmented.mjs";
 import { bindListSwap } from "./list-swap.mjs";
+import { bindWeightsPage } from "./weights-page.mjs";
 import { bindAuthForms } from "./auth-form.mjs";
 import { bindLitterPhotos } from "./litter-photos.mjs";
 import { bindAddSheets, bindMoreMenus } from "./add-sheet.mjs";
@@ -363,6 +364,7 @@ function start() {
   bindRabbitInline(document, window);
   bindSegmented(document);
   bindListSwap(document, window);
+  bindWeightsPage(document, window);
   bindSideMenu(document, window);
   bindAuthForms(document, window);
   bindLitterPhotos(document);
