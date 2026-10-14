@@ -707,6 +707,5 @@ html[data-mode="dark"][data-theme="d6"] {
   --warn: #E9B949;
 }
 
-/* Secondary text, pulled toward the ink so it keeps AA (4.5:1) on every stop
-   of the tinted app background (motion.css), in every theme and mode. */
-html { --muted: color-mix(in oklab, var(--muted-base), var(--ink) var(--muted-pull, 22%)); }
+/* Secondary text: each theme's own; Flat (v2) adjusts it in v2.css. */
+html { --muted: var(--muted-base); }

@@ -137,27 +137,3 @@ html { scrollbar-gutter: stable; }
 @keyframes sheet-in { from { transform: translateY(100%); } }
 @keyframes sheet-out { to { transform: translateY(100%); } }
 
-/* App background: a quiet ombre of three neighbors of the theme's accent hue
-   (accent hue -28°, the accent, +28°), each only a few percent into the
-   canvas so text and cards keep their contrast. Painted on a fixed layer, so
-   scrolling never repaints it and iOS (no background-attachment: fixed) gets
-   the same result. Browsers without relative colors keep the plain canvas. */
-body::before {
-  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: var(--canvas);
-}
-@supports (color: oklch(from red l c h)) {
-  /* Explicit stops: the accent's hue (and its neighbors 28° either side) at a
-     fixed high lightness and real chroma, so dark accents still give a clear,
-     light tint instead of a gray one. */
-  :root { --ombre-l: 0.915; --ombre-c: 0.075; }
-  @media (prefers-color-scheme: dark) { html:not([data-mode="light"]) { --ombre-l: 0.26; --ombre-c: 0.06; } }
-  html[data-mode="dark"] { --ombre-l: 0.26; --ombre-c: 0.06; }
-  html {
-    --ombre-1: oklch(from var(--accent) var(--ombre-l) var(--ombre-c) calc(h - 28));
-    --ombre-2: oklch(from var(--accent) calc(var(--ombre-l) - 0.01) var(--ombre-c) h);
-    --ombre-3: oklch(from var(--accent) var(--ombre-l) var(--ombre-c) calc(h + 28));
-  }
-  body::before { background: linear-gradient(135deg in oklab, var(--ombre-1), var(--ombre-2) 50%, var(--ombre-3)); }
-  body.bg-canvas { background-color: transparent; }
-}
