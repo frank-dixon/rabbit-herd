@@ -31,4 +31,4 @@ class AvatarEverywhereTests(TestCase):
             self.assertIn("data-avatar", main, name)
         self.assertIn("data-avatar", self.client.get("/").content.decode())
         pairings = self.client.get(reverse("pairing_list")).content.decode()
-        self.assertEqual(pairings[pairings.index("data-pair-avatars"):].count("data-avatar", 0, 1500), 2)
+        self.assertEqual(pairings[pairings.index("it-thumbs"):].count("data-avatar", 0, 1500), 2)
