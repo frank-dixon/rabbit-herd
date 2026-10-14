@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Convert kits · {{ title }} · {{ app_name }}{% endblock %}
+{% block content %}
+  {% url 'litter_detail' litter.pk as back %}
+  {% include "components/page_header.html" with title="Convert to individual rabbits" subtitle=title back_label="Litter" back_href=back only %}
+  <div class="max-w-lg">{% include "rabbits/_convert_form.html" with js=False %}</div>
+{% endblock %}

@@ -33,9 +33,12 @@ export function bindDeleteDialog(root) {
     };
     input?.addEventListener("input", update);
     form.addEventListener("submit", (event) => {
-      if (input && !phraseMatches(input.value, form.dataset.phrase)) {
+      if ((input && !phraseMatches(input.value, form.dataset.phrase)) || form.dataset.sent) {
         event.preventDefault();
+        return;
       }
+      form.dataset.sent = "1"; // one submit only; the server is idempotent too
+      submit.setAttribute("aria-disabled", "true");
     });
     dialog.querySelector("[data-delete-close]").addEventListener("click", () => dialog.close());
     dialog.addEventListener("close", () => {
