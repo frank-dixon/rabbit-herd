@@ -25,6 +25,16 @@ class FillRuleTests(FlowTestMixin, TestCase):
         self.assertIn("E", filled)
         self.assertIn("E=ee", draft["gene_auto"])
 
+    def test_eye_color_follows_the_genes_until_it_is_picked(self):
+        draft = self.draft(purebred=breed_id("Florida White"), color_choice="", color="White")
+        flow.fill_genes(draft, self.user)
+        self.assertEqual(draft["eye_color"], "ruby")  # cc
+        self.assertIn("eye=ruby", draft["gene_auto"])
+        draft["eye_color"] = "brown"  # the keeper's answer wins from here on
+        flow.fill_genes(draft, self.user)
+        self.assertEqual(draft["eye_color"], "brown")
+        self.assertNotIn("eye=", draft["gene_auto"])
+
     def test_a_value_set_by_hand_is_never_replaced(self):
         draft = self.draft(purebred=breed_id("Creme d'Argent"), color_choice="Creme", color="", gene_E="Ee")
         flow.fill_genes(draft, self.user)

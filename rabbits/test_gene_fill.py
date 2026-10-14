@@ -111,3 +111,14 @@ class SpellingTests(SimpleTestCase):
         self.assertEqual(canonical("A", "_/A"), "A_")
         self.assertEqual(canonical("A", ""), "")
         self.assertIsNone(canonical("A", "zebra"))
+
+
+class EyeTests(SimpleTestCase):
+    def test_eye_color_from_genes(self):
+        from rabbits.gene_fill import eye_from_genes as eye
+        self.assertEqual(eye({"C": "cc", "D": "D_"}), "ruby")
+        self.assertEqual(eye({"C": "ch_"}), "ruby")
+        self.assertEqual(eye({"C": "cchd_", "D": "D_"}), "brown")
+        self.assertEqual(eye({"C": "C_", "D": "dd"}), "blue-gray")
+        self.assertEqual(eye({"V": "vv"}), "blue")
+        self.assertEqual(eye({"D": "D_"}), "")  # C unknown: could be an albino

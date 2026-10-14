@@ -83,7 +83,8 @@ class UpdateRabbitTests(FlowTestMixin, TestCase):
         self.assertEqual((rabbit.breed_type, rabbit.line, rabbit.purebred), ("crossbred", "Oak", None))
         self.assertEqual(sorted(rabbit.breed_shares.values_list("percent", flat=True)), [25, 75])
         relative = rabbit.relatives.get()
-        self.assertEqual((relative.herd_rabbit, relative.genes.get().genotype), (self.pepper, "En/en"))
+        # A herd relative's genes live on its own page, so the row keeps none.
+        self.assertEqual((relative.herd_rabbit, relative.genes.count()), (self.pepper, 0))
 
     def test_refuses_a_future_birth_date_and_self_relative(self):
         draft = flow.draft_from_rabbit(self.juniper)
