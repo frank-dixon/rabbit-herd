@@ -1,11 +1,12 @@
 /*
  * Prefetch a page when the pointer rests on its link or a finger lands on
- * it, so the tap opens instantly. Uses speculation rules where supported and
+ * it (or keyboard focus reaches it), so the click opens instantly. The
+ * browser keeps the response and swaps it in the moment it is needed. Uses speculation rules where supported and
  * <link rel=prefetch> elsewhere. Sends Sec-Purpose: prefetch, which the
  * server uses to leave one-time messages unread.
  */
 const SKIP = /^\/(accounts|admin|sw\.js|manifest|offline|export)|\/photos\/\d+\/$|logout|undo|start-over|restart|\.(csv|pdf|zip)$|\/delete\/?$/;
-const HOVER_MS = 65;
+const HOVER_MS = 0;
 
 export function prefetchable(a, loc) {
   if (!a || !a.href || a.target || a.hasAttribute("download") || a.closest("[data-no-prefetch]")) return null;
@@ -29,7 +30,7 @@ export function bindPrefetch(doc, win = window) {
     if (spec) {
       const s = doc.createElement("script");
       s.type = "speculationrules";
-      s.textContent = JSON.stringify({ prefetch: [{ source: "list", urls: [href] }] });
+      s.textContent = JSON.stringify({ prefetch: [{ source: "list", urls: [href], eagerness: "immediate" }] });
       doc.head.append(s);
     } else {
       const l = doc.createElement("link");
@@ -46,6 +47,7 @@ export function bindPrefetch(doc, win = window) {
     timer = setTimeout(() => go(href), HOVER_MS);
   });
   doc.addEventListener("pointerout", () => clearTimeout(timer));
+  doc.addEventListener("pointerdown", (e) => go(prefetchable(e.target.closest?.("a"), win.location)));
   doc.addEventListener("touchstart", (e) => go(prefetchable(e.target.closest?.("a"), win.location)), { passive: true });
   doc.addEventListener("focusin", (e) => go(prefetchable(e.target.closest?.("a"), win.location)));
 }

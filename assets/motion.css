@@ -10,6 +10,7 @@
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --rise: 6px;
+  --dur-page: 150ms; /* page and in-page swaps: near-instant */
 }
 @media (prefers-reduced-motion: reduce) {
   :root { --dur-press: 0ms; --dur-1: 1ms; --dur-2: 120ms; --dur-3: 120ms; --rise: 0px; }
@@ -17,18 +18,20 @@
 
 /* Page changes cross-fade where the browser supports view transitions. */
 @view-transition { navigation: auto; }
-::view-transition-old(root) { animation: var(--dur-1) var(--ease-in) both mo-fade-out; }
-::view-transition-new(root) { animation: var(--dur-2) var(--ease-out) both mo-fade-in; }
+::view-transition-old(root) { animation: var(--dur-page) var(--ease-in-out) both mo-fade-out; }
+::view-transition-new(root) { animation: var(--dur-page) var(--ease-in-out) both mo-fade-in; }
+::view-transition-group(*) { animation-duration: var(--dur-page); animation-timing-function: var(--ease-in-out); }
 [data-app-tabs] { view-transition-name: app-tabs; }
 [data-app-rail] { view-transition-name: app-rail; }
 /* An open menu leaving for another page: the incoming page renders with it
    closed, so only the old snapshot exists and it slides out over the change. */
 html[data-menu-open] .app-panel { view-transition-name: app-menu; }
 ::view-transition-group(app-menu) { z-index: 10; }
-::view-transition-old(app-menu) { animation: var(--dur-3) var(--ease-in) both mo-menu-out; }
+::view-transition-old(app-menu) { animation: var(--dur-page) var(--ease-in-out) both mo-menu-out; }
 @keyframes mo-menu-out { to { transform: translateX(-100%); } }
 @media (prefers-reduced-motion: reduce) {
   @view-transition { navigation: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
 
 @keyframes mo-fade-in { from { opacity: 0; } }
