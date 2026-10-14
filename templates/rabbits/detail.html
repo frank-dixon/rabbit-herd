@@ -13,11 +13,12 @@
     <div class="mt-2">{% include "rabbits/_delete_form.html" with js=True %}</div>
   </dialog>
 
+  {% include "rabbits/_fact_summary.html" %}
   <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
     <section class="flex flex-col overflow-hidden rounded detail-facts lg:overflow-y-auto lg:overscroll-contain border border-neutral-300 bg-white sm:flex-row lg:flex-col" id="facts" aria-label="Details">
       <figure class="overflow-hidden sm:w-2/5 sm:shrink-0 lg:w-full">
         {% if main_photo %}
-          <img draggable="false" class="aspect-square w-full object-cover" {% photo_src main_photo "(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" %} alt="{{ rabbit.name }}, main photo" fetchpriority="high" decoding="async">
+          <img draggable="false" class="aspect-[16/10] max-h-[200px] w-full object-cover sm:aspect-square sm:max-h-none" {% photo_src main_photo "(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" %} alt="{{ rabbit.name }}, main photo" fetchpriority="high" decoding="async">
           {% if main_photo.is_credit %}
           <figcaption class="photo-credit px-1 pt-1.5">
             <details class="photo-credit-pop inline-block">
@@ -27,7 +28,7 @@
           </figcaption>
           {% elif main_photo.notes %}<figcaption class="photo-credit px-1 pt-2 text-xs text-muted">{{ main_photo.notes }}</figcaption>{% endif %}
         {% else %}
-          <span class="flex aspect-square w-full items-center justify-center bg-neutral-100 text-5xl font-semibold text-neutral-500" aria-hidden="true">{{ rabbit.name|first|upper }}</span>
+          <span class="flex aspect-[16/10] max-h-[200px] w-full items-center justify-center bg-neutral-100 text-5xl sm:aspect-square sm:max-h-none font-semibold text-neutral-500" aria-hidden="true">{{ rabbit.name|first|upper }}</span>
         {% endif %}
       </figure>
       {% url 'rabbit_quick_edit' rabbit.pk 'sex' as sex_href %}{% url 'rabbit_quick_edit' rabbit.pk 'breed' as breed_href %}{% url 'rabbit_quick_edit' rabbit.pk 'color' as color_href %}{% url 'rabbit_quick_edit' rabbit.pk 'line' as line_href %}{% url 'rabbit_quick_edit' rabbit.pk 'birth-date' as birth_date_href %}{% url 'rabbit_quick_edit' rabbit.pk 'name' as name_href %}{% url 'rabbit_status' rabbit.pk as status_href %}

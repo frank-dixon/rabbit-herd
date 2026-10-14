@@ -72,3 +72,11 @@
 .list-row a:not(.list-row-link), .list-row button { position: relative; z-index: 1; }
 .list-panel + .list-panel { margin-top: 24px; }
 .app-modal-body > :first-child { margin-top: 0; padding-top: 0; }
+
+/* Fact grid: short label/value pairs in two columns (rabbit page summary on phones). */
+.fact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+.fact-grid > div { min-width: 0; }
+.fact-grid dt { font-size: 12px; line-height: 16px; color: var(--muted); }
+.fact-grid dd { margin-top: 2px; font-size: 15px; line-height: 20px; font-weight: 500; overflow-wrap: anywhere; }
+.fact-grid dd span { font-size: 12px; font-weight: 400; color: var(--muted); }
+@media (min-width: 768px) { [data-fact-summary] { display: none; } }
