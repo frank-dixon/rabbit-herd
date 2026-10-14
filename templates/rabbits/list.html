@@ -112,7 +112,7 @@
         {% with main=rabbit.main_photo %}
           <li>
             <a href="{% url 'rabbit_detail' rabbit.pk %}" class="block h-full overflow-hidden rounded border border-neutral-300 bg-white hover:border-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-              {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="aspect-[4/3] w-full text-4xl" sizes="(min-width: 1024px) 300px, (min-width: 640px) 50vw, 100vw" only %}
+              {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="aspect-square w-full text-4xl" sizes="(min-width: 1024px) 300px, (min-width: 640px) 50vw, 100vw" only %}
               <span class="block p-3">
                 <span class="block min-w-0 text-lg font-semibold [overflow-wrap:normal]"><span class="sr-only">Open </span>{{ rabbit.name }}</span>
                 <span class="mt-1 pill" data-status-chip data-status="{{ rabbit.status }}">{{ rabbit.status_tag }}</span>

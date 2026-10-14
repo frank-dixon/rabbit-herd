@@ -15,12 +15,12 @@
 
   <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
     <section class="flex flex-col overflow-hidden rounded lg:sticky lg:top-[4.5rem] lg:max-h-[calc(100dvh-5.5rem)] lg:overflow-y-auto lg:overscroll-contain border border-neutral-300 bg-white sm:flex-row lg:flex-col" id="facts" aria-label="Details">
-      <figure class="sm:w-2/5 sm:shrink-0 lg:w-full">
+      <figure class="overflow-hidden sm:w-2/5 sm:shrink-0 lg:w-full">
         {% if main_photo %}
-          <img draggable="false" class="aspect-[4/3] w-full object-cover sm:h-full lg:h-auto" {% photo_src main_photo "(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" %} alt="{{ rabbit.name }}, main photo" fetchpriority="high" decoding="async">
+          <img draggable="false" class="aspect-square w-full object-cover" {% photo_src main_photo "(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" %} alt="{{ rabbit.name }}, main photo" fetchpriority="high" decoding="async">
           {% if main_photo.notes %}<figcaption class="px-4 pt-2 text-sm text-neutral-600">{{ main_photo.notes }}</figcaption>{% endif %}
         {% else %}
-          <span class="flex aspect-[4/3] w-full items-center justify-center bg-neutral-100 text-5xl font-semibold text-neutral-500 sm:h-full lg:h-auto" aria-hidden="true">{{ rabbit.name|first|upper }}</span>
+          <span class="flex aspect-square w-full items-center justify-center bg-neutral-100 text-5xl font-semibold text-neutral-500" aria-hidden="true">{{ rabbit.name|first|upper }}</span>
         {% endif %}
       </figure>
       {% url 'rabbit_quick_edit' rabbit.pk 'sex' as sex_href %}{% url 'rabbit_quick_edit' rabbit.pk 'breed' as breed_href %}{% url 'rabbit_quick_edit' rabbit.pk 'color' as color_href %}{% url 'rabbit_quick_edit' rabbit.pk 'line' as line_href %}{% url 'rabbit_quick_edit' rabbit.pk 'birth-date' as birth_date_href %}{% url 'rabbit_quick_edit' rabbit.pk 'name' as name_href %}{% url 'rabbit_status' rabbit.pk as status_href %}

@@ -4,14 +4,14 @@
     <figure class="relative overflow-hidden rounded-lg border border-line bg-side" data-breed-sample>
       {% load static %}
       {% if sample.is_photo %}
-        <img class="aspect-[4/3] w-full object-cover" src="{% static sample.file %}" alt="A {{ sample.breed }} rabbit (sample photo)" width="640" height="480" loading="lazy" decoding="async">
+        <img class="aspect-square w-full object-cover" src="{% static sample.file %}" alt="A {{ sample.breed }} rabbit (sample photo)" width="640" height="480" loading="lazy" decoding="async">
         <span class="absolute left-2.5 top-2.5 rounded bg-surface/90 px-1.5 py-px text-xs font-medium text-ink backdrop-blur-sm">Sample photo</span>
         <details class="group absolute bottom-2 right-2">
           <summary class="flex h-8 w-8 cursor-pointer list-none items-center justify-center rounded-full bg-surface/90 text-muted backdrop-blur-sm hover:text-ink [&::-webkit-details-marker]:hidden" title="{{ sample.credit }}" aria-label="Photo credit"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8h.01"/></svg></summary>
           <p class="absolute bottom-10 right-0 w-64 rounded-md border border-line bg-surface p-2.5 text-xs text-muted shadow-lg">Sample of a {{ sample.breed }}, not your rabbit. {{ sample.credit }}. <a class="underline" href="{{ sample.source }}" target="_blank" rel="noopener">Source</a></p>
         </details>
       {% else %}
-        <span class="flex aspect-[4/3] w-full items-center justify-center text-ink"><img class="w-2/5 opacity-90 dark:invert" src="{% static sample.file %}" alt="" width="160" height="120"></span>
+        <span class="flex aspect-square w-full items-center justify-center text-ink"><img class="w-2/5 opacity-90 dark:invert" src="{% static sample.file %}" alt="" width="160" height="120"></span>
       {% endif %}
     </figure>
   {% else %}

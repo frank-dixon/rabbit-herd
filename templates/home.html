@@ -31,7 +31,7 @@
             {% for card in herd_cards %}
               <li class="w-[150px] shrink-0 snap-start sm:w-auto">
                 <a class="block h-full overflow-hidden rounded-[10px] border border-line bg-surface transition-[transform,box-shadow] duration-[var(--dur-1)] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgb(46_42_36/0.08)] motion-reduce:hover:translate-y-0" href="{% url 'rabbit_detail' card.rabbit.pk %}">
-                  {% with main=card.rabbit.main_photo %}{% if main %}<img class="block aspect-[16/10] w-full object-cover" {% photo_src main "(min-width: 1024px) 240px, (min-width: 640px) 30vw, 150px" 640 %} alt="" loading="lazy" decoding="async">{% endif %}
+                  {% with main=card.rabbit.main_photo %}{% if main %}<img class="block aspect-square w-full object-cover" {% photo_src main "(min-width: 1024px) 240px, (min-width: 640px) 30vw, 150px" 640 %} alt="" loading="lazy" decoding="async">{% endif %}
                   <span class="flex items-start gap-2.5 px-3 pt-2.5 pb-2.5">{% if not main %}<span class="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft font-semibold text-accent" aria-hidden="true">{{ card.rabbit.name|first|upper }}</span>{% endif %}{% endwith %}
                   <span class="block min-w-0 flex-1">
                     <span class="flex flex-wrap items-center gap-x-2 gap-y-1"><span class="min-w-0 font-semibold">{{ card.rabbit.name }}</span><span class="shrink-0 pill sm:ml-auto" data-status-chip>{{ card.chip }}</span></span>

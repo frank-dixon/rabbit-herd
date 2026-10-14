@@ -89,7 +89,7 @@ a.pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 main .empty:not(.empty-compact) { border-color: transparent; background: transparent; box-shadow: none; padding-left: 0; padding-right: 0; }
 
 /* Rabbit page without a photo: a short tinted placeholder, not a tall blank. */
-#facts figure > span[aria-hidden="true"] { background: linear-gradient(135deg, var(--photo-1), var(--photo-2)); color: var(--muted); aspect-ratio: 16 / 9; border-radius: 8px; }
+#facts figure > span[aria-hidden="true"] { background: linear-gradient(135deg, var(--photo-1), var(--photo-2)); color: var(--muted); aspect-ratio: 1 / 1; border-radius: 8px; }
 #facts { border-color: transparent; background: transparent; }
 
 
@@ -178,3 +178,18 @@ main [data-page-header] ~ [data-swap-root] > .tabrow:first-child { margin-top: 8
 :is(main, dialog) :is(.litter-card, .kit-card, a.bg-well, li.bg-well, article.bg-well, div.bg-well.rounded-lg, div.bg-well.rounded-md, label.bg-well) { box-shadow: var(--card-shadow); }
 :is(main, dialog) :is(.litter-card, .kit-card, a.bg-well, a.border):hover { box-shadow: var(--card-shadow-hover) !important; }
 @media (prefers-reduced-motion: no-preference) { :is(main, dialog) :is(.litter-card, .kit-card, a.bg-well, a.border) { transition: background-color 120ms ease-out, box-shadow 120ms ease-out; } }
+
+/* Every rabbit / kit / litter photo is a perfect square, cropped and centred. Gallery tiles, cards,
+   avatars and the detail main photo all use this; fixed h×w thumbs are already square. */
+:is(main, dialog) img[data-avatar],
+:is(main, dialog) #facts figure > img,
+:is(main, dialog) #facts figure > span[aria-hidden="true"],
+:is(main, dialog) [data-photo-list] img,
+:is(main, dialog) a[href*="#photo-"] img,
+:is(main, dialog) .litter-card img,
+:is(main, dialog) .kit-card img,
+:is(main, dialog) [aria-label="Photos"] img {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  object-position: center;
+}
