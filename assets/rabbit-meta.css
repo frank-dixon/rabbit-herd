@@ -6,3 +6,4 @@
 .rm-stat.is-a { color: #8A5A00; font-weight: 500; }
 .rm-stat.is-r { color: var(--color-danger, #A3312A); }
 .rm-stat.is-g { color: #2F6B45; }
+@media (min-width: 1024px) { .rm-phone { display: none; } }

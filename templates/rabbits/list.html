@@ -148,7 +148,7 @@
                     {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="list-thumb shrink-0 rounded-md text-base" only %}
                     <span class="min-w-0">
                       <span class="block break-words font-semibold"><span class="sr-only">Open </span>{{ rabbit.name }}{% if rabbit.tattoo %} <span class="num text-xs font-normal text-muted">{{ rabbit.tattoo }}</span>{% endif %}</span>
-                      <span class="block text-sm text-muted lg:hidden">{{ rabbit.get_sex_display }}{% if rabbit.short_breed %} · {{ rabbit.short_breed }}{% endif %}{% if rabbit.died_text %} · {{ rabbit.died_text }}{% endif %}{% if rabbit.birth_date and not rabbit.age_until %} · <span title="{{ rabbit.age_title }}">{{ rabbit.age_text }}</span>{% endif %}{% if rabbit.last_weight %} · <span class="num whitespace-nowrap">{{ rabbit.last_weight.text }}</span>{% endif %}{% if rabbit.next_item.overdue %} · <span class="text-danger">{{ rabbit.next_item.label }} overdue</span>{% endif %}</span>
+                      <span class="block truncate text-sm text-muted lg:hidden">{{ rabbit.get_sex_display }}{% if rabbit.short_breed %} · {{ rabbit.short_breed }}{% endif %}{% if rabbit.died_text %} · {{ rabbit.died_text }}{% endif %}{% if rabbit.next_item.overdue %} · <span class="text-danger">{{ rabbit.next_item.label }} overdue</span>{% endif %}</span>
                       {% include "rabbits/_rabbit_meta.html" with r=rabbit mode="row" only %}
                     </span>
                   </span>
