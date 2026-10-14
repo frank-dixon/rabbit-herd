@@ -242,6 +242,7 @@ class Command(BaseCommand):
     def wipe(self, user):
         old_files = list(RabbitPhoto.objects.filter(
             rabbit__in=Rabbit.all_objects.filter(owner=user)).values_list("image", flat=True))
+        old_files += [n for n in Litter.objects.filter(owner=user).exclude(photo="").values_list("photo", flat=True)]
         Program.objects.filter(owner=user).delete()
         for model in (Task, WaitlistEntry, Expense, Litter, Pairing, BreedingSchedule,
                       Rabbit, Contact, Location, OutsideRabbit):
@@ -471,6 +472,15 @@ class Command(BaseCommand):
         litter("Sonora", "Ember", 2, notes="Californian × NZ red for fryers.")
         Cover.objects.create(litter=Litter.objects.get(pairing__doe=R["Sonora"], bred_on=day(2)), date=day(2), outcome="covered")
 
+        # --- Litter photos: Frank's newborn shots by coat; the CC0 broken litter for broken pairings ---
+        nb = {"red": "red-newborns.jpg", "blue": "blue-newborns.jpg", "pink": "pink-newborns.jpg",
+              "broken": "broken-newborns-web.jpg", "dark": "black-doe-kit.jpg"}
+        folder = Path(__file__).resolve().parents[2] / "demo_photos" / "nz"
+        for lit, key in [(conv, "broken"), (pending, "broken"), (kindled, "red"), (rew, "red"), (grow, "blue"),
+                         (bb, "dark"), (xgrow, "dark"), (xconv, "dark")]:
+            with open(folder / nb[key], "rb") as h:
+                lit.photo.save("photo.jpg", File(h), save=True)
+
         # --- Weights: kit series (weekly to 10 weeks), then monthly adult weights ---
         rows = []
         for name, sex, breed, color, age, status, genes, extra in HERD:
@@ -498,7 +508,7 @@ class Command(BaseCommand):
 
         # --- Photos for juniors' kit days: broken placeholder on Cinder ---
         folder = Path(__file__).resolve().parents[2] / "demo_photos" / "nz"
-        ph = RabbitPhoto(rabbit=R["Cinder"], notes="Credit: Joel Best Obinna, CC0, Wikimedia Commons (sample of a broken litter).",
+        ph = RabbitPhoto(rabbit=R["Cinder"], notes="Demo photo: Joel Best Obinna, CC0, via Wikimedia Commons (a broken litter at about a week).",
                          taken_at=day(90), taken_from_metadata=False)
         with open(folder / "broken-newborns-web.jpg", "rb") as h:
             ph.image.save("photo.jpg", File(h), save=False)
@@ -666,7 +676,7 @@ class Command(BaseCommand):
             options = pool.get(key) or pool["Black"]
             pick = options[used.get(key, 0) % len(options)]
             used[key] = used.get(key, 0) + 1
-            notes = "" if pick["license"] == "Owned" else f"Credit: {pick['author']}, {pick['license']}, {pick['source']}"
+            notes = "" if pick["license"] == "Owned" else f"Demo photo: {pick['author']}, {pick['license']}, via Wikimedia Commons ({pick['source']})."
             if rabbit.color.startswith("Broken") and not notes:
                 notes = "Stand-in photo of a solid rabbit of the same color."
             taken = min(timezone.localdate() - datetime.timedelta(days=20), rabbit.birth_date + datetime.timedelta(days=240))
