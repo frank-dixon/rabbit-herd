@@ -18,7 +18,14 @@
       <figure class="overflow-hidden sm:w-2/5 sm:shrink-0 lg:w-full">
         {% if main_photo %}
           <img draggable="false" class="aspect-square w-full object-cover" {% photo_src main_photo "(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" %} alt="{{ rabbit.name }}, main photo" fetchpriority="high" decoding="async">
-          {% if main_photo.notes %}<figcaption class="px-4 pt-2 text-sm text-neutral-600">{{ main_photo.notes }}</figcaption>{% endif %}
+          {% if main_photo.is_credit %}
+          <figcaption class="photo-credit px-1 pt-1.5">
+            <details class="photo-credit-pop inline-block">
+              <summary class="cursor-pointer list-none text-xs font-medium text-muted hover:text-ink [&::-webkit-details-marker]:hidden">Credit</summary>
+              <p class="mt-1 max-w-full text-xs text-muted">{{ main_photo.notes }}</p>
+            </details>
+          </figcaption>
+          {% elif main_photo.notes %}<figcaption class="photo-credit px-1 pt-2 text-xs text-muted">{{ main_photo.notes }}</figcaption>{% endif %}
         {% else %}
           <span class="flex aspect-square w-full items-center justify-center bg-neutral-100 text-5xl font-semibold text-neutral-500" aria-hidden="true">{{ rabbit.name|first|upper }}</span>
         {% endif %}

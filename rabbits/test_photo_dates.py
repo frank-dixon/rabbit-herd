@@ -127,3 +127,14 @@ class UploadDateTests(PhotoTestCase):
         photo = add_photo(self.rabbit)
         self.client.force_login(make_user("nosy@example.com"))
         self.assertEqual(self.client.post(reverse("rabbit_photo_date", args=[photo.pk]), {"taken_at": "2026-03-05"}).status_code, 404)
+
+    def test_demo_notes_are_credit_not_keeper_notes(self):
+        photo = self.upload(with_exif())
+        photo.notes = "Demo photo: Mia Kesterson, CC BY-SA 4.0, via Wikimedia Commons (https://commons.wikimedia.org/wiki/File:x.jpg)."
+        photo.save()
+        self.assertTrue(photo.is_credit)
+        self.assertEqual(photo.keeper_notes, "")
+        photo.notes = "At the show"
+        photo.save()
+        self.assertFalse(photo.is_credit)
+        self.assertEqual(photo.keeper_notes, "At the show")

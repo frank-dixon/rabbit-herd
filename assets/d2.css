@@ -193,3 +193,25 @@ main [data-page-header] ~ [data-swap-root] > .tabrow:first-child { margin-top: 8
   object-fit: cover;
   object-position: center;
 }
+
+/* Photo grid tiles (Photos card on the rabbit page and the Photos page): one tinted card per tile, the square
+   image inside, the date caption below it in the tile padding. Add photo uses the same tile. */
+:is(main, dialog) [data-photo-grid] { gap: 0.625rem; }
+:is(main, dialog) .photo-tile {
+  background: color-mix(in oklab, var(--well) 88%, var(--ink) 4%);
+  border-radius: 8px; padding: 6px; box-shadow: var(--card-shadow); min-width: 0;
+}
+:is(main, dialog) .photo-tile-media {
+  display: block; aspect-ratio: 1 / 1; width: 100%; border-radius: 6px;
+  object-fit: cover; object-position: center;
+  background: color-mix(in oklab, var(--well) 60%, var(--line));
+}
+:is(main, dialog) .photo-tile-cap { display: block; padding: 6px 2px 0; font-size: 0.75rem; line-height: 1rem; }
+:is(main, dialog) .photo-add { border: 0 !important; background: none !important; border-radius: 6px; color: var(--muted); }
+:is(main, dialog) .photo-add:hover .photo-tile-media { background: var(--hover); color: var(--ink); }
+:is(main, dialog) .photo-tile:has(.photo-add):hover { box-shadow: var(--card-shadow-hover); }
+/* Demo / Wikimedia credit: a quiet "Credit" control; the full line wraps only when opened. */
+.photo-credit, .photo-credit-pop { min-width: 0; }
+.photo-credit-pop > p { overflow-wrap: anywhere; word-break: break-word; max-width: 22rem; }
+#facts .photo-credit { overflow-wrap: anywhere; }
+:is(main, dialog) .photo-add .photo-tile-media { display: grid; place-items: center; font-size: 1.5rem; }

@@ -723,6 +723,17 @@ class RabbitPhoto(models.Model):
     def shows_taken(self):
         return valid_taken_date(self.taken_at, self.rabbit.birth_date) is not None
 
+    @property
+    def is_credit(self):
+        """True when notes are a demo/Wikimedia attribution, not a keeper's note."""
+        n = (self.notes or "").lower()
+        return n.startswith("demo photo:") or "wikimedia commons" in n
+
+    @property
+    def keeper_notes(self):
+        """Notes the keeper wrote; empty when notes are only a demo credit."""
+        return "" if self.is_credit else (self.notes or "")
+
     def __str__(self):
         return f"Photo of {self.rabbit.name}"
 
