@@ -195,6 +195,7 @@ def pairing_items(user, pairings):
     from django.utils import timezone
 
     from . import program_plan
+    from .status_pills import tone as status_tone
     from .swatches import swatch
 
     today = timezone.localdate()
@@ -208,14 +209,14 @@ def pairing_items(user, pairings):
                  for name, pct in odds["colors"][:3]]
         litter = max(p.litters.all(), key=lambda l: l.bred_on, default=None)
         if litter is None:
-            pill, when, result = {"label": "Planned", "tone": ""}, "Not bred yet", f"Saved {p.created_at:%b} {p.created_at.day}"
+            pill, when, result = {"label": "Planned", "tone": status_tone("planned")}, "Not bred yet", f"Saved {p.created_at:%b} {p.created_at.day}"
         elif not litter.kindled_on:
             days = (litter.due_on - today).days
-            pill = {"label": "Bred", "tone": "b"}
+            pill = {"label": "Bred", "tone": status_tone("bred")}
             when, result = f"Bred {litter.bred_on:%b} {litter.bred_on.day}", f"Due {litter.due_on:%b} {litter.due_on.day}" + (f" · {days} days" if days >= 0 else f" · {-days} days late")
         else:
             done = bool(litter.converted_at)
-            pill = {"label": "Done" if done else "Kits on ground", "tone": "" if done else "g"}
+            pill = {"label": "Done" if done else "Kits on ground", "tone": "" if done else status_tone("nursing")}
             raised = litter.survivors if getattr(litter, "survivors", None) is not None else litter.born_alive
             when = f"{'Last litter' if done else 'Kindled'} {litter.kindled_on:%b} {litter.kindled_on.day}"
             result = f"{litter.born_alive or 0} born, {raised or 0} {'raised' if done else 'alive'}"

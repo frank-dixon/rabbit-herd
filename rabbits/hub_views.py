@@ -12,9 +12,9 @@ from django.views.decorators.http import require_POST
 
 from .index_items import index_view, ordinal, place_tone, sorted_items, stat, tabs, view_options
 from .models import HealthNote, ShowEntry
+from .status_pills import tone as status_tone
 
 LEGS_FOR_GC = 3  # ARBA: three legs, at least one as a senior, make a Grand Champion.
-KIND_TONE = {"illness": "r", "injury": "y", "treatment": "b", "checkup": ""}
 
 
 def short(day):
@@ -49,14 +49,14 @@ def health_item(note, today):
     if note.resolved:
         state, follow, tone = {"label": "Resolved", "tone": ""}, "—", ""
     else:
-        state = {"label": "Open", "tone": "y"}
+        state = {"label": "Open", "tone": status_tone("watch")}
         if note.follow_up_on:
             days = (note.follow_up_on - today).days
             follow = f"Overdue {-days} day{'s' if days != -1 else ''}" if days < 0 else "Follow up today" if days == 0 else f"Follow up in {days} day{'s' if days != 1 else ''}"
             tone = "r" if days < 0 else ""
         else:
             follow, tone = "No follow-up set", ""
-    kind = {"label": note.get_kind_display(), "tone": KIND_TONE.get(note.kind, "")}
+    kind = {"label": note.get_kind_display(), "tone": status_tone(note.get_kind_display())}
     action = {"url": reverse("health_resolve", args=[note.pk]), "label": "Reopen" if note.resolved else "Resolve"}
     when = short(note.follow_up_on) if note.follow_up_on else ""
     return {

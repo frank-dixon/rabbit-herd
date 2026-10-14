@@ -65,6 +65,7 @@ def program_href(program):
 
 def program_item(program):
     """One program for the shared card/row: goal swatch, generation progress, odds, next step, rabbits."""
+    from .status_pills import tone as status_tone
     from .swatches import swatch
 
     keep = {"doe": "does", "buck": "bucks"}.get(program.keep_sex, "kits")
@@ -94,7 +95,7 @@ def program_item(program):
         odds = g1["odds"]
         odds_note = f"of kits {program.target_label.lower()} · COI {g1['coi']}"
         thumbs = [b["rabbit"] for b in (plan["dam"], plan["sire"], g2["mate"] if g2 else None) if b and b.get("rabbit")]
-        pill = {"label": "Kits on ground" if kindled else "Breeding" if litter else "Planned", "tone": "g" if litter else "b"}
+        pill = {"label": "Kits on ground" if kindled else "Breeding" if litter else "Planned", "tone": status_tone("nursing" if kindled else "bred" if litter else "planned")}
         item["rank"], item["best"] = 1 + f1, g1["high"]
     item.update({
         "pill": pill, "progress": progress,
