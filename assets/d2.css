@@ -169,3 +169,5 @@ main .tabs .seg-thumb { bottom: 0; height: 2px; }
 .task-check:hover { background: var(--accent-soft); color: var(--accent); }
 .task-check:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 @media (prefers-reduced-motion: reduce) { .task-check { transition: none; } }
+/* Right under the page header (which keeps 16px below itself), top up to 24px in total, not 40. */
+main [data-page-header] ~ [data-swap-root] > .tabrow:first-child { margin-top: 8px; }
