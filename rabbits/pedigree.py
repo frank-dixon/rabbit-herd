@@ -45,6 +45,7 @@ def cell(position, other, row):
         "pk": other.pk if herd else None, "tattoo": other.tattoo if herd else "",
         "breed": breed, "color": color, "line": (other.line if herd else "") or (row.line if row else ""),
         "born": other.birth_date if herd else None,
+        "outside": not isinstance(other, Rabbit),
     }
 
 

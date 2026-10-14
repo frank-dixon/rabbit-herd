@@ -25,7 +25,7 @@
     <div class="mt-4 hidden grid-cols-3 grid-rows-8 gap-2 md:grid print:grid print:gap-1" data-pedigree-tree>
       {% for title, slots, span in columns %}
         {% for slot in slots %}
-          <div style="grid-column: {{ forloop.parentloop.counter }}; grid-row: {{ slot.row }} / span {{ span }}">{% include "rabbits/_pedigree_cell.html" with slot=slot only %}</div>
+          <div style="grid-column: {{ forloop.parentloop.counter }}; grid-row: {{ slot.row }} / span {{ span }}">{% include "rabbits/_pedigree_cell.html" with slot=slot next_url=request.get_full_path csrf_token=csrf_token only %}</div>
         {% endfor %}
       {% endfor %}
     </div>
@@ -35,7 +35,7 @@
       {% for title, slots, span in columns %}
         <section aria-label="{{ title }}">
           <h3 class="text-sm font-semibold uppercase tracking-wide text-neutral-600">{{ title }}</h3>
-          <div class="mt-2 grid grid-cols-1 gap-2">{% for slot in slots %}{% include "rabbits/_pedigree_cell.html" with slot=slot only %}{% endfor %}</div>
+          <div class="mt-2 grid grid-cols-1 gap-2">{% for slot in slots %}{% include "rabbits/_pedigree_cell.html" with slot=slot next_url=request.get_full_path csrf_token=csrf_token only %}{% endfor %}</div>
         </section>
       {% endfor %}
     </div>

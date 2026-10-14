@@ -504,6 +504,8 @@ class OutsideRabbit(models.Model):
         blank=True,
         help_text="Anything that helps identify it, like an ear tag, registration number, breeder, or color.",
     )
+    photo = models.ImageField(upload_to="outside/", blank=True, null=True,
+                              help_text="Optional. Shown as its thumbnail in pedigrees and relatives.")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

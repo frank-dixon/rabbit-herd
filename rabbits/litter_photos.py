@@ -16,7 +16,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.templatetags.static import static
 from django.urls import reverse
 
-from .models import Litter, LitterKit, RabbitPhoto
+from .models import Litter, LitterKit, OutsideRabbit, RabbitPhoto
 from .photo_processing import clean_photo
 from .renditions import rendition
 
@@ -183,3 +183,37 @@ def copy_to_rabbit(slot, litter):
     photo = RabbitPhoto(rabbit=slot.rabbit, is_main=not slot.rabbit.photos.filter(is_main=True).exists())
     photo.image.save(source.name.rsplit("/", 1)[-1], ContentFile(data), save=True)
     return photo
+
+
+def coat_placeholder_url(color):
+    """The stock photo for one coat, by the same picker litters use."""
+    return static(PLACEHOLDERS[coat(color) or "default"])
+
+
+def outside_photo_url(outside, width=480):
+    if not outside.photo:
+        return None
+    return f"{reverse('outside_photo', args=[outside.pk])}?w={width}&v={outside.photo.name.rsplit('/', 1)[-1][:8]}"
+
+
+@login_required
+def outside_photo(request, pk):
+    """GET: an outside ancestor's photo. POST: set it (or remove it with remove=1)."""
+    outside = get_object_or_404(OutsideRabbit, pk=pk, owner=request.user)
+    if request.method != "POST":
+        return serve(request, outside.photo)
+    back = request.POST.get("next", "")
+    if not back.startswith("/") or back.startswith("//"):
+        back = reverse("rabbit_list")
+    if request.POST.get("remove"):
+        if outside.photo:
+            outside.photo.delete(save=True)
+        return answer(request, back)
+    try:
+        content = clean_photo(request.FILES["photo"])
+    except KeyError:
+        return answer(request, back, error="Choose a photo to upload.")
+    except ValidationError as error:
+        return answer(request, back, error=error.messages[0])
+    replace(outside.photo, content)
+    return answer(request, back, url=outside_photo_url(outside))

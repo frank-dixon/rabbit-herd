@@ -65,13 +65,12 @@
             {% for relative in relatives %}
               <li>
                 {% if relative.live_herd_rabbit %}<a href="{% url 'rabbit_detail' relative.live_herd_rabbit.pk %}" class="rel-row is-link focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">{% else %}<div class="rel-row">{% endif %}
-                  {% with main=relative.herd_rabbit.main_photo %}
-                    {% include "rabbits/_rabbit_thumb.html" with rabbit=relative.other main=main size_class="rel-thumb shrink-0 rounded-md text-base" only %}
-                  {% endwith %}
+                  {% include "components/ancestor_thumb.html" with rabbit=relative.other color=relative.color box="rel-thumb rounded-md" only %}
                   <span class="rel-body">
                     <span class="rel-kicker">{{ relative.get_relationship_display }}{% if relative.unavailable %} · Unavailable (deleted){% endif %}{% if relative.herd_rabbit.is_deceased %} · {{ relative.herd_rabbit.died_text|default:"Deceased" }}{% endif %}</span>
                     <span class="rel-title"><span class="rel-name">{{ relative.other.name }}{% if relative.live_herd_rabbit %}<span class="sr-only">, open its page</span>{% endif %}</span>{% if not relative.live_herd_rabbit %}<a class="rel-add" href="{% url 'relative_add_to_herd' relative.pk %}" data-modal>Add to my herd<span class="sr-only">: {{ relative.other.name }}</span></a>{% endif %}</span>
                     {% if relative.other.details %}<span class="rel-meta">{{ relative.other.details }}</span>{% endif %}
+                    {% if relative.outside_id %}{% include "components/outside_photo_form.html" with outside=relative.outside next=request.get_full_path csrf_token=csrf_token only %}{% endif %}
                     {% if relative.breed_text or relative.color or relative.line %}<span class="rel-meta">{% if relative.breed_text %}{{ relative.breed_text }}{% endif %}{% if relative.breed_text and relative.color %} · {% endif %}{% if relative.color %}{{ relative.color }}{% endif %}{% if relative.line %}{% if relative.breed_text or relative.color %} · {% endif %}Line {{ relative.line }}{% endif %}</span>{% endif %}
                   </span>
                 {% if relative.live_herd_rabbit %}</a>{% else %}</div>{% endif %}

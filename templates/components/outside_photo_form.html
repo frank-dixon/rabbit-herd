@@ -1,0 +1,7 @@
+{# Set or remove an outside ancestor's photo. Pass outside and next (the page to come back to). #}
+<details class="anc-photo print:hidden" data-outside-photo="{{ outside.pk }}"><summary>{% if outside.photo %}Change photo{% else %}Set photo{% endif %}<span class="sr-only"> for {{ outside.name }}</span></summary>
+  <form method="post" action="{% url 'outside_photo' outside.pk %}" enctype="multipart/form-data">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+    <input type="file" name="photo" accept="image/*" required aria-label="Photo of {{ outside.name }}"><button type="submit" class="btn-link">Upload</button>
+  </form>
+  {% if outside.photo %}<form method="post" action="{% url 'outside_photo' outside.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}"><input type="hidden" name="remove" value="1"><button type="submit" class="btn-link">Remove photo</button></form>{% endif %}
+</details>

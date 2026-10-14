@@ -1,0 +1,8 @@
+/* Ancestor thumbnails (pedigree cells, relatives cards). */
+.anc-thumb { display: block; background: #EEF0EC; }
+.anc-tag { position: absolute; left: 2px; bottom: 2px; padding: 0 3px; border-radius: 3px; font-size: 8px; line-height: 12px; font-weight: 500; color: #4C544F; background: rgb(255 255 255 / 0.9); }
+.anc-photo { margin-top: 2px; font-size: 11px; }
+.anc-photo summary { cursor: pointer; color: #4C544F; text-decoration: underline; }
+.anc-photo form { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.anc-photo input[type=file] { max-width: 100%; font-size: 11px; }
+@media print { .anc-tag { display: none; } }

@@ -28,5 +28,5 @@ class RelativeCardTests(PhotoTestCase):
         self.assertContains(page, "Florida White")
         self.assertContains(page, f'href="{reverse("rabbit_detail", args=[self.sire.pk])}"')
         self.assertContains(page, f'src="{reverse("rabbit_photo_file", args=[self.photo.pk])}?v=')
-        self.assertContains(page, ">S</span>")  # Snow's letter placeholder
+        self.assertContains(page, "data-placeholder-tag")  # Snow has no photo: stock placeholder
 

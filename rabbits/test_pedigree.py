@@ -64,7 +64,7 @@ class PedigreeThumbTests(TestCase):
         tree = body[body.index("data-pedigree-tree"):body.index("data-pedigree-list")]
         cell = lambda pos: tree[tree.index(f'data-pedigree-cell="{pos}"'):][:900]
         self.assertIn("md:h-14", cell("d"))
-        self.assertIn(">M</span>", cell("d"))
+        self.assertIn("data-placeholder-tag", cell("d"))  # no photo: coat-matched stock photo, tagged
         self.assertIn("h-12 w-12 rounded-lg text-base", cell("dd"))
-        self.assertIn(">O</span>", cell("dd"))
+        self.assertIn("data-placeholder-tag", cell("dd"))
         self.assertNotIn("data-avatar", cell("s")[:cell("s").index("</div>\n</div>")])

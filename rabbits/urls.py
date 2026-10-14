@@ -1,9 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.urls import path
 
+from . import litter_photos
 from . import status_views, history, culling, shows, pedigree, health, contact_views, location_views, weights, adopt_views, edit_views, flow_views, photo_views, views, schedules
 
 urlpatterns = [
+    path("outside/<int:pk>/photo/", litter_photos.outside_photo, name="outside_photo"),
     path("", views.rabbit_list, name="rabbit_list"),
     path("deleted/", views.rabbit_trash, name="rabbit_trash"),
     path("deleted/<int:pk>/restore/", views.rabbit_undelete, name="rabbit_undelete"),
