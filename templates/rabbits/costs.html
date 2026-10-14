@@ -23,12 +23,12 @@
     {% include "components/list_panel_start.html" with title="Recent costs" count=expenses|length id="costs-heading" hook="costs" empty="No costs yet." only %}
       {% for expense in expenses %}
         {% url 'cost_edit_form' expense.pk as edit_href %}
-        <li class="list-row" data-row>
+        <li class="panel-row" data-row>
           <div class="min-w-0 row-span-2">
-            <a class="list-row-link list-row-title block" href="{{ edit_href }}" data-modal>{{ expense.description }}</a>
-            <p class="list-row-meta">{{ expense.date|date:"D, M j" }} · {{ expense.get_category_display }}{% if expense.per_lb %} · {{ expense.weight_lb|floatformat:"-2" }} lb at {{ expense.per_lb|money }}/lb{% endif %}{% if expense.rabbit %} · {{ expense.rabbit.name }}{% endif %}{% if expense.litter %} · {{ expense.litter.pairing }} litter{% endif %}</p>
+            <a class="panel-row-link panel-row-title block" href="{{ edit_href }}" data-modal>{{ expense.description }}</a>
+            <p class="panel-row-meta">{{ expense.date|date:"D, M j" }} · {{ expense.get_category_display }}{% if expense.per_lb %} · {{ expense.weight_lb|floatformat:"-2" }} lb at {{ expense.per_lb|money }}/lb{% endif %}{% if expense.rabbit %} · {{ expense.rabbit.name }}{% endif %}{% if expense.litter %} · {{ expense.litter.pairing }} litter{% endif %}</p>
           </div>
-          <span class="list-row-value">{{ expense.amount|money }}</span>
+          <span class="panel-row-value">{{ expense.amount|money }}</span>
           {% url 'cost_delete' expense.pk as remove_action %}
           {% include "components/row_actions.html" with name=expense.description edit_href=edit_href remove_action=remove_action undo="Cost removed." only %}
         </li>

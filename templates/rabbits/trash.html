@@ -8,7 +8,7 @@
   {% if rabbits %}
     {% include "components/list_panel_start.html" with title="Deleted rabbits" count=rabbits|length id="trash-heading" hook="trash" only %}
       {% for rabbit in rabbits %}
-        <li class="list-row flex flex-wrap items-center gap-3" data-row>
+        <li class="panel-row is-flex flex-wrap items-center gap-3" data-row>
           {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=rabbit.main_photo size_class="list-thumb shrink-0 rounded-md text-base" only %}
           <div class="min-w-0 flex-1">
             <p class="truncate font-medium">{{ rabbit.name }}{% if rabbit.tattoo %} <span class="text-sm font-normal text-muted">· {{ rabbit.tattoo }}</span>{% endif %}</p>

@@ -20,22 +20,22 @@
 .chip-label { color: var(--ink-2); }
 .chip-value { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
 
-/* List panel: components/list_panel_start.html / list_panel_end.html; rows are .list-row */
+/* List panel: components/list_panel_start.html / list_panel_end.html; rows are .panel-row */
 .list-panel { margin-top: 32px; background: var(--surface); border-radius: 8px; box-shadow: var(--card-shadow); overflow: hidden; }
 .list-panel-head { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--side); box-shadow: inset 0 -1px 0 var(--line-soft); }
 .list-panel-head h2 { font-size: 15px; line-height: 24px; font-weight: 600; }
 .list-panel-count { font-size: 12px; line-height: 20px; padding: 0 8px; border-radius: 6px; background: var(--well); color: var(--muted); font-variant-numeric: tabular-nums; }
 .list-panel-empty { padding: 16px; color: var(--muted); font-size: 14px; }
-.list-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 16px; padding: 12px 16px; font-size: 14px; line-height: 20px; transition: background-color .12s; }
-.list-row + .list-row { box-shadow: inset 0 1px 0 var(--line-soft); }
-.list-row:has(.list-row-link):hover { background: var(--hover); cursor: pointer; }
-.list-row-title { font-weight: 500; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.list-row-meta { margin-top: 2px; font-size: 13px; color: var(--muted); }
-.list-row-link { color: inherit; }
-.list-row-link::after { content: ""; position: absolute; inset: 0; }
-.list-row-link:focus-visible { outline: none; }
-.list-row:has(.list-row-link:focus-visible) { box-shadow: inset 0 0 0 2px var(--accent); }
-.list-row-value { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.panel-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 16px; padding: 12px 16px; font-size: 14px; line-height: 20px; transition: background-color .12s; }
+.panel-row + .panel-row { box-shadow: inset 0 1px 0 var(--line-soft); }
+.panel-row:has(.panel-row-link):hover { background: var(--hover); cursor: pointer; }
+.panel-row-title { font-weight: 500; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-row-meta { margin-top: 2px; font-size: 13px; color: var(--muted); }
+.panel-row-link { color: inherit; }
+.panel-row-link::after { content: ""; position: absolute; inset: 0; }
+.panel-row-link:focus-visible { outline: none; }
+.panel-row:has(.panel-row-link:focus-visible) { box-shadow: inset 0 0 0 2px var(--accent); }
+.panel-row-value { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* Row actions: components/row_actions.html. Quiet icon buttons that sit above the row link. */
 .row-actions { position: relative; z-index: 1; display: flex; gap: 4px; }
@@ -53,13 +53,13 @@
   .chip { padding: 4px 8px; font-size: 12px; }
   .list-panel { margin-top: 24px; }
   .list-panel-head { padding: 12px; }
-  .list-row { gap: 8px; padding: 12px; grid-template-columns: minmax(0, 1fr) auto; }
-  .list-row-title { white-space: normal; }
-  .list-row { align-items: start; row-gap: 0; }
-  .list-row-value { grid-column: 2; grid-row: 1; padding-top: 0; }
+  .panel-row { gap: 8px; padding: 12px; grid-template-columns: minmax(0, 1fr) auto; }
+  .panel-row-title { white-space: normal; }
+  .panel-row { align-items: start; row-gap: 0; }
+  .panel-row-value { grid-column: 2; grid-row: 1; padding-top: 0; }
   .row-actions { grid-column: 2; grid-row: 2; justify-self: end; margin: 0 -6px -6px 0; }
 }
-@media (prefers-reduced-motion: reduce) { .list-row { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .panel-row { transition: none; } }
 
 /* Sheet pages (components/sheet_base.html) opened in the shared modal: the modal header already names the
    form, so drop the page's eyebrow + title, keep any lede, and use the modal's full width. */
@@ -69,7 +69,7 @@
 .app-modal-body .v2-hero:not(:has(> :not(div:first-child, h1))) { display: none; }
 .app-modal-body [data-action-bar] { position: static; padding: 0; margin-top: 24px; background: none; backdrop-filter: none; }
 /* Links inside a row (a rabbit name) sit above the row's stretched edit link. */
-.list-row a:not(.list-row-link), .list-row button { position: relative; z-index: 1; }
+.panel-row a:not(.panel-row-link), .panel-row button { position: relative; z-index: 1; }
 .list-panel + .list-panel { margin-top: 24px; }
 .app-modal-body > :first-child { margin-top: 0; padding-top: 0; }
 
@@ -92,3 +92,4 @@
 .pill-y { --pill-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M4 0 8 8H0z'/%3E%3C/svg%3E"); }
 .pill-b { --pill-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M4 0a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 1.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z'/%3E%3C/svg%3E"); }
 .pill-g { --pill-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Ccircle cx='4' cy='4' r='4'/%3E%3C/svg%3E"); }
+.panel-row.is-flex { display: flex; }

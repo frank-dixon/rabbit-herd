@@ -1,4 +1,4 @@
-{# Open a list panel: a tinted header with a count, then <ul> of .list-row items. title, count, id (heading id), hook (data-<hook> on the <ul>), empty (shown when count is 0). Close with list_panel_end.html. #}
+{# Open a list panel: a tinted header with a count, then <ul> of .panel-row items. title, count, id (heading id), hook (data-<hook> on the <ul>), empty (shown when count is 0). Close with list_panel_end.html. #}
 <section class="list-panel" aria-labelledby="{{ id }}">
   <div class="list-panel-head"><h2 id="{{ id }}">{{ title }}</h2>{% if count %}<span class="list-panel-count">{{ count }}</span>{% endif %}</div>
   {% if not count %}<p class="list-panel-empty">{{ empty|default:"Nothing here yet." }}</p>{% endif %}
