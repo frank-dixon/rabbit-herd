@@ -17,7 +17,7 @@ from .forms import ComponentExampleForm
 def index(request):
     if request.user.is_authenticated:
         return render(request, "home.html", home_context(request.user))
-    return render(request, "landing.html")
+    return render(request, "marketing/home.html")
 
 
 def theme_dark_swatch(key):

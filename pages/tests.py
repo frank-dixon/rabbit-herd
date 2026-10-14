@@ -162,4 +162,15 @@ class LandingPageTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Bramble Burrow")
-        self.assertContains(response, "Private records for your rabbitry")
+        self.assertContains(response, "Run your rabbitry from one place.")
+        self.assertContains(response, 'href="/login/"')
+        self.assertContains(response, 'href="/signup/"')
+
+    def test_signed_in_user_gets_the_app_at_root(self):
+        from django.contrib.auth import get_user_model
+
+        user = get_user_model().objects.create_user(email="m@example.com", password="x-Long-pass-123")
+        self.client.force_login(user)
+        response = self.client.get("/")
+        self.assertNotContains(response, "Run your rabbitry from one place.")
+        self.assertContains(response, "Today")
