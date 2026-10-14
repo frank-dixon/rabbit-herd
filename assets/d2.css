@@ -261,3 +261,12 @@ main .rel-name { min-width: 0; font-weight: 600; color: var(--ink); overflow-wra
 main .rel-add { flex-shrink: 0; font-size: 13px; font-weight: 500; color: var(--accent); cursor: pointer; text-underline-offset: 2px; }
 main .rel-add:hover { text-decoration: underline; }
 main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 18px; color: var(--muted); overflow-wrap: anywhere; }
+
+/* Rabbit page, 1024px and up: the title row sticks under the top bar and the facts column (photo + facts)
+   sticks below it, so the name and photo stay in view together. The column scrolls inside itself if it is
+   taller than the space left. Phones and tablets scroll normally. */
+@media (min-width: 1024px) {
+  main .detail-head { position: sticky; top: 57px; z-index: 15; background: var(--canvas); margin: 0 -1rem; padding: 8px 1rem 12px; }
+  main .detail-head [data-page-header] { margin-bottom: 0; }
+  main .detail-facts { position: sticky; top: calc(57px + 7.25rem); max-height: calc(100dvh - 57px - 7.25rem - 1rem); }
+}
