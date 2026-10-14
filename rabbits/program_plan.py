@@ -11,6 +11,7 @@ from . import planner as P
 from .color_odds import UNKNOWN
 from . import routes as routes_mod
 from .models import Gene, Litter, Pairing, Rabbit, Relative, prefs
+from .gene_fill import from_breed_and_color
 from .pedigree import known_parents
 
 FULL = {"B": "B_", "C": "C_", "D": "D_", "E": "E_"}
@@ -82,6 +83,26 @@ def rabbit_genes(rabbit):
     return P.read_genes(texts)
 
 
+def blank(genes):
+    return all(set(p) == {UNKNOWN} for p in genes.values())
+
+
+def planning_genes(rabbit):
+    """The rabbit's recorded genes; with none recorded, what its breed, color
+    and eye color prove (gene_fill), so a herd with colors but no Gene rows
+    still plans. Loci nothing proves stay unknown."""
+    genes = rabbit_genes(rabbit)
+    if blank(genes):
+        genes = P.read_genes(from_breed_and_color(rabbit.breed or "", rabbit.color or "", rabbit.eye_color or ""))
+    return genes
+
+
+def unknown_gene_count(user):
+    """Herd rabbits the planner can say nothing about: no genes recorded
+    and none inferable from breed and color."""
+    return sum(1 for r in herd_breeders(user) if blank(planning_genes(r)))
+
+
 def herd_breeders(user):
     """Rabbits still in the herd; sold, culled and deceased ones are gone."""
     return list(Rabbit.objects.filter(owner=user, archived_at__isnull=True)
@@ -106,7 +127,7 @@ def candidates(program):
         if sold:
             where = f"Sold {nice_date(r.sold_on)} · ask buyer" if r.sold_on else "Sold · ask buyer"
         out.append({"key": f"h:{r.pk}", "node": ("h", r.pk), "name": r.name, "sex": r.sex, "rabbit": r,
-                    "breed": r.short_breed or "Unknown", "genes": rabbit_genes(r), "where": where, "sold": sold,
+                    "breed": r.short_breed or "Unknown", "genes": planning_genes(r), "where": where, "sold": sold,
                     "outside": False, "litter": litter})
     for b in program.outside.all():
         out.append({"key": f"x:{b.pk}", "node": ("x", b.pk), "name": b.name, "sex": b.sex, "rabbit": None, "breeder": b,
@@ -364,13 +385,13 @@ ALLELE_WORDS = {"b": "chocolate", "d": "dilute", "a": "self", "at": "tan pattern
 
 
 def known_breeders(user, program=None):
-    """Every rabbit with genes on record, for route finding: herd rabbits
+    """Every rabbit with genes on record (or inferred from its color), for route finding: herd rabbits
     (sold and culled need access; deceased are evidence only), outside
     relatives named in pedigrees, and the program's outside breeders."""
     out = []
     for r in Rabbit.all_objects.filter(owner=user).prefetch_related("genes"):
-        genes = rabbit_genes(r)
-        if all(set(p) == {UNKNOWN} for p in genes.values()):
+        genes = planning_genes(r)
+        if blank(genes):
             continue
         state = "evidence" if r.status == Rabbit.Status.DECEASED else ("access" if r.status in Rabbit.FORMER or r.archived_at else "ready")
         out.append({"key": f"h:{r.pk}", "name": r.name, "sex": r.sex, "genes": genes, "state": state, "rabbit": r, "node": ("h", r.pk)})

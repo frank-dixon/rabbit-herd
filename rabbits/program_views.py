@@ -110,7 +110,7 @@ def goal_page(request, program):
     targets = plan_mod.goal_options(request.user)
     return render(request, "programs/setup.html", {
         "program": program, "steps": steps("goal", program), "stage": "goal", "values": values, "errors": errors,
-        "targets": targets, "custom_rows": custom_rows, "coi_choices": COI_CHOICES,
+        "targets": targets, "unknown_genes": plan_mod.unknown_gene_count(request.user), "custom_rows": custom_rows, "coi_choices": COI_CHOICES,
         "keep_sex_choices": Program.KeepSex.choices, "wide": True,
     })
 

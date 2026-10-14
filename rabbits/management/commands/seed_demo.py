@@ -10,7 +10,7 @@ Commons, CC/PD; author, license and source in attribution.json and in the photo'
 
 Idempotent: re-running updates the account and rebuilds the demo herd in place, so
 nothing is duplicated. Dates are relative to today, so the herd always looks current.
-Only the demo account's own data is touched.
+Only the demo account's own data is touched. --genes-only backfills just the\nrabbits' genes on an existing demo account, leaving the rest of it alone.
 """
 import datetime
 import json
@@ -24,7 +24,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
-from rabbits.models import (Breed, Contact, CullNote, Expense, HealthNote, HerdSettings, Litter, Location, Pairing,
+from rabbits.models import (Breed, Contact, CullNote, Expense, Gene, HealthNote, HerdSettings, Litter, Location, Pairing,
                             Rabbit, RabbitPhoto, Task, WaitlistEntry, Weight)
 from rabbits.renditions import delete_renditions
 
@@ -68,6 +68,38 @@ HERD = [
     ("Ivy", "doe", "Mini Rex", "Opal", 160, "sold", {"buyer": 0, "tattoo": "HC2518"}),
 ]
 
+# Each demo rabbit's genotype (A B C D E En), consistent with its breed and
+# color, with hidden carriers (b, d, c, at, e) so the planner finds goals
+# within the herd and, for ruby-eyed white (c is only carried by sold,
+# culled and deceased rabbits), through rabbits outside the herd.
+GENES = {
+    "Ashford": "Aa Bb CC Dd Ee enen", "Merrick": "Aat BB CC Dd EE Enen",
+    "Juniper": "aa Bb CC Dd Ee enen", "Marigold": "Aa BB CC Dd EE Enen", "Sorrel": "Aa BB CC Dd ee enen",
+    "Willa": "Aa Bb CC dd EE enen", "Thimble": "aa BB CC Dd ee enen", "Pippa": "aa Bb CC DD ee Enen",
+    "Clementine": "Aa BB CC Dd Ee enen", "Hazel": "Aa bb CC dd EE enen", "Briar": "Aa Bb CC Dd Ee enen",
+    "Nettle": "Aa BB CC Dd Ee Enen", "Fennel": "Aat Bb CC Dd EE Enen", "Rosalind": "ata BB CC DD Ee enen",
+    "Barnaby": "aa BB Cc dd EE enen", "Cobalt": "aa Bb cchlcchl Dd EE enen", "Wexley": "Aa Bb CC dd ee enen",
+    "Elsie": "atat Bb CC Dd EE enen", "Tansy": "aa bb Cc DD EE enen", "Maple": "aa BB cchlc DD EE enen",
+    "Rue": "Aa BB CC Dd ee enen", "Delphine": "aa Bb CC Dd ee enen", "Saffron": "Aa BB CC DD ee Enen",
+    "Lark": "Aa Bb CC DD EE enen", "Calder": "Aa bb CC Dd EE enen", "Odette": "aa Bb Cc dd EE enen",
+    "Fable": "aa bb Cc Dd ee Enen", "Quill": "ata Bb CC Dd EE enen", "Ivy": "Aa BB Cc dd Ee enen",
+}
+GENE_LOCI = ["A", "B", "C", "D", "E", "En"]
+
+
+def set_genes(rabbits):
+    """Replace each demo rabbit's standard-locus Gene rows with GENES. Returns rows written."""
+    count = 0
+    for name, rabbit in rabbits.items():
+        if name not in GENES:
+            continue
+        Gene.objects.filter(rabbit=rabbit, locus__in=GENE_LOCI).delete()
+        Gene.objects.bulk_create([Gene(rabbit=rabbit, locus=locus, genotype=text, certainty=Gene.Certainty.PROBABLE)
+                                  for locus, text in zip(GENE_LOCI, GENES[name].split())])
+        count += len(GENE_LOCI)
+    return count
+
+
 BUYERS = [
     ("Dana Whitfield", "Whitfield Farm Rabbitry", "(717) 555-0142", "Lancaster, PA"),
     ("Marcus Ortega", "Cedar Run Rex", "(540) 555-0187", "Winchester, VA"),
@@ -101,8 +133,19 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--no-password", action="store_true",
                             help="Don't set the password: an existing account keeps its own; a new one gets none.")
+        parser.add_argument("--genes-only", action="store_true",
+                            help="Only (re)write the genes of the existing demo account's rabbits; nothing else changes.")
 
-    def handle(self, no_password=False, **options):
+    def handle(self, no_password=False, genes_only=False, **options):
+        if genes_only:
+            user = get_user_model().objects.filter(email__iexact=DEMO_EMAIL).first()
+            if user is None:
+                raise CommandError(f"No {DEMO_EMAIL} account; run seed_demo without --genes-only first.")
+            with transaction.atomic():
+                rabbits = {r.name: r for r in Rabbit.all_objects.filter(owner=user, name__in=GENES)}
+                rows = set_genes(rabbits)
+            self.stdout.write(f"Genes set on {len(rabbits)} demo rabbits ({rows} rows).")
+            return
         password = None if no_password else os.environ.get("DEMO_PASSWORD")
         if not no_password and not password:
             raise CommandError("Set DEMO_PASSWORD in the environment, or pass --no-password.")
@@ -153,6 +196,7 @@ class Command(BaseCommand):
                 death_cause=extra.get("cause", "Culled" if status == "culled" else ""), source=source)
 
         R = rabbits
+        set_genes(R)
         photos = self.photos(R, old_files)
         # Litters: weaned (Briar and Nettle came from it), nursing, due soon, just bred.
         def litter(doe, buck, bred, **kw):

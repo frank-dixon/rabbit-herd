@@ -12,6 +12,7 @@
     <h2 class="font-semibold"><span class="num">1</span> · Goal</h2>
     <fieldset class="mt-4">
       <legend class="eyebrow">Target color</legend>
+      {% if unknown_genes %}<p class="mt-1 text-sm text-muted">{{ unknown_genes }} rabbit{{ unknown_genes|pluralize:" has,s have" }} no genes recorded, so {{ unknown_genes|pluralize:"it is,they are" }} left out of these odds. <a class="text-accent underline" href="{% url 'rabbit_list' %}">Add genes on the rabbit pages</a></p>{% endif %}
       {% if errors.target %}<p class="mt-1 text-sm text-danger" id="target-error">{{ errors.target }}</p>{% endif %}
       <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {% for t in targets %}
