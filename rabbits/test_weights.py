@@ -143,8 +143,8 @@ class WeightsSortTests(TestCase):
         Weight.objects.create(rabbit=b, date=day, grams=3000)
         Weight.objects.create(rabbit=b, date=day + datetime.timedelta(days=7), grams=2900)
         names = lambda sort: [row["rabbit"].name for row in self.client.get(reverse("weights_hub"), {"sort": sort}).context["rows"]]
-        self.assertEqual(names("weight"), ["Birch", "Alder"])
-        self.assertEqual(names("change"), ["Alder", "Birch"])
-        rows = self.client.get(reverse("weights_hub"), {"sort": "change"}).context["rows"]
+        self.assertEqual(names("-weight"), ["Birch", "Alder"])
+        self.assertEqual(names("-change"), ["Alder", "Birch"])
+        rows = self.client.get(reverse("weights_hub"), {"sort": "-change"}).context["rows"]
         self.assertTrue(rows[0]["change_text"].startswith("+"))
         self.assertTrue(rows[1]["change_text"].startswith("−"))
