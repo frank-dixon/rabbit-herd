@@ -1137,6 +1137,7 @@ class HealthNote(models.Model):
     notes = models.TextField(max_length=1000, blank=True)
     follow_up_on = models.DateField(null=True, blank=True)
     task = models.OneToOneField(Task, related_name="health_note", null=True, blank=True, on_delete=models.SET_NULL)
+    resolved = models.BooleanField(default=False, help_text="Closed out: nothing left to watch or follow up.")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

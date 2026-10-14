@@ -4,14 +4,17 @@ every rabbit. Shows and Health use the shared Grid/List index items."""
 from collections import Counter
 
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
-from .index_items import index_view, ordinal, place_tone, stat, view_options
+from .index_items import index_view, ordinal, place_tone, stat, tabs, view_options
 from .models import HealthNote, ShowEntry
 
 LEGS_FOR_GC = 3  # ARBA: three legs, at least one as a senior, make a Grand Champion.
+KIND_TONE = {"illness": "r", "injury": "y", "treatment": "b", "checkup": ""}
 
 
 def short(day):
@@ -20,8 +23,64 @@ def short(day):
 
 @login_required
 def health_list(request):
-    notes = HealthNote.objects.filter(rabbit__owner=request.user).select_related("rabbit").prefetch_related("rabbit__photos")[:100]
-    return render(request, "hub/health.html", {"notes": notes})
+    today = timezone.localdate()
+    notes = list(HealthNote.objects.filter(rabbit__owner=request.user).select_related("rabbit", "task").prefetch_related("rabbit__photos").order_by("-date", "-pk")[:200])
+    view = index_view(request, "health", "list")
+    tab = request.GET.get("tab", "open")
+    tab = tab if tab in ("open", "resolved", "all") else "open"
+    open_notes = [n for n in notes if not n.resolved]
+    overdue = sum(1 for n in open_notes if n.follow_up_on and n.follow_up_on < today)
+    shown = {"open": open_notes, "resolved": [n for n in notes if n.resolved], "all": notes}[tab]
+    items = sorted((health_item(n, today) for n in shown), key=lambda it: it["order"])
+    recent = sum(1 for n in notes if (today - n.date).days <= 30)
+    return render(request, "hub/health.html", {
+        "notes": notes, "items": items, "wide": True, "view": view, "view_options": view_options(request, view),
+        "tabs": tabs(request, tab, [("open", "Open", len(open_notes)), ("resolved", "Resolved", len(notes) - len(open_notes)), ("all", "All", len(notes))]),
+        "stats": [stat("Open", len(open_notes), "notes to watch"), stat("Overdue", overdue, "follow-ups past due", "r" if overdue else ""),
+                  stat("Logged in 30 days", recent, "all types")],
+        "columns": [{"label": "Rabbit"}, {"label": "Type"}, {"label": "Note", "wide_only": True}, {"label": "Follow-up", "wide_only": True},
+                    {"label": "State", "align": "r", "wide_only": True}, {"label": "", "align": "r"}],
+    })
+
+
+def health_item(note, today):
+    if note.resolved:
+        state, follow, tone = {"label": "Resolved", "tone": ""}, "—", ""
+    else:
+        state = {"label": "Open", "tone": "y"}
+        if note.follow_up_on:
+            days = (note.follow_up_on - today).days
+            follow = f"Overdue {-days} day{'s' if days != -1 else ''}" if days < 0 else "Follow up today" if days == 0 else f"Follow up in {days} day{'s' if days != 1 else ''}"
+            tone = "r" if days < 0 else ""
+        else:
+            follow, tone = "No follow-up set", ""
+    kind = {"label": note.get_kind_display(), "tone": KIND_TONE.get(note.kind, "")}
+    action = {"url": reverse("health_resolve", args=[note.pk]), "label": "Reopen" if note.resolved else "Resolve"}
+    when = short(note.follow_up_on) if note.follow_up_on else ""
+    return {
+        "href": f"{reverse('rabbit_detail', args=[note.rabbit_id])}#health", "title": note.rabbit.name, "sub": short(note.date),
+        "thumbs": [note.rabbit], "pill": kind, "text": note.notes, "dim": note.resolved, "action": action,
+        "foot": {"strong": "", "text": follow, "tone": tone, "end": state},
+        "mobile": note.notes + ("" if note.resolved else f" · {follow}"),
+        "cells": [{"kind": "lead"}, {"kind": "pill", **kind}, {"kind": "text", "main": note.notes, "wide_only": True, "wrap": True},
+                  {"kind": "text", "main": follow, "sub": when, "tone": tone, "wide_only": True},
+                  {"kind": "pill", "align": "r", "wide_only": True, **state}, {"kind": "action", "align": "r"}],
+        "order": (note.resolved, not (note.follow_up_on and not note.resolved), note.follow_up_on or today, -note.date.toordinal()),
+    }
+
+
+@login_required
+@require_POST
+def health_resolve(request, pk):
+    """Resolve (or reopen) a health note; resolving also closes its open follow-up task."""
+    note = get_object_or_404(HealthNote, rabbit__owner=request.user, pk=pk)
+    with transaction.atomic():
+        note.resolved = not note.resolved
+        note.save(update_fields=["resolved"])
+        if note.resolved and note.task_id and note.task.done_at is None:
+            note.task.done_at = timezone.now()
+            note.task.save(update_fields=["done_at"])
+    return redirect(request.POST.get("next") or request.META.get("HTTP_REFERER") or reverse("health_list"))
 
 
 @login_required

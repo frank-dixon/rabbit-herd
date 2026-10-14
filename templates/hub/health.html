@@ -1,18 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Health · {{ app_name }}{% endblock %}
 {% block content %}<span data-refreshable hidden></span>
-  {% include "components/page_header.html" with title="Health" subtitle="Every health note across the herd." only %}
+  <div data-swap-root>
+  {% include "components/page_header.html" with title="Health" subtitle="Checkups, treatments and follow-ups." actions_template="components/view_toggle.html" %}
   {% if notes %}
-    <ul class="mo-stagger mt-5 divide-y divide-line overflow-hidden rounded-md border border-line bg-surface">
-      {% for note in notes %}
-        <li><a class="flex items-center gap-3 px-4 py-3 hover:bg-side" href="{% url 'rabbit_detail' note.rabbit_id %}#health">{% include "components/rabbit_avatar.html" with rabbit=note.rabbit size="sm" only %}<span class="min-w-0 flex-1">
-          <span class="flex items-baseline justify-between gap-3"><span class="truncate font-semibold">{{ note.rabbit.name }} · {{ note.get_kind_display }}</span><span class="num shrink-0 text-xs text-muted">{{ note.date|date:"M j, Y" }}</span></span>
-          {% if note.notes %}<span class="mt-0.5 block truncate text-sm text-muted">{{ note.notes }}</span>{% endif %}
-          {% if note.follow_up_on %}<span class="mt-0.5 block text-xs text-second-ink">Follow up {{ note.follow_up_on|date:"M j" }}</span>{% endif %}</span>
-        </a></li>
-      {% endfor %}
-    </ul>
+    <div data-swap="stats">{% include "components/stat_cards.html" with stats=stats label="Health" only %}</div>
+    {% include "components/tabs.html" with tabs=tabs label="Open or resolved" only %}
+    <div data-swap="results">{% if view == "list" %}{% include "components/item_rows.html" %}{% else %}{% include "components/item_grid.html" %}{% endif %}</div>
   {% else %}
 {% url "rabbit_list" as r_url %}{% include "components/empty.html" with title="No health notes yet." text="Add one from a rabbit's page. A follow-up date puts it on Today." href=r_url action="Open your rabbits" secondary=True icon=ui_icons.health only %}
   {% endif %}
+  </div>
 {% endblock %}
