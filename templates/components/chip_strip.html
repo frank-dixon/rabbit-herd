@@ -1,0 +1,7 @@
+{# A titled row of label/value chips. title, items (a list of (label, value) pairs; values already formatted), hook (data-<hook> on the wrapper). Wraps on phones. #}
+{% if items %}
+<section class="chip-strip" aria-label="{{ title }}"{% if hook %} data-{{ hook }}{% endif %}>
+  <h2 class="chip-strip-title">{{ title }}</h2>
+  <ul>{% for label, value in items %}<li class="chip"><span class="chip-label">{{ label }}</span><span class="chip-value num">{{ value }}</span></li>{% endfor %}</ul>
+</section>
+{% endif %}

@@ -8,6 +8,7 @@
 @import "./ancestor-thumb.css";
 @import "./weights.css";
 @import "./items.css";
+@import "./components.css";
 
 /* Self-hosted fonts (SIL OFL, licences in static/fonts) so the installed app
    renders the same offline. Instrument Sans for text, DM Mono for numbers. */

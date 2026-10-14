@@ -1,0 +1,2 @@
+{# One stat in a <dl class="stat-grid">. label, value, unit (small text after the value), sub (optional small line), hook (adds data-<hook> to the value). #}
+<div class="stat-card"><dt>{{ label }}</dt><dd class="num"{% if hook %} data-{{ hook }}{% endif %}>{% if value is None or value == "" %}—{% else %}{{ value }}{% endif %}{% if unit %} <span>{{ unit }}</span>{% endif %}</dd><p>{{ sub|default:"" }}</p></div>
