@@ -9,7 +9,7 @@
 .wt-btn-pri { background: var(--accent); color: var(--on-accent); } .wt-btn-pri:hover { background: var(--accent-hover); }
 .wt-btn-sm { height: 24px; padding: 0 8px; font-size: 12px; border-radius: 4px; }
 .wt-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 24px 0 0; }
-.wt-stat { background: var(--surface); border-radius: 12px; box-shadow: var(--card-shadow); padding: 16px; min-width: 0; }
+.wt-stat { background: var(--surface); border-radius: 8px; box-shadow: var(--card-shadow); padding: 16px; min-width: 0; }
 .wt-stat dt { font-size: 12px; line-height: 16px; color: var(--muted); }
 .wt-stat dd { margin: 4px 0 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; }
 .wt-stat dd span { font-size: 13px; font-weight: 400; color: var(--muted); }
@@ -99,3 +99,5 @@
   .wt-chart text { font-size: 20px; }
   .wt-chart .wt-dot { r: 5; }
 }
+/* Shared: .wt-stats/.wt-stat are the app's stat cards (Weights, Costs). The note line under them. */
+.stat-note { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; line-height: 20px; color: var(--ink-2); }

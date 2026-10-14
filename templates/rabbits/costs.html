@@ -6,14 +6,14 @@
 {% block content %}
   {% include "components/page_header.html" with title="Costs" primary_label="New cost" primary_href="?new=1#add" subtitle="Feed purchases and other spending, with simple totals." only %}
 
-  <section class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Totals" data-cost-totals>
-    <div class="rounded border border-neutral-300 bg-white p-3"><p class="text-sm text-neutral-600">{{ totals.month_label }}</p><p class="text-xl font-semibold">{{ totals.month|money }}</p></div>
-    <div class="rounded border border-neutral-300 bg-white p-3"><p class="text-sm text-neutral-600">{{ totals.year_label }}</p><p class="text-xl font-semibold">{{ totals.year|money }}</p></div>
-    <div class="rounded border border-neutral-300 bg-white p-3"><p class="text-sm text-neutral-600">Feed per rabbit, {{ totals.month_label }}</p><p class="text-xl font-semibold" data-feed-per-rabbit>{% if totals.feed_per_rabbit %}{{ totals.feed_per_rabbit|money }}{% else %}—{% endif %}</p><p class="text-xs text-neutral-600">{{ totals.active }} active rabbit{{ totals.active|pluralize }}</p></div>
-    <div class="rounded border border-neutral-300 bg-white p-3"><p class="text-sm text-neutral-600">Feed price per lb, {{ totals.year_label }}</p><p class="text-xl font-semibold">{% if totals.price_per_lb %}{{ totals.price_per_lb|money }}{% else %}—{% endif %}</p><p class="text-xs text-neutral-600">All time {{ totals.all|money }}</p></div>
-  </section>
+  <dl class="wt-stats" aria-label="Totals" data-cost-totals>
+    <div class="wt-stat"><dt>{{ totals.month_label }}</dt><dd class="num">{{ totals.month|money }}</dd><p>&nbsp;</p></div>
+    <div class="wt-stat"><dt>{{ totals.year_label }}</dt><dd class="num">{{ totals.year|money }}</dd><p>&nbsp;</p></div>
+    <div class="wt-stat"><dt>Feed per rabbit, {{ totals.month_label }}</dt><dd class="num" data-feed-per-rabbit>{% if totals.feed_per_rabbit %}{{ totals.feed_per_rabbit|money }}{% else %}—{% endif %}</dd><p>{{ totals.active }} active rabbit{{ totals.active|pluralize }}</p></div>
+    <div class="wt-stat"><dt>Feed price per lb, {{ totals.year_label }}</dt><dd class="num">{% if totals.price_per_lb %}{{ totals.price_per_lb|money }}{% else %}—{% endif %}</dd><p>All time {{ totals.all|money }}</p></div>
+  </dl>
   {% if totals.by_category %}
-    <p class="mt-3 text-sm text-neutral-700" data-by-category>{{ totals.year_label }} by category: {% for label, amount in totals.by_category %}{{ label }} {{ amount|money }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+    <p class="stat-note" data-by-category><span class="text-muted">{{ totals.year_label }} by category</span>{% for label, amount in totals.by_category %}<span class="whitespace-nowrap">{{ label }} <span class="num">{{ amount|money }}</span></span>{% endfor %}</p>
   {% endif %}
 
   <details class="add-sheet mt-6" id="add" data-add-sheet{% if request.GET.new or request.GET.rabbit or request.GET.litter or errors or editing %} open{% endif %}>
