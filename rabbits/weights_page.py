@@ -50,13 +50,37 @@ def change_30(weights):
 
 
 def spark(weights, today, w=64, h=20):
-    pts = [x for x in weights if (today - x.date).days <= 365][-12:]
+    """SVG path for the Table's trend: the same 12-month window as the Chart view and a
+    zero-based y axis, so a few ounces on an adult reads nearly flat and a junior climbs.
+    Drawn as a monotone cubic (Fritsch-Carlson) so it is smooth without overshoot."""
+    pts = [x for x in weights if (today - x.date).days <= 365]
     if len(pts) < 2:
         return ""
-    lo, hi = min(p.grams for p in pts), max(p.grams for p in pts)
-    span_d = max((pts[-1].date - pts[0].date).days, 1)
-    span_g = max(hi - lo, 1)
-    return " ".join(f"{round(2 + (w - 4) * (p.date - pts[0].date).days / span_d, 1)},{round(h - 2 - (h - 4) * (p.grams - lo) / span_g, 1)}" for p in pts)
+    start = pts[0].date
+    span_d = max((pts[-1].date - start).days, 1)
+    top = max(p.grams for p in pts) * 1.05
+    xy = [(2 + (w - 4) * (p.date - start).days / span_d, h - 2 - (h - 4) * p.grams / top) for p in pts]
+    xy = [q for i, q in enumerate(xy) if i == 0 or q[0] > xy[i - 1][0]]  # one point per x
+    if len(xy) < 2:
+        return ""
+    n = len(xy)
+    d = [(xy[i + 1][1] - xy[i][1]) / (xy[i + 1][0] - xy[i][0]) for i in range(n - 1)]
+    m = [d[0]] + [0 if d[i - 1] * d[i] <= 0 else (d[i - 1] + d[i]) / 2 for i in range(1, n - 1)] + [d[-1]]
+    for i in range(n - 1):
+        if d[i] == 0:
+            m[i] = m[i + 1] = 0
+        else:
+            a_, b_ = m[i] / d[i], m[i + 1] / d[i]
+            if a_ * a_ + b_ * b_ > 9:
+                t = 3 / (a_ * a_ + b_ * b_) ** 0.5
+                m[i], m[i + 1] = t * a_ * d[i], t * b_ * d[i]
+    f = lambda v: f"{v:.1f}"
+    out = [f"M{f(xy[0][0])},{f(xy[0][1])}"]
+    for i in range(n - 1):
+        (x0, y0), (x1, y1) = xy[i], xy[i + 1]
+        dx = (x1 - x0) / 3
+        out.append(f"C{f(x0 + dx)},{f(y0 + m[i] * dx)} {f(x1 - dx)},{f(y1 - m[i + 1] * dx)} {f(x1)},{f(y1)}")
+    return " ".join(out)
 
 
 def signed(grams, unit):
