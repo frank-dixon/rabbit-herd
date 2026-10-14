@@ -107,12 +107,11 @@ def goal_page(request, program):
             return redirect("program_breeders", program.pk)
     custom_rows = [{"locus": locus, "name": f"custom_{locus}", "options": locus_choices(locus),
                     "value": values["custom"].get(locus, "")} for locus in PLAN_LOCI]
-    targets = [{"key": k, "label": l, "text": t, "genes": plan_mod.target_text(g)} for k, l, t, g in plan_mod.TARGETS]
+    targets = plan_mod.goal_options(request.user)
     return render(request, "programs/setup.html", {
         "program": program, "steps": steps("goal", program), "stage": "goal", "values": values, "errors": errors,
         "targets": targets, "custom_rows": custom_rows, "coi_choices": COI_CHOICES,
         "keep_sex_choices": Program.KeepSex.choices, "wide": True,
-        "attainable": plan_mod.attainable(request.user),
     })
 
 

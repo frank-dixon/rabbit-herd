@@ -470,16 +470,27 @@ def shortest_view(program, breeders=None, plan=None):
     return view
 
 
-def attainable(user):
-    """Which preset goals the known rabbits can reach: [{key, label, route}],
-    herd-only routes first, then those needing access, then evidence-only."""
+def goal_options(user):
+    """Every preset target, sorted into the four tiers (routes.tier) and,
+    within each, by fewest generations then best odds; each with a tier badge
+    and one short line on how."""
     breeders = known_breeders(user)
     out = []
-    for key, label, _text, target in TARGETS:
-        ready, overall = routes_mod.shortest(target, breeders)
-        best = ready or overall
-        if best:
-            out.append({"key": key, "label": label, "route": route_view(best, target),
-                        "better": route_view(overall, target) if ready and overall and overall["generations"] < ready["generations"] else None})
-    out.sort(key=lambda g: (routes_mod.STATE_RANK[g["route"]["state"]], g["route"]["generations"], g["label"]))
+    for key, label, text, target in TARGETS:
+        t = routes_mod.tier(target, breeders)
+        gens = f"{t['generations']} generation{'s' if t['generations'] != 1 else ''}"
+        if t["tier"] in (1, 2):
+            first = t["route"]["steps"][0]
+            how = f"{gens} · {first[0]['name']} × {first[1]['name']}"
+        elif t["tier"] == 3:
+            spec, partner = t["spec"], t["partner"]
+            want = "buck" if partner["sex"] == "doe" else "doe"
+            carries = [ALLELE_WORDS.get(a, a) for _, a in routes_mod.carries(spec["genes"])]
+            how = f"Buy a {phenotype_of(spec['genes']).lower()} {want}" + (f" carrying {', '.join(carries)}" if carries else "") + f" for {partner['name']}"
+        else:
+            how = f"Buy a {label.lower()} pair"
+        out.append({"key": key, "label": label, "text": text, "genes": target_text(target), "tier": t["tier"],
+                    "badge": routes_mod.TIERS[t["tier"]], "how": how, "sort": routes_mod.tier_key(t),
+                    "odds": P.percent_text(t["odds"], 0) if t["tier"] < 4 else ""})
+    out.sort(key=lambda o: (o["sort"], o["label"]))
     return out

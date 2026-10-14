@@ -158,3 +158,33 @@ def describe(genes):
 def carries(genes):
     """Recessive alleles the outside rabbit must carry hidden: [(locus, allele)]."""
     return [(locus, pair[1]) for locus, pair in genes.items() if pair[0] != pair[1] and shown(locus, pair) != pair[1]]
+
+
+# Goal tiers ----------------------------------------------------------------------
+
+TIERS = {1: "Your herd", 2: "Known rabbits", 3: "Buy 1", 4: "Buy a pair"}
+
+
+def tier(target, breeders):
+    """How a goal can be reached, easiest first:
+    1 with herd rabbits alone; 2 with at least one known rabbit outside the
+    herd (deceased ones never count); 3 by buying one rabbit; 4 by buying a
+    pair. Returns {tier, generations, odds, route or spec}."""
+    usable = [b for b in breeders if b["state"] != "evidence"]
+    ready, overall = shortest(target, usable)
+    if ready:
+        return {"tier": 1, "generations": ready["generations"], "odds": ready["odds"], "route": ready}
+    if overall:
+        return {"tier": 2, "generations": overall["generations"], "odds": overall["odds"], "route": overall}
+    best = None
+    for h in sorted(usable, key=lambda b: STATE_RANK[b["state"]]):
+        spec = shopping(target, h)
+        if spec and (best is None or (spec["generations"], -spec["odds"]) < (best[1]["generations"], -best[1]["odds"])):
+            best = (h, spec)
+    if best:
+        return {"tier": 3, "generations": best[1]["generations"], "odds": best[1]["odds"], "partner": best[0], "spec": best[1]}
+    return {"tier": 4, "generations": 1, "odds": Fraction(1), "spec": None}
+
+
+def tier_key(t):
+    return (t["tier"], t["generations"], -t["odds"])

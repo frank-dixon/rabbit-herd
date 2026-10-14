@@ -49,3 +49,19 @@ class RouteTests(SimpleTestCase):
         herd = [rabbit("doe", "doe", B="Bb"), rabbit("sib", "buck", B="Bb"), rabbit("buck", "buck", B="BB")]
         ready, _ = R.shortest(CHOC, herd, ok=lambda d, s, mate=None: s["key"] != "sib")
         self.assertEqual((ready["generations"], ready["rabbits"][1]["key"]), (2, "buck"))
+
+
+class TierTests(SimpleTestCase):
+    def test_four_tiers(self):
+        herd = [rabbit("doe", "doe", B="Bb"), rabbit("buck", "buck", B="Bb")]
+        self.assertEqual(R.tier(CHOC, herd)["tier"], 1)
+        known = [rabbit("doe", "doe", B="BB"), rabbit("buck", "buck", B="BB"), rabbit("sold", "buck", "access", B="bb")]
+        self.assertEqual(R.tier(CHOC, known)["tier"], 2)
+        # Deceased rabbits are evidence only: the same buck dead means buying one.
+        dead = known[:2] + [rabbit("gone", "buck", "evidence", B="bb")]
+        result = R.tier(CHOC, dead)
+        self.assertEqual((result["tier"], result["spec"]["genes"]["B"]), (3, ("b", "b")))
+        self.assertEqual(R.tier(CHOC, [])["tier"], 4)
+        order = sorted([{"tier": 3, "generations": 1, "odds": F(1, 2)}, {"tier": 1, "generations": 2, "odds": F(1, 8)},
+                        {"tier": 1, "generations": 1, "odds": F(1, 16)}, {"tier": 1, "generations": 1, "odds": F(1, 4)}], key=R.tier_key)
+        self.assertEqual([(t["tier"], t["odds"]) for t in order], [(1, F(1, 4)), (1, F(1, 16)), (1, F(1, 8)), (3, F(1, 2))])
