@@ -3,6 +3,7 @@
 
 {% block head %}
   <meta name="csrf-token" content="{{ csrf_token }}">
+  {% if request.user.is_authenticated %}<meta name="bb-user" content="{{ request.user.pk }}">{% endif %}
   <link rel="preload" href="{% static 'fonts/instrument-sans-latin-var.woff2' %}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <link rel="manifest" href="{% url 'pwa_manifest' %}">
