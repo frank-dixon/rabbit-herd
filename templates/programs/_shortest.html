@@ -8,6 +8,14 @@
     <p class="mt-2 text-sm text-muted">No route with rabbits in your herd alone.</p>
   {% endif %}
   {% endwith %}
+  {% if shortest.differs %}{% with d=shortest.differs %}
+    <div class="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-md bg-accent-soft/60 p-3 text-sm">
+      <p>Your plan starts with {{ d.plan_pair }}, the pair you picked{% if d.faster %}, and takes {{ d.plan_gens }} generations. {{ shortest.ready.steps.0 }} gets there in {{ shortest.ready.generations }}.{% else %}: {{ d.plan_gens }} generation{{ d.plan_gens|pluralize }} at {{ d.plan_odds }} a kit. {{ shortest.ready.steps.0 }} has better odds, {{ shortest.ready.odds }}.{% endif %}{% if d.charlies %} Both are broken, so about {{ d.charlies }} of its kits would be charlies.{% endif %}</p>
+      {% if d.pairing %}<form method="post" action="{% url 'program_breeders' program.pk %}">{% csrf_token %}<input type="hidden" name="pairing" value="{{ d.pairing }}">{% include "components/button.html" with label="Start with this pair" type="submit" variant="secondary" size="small" only %}</form>{% endif %}
+    </div>
+  {% endwith %}{% elif shortest.ready %}
+    <p class="mt-1 text-xs text-muted">Within your {{ program.max_coi.normalize }}% inbreeding limit.{% if shortest.same %} This is the route your plan follows.{% endif %}</p>
+  {% endif %}
   {% with o=shortest.overall %}{% if o and o.state != "ready" and o.generations < shortest.ready.generations|default:9 %}
     <p class="mt-2 text-sm">Faster with {% for x in o.rabbits %}{% if x.state != "ready" %}{{ x.name }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}: {{ o.steps|join:", then " }} ({{ o.generations }} generation{{ o.generations|pluralize }}) {% include "programs/_state.html" with state=o.state text=o.state_text only %}</p>
   {% endif %}{% endwith %}

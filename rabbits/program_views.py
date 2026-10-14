@@ -215,7 +215,7 @@ def program_detail(request, pk):
         "wide_options": [{"href": f"?view={k}", "label": l, "selected": k == (view or "flow")} for k, l in VIEWS],
         "narrow_options": [{"href": f"?view={k}", "label": l, "selected": k == (view or "tree")} for k, l in VIEWS],
         "breeders": breeder_cards(program, plan["breeders"], odds_by, picked), "wide": True,
-        "shortest": plan_mod.shortest_view(program),
+        "shortest": plan_mod.shortest_view(program, plan=plan),
     })
 
 

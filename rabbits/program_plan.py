@@ -373,7 +373,7 @@ def known_breeders(user, program=None):
         if all(set(p) == {UNKNOWN} for p in genes.values()):
             continue
         state = "evidence" if r.status == Rabbit.Status.DECEASED else ("access" if r.status in Rabbit.FORMER or r.archived_at else "ready")
-        out.append({"key": f"h:{r.pk}", "name": r.name, "sex": r.sex, "genes": genes, "state": state, "rabbit": r})
+        out.append({"key": f"h:{r.pk}", "name": r.name, "sex": r.sex, "genes": genes, "state": state, "rabbit": r, "node": ("h", r.pk)})
     seen = set()
     for rel in Relative.objects.filter(rabbit__owner=user, outside__isnull=False, relationship__in=["dam", "sire"]) \
             .select_related("outside").prefetch_related("genes"):
@@ -382,10 +382,10 @@ def known_breeders(user, program=None):
             continue
         seen.add(rel.outside_id)
         out.append({"key": f"o:{rel.outside_id}", "name": rel.outside.name, "sex": "doe" if rel.relationship == "dam" else "buck",
-                    "genes": P.read_genes(texts), "state": "access", "rabbit": None})
+                    "genes": P.read_genes(texts), "state": "access", "rabbit": None, "node": ("o", rel.outside_id)})
     if program is not None:
         for b in program.outside.all():
-            out.append({"key": f"x:{b.pk}", "name": b.name, "sex": b.sex, "genes": P.read_genes(b.genes), "state": "access", "rabbit": None})
+            out.append({"key": f"x:{b.pk}", "name": b.name, "sex": b.sex, "genes": P.read_genes(b.genes), "state": "access", "rabbit": None, "node": ("x", b.pk)})
     return out
 
 
@@ -417,11 +417,46 @@ def phenotype_of(genes):
     return P.phenotype(full)
 
 
-def shortest_view(program, breeders=None):
-    """The program's minimum path, and outside-rabbit specs when no herd route exists."""
+def coi_veto(program, ped):
+    """ok() for routes: no pairing over the program's COI limit, the same rule
+    the plan's own pairings follow."""
+    limit = Fraction(program.max_coi) / 100
+
+    def ok(d, s, mate=None):
+        if mate is None:
+            return ped.coi(s["node"], d["node"]) <= limit
+        kit = ("route-kit", d["node"], s["node"])
+        ped.parents[kit] = (s["node"], d["node"])
+        if mate == "kit":
+            sib = ("route-sib", d["node"], s["node"])
+            ped.parents[sib] = (s["node"], d["node"])
+            return ped.coi(kit, sib) <= limit
+        return ped.coi(mate["node"], kit) <= limit if mate["sex"] == "buck" else ped.coi(kit, mate["node"]) <= limit
+    return ok
+
+
+def shortest_view(program, breeders=None, plan=None):
+    """The program's minimum path (within its COI limit), how it compares with
+    the plan's chosen starting pair, and outside-rabbit specs when the herd
+    alone can't do better."""
     breeders = breeders if breeders is not None else known_breeders(program.owner, program)
-    ready, overall = routes_mod.shortest(program.target, breeders)
+    ready, overall = routes_mod.shortest(program.target, breeders, coi_veto(program, pedigree(program.owner)))
     view = {"ready": route_view(ready, program.target), "overall": route_view(overall, program.target), "shopping": []}
+    if plan and plan.get("dam") and ready:
+        mine = (plan["dam"]["key"], plan["sire"]["key"])
+        first = ready["steps"][0]
+        plan_gens = 1 if plan["g1"]["high"] else 2
+        if (first[0]["key"], first[1]["key"]) != mine:
+            plan_odds = routes_mod.one_gen(program.target, plan["dam"]["genes"], plan["sire"]["genes"]) if plan_gens == 1 else None
+            switchable = all(r["state"] == "ready" or r["key"].startswith("x:") for r in first)
+            view["differs"] = {"plan_pair": f"{plan['dam']['name']} × {plan['sire']['name']}", "plan_gens": plan_gens,
+                               "faster": ready["generations"] < plan_gens,
+                               "plan_odds": P.percent_text(plan_odds, 0) if plan_odds is not None else "",
+                               "pairing": f"{first[0]['key']}|{first[1]['key']}" if switchable else "",
+                               "charlies": P.percent_text(routes_mod.one_gen({"En": "EnEn"}, first[0]["genes"], first[1]["genes"]), 0)
+                               if program.target.get("En") == "Enen" and routes_mod.one_gen({"En": "EnEn"}, first[0]["genes"], first[1]["genes"]) else ""}
+        else:
+            view["same"] = True
     if ready is None or ready["generations"] > 1:
         partners = [b for b in breeders if b["state"] == "ready"]
         specs = []
