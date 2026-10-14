@@ -48,7 +48,7 @@ class PageThumbTests(PhotoTestCase):
             tag = self.thumb(url)
             self.assertTrue(tag.startswith("<span"), url)
             self.assertIn('aria-hidden="true"', tag, url)
-            self.assertContains(self.client.get(url), ">P</span>")
+            self.assertIn("coat-swatch", tag, url)
 
     def test_another_owner_gets_no_page_and_no_photo(self):
         self.client.force_login(make_user("other@example.com"))

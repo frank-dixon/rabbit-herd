@@ -410,7 +410,7 @@ class PhotoDisplayTests(PhotoTestCase):
         self.assertContains(page, self.src(main), count=1)
         self.assertContains(page, "Open </span>Clover")
         self.assertContains(page, "Open </span>Basil")
-        self.assertContains(page, ">B</span>")
+        self.assertContains(page, "coat-swatch")
 
     def test_the_list_loads_photos_in_one_query(self):
         for number in range(5):
