@@ -1,5 +1,5 @@
-{# Two overlapping avatars for a pairing; a breeder without a photo shows its initial. a, b: breeder dicts. #}
+{# Two overlapping avatars for a pairing; a breeder without a photo shows its initial. a, b: breeder dicts (b optional). #}
 <span class="flex shrink-0 -space-x-2" aria-hidden="true">
   {% if a.rabbit %}<span class="rounded-md ring-2 ring-surface">{% include "components/rabbit_avatar.html" with rabbit=a.rabbit size="sm" only %}</span>{% else %}<span class="grid h-8 w-8 place-items-center rounded-md bg-accent-soft text-xs font-semibold text-accent ring-2 ring-surface">{{ a.name|first|upper }}</span>{% endif %}
-  {% if b.rabbit %}<span class="rounded-md ring-2 ring-surface">{% include "components/rabbit_avatar.html" with rabbit=b.rabbit size="sm" only %}</span>{% else %}<span class="grid h-8 w-8 place-items-center rounded-md bg-accent-soft text-xs font-semibold text-accent ring-2 ring-surface">{{ b.name|first|upper }}</span>{% endif %}
+  {% if not b %}{% elif b.rabbit %}<span class="rounded-md ring-2 ring-surface">{% include "components/rabbit_avatar.html" with rabbit=b.rabbit size="sm" only %}</span>{% else %}<span class="grid h-8 w-8 place-items-center rounded-md bg-accent-soft text-xs font-semibold text-accent ring-2 ring-surface">{{ b.name|first|upper }}</span>{% endif %}
 </span>

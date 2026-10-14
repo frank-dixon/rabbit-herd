@@ -389,7 +389,7 @@ def known_breeders(user, program=None):
     (sold and culled need access; deceased are evidence only), outside
     relatives named in pedigrees, and the program's outside breeders."""
     out = []
-    for r in Rabbit.all_objects.filter(owner=user).exclude(sex=Rabbit.Sex.UNKNOWN).prefetch_related("genes"):
+    for r in Rabbit.all_objects.filter(owner=user).exclude(sex=Rabbit.Sex.UNKNOWN).prefetch_related("genes", "photos"):
         genes = planning_genes(r)
         if blank(genes):
             continue
@@ -503,14 +503,17 @@ def goal_options(user):
         if t["tier"] in (1, 2):
             first = t["route"]["steps"][0]
             how = f"{gens} · {first[0]['name']} × {first[1]['name']}"
+            pair = [first[0], first[1]]
         elif t["tier"] == 3:
             spec, partner = t["spec"], t["partner"]
             want = "buck" if partner["sex"] == "doe" else "doe"
             carries = [ALLELE_WORDS.get(a, a) for _, a in routes_mod.carries(spec["genes"])]
+            pair = [partner]
             how = f"Buy a {phenotype_of(spec['genes']).lower()} {want}" + (f" carrying {', '.join(carries)}" if carries else "") + f" for {partner['name']}"
         else:
+            pair = []
             how = f"Buy a {label.lower()} pair"
-        out.append({"key": key, "label": label, "text": text, "genes": target_text(target), "tier": t["tier"],
+        out.append({"key": key, "pair": [{"name": b["name"], "rabbit": b.get("rabbit")} for b in pair if isinstance(b, dict)], "label": label, "text": text, "genes": target_text(target), "tier": t["tier"],
                     "badge": routes_mod.TIERS[t["tier"]], "how": how, "sort": routes_mod.tier_key(t),
                     "odds": P.percent_text(t["odds"], 0) if t["tier"] < 4 else ""})
     out.sort(key=lambda o: (o["sort"], o["label"]))
