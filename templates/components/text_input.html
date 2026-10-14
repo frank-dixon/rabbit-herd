@@ -1,4 +1,4 @@
-{# A labelled text, date, or number input. Pass name, label, value, errors, and optionally type, help, quiet (label for screen readers only, when a heading already asks), large, min, max, step, inputmode, autocomplete, suffix (a unit shown inside the right edge, such as %). #}
+{# A labelled text, date, or number input. Pass name, label, value, errors, and optionally type, help, quiet (label for screen readers only, when a heading already asks), large, min, max, step, inputmode, autocomplete, suffix (a unit shown inside the right edge, such as %), placeholder. #}
 <div>
   <label class="{% if quiet %}sr-only{% elif large %}block text-lg font-semibold text-neutral-900{% else %}block text-sm font-medium text-neutral-800{% endif %}" for="id_{{ name }}">{{ label }}</label>
   {% if help %}<p class="mt-1 text-sm text-neutral-600" id="id_{{ name }}_help">{{ help }}</p>{% endif %}
@@ -7,6 +7,7 @@
     class="block w-full{% if suffix %} pr-9{% endif %} rounded-lg border bg-white text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent {% if large %}mt-2 px-4 py-4 text-lg{% else %}mt-1 px-3 py-2{% endif %} {% if errors %}border-red-800{% else %}border-neutral-400{% endif %}"
     id="id_{{ name }}" name="{{ name }}" type="{{ type|default:'text' }}" value="{{ value }}"
     autocomplete="{{ autocomplete|default:'off' }}"
+    {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
     {% if min %}min="{{ min }}"{% endif %}
     {% if max %}max="{{ max }}"{% endif %}
     {% if step %}step="{{ step }}"{% endif %}
