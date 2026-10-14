@@ -54,7 +54,26 @@ export function bindMenu(doc, win = window) {
     else if (!event.shiftKey && doc.activeElement === last) { event.preventDefault(); first.focus(); }
   });
   panel.addEventListener("click", (event) => {
-    if (event.target.closest("a[href]") && !event.target.closest("[data-account-button], [data-menu-close]")) close({ restoreFocus: false });
+    const link = event.target.closest("a[href]");
+    if (!link || event.target.closest("[data-account-button], [data-menu-close]")) return;
+    // With cross-document view transitions the menu stays open until the next
+    // page is ready, then slides out as part of the page change (motion.css).
+    if (slidesOutWithPage(win, link, event)) return;
+    close({ restoreFocus: false });
   });
+  // Back/Forward from the cache can bring the page back with the menu open.
+  win.addEventListener("pageshow", (event) => { if (event.persisted) close({ restoreFocus: false }); });
   return { open, close, isOpen };
+}
+
+/** True when this click becomes a cross-document navigation with a view transition. */
+export function slidesOutWithPage(win, link, event = {}) {
+  if (!("onpagereveal" in win) || win.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return false;
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.target || link.hasAttribute("download")) return false;
+  let url;
+  try { url = new URL(link.href, win.location.href); } catch { return false; }
+  const here = new URL(win.location.href);
+  if (url.origin !== here.origin) return false;
+  // A same-page hash jump doesn't load a new page, so close it now.
+  return !(url.pathname === here.pathname && url.search === here.search);
 }

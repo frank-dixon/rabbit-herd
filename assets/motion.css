@@ -21,6 +21,12 @@
 ::view-transition-new(root) { animation: var(--dur-2) var(--ease-out) both mo-fade-in; }
 [data-app-tabs] { view-transition-name: app-tabs; }
 [data-app-rail] { view-transition-name: app-rail; }
+/* An open menu leaving for another page: the incoming page renders with it
+   closed, so only the old snapshot exists and it slides out over the change. */
+html[data-menu-open] .app-panel { view-transition-name: app-menu; }
+::view-transition-group(app-menu) { z-index: 10; }
+::view-transition-old(app-menu) { animation: var(--dur-3) var(--ease-in) both mo-menu-out; }
+@keyframes mo-menu-out { to { transform: translateX(-100%); } }
 @media (prefers-reduced-motion: reduce) {
   @view-transition { navigation: none; }
 }
