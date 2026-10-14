@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#FAFAF9">
+  <title>Something went wrong · Bramble Burrow</title>
+  {% comment %}Self-contained on purpose: rendered with an empty context when the app itself is failing, so no context processors, url or static tags, database or built CSS. Colours follow the light theme.{% endcomment %}
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #FAFAF9; color: #1A1F1C; font: 16px/1.5 "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+    header { border-bottom: 1px solid #E3E4E2; }
+    header div, main { max-width: 32rem; margin: 0 auto; padding: 0 16px; }
+    header div { height: 56px; display: flex; align-items: center; font-weight: 600; letter-spacing: -0.01em; }
+    header a { color: inherit; text-decoration: none; }
+    main { padding-top: 40px; padding-bottom: 40px; }
+    .eyebrow { margin: 0; font-size: 14px; color: #676F6A; }
+    h1 { margin: 4px 0 0; font-size: 28px; line-height: 1.2; font-weight: 600; }
+    p.line { margin: 8px 0 0; color: #404542; }
+    .actions { margin-top: 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+    .primary { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 8px 16px; border-radius: 6px; background: #22573B; color: #fff; font-weight: 500; text-decoration: none; }
+    .primary:hover { background: #1B4830; }
+    .back { font-size: 14px; font-weight: 500; color: #1A1F1C; text-decoration: underline; text-underline-offset: 4px; }
+    a:focus-visible { outline: 2px solid #22573B; outline-offset: 2px; }
+    @media (min-width: 768px) { h1 { font-size: 36px; } main { padding-top: 64px; } }
+  </style>
+</head>
+<body>
+  <header><div><a href="/">Bramble Burrow</a></div></header>
+  <main data-error-page="500">
+    <p class="eyebrow">Error 500</p>
+    <h1>Something went wrong</h1>
+    <p class="line">The app hit a problem on our side. Your records are safe; try again in a moment.</p>
+    <div class="actions">
+      <a class="primary" href="/">Go to homepage</a>
+      <a class="back" href="/" onclick="if (history.length > 1) { history.back(); return false; }">Back</a>
+    </div>
+  </main>
+</body>
+</html>

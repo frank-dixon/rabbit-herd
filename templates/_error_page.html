@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% comment %}Shared body for the 400, 403 and 404 pages: a plain heading, one line, Go to homepage and Back. Back uses the browser history when there is any (the installed app has no back button of its own), else the section list.{% endcomment %}
+
+{% block title %}{{ heading }} · {{ app_name|default:"Bramble Burrow" }}{% endblock %}
+
+{% block content %}
+  <section class="ruled pt-4" data-error-page="{{ status }}">
+    <p class="v2-eyebrow text-sm text-muted">Error {{ status }}</p>
+    <h1 class="mt-1 text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]">{{ heading }}</h1>
+    <p class="mt-2 text-neutral-700">{{ line }}</p>
+    <div class="mt-6 flex flex-wrap items-center gap-4">
+      {% include "components/button.html" with label="Go to homepage" href="/" variant="primary" only %}
+      <a class="text-sm font-medium text-ink underline underline-offset-4 hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" href="{{ back_href|default:'/' }}" data-error-back>Back</a>
+    </div>
+  </section>
+  <script>
+    (function () {
+      var back = document.querySelector("[data-error-back]");
+      if (back && window.history.length > 1 && document.referrer && new URL(document.referrer).origin === location.origin) {
+        back.addEventListener("click", function (event) { event.preventDefault(); history.back(); });
+      }
+    })();
+  </script>
+{% endblock %}

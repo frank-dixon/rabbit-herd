@@ -31,3 +31,8 @@ urlpatterns = [
     path("", include("rabbits.hub_urls")),
     path("", include("pages.urls")),
 ]
+
+handler400 = "pages.errors.bad_request"
+handler403 = "pages.errors.permission_denied"
+handler404 = "pages.errors.page_not_found"
+# handler500 stays Django's default: it renders templates/500.html with no context.

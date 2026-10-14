@@ -104,9 +104,15 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "pages.middleware.prefetch_keeps_messages",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "pages.errors.branded_debug_404",
 ]
 
 ROOT_URLCONF = "rabbit_herd.urls"
+
+# With DEBUG on, 404s still show the branded page; set SHOW_DEBUG_404=1 (or add
+# ?debug=1 to a URL) to see Django's technical 404 instead.
+SHOW_DEBUG_404 = env_flag("SHOW_DEBUG_404", default=False)
+CSRF_FAILURE_VIEW = "pages.errors.csrf_failure"
 
 TEMPLATES = [
     {
