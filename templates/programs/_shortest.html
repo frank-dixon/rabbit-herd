@@ -26,7 +26,8 @@
         <li class="rounded-md border border-line p-3 text-sm">
           <p><b>A {{ s.looks|lower }} {{ s.want }}</b>{% if s.carries %}, {{ s.carries|join:", " }}{% endif %}</p>
           <p class="num mt-0.5 text-xs text-muted">{{ s.genes }}</p>
-          <p class="mt-1">Cross with {{ s.partner }}: {% if s.generations == 1 %}target kits in the first litter{% else %}then a kit back to the new {{ s.want }}{% endif %} <span class="num text-muted">· {{ s.odds }} a kit</span></p>
+          <p class="mt-1">{% if s.generations == 1 %}Pair with {{ s.partner }}: target kits in the first litter.{% else %}Pair with {{ s.partner }}, then breed a kit back to {% if s.want == "doe" %}her{% else %}him{% endif %}.{% endif %}</p>
+          <p class="mt-0.5 text-xs text-muted">{{ s.generations }} generation{{ s.generations|pluralize }} · <span class="num">{{ s.odds }}</span> of {% if s.generations == 1 %}kits{% else %}final kits{% endif %}</p>
         </li>
       {% endfor %}
     </ul>
