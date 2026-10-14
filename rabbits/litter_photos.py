@@ -29,6 +29,19 @@ PLACEHOLDERS = {
     "broken": "placeholders/newborn-broken.jpg",
     "default": "placeholders/nest-empty.jpg",
 }
+# Stock adult photos by coat, for adults and pedigree ancestors (never newborns).
+# Frank's own adults where he has one; CC0 / public domain fills the gaps.
+# Sources: static/placeholders/sources.md.
+ADULT_PLACEHOLDERS = {
+    "pink": "placeholders/adult-pink.jpg",
+    "dark": "placeholders/adult-dark.jpg",
+    "blue": "placeholders/adult-blue.jpg",
+    "red": "placeholders/adult-red.jpg",
+    "broken": "placeholders/adult-broken.jpg",
+    "agouti": "placeholders/adult-agouti.jpg",
+    "default": "placeholders/adult-agouti.jpg",  # wild-type look when the coat is unknown
+}
+AGOUTI = ("agouti", "chestnut", "opal", "chinchilla", "castor", "lynx", "squirrel", "gray", "grey", "sandy", "steel")
 BROKEN = ("broken", "charlie", "tri-color", "tricolor", "harlequin", "magpie", "dutch", "english spot")
 COATS = (
     ("pink", ("ruby-eyed white", "rew", "blue-eyed white", "bew", "white", "pointed", "himalayan", "californian", "frosty", "pink")),
@@ -185,9 +198,15 @@ def copy_to_rabbit(slot, litter):
     return photo
 
 
-def coat_placeholder_url(color):
-    """The stock photo for one coat, by the same picker litters use."""
-    return static(PLACEHOLDERS[coat(color) or "default"])
+def coat_placeholder_url(color, adult=True):
+    """The stock photo for one coat, by the same picker litters use: the adult
+    set for adults and ancestors, the newborn set only for litters and kits."""
+    key = coat(color)
+    if not adult:
+        return static(PLACEHOLDERS[key or "default"])
+    if key is None and any(word in (color or "").lower() for word in AGOUTI):
+        key = "agouti"
+    return static(ADULT_PLACEHOLDERS[key or "default"])
 
 
 def outside_photo_url(outside, width=480):
