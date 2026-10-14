@@ -14,7 +14,7 @@
     {% if app_nav %}{% include "components/app_rail.html" %}{% endif %}
     <div class="flex min-h-screen min-w-0 flex-1 flex-col">
       {% block page_header %}
-      <header data-print-hide class="sticky top-0 z-20 border-b border-line bg-canvas/90 backdrop-blur supports-[backdrop-filter]:bg-canvas/80">
+      <header data-print-hide class="sticky top-0 z-20 border-b border-line bg-canvas/90 backdrop-blur supports-[backdrop-filter]:bg-canvas/80{% if app_nav %} lg:hidden{% endif %}" data-top-bar>
         <div class="mx-auto flex h-14 {% if wide %}max-w-6xl{% else %}max-w-lg{% endif %} items-center gap-2 px-4 {% if app_nav %}md:max-w-none md:px-6{% endif %}">
           {% block header %}
             {% if app_nav %}
