@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from . import sync
 from .models import HealthNote, Rabbit, RabbitPhoto, Task
 
 
@@ -24,22 +25,20 @@ MAX_HEALTH_PHOTOS = 6
 
 
 def health_photos(request):
-    """The note's photos as (cleaned file, date taken) pairs, or None after
-    saying what was wrong. Each is checked and stripped like any photo."""
+    """(photos, error): the note's photos as (cleaned file, date taken) pairs,
+    or None and what was wrong. Each is checked and stripped like any photo."""
     from .forms import PhotoUploadForm
 
     files = request.FILES.getlist("health_photos")[:MAX_HEALTH_PHOTOS + 1]
     if len(files) > MAX_HEALTH_PHOTOS:
-        messages.error(request, f"Add up to {MAX_HEALTH_PHOTOS} photos to a health note.")
-        return None
+        return None, f"Add up to {MAX_HEALTH_PHOTOS} photos to a health note."
     out = []
     for upload in files:
         form = PhotoUploadForm({"notes": ""}, {"image": upload})
         if not form.is_valid():
-            messages.error(request, next(iter(form.errors.values()))[0])
-            return None
+            return None, next(iter(form.errors.values()))[0]
         out.append((form.cleaned_data["image"], form.taken_at))
-    return out
+    return out, None
 
 
 @login_required
@@ -52,33 +51,45 @@ def health_add(request, pk):
     notes = request.POST.get("notes", "").strip()[:1000]
     raw_follow = request.POST.get("health_follow_up", "").strip()
     follow = parse(raw_follow) if raw_follow else None
+    queued = sync.is_queue(request)
+    if sync.already_applied(request):
+        return sync.duplicate() if queued else back
+    photos, error = [], None
     if day is None:
-        messages.error(request, "Enter the date of the health note.")
+        error = "Enter the date of the health note."
     elif day > timezone.localdate():
-        messages.error(request, "The health note's date is in the future.")
+        error = "The health note's date is in the future."
     elif kind not in HealthNote.Kind.values:
-        messages.error(request, "Choose a type: treatment, illness, injury, checkup or other.")
+        error = "Choose a type: treatment, illness, injury, checkup or other."
     elif raw_follow and follow is None:
-        messages.error(request, "Enter the follow-up date as a date.")
+        error = "Enter the follow-up date as a date."
     elif follow and follow < day:
-        messages.error(request, "The follow-up date is before the note's date.")
-    elif (photos := health_photos(request)) is None:
-        pass  # health_photos said what was wrong
+        error = "The follow-up date is before the note's date."
     else:
-        with transaction.atomic():
-            note = HealthNote(rabbit=rabbit, date=day, kind=kind, notes=notes, follow_up_on=follow)
-            if follow:
-                note.task = Task.objects.create(
-                    owner=request.user, rabbit=rabbit, due_on=follow,
-                    title=f"Follow up: {note.get_kind_display().lower()} ({rabbit.name})",
-                )
-            note.save()
-            for upload, taken in photos:
-                photo = RabbitPhoto(rabbit=rabbit, health_note=note, taken_at=taken or day,
-                                    taken_from_metadata=taken is not None, notes=f"{note.get_kind_display()}, {day:%a, %b} {day.day}")
-                photo.image.save(upload.name, upload, save=False)
-                photo.save()
-        messages.success(request, f"Health note added{f', with a follow-up on {follow:%b} {follow.day}' if follow else ''}.")
+        photos, error = health_photos(request)
+    if error:
+        if queued:
+            return sync.invalid(f"The health note wasn't saved. {error}")
+        messages.error(request, error)
+        return back
+    with transaction.atomic():
+        if not sync.claim(request, "health"):
+            return sync.duplicate() if queued else back
+        note = HealthNote(rabbit=rabbit, date=day, kind=kind, notes=notes, follow_up_on=follow)
+        if follow:
+            note.task = Task.objects.create(
+                owner=request.user, rabbit=rabbit, due_on=follow,
+                title=f"Follow up: {note.get_kind_display().lower()} ({rabbit.name})",
+            )
+        note.save()
+        for upload, taken in photos:
+            photo = RabbitPhoto(rabbit=rabbit, health_note=note, taken_at=taken or day,
+                                taken_from_metadata=taken is not None, notes=f"{note.get_kind_display()}, {day:%a, %b} {day.day}")
+            photo.image.save(upload.name, upload, save=False)
+            photo.save()
+    if queued:
+        return sync.applied(id=note.pk)
+    messages.success(request, f"Health note added{f', with a follow-up on {follow:%b} {follow.day}' if follow else ''}.")
     return back
 
 

@@ -7,10 +7,12 @@ from decimal import Decimal, InvalidOperation
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from . import sync
 from .models import GRAMS_PER_OUNCE, Rabbit, Weight, prefs, weight_text
 
 DATE_REQUIRED = "A weight needs a date. Enter the day it was weighed."
@@ -89,13 +91,27 @@ class WeightForm(forms.Form):
 @require_POST
 def weight_add(request, pk):
     rabbit = get_object_or_404(Rabbit, owner=request.user, pk=pk)
+    back = redirect(f"/rabbits/{rabbit.pk}/#weights")
+    queued = sync.is_queue(request)
+    if sync.already_applied(request):
+        return sync.duplicate() if queued else back
     form = WeightForm(request.POST, rabbit=rabbit)
     if form.is_valid():
         data = form.cleaned_data
-        weight = Weight.objects.create(rabbit=rabbit, date=data["day"], grams=data["grams"], unit=data["unit"], note=data["note"])
+        with transaction.atomic():
+            if not sync.claim(request, "weight"):
+                return sync.duplicate() if queued else back
+            weight = Weight.objects.create(rabbit=rabbit, date=data["day"], grams=data["grams"], unit=data["unit"], note=data["note"])
+        if queued:
+            return sync.applied(id=weight.pk)
         messages.success(request, f"{weight_text(weight.grams, prefs(request.user).weight_unit)} on {weight.date:%b} {weight.date.day} was added.")
         request.session["weight_unit"] = data["unit"]
     else:
+        first = next(iter(form.errors.values()))[0]
+        if queued:
+            # A queued entry's form error must reach the queue, not a page
+            # nobody is looking at: 422 keeps the entry and shows why.
+            return sync.invalid(f"The weight wasn't saved. {first}")
         # Show the problem where it happened: the card re-renders with the
         # typed values and field errors (the old top-of-page alert was out
         # of sight after jumping to #weights), plus an error toast.
@@ -104,9 +120,8 @@ def weight_add(request, pk):
             "values": {key: request.POST.get(key, "") for key in ("date", "lb", "oz", "kg", "note")},
             "errors": {field: errors[0] for field, errors in form.errors.items()},
         }
-        first = next(iter(form.errors.values()))[0]
         messages.error(request, f"The weight wasn't saved. {first}", extra_tags="toast")
-    return redirect(f"/rabbits/{rabbit.pk}/#weights")
+    return back
 
 
 @login_required

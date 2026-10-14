@@ -1473,3 +1473,18 @@ class ProgramBreeder(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class SyncOp(models.Model):
+    """One applied client write, keyed by the op_id the browser made for it.
+
+    Queued offline entries are retried and can be flushed from several tabs;
+    a second post with the same op_id is answered without writing again."""
+
+    op_id = models.UUIDField(unique=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sync_ops")
+    kind = models.CharField(max_length=32)
+    applied_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.kind} {self.op_id}"
