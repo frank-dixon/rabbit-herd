@@ -178,7 +178,7 @@ class DensityTests(TestCase):
         page = self.client.get(reverse("rabbit_list"))
         self.assertContains(page, 'data-density="compact"')
         self.assertContains(page, "grid-cols-2")
-        self.assertContains(page, "Doe · ")
+        self.assertContains(page, "♀</span><span class=\"sr-only\">Doe</span>")
         self.assertRegex(page.content.decode(), r'href="\?density=compact"[^>]*aria-current="true"')
 
     def test_quick_toggle_saves_and_returns_to_the_list(self):

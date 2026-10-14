@@ -7,3 +7,6 @@
 .rm-stat.is-r { color: var(--color-danger, #A3312A); }
 .rm-stat.is-g { color: #2F6B45; }
 @media (min-width: 1024px) { .rm-phone { display: none; } }
+
+[data-density="compact"] .rm-line { white-space: normal; text-overflow: clip; }
+[data-density="compact"] .rm-line > span:not(.rm-sep) { white-space: nowrap; }

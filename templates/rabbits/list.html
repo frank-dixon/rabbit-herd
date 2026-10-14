@@ -107,7 +107,7 @@
               </span>
               <span class="block px-2.5 pb-2.5 pt-2">
                 <span class="block min-w-0 text-[0.95rem] font-semibold leading-tight [overflow-wrap:normal] [word-break:normal]"><span class="sr-only">Open </span>{{ rabbit.name }}</span>
-                <span class="mt-0.5 block truncate text-xs text-muted">{% if rabbit.died_text %}{{ rabbit.died_text }}{% else %}{{ rabbit.get_sex_display }}{% endif %}{% if rabbit.short_breed %} · {{ rabbit.short_breed }}{% endif %}</span>
+                <span class="mt-0.5 block line-clamp-2 text-xs text-muted">{% if rabbit.died_text %}{{ rabbit.died_text }} · {% else %}<span aria-hidden="true">{% if rabbit.sex == "doe" %}♀{% elif rabbit.sex == "buck" %}♂{% endif %}</span><span class="sr-only">{{ rabbit.get_sex_display }}</span> {% endif %}{{ rabbit.short_breed }}</span>
                 {% include "rabbits/_rabbit_meta.html" with r=rabbit mode="compact" only %}
               </span>
             </a>
