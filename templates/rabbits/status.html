@@ -1,14 +1,15 @@
-{% extends "base.html" %}
+{% extends "components/sheet_base.html" %}
 {% block title %}Status · {{ rabbit.name }} · {{ app_name }}{% endblock %}
-{% block content %}
-  {% url 'rabbit_detail' rabbit.pk as detail_url %}
-  {% with title="Status: "|add:rabbit.name %}{% include "components/page_header.html" with title=title subtitle="Choose the new status; we'll ask only what that one needs." back_label=rabbit.name back_href=detail_url rabbit=rabbit only %}{% endwith %}
-  <form method="post" class="status-flow mt-6 max-w-xl space-y-6" novalidate>
+{% block eyebrow %}{% url 'rabbit_detail' rabbit.pk as detail_url %}{% include "rabbits/_page_thumb.html" with rabbit=rabbit size_class="h-8 w-8 shrink-0 rounded-md text-sm" only %}<p class="v2-eyebrow"><a class="underline-offset-2 hover:underline" href="{{ detail_url }}">{{ rabbit.name }}</a></p>{% endblock %}
+{% block sheet_title %}Change status{% endblock %}
+{% block lede %}<p class="mt-2 text-muted">Choose the new status; we'll ask only what that one needs.</p>{% endblock %}
+{% block sheet %}{% url 'rabbit_detail' rabbit.pk as detail_url %}
+  <form method="post" class="status-flow space-y-8" novalidate>
     {% csrf_token %}
     {% include "components/choice_tiles.html" with name="status" legend="Status" tiles=tiles errors=errors.status quiet=True only %}
 
-    <fieldset class="space-y-4 rounded-lg border border-line p-4" data-for="sold">
-      <legend class="px-1 text-sm font-semibold">Sale</legend>
+    <fieldset class="space-y-5" data-for="sold">
+      <legend class="mb-3 text-base font-semibold">Sale</legend>
       <p class="text-sm text-muted" data-nojs-hint>Only used when the status is Sold.</p>
       <div><label class="block text-sm font-medium" for="id_sold_on">Sold on</label>
         <input class="mt-1 block h-11 w-full rounded-md border border-field/70 bg-surface px-3 text-base text-ink focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent aria-[invalid=true]:border-danger" type="date" id="id_sold_on" name="sold_on" value="{{ sold_on }}" max="{{ today }}"{% if errors.sold_on %} aria-invalid="true" aria-describedby="id_sold_on_error"{% endif %}>
@@ -26,12 +27,12 @@
         <div><label class="block text-sm font-medium" for="id_buyer_phone">Phone</label><input class="mt-1 block h-11 w-full rounded-md border border-field/70 bg-surface px-3 text-base text-ink focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent aria-[invalid=true]:border-danger" id="id_buyer_phone" name="buyer_phone" value="{{ data.buyer_phone }}" type="tel" autocomplete="off" maxlength="40"></div>
       </div>
       <div class="max-w-48"><label class="block text-sm font-medium" for="id_price">Price (optional)</label>
-        <div class="relative"><span class="pointer-events-none absolute left-3 top-1/2 mt-0.5 -translate-y-1/2 text-muted" aria-hidden="true">$</span><input class="mt-1 block h-11 w-full rounded-md border border-field/70 bg-surface px-3 text-base text-ink focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent aria-[invalid=true]:border-danger pl-7" id="id_price" name="price" inputmode="decimal" value="{% if data %}{{ data.price }}{% else %}{{ rabbit.sale_price|default_if_none:'' }}{% endif %}"{% if errors.price %} aria-invalid="true" aria-describedby="id_price_error"{% endif %}></div>
+        <div class="relative"><span class="pointer-events-none absolute left-0 top-1/2 mt-0.5 -translate-y-1/2 text-muted" aria-hidden="true">$</span><input class="mt-1 block h-11 w-full rounded-md border border-field/70 bg-surface px-3 text-base text-ink focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent aria-[invalid=true]:border-danger" style="padding-left: 1rem" id="id_price" name="price" inputmode="decimal" value="{% if data %}{{ data.price }}{% else %}{{ rabbit.sale_price|default_if_none:'' }}{% endif %}"{% if errors.price %} aria-invalid="true" aria-describedby="id_price_error"{% endif %}></div>
         {% if errors.price %}<p class="mt-1 text-sm text-danger" id="id_price_error">{{ errors.price }}</p>{% endif %}</div>
     </fieldset>
 
-    <fieldset class="space-y-4 rounded-lg border border-line p-4" data-for="culled">
-      <legend class="px-1 text-sm font-semibold">Cull</legend>
+    <fieldset class="space-y-5" data-for="culled">
+      <legend class="mb-3 text-base font-semibold">Cull</legend>
       <p class="text-sm text-muted" data-nojs-hint>Only used when the status is Culled.</p>
       <div><label class="block text-sm font-medium" for="id_culled_on">Culled on</label>
         <input class="mt-1 block h-11 w-full rounded-md border border-field/70 bg-surface px-3 text-base text-ink focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent aria-[invalid=true]:border-danger" type="date" id="id_culled_on" name="culled_on" value="{{ culled_on }}" max="{{ today }}"{% if errors.culled_on %} aria-invalid="true" aria-describedby="id_culled_on_error"{% endif %}>
@@ -40,8 +41,8 @@
         <textarea class="mt-1 block min-h-24 w-full rounded-md border border-field/70 bg-surface px-3 py-2 text-base focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" id="id_reason" name="reason" maxlength="1000">{{ data.reason }}</textarea></div>
     </fieldset>
 
-    <fieldset class="space-y-4 rounded-lg border border-line p-4" data-for="deceased">
-      <legend class="px-1 text-sm font-semibold">Death</legend>
+    <fieldset class="space-y-5" data-for="deceased">
+      <legend class="mb-3 text-base font-semibold">Death</legend>
       <p class="text-sm text-muted" data-nojs-hint>Only used when the status is Deceased.</p>
       <div><label class="block text-sm font-medium" for="id_deceased_on">Date of death</label>
         <input class="mt-1 block h-11 w-full rounded-md border border-field/70 bg-surface px-3 text-base text-ink focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent aria-[invalid=true]:border-danger" type="date" id="id_deceased_on" name="deceased_on" value="{{ deceased_on }}" max="{{ today }}"{% if errors.deceased_on %} aria-invalid="true" aria-describedby="id_deceased_on_error"{% endif %}>
@@ -50,10 +51,6 @@
         <input class="mt-1 block h-11 w-full rounded-md border border-field/70 bg-surface px-3 text-base text-ink focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent aria-[invalid=true]:border-danger" id="id_cause" name="cause" list="status-causes" maxlength="120" autocomplete="off" value="{% if data %}{{ data.cause }}{% elif rabbit.status == 'deceased' %}{{ rabbit.death_cause }}{% endif %}">
         <datalist id="status-causes">{% for c in death_causes %}{% if c != "Culled" %}<option value="{{ c }}"></option>{% endif %}{% endfor %}</datalist></div>
     </fieldset>
-
-    <div class="flex flex-col gap-2 sm:flex-row">
-      {% include "components/button.html" with label="Save status" type="submit" variant="primary" only %}
-      {% include "components/button.html" with label="Cancel" href=detail_url variant="secondary" only %}
-    </div>
+    {% include "components/sheet_actions.html" with label="Save status" cancel_href=detail_url only %}
   </form>
 {% endblock %}

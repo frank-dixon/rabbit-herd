@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% comment %}The one form page, app-wide (same look as the add-rabbit steps): a small eyebrow link back, a title, an
+optional lede, the fields on the page itself, and an action bar that sticks to the bottom on phones.
+Blocks: eyebrow, sheet_title, lede, sheet. Set sheet_wide to use the wider column.{% endcomment %}
+{% block tabs %}{% endblock %}
+{% block content %}
+  <div class="v2-card{% block sheet_wide %}{% endblock %} pb-28 md:pb-0">
+    <div class="v2-hero">
+      <div class="flex items-center gap-2.5">{% block eyebrow %}{% endblock %}</div>
+      <h1 class="v2-title focus:outline-none" tabindex="-1">{% block sheet_title %}{% endblock %}</h1>
+      {% block lede %}{% endblock %}
+    </div>
+    <div class="v2-sheet">{% block sheet %}{% endblock %}</div>
+  </div>
+{% endblock %}
