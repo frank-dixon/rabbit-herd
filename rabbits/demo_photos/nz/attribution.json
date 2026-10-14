@@ -1,15 +1,317 @@
 [
-  {"file": "black-adult.jpg", "color": "Black", "author": "Frank Dixon", "license": "Owned", "source": "frank/adult-black"},
-  {"file": "black-doe-kit.jpg", "color": "Black", "author": "Frank Dixon", "license": "Owned", "source": "frank/adult-black"},
-  {"file": "blue-adult.jpg", "color": "Blue", "author": "Frank Dixon", "license": "Owned", "source": "frank/adult-blue"},
-  {"file": "red-adult-wood.jpg", "color": "Red", "author": "Frank Dixon", "license": "Owned", "source": "frank/adult-fawn"},
-  {"file": "red-adult-face.jpg", "color": "Red", "author": "Frank Dixon", "license": "Owned", "source": "frank/adult-fawn"},
-  {"file": "red-adult-grass.jpg", "color": "Red", "author": "Frank Dixon", "license": "Owned", "source": "frank/adult-fawn"},
-  {"file": "red-adult-hay.jpg", "color": "Red", "author": "Frank Dixon", "license": "Owned", "source": "frank/adult-fawn"},
-  {"file": "blue-newborns.jpg", "color": "Blue", "author": "Frank Dixon", "license": "Owned", "source": "frank/newborn-blue"},
-  {"file": "red-newborns.jpg", "color": "Red", "author": "Frank Dixon", "license": "Owned", "source": "frank/newborn-red"},
-  {"file": "pink-newborns.jpg", "color": "REW", "author": "Frank Dixon", "license": "Owned", "source": "frank/newborn-pink"},
-  {"file": "rew-adult-web.jpg", "color": "REW", "author": "MOs810", "license": "CC BY-SA 4.0", "source": "https://commons.wikimedia.org/wiki/File:Nowozelandzki_bialy.jpg"},
-  {"file": "californian-adult-web.jpg", "color": "Californian", "author": "Kathy Shea", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Californian_Rabbit.JPG"},
-  {"file": "broken-newborns-web.jpg", "color": "Broken", "author": "Joel Best Obinna", "license": "CC0", "source": "https://commons.wikimedia.org/wiki/File:New_Born_Rabbit_in_a_Nesting_box.jpg"}
+  {
+    "file": "black-adult.jpg",
+    "color": "Black",
+    "author": "Frank Dixon",
+    "license": "Owned",
+    "source": "frank/adult-black"
+  },
+  {
+    "file": "black-doe-kit.jpg",
+    "color": "Black",
+    "author": "Frank Dixon",
+    "license": "Owned",
+    "source": "frank/adult-black"
+  },
+  {
+    "file": "blue-adult.jpg",
+    "color": "Blue",
+    "author": "Frank Dixon",
+    "license": "Owned",
+    "source": "frank/adult-blue"
+  },
+  {
+    "file": "red-adult-wood.jpg",
+    "color": "Red",
+    "author": "Frank Dixon",
+    "license": "Owned",
+    "source": "frank/adult-fawn"
+  },
+  {
+    "file": "red-adult-face.jpg",
+    "color": "Red",
+    "author": "Frank Dixon",
+    "license": "Owned",
+    "source": "frank/adult-fawn"
+  },
+  {
+    "file": "red-adult-grass.jpg",
+    "color": "Red",
+    "author": "Frank Dixon",
+    "license": "Owned",
+    "source": "frank/adult-fawn"
+  },
+  {
+    "file": "red-adult-hay.jpg",
+    "color": "Red",
+    "author": "Frank Dixon",
+    "license": "Owned",
+    "source": "frank/adult-fawn"
+  },
+  {
+    "file": "blue-newborns.jpg",
+    "color": "Blue",
+    "author": "Frank Dixon",
+    "license": "Owned",
+    "source": "frank/newborn-blue"
+  },
+  {
+    "file": "red-newborns.jpg",
+    "color": "Red",
+    "author": "Frank Dixon",
+    "license": "Owned",
+    "source": "frank/newborn-red"
+  },
+  {
+    "file": "pink-newborns.jpg",
+    "color": "REW",
+    "author": "Frank Dixon",
+    "license": "Owned",
+    "source": "frank/newborn-pink"
+  },
+  {
+    "file": "rew-adult-web.jpg",
+    "color": "REW",
+    "author": "MOs810",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Nowozelandzki_bialy.jpg"
+  },
+  {
+    "file": "californian-adult-web.jpg",
+    "color": "Californian",
+    "author": "Kathy Shea",
+    "license": "Public domain",
+    "source": "https://commons.wikimedia.org/wiki/File:Californian_Rabbit.JPG"
+  },
+  {
+    "file": "broken-newborns-web.jpg",
+    "color": "Broken",
+    "author": "Joel Best Obinna",
+    "license": "CC0",
+    "source": "https://commons.wikimedia.org/wiki/File:New_Born_Rabbit_in_a_Nesting_box.jpg"
+  },
+  {
+    "file": "black-web-1.jpg",
+    "color": "Black",
+    "author": "Weefemwe",
+    "license": "CC BY-SA 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ABelgische_haas_%28konijnenras%29.jpg"
+  },
+  {
+    "file": "black-web-2.jpg",
+    "color": "Black",
+    "author": "Crocabit",
+    "license": "CC BY 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ABlack_Britannia_Petite_Rabbit_zoomed_in_shot.jpg"
+  },
+  {
+    "file": "black-web-3.jpg",
+    "color": "Black",
+    "author": "Xosema",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ABlack_rabbit.JPG"
+  },
+  {
+    "file": "black-web-4.jpg",
+    "color": "Black",
+    "author": "BunnyWhisper",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ACognitive_Bunny.jpg"
+  },
+  {
+    "file": "black-web-5.jpg",
+    "color": "Black",
+    "author": "Zz",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ACzarny_Kr%C3%B3lik.jpg"
+  },
+  {
+    "file": "black-web-6.jpg",
+    "color": "Black",
+    "author": "Jeuwre",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ADeutscher_Riese_001.jpg"
+  },
+  {
+    "file": "black-web-7.jpg",
+    "color": "Black",
+    "author": "Wisnerc31",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ALenny_1.2.jpg"
+  },
+  {
+    "file": "black-web-8.jpg",
+    "color": "Black",
+    "author": "Stepan Marchyk",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ALord_Finn.jpg"
+  },
+  {
+    "file": "black-web-9.jpg",
+    "color": "Black",
+    "author": "4028mdk09",
+    "license": "CC BY-SA 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ASchwarzes_Kleinsilber-Kaninchen_mit_Jungtier.JPG"
+  },
+  {
+    "file": "black-web-10.jpg",
+    "color": "Black",
+    "author": "Bruce Cowan from Glasgow, UK",
+    "license": "CC BY-SA 2.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AShiny_rabbit.jpg"
+  },
+  {
+    "file": "black-web-11.jpg",
+    "color": "Black",
+    "author": "SloMo2639",
+    "license": "Public domain",
+    "source": "https://commons.wikimedia.org/wiki/File%3AStrider-Netherland_Dwarf_Rabbit.JPG"
+  },
+  {
+    "file": "black-web-12.jpg",
+    "color": "Black",
+    "author": "caroline legg",
+    "license": "CC BY 2.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AWild_black_Rabbit_%2849875619437%29.jpg"
+  },
+  {
+    "file": "blue-web-1.jpg",
+    "color": "Blue",
+    "author": "Dguendel",
+    "license": "CC BY 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AAlsleben_%28Saale%29%2C_Kaninchenausstellung_2022%2C_blauer_Holicer.jpg"
+  },
+  {
+    "file": "blue-web-2.jpg",
+    "color": "Blue",
+    "author": "Dguendel",
+    "license": "CC BY 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AAlsleben_%28Saale%29%2C_Kaninchenausstellung_2022%2C_Perlfeh.jpg"
+  },
+  {
+    "file": "blue-web-3.jpg",
+    "color": "Blue",
+    "author": "Dguendel",
+    "license": "CC BY 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AAlsleben_%28Saale%29%2C_Kaninchenausstellung_2023%2C_Perlfeh.jpg"
+  },
+  {
+    "file": "blue-web-4.jpg",
+    "color": "Blue",
+    "author": "Jens Jäpel",
+    "license": "CC BY 2.5",
+    "source": "https://commons.wikimedia.org/wiki/File%3AHauskaninchen_im_Stall.jpg"
+  },
+  {
+    "file": "blue-web-5.jpg",
+    "color": "Blue",
+    "author": "Shogun1192",
+    "license": "Public domain",
+    "source": "https://commons.wikimedia.org/wiki/File%3AHI3A0028.jpg"
+  },
+  {
+    "file": "blue-web-6.jpg",
+    "color": "Blue",
+    "author": "Blauglanz at German Wikipedia",
+    "license": "Public domain",
+    "source": "https://commons.wikimedia.org/wiki/File%3ASatinkaninchen_009.jpg"
+  },
+  {
+    "file": "blue-web-7.jpg",
+    "color": "Blue",
+    "author": "Vera Buhl",
+    "license": "CC BY-SA 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3A2008-01-24_%288%29_Rabbit%2C_Zwergkaninchen.JPG"
+  },
+  {
+    "file": "rew-web-1.jpg",
+    "color": "REW",
+    "author": "Ernani Zimmermann",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ACoelho_Branco.jpg"
+  },
+  {
+    "file": "rew-web-2.jpg",
+    "color": "REW",
+    "author": "Bodlina",
+    "license": "CC BY-SA 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ACzech_Albino_Rabbit_2.jpg"
+  },
+  {
+    "file": "rew-web-3.jpg",
+    "color": "REW",
+    "author": "MSKM",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AEco_park%2C_Garhi_cantt.jpg"
+  },
+  {
+    "file": "rew-web-4.jpg",
+    "color": "REW",
+    "author": "Nandhiniraji",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AGotland_rabbit.jpg"
+  },
+  {
+    "file": "rew-web-5.jpg",
+    "color": "REW",
+    "author": "Sarbast.T.Hameed",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ARabbit_in_the_farm-1.jpg"
+  },
+  {
+    "file": "rew-web-6.jpg",
+    "color": "REW",
+    "author": "FBenjr123",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AWhite_domesticated_rabbits_in_the_Philippines_01.jpg"
+  },
+  {
+    "file": "rew-web-7.jpg",
+    "color": "REW",
+    "author": "FBenjr123",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AWhite_domesticated_rabbits_in_the_Philippines_03.jpg"
+  },
+  {
+    "file": "rew-web-8.jpg",
+    "color": "REW",
+    "author": "fotogoocom",
+    "license": "CC BY 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AZwergkaninchen_-_panoramio_%281%29.jpg"
+  },
+  {
+    "file": "californian-web-1.jpg",
+    "color": "Californian",
+    "author": "Kathy Shea",
+    "license": "Public domain",
+    "source": "https://commons.wikimedia.org/wiki/File%3ACalifornian_Rabbit.JPG"
+  },
+  {
+    "file": "californian-web-2.jpg",
+    "color": "Californian",
+    "author": "Ervinpospisil at Czech Wikipedia",
+    "license": "CC BY-SA 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AKr%C3%A1l%C3%ADk_novoz%C3%A9landsk%C3%BD_b%C3%ADl%C3%BD.jpg"
+  },
+  {
+    "file": "californian-web-3.jpg",
+    "color": "Californian",
+    "author": "Lisa Göris (talk) 14:18, 1 October 2009",
+    "license": "CC BY-SA 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ARussenkaninchen.jpg"
+  },
+  {
+    "file": "californian-web-4.jpg",
+    "color": "Californian",
+    "author": "Dezidor",
+    "license": "CC BY 3.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3ASamec_kr%C3%A1l%C3%ADka.jpg"
+  },
+  {
+    "file": "red-web-1.jpg",
+    "color": "Red",
+    "author": "Semin",
+    "license": "CC BY-SA 4.0",
+    "source": "https://commons.wikimedia.org/wiki/File%3AThrianta.JPG"
+  }
 ]

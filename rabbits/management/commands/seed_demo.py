@@ -928,6 +928,8 @@ class Command(BaseCommand):
                     new_culls.append(CullNote(rabbit=kit, date=end, decision="cull", reason=why))
                 base = color.replace("Broken ", "").replace("Charlie ", "")
                 name = photo_by_color.get(base) or photo_by_color.get("Black")
+                if fate == "growing" and self.fresh_photo(kit, base, litter.kindled_on + datetime.timedelta(days=35)):
+                    name = None  # still in the herd: its own unused pool photo
                 if name:
                     new_photos.append(RabbitPhoto(rabbit=kit, image=name, is_main=True, taken_at=litter.kindled_on +
                                                   datetime.timedelta(days=35)))
@@ -941,6 +943,22 @@ class Command(BaseCommand):
         RabbitPhoto.objects.bulk_create(new_photos)
         LitterNote.objects.bulk_create(new_notes)
         return {"litters": lit_n, "outcomes": outcomes}
+
+    def fresh_photo(self, rabbit, base, taken):
+        """Give a rabbit a pool photo no other rabbit has, if one is left."""
+        key = {"Himalayan": "Californian", "Ruby-eyed white": "REW", "Fawn": "Red"}.get(base, base)
+        options = self._photo_pool.get(key) or []
+        n = self._photo_used.get(key, 0)
+        if n >= len(options):
+            return False
+        pick = options[n]
+        self._photo_used[key] = n + 1
+        notes = "" if pick["license"] == "Owned" else f"Demo photo: {pick['author']}, {pick['license']}, via Wikimedia Commons ({pick['source']})."
+        photo = RabbitPhoto(rabbit=rabbit, is_main=True, notes=notes, taken_at=taken)
+        with open(self._photo_folder / pick["file"], "rb") as handle:
+            photo.image.save("photo.jpg", File(handle), save=False)
+        photo.save()
+        return True
 
     def photos(self, rabbits, old_files):
         """Main photo per rabbit from rabbits/demo_photos/nz, matched to its color.
@@ -960,9 +978,13 @@ class Command(BaseCommand):
                 continue
             pool.setdefault(c["color"], []).append(c)
         used, count = {}, 0
-        for rabbit in rabbits.values():
+        self._photo_pool, self._photo_used, self._photo_folder = pool, used, folder
+        # The living herd picks first, so each current rabbit gets its own photo
+        # while the pool lasts; former rabbits take what is left (repeats there).
+        order = sorted(rabbits.values(), key=lambda r: (r.status in Rabbit.FORMER, r.pk))
+        for rabbit in order:
             base = rabbit.color.replace("Broken ", "").replace("Charlie ", "")
-            key = {"Himalayan": "Californian"}.get(base, base)
+            key = {"Himalayan": "Californian", "Ruby-eyed white": "REW", "Fawn": "Red"}.get(base, base)
             options = pool.get(key) or pool["Black"]
             pick = options[used.get(key, 0) % len(options)]
             used[key] = used.get(key, 0) + 1
