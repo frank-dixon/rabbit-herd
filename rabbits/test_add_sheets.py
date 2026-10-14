@@ -7,7 +7,7 @@ from django.urls import reverse
 from .test_flow_rules import FlowTestMixin
 
 PAGES = [("pairing_list", "New pairing", "new-pairing"), ("task_list", "New task", "new-task"),
-         ("location_list", "New location", "new-location"), ("cost_list", "New cost", "add"),
+         ("location_list", "New location", "new-location"),
          ("waitlist", "New buyer", "form")]
 
 

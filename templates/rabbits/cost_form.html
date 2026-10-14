@@ -1,0 +1,18 @@
+{% extends "components/sheet_base.html" %}
+
+{% block title %}{% if editing %}Edit cost{% else %}New cost{% endif %} · {{ app_name }}{% endblock %}
+{% block eyebrow %}<p class="v2-eyebrow"><a class="underline-offset-2 hover:underline" href="{% url 'cost_list' %}">Costs</a></p>{% endblock %}
+{% block sheet_title %}{% if editing %}Edit {{ editing.description }}{% else %}New cost{% endif %}{% endblock %}
+{% block sheet %}
+  <form class="grid grid-cols-2 gap-x-4 gap-y-5" method="post" novalidate>
+    {% csrf_token %}
+    {% include "components/text_input.html" with name="date" label="Date" type="date" value=values.date max=today_iso errors=errors.date only %}
+    {% include "components/select.html" with name="category" label="Category" options=categories value=values.category errors=errors.category only %}
+    <div class="col-span-2">{% include "components/text_input.html" with name="description" label="What" value=values.description errors=errors.description only %}</div>
+    {% include "components/text_input.html" with name="amount" label="Amount ($)" inputmode="decimal" value=values.amount errors=errors.amount only %}
+    {% include "components/text_input.html" with name="weight_lb" label="Pounds (feed, optional)" inputmode="decimal" value=values.weight_lb errors=errors.weight_lb only %}
+    {% if rabbit_options %}<div class="col-span-2 sm:col-span-1">{% include "components/select.html" with name="rabbit" label="For a rabbit (optional)" options=rabbit_options value=values.rabbit errors=errors.rabbit placeholder="Whole herd" only %}</div>{% endif %}
+    {% if litter_options %}<div class="col-span-2 sm:col-span-1">{% include "components/select.html" with name="litter" label="For a litter (optional)" options=litter_options value=values.litter errors=errors.litter placeholder="No litter" only %}</div>{% endif %}
+    <div class="col-span-2">{% include "components/sheet_actions.html" with label=editing|yesno:"Save cost,Add cost" cancel_href="/costs/" only %}</div>
+  </form>
+{% endblock %}

@@ -171,7 +171,7 @@ def litter_detail(request, pk):
         "covers": covers, "cover_outcomes": Cover.Outcome.choices,
         "counted_cover": next((c.pk for c in covers if c.outcome == Cover.Outcome.COVERED), None),
         **dict(zip(("cost_items", "cost_total"), costs.linked(litter.expenses.all()))),
-        "cost_add_url": f"/costs/?litter={litter.pk}&new=1#add",
+        "cost_add_url": f"/costs/new/?litter={litter.pk}",
     })
 
 

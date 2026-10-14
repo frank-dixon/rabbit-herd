@@ -4,64 +4,35 @@
 {% block title %}Costs · {{ app_name }}{% endblock %}
 
 {% block content %}
-  {% include "components/page_header.html" with title="Costs" primary_label="New cost" primary_href="?new=1#add" subtitle="Feed purchases and other spending, with simple totals." only %}
+  {% url 'cost_new' as new_href %}
+  {% include "components/page_header.html" with title="Costs" primary_label="New cost" primary_href=new_href primary_modal=True subtitle="Feed purchases and other spending, with simple totals." only %}
 
-  <dl class="wt-stats" aria-label="Totals" data-cost-totals>
-    <div class="wt-stat"><dt>{{ totals.month_label }}</dt><dd class="num">{{ totals.month|money }}</dd><p>&nbsp;</p></div>
-    <div class="wt-stat"><dt>{{ totals.year_label }}</dt><dd class="num">{{ totals.year|money }}</dd><p>&nbsp;</p></div>
-    <div class="wt-stat"><dt>Feed per rabbit, {{ totals.month_label }}</dt><dd class="num" data-feed-per-rabbit>{% if totals.feed_per_rabbit %}{{ totals.feed_per_rabbit|money }}{% else %}—{% endif %}</dd><p>{{ totals.active }} active rabbit{{ totals.active|pluralize }}</p></div>
-    <div class="wt-stat"><dt>Feed price per lb, {{ totals.year_label }}</dt><dd class="num">{% if totals.price_per_lb %}{{ totals.price_per_lb|money }}{% else %}—{% endif %}</dd><p>All time {{ totals.all|money }}</p></div>
-  </dl>
-  {% if totals.by_category %}
-    <p class="stat-note" data-by-category><span class="text-muted">{{ totals.year_label }} by category</span>{% for label, amount in totals.by_category %}<span class="whitespace-nowrap">{{ label }} <span class="num">{{ amount|money }}</span></span>{% endfor %}</p>
-  {% endif %}
+  <div data-refresh="costs">
+    <dl class="stat-grid" aria-label="Totals" data-cost-totals>
+      {% include "components/stat_card.html" with label=totals.month_label value=totals.month|money only %}
+      {% include "components/stat_card.html" with label=totals.year_label value=totals.year|money only %}
+      {% with label="Feed per rabbit, "|add:totals.month_label %}
+        {% include "components/stat_card.html" with label=label value=totals.feed_per_rabbit|money sub=totals.active_label hook="feed-per-rabbit" only %}
+      {% endwith %}
+      {% with label="Feed price per lb, "|add:totals.year_label all=totals.all|money %}{% with sub="All time "|add:all %}
+        {% include "components/stat_card.html" with label=label value=totals.price_per_lb|money sub=sub only %}
+      {% endwith %}{% endwith %}
+    </dl>
+    {% include "components/chip_strip.html" with title=totals.year_label|add:" by category" items=totals.by_category_chips hook="by-category" only %}
 
-  <details class="add-sheet mt-6" id="add" data-add-sheet{% if request.GET.new or request.GET.rabbit or request.GET.litter or errors or editing %} open{% endif %}>
-    <summary class="hidden">New cost</summary>
-    <section class="ruled pt-4 lg:max-w-2xl" aria-labelledby="cost-form-heading">
-      <h2 class="text-base font-semibold" id="cost-form-heading">{% if editing %}Edit {{ editing.description }}{% else %}Add a cost{% endif %}</h2>
-      {% if editing %}{% url 'cost_edit' editing.pk as action %}{% else %}{% url 'cost_list' as action %}{% endif %}
-      <form class="mt-3 grid grid-cols-2 gap-2" method="post" action="{{ action }}" novalidate>
-        {% csrf_token %}
-        {% include "components/text_input.html" with name="date" label="Date" type="date" value=values.date max=today_iso errors=errors.date only %}
-        {% include "components/select.html" with name="category" label="Category" options=categories value=values.category errors=errors.category only %}
-        <div class="col-span-2">{% include "components/text_input.html" with name="description" label="What" value=values.description errors=errors.description only %}</div>
-        {% include "components/text_input.html" with name="amount" label="Amount ($)" inputmode="decimal" value=values.amount errors=errors.amount only %}
-        {% include "components/text_input.html" with name="weight_lb" label="Pounds (feed, optional)" inputmode="decimal" value=values.weight_lb errors=errors.weight_lb only %}
-        {% if rabbit_options %}{% include "components/select.html" with name="rabbit" label="For a rabbit (optional)" options=rabbit_options value=values.rabbit errors=errors.rabbit placeholder="Whole herd" only %}{% endif %}
-        {% if litter_options %}{% include "components/select.html" with name="litter" label="For a litter (optional)" options=litter_options value=values.litter errors=errors.litter placeholder="No litter" only %}{% endif %}
-        <div class="col-span-2 mt-1 flex flex-wrap items-center gap-3">
-          {% include "components/button.html" with label=editing|yesno:"Save cost,Add cost" type="submit" variant="primary" only %}
-          <a class="text-sm text-muted underline hover:text-ink" href="{% url 'cost_list' %}" data-sheet-close>Cancel</a>
-        </div>
-      </form>
-    </section>
-  </details>
-  <div class="mt-6">
-
-
-    <section class="ruled pt-4" aria-labelledby="costs-heading">
-      <h2 class="text-base font-semibold" id="costs-heading">Recent costs</h2>
-      {% if expenses %}
-        <ul class="mt-2 divide-y divide-neutral-200 text-sm" data-costs>
-          {% for expense in expenses %}
-            <li class="flex items-start justify-between gap-3 py-2{% if expense == editing %} bg-neutral-100{% endif %}">
-              <div class="min-w-0">
-                <p><span class="font-medium">{{ expense.description }}</span> · {{ expense.amount|money }}</p>
-                <p class="text-neutral-600">{{ expense.date|date:"M j, Y" }} · {{ expense.get_category_display }}{% if expense.per_lb %} · {{ expense.weight_lb|floatformat:"-2" }} lb at {{ expense.per_lb|money }}/lb{% endif %}{% if expense.rabbit %} · <a class="underline" href="{% url 'rabbit_detail' expense.rabbit.pk %}">{{ expense.rabbit.name }}</a>{% endif %}{% if expense.litter %} · <a class="underline" href="{% url 'litter_detail' expense.litter.pk %}">{{ expense.litter.pairing }} litter</a>{% endif %}</p>
-              </div>
-              <div class="flex shrink-0 gap-3">
-                <a class="text-neutral-600 underline" href="?edit={{ expense.pk }}#add">Edit<span class="sr-only"> {{ expense.description }}</span></a>
-                <form method="post" action="{% url 'cost_delete' expense.pk %}" data-undo-remove="Cost removed.">
-                  {% csrf_token %}<button type="submit" class="text-neutral-600 underline">Remove<span class="sr-only"> {{ expense.description }}</span></button>
-                </form>
-              </div>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p class="mt-2 text-neutral-600">No costs yet.</p>
-      {% endif %}
-    </section>
+    {% include "components/list_panel_start.html" with title="Recent costs" count=expenses|length id="costs-heading" hook="costs" empty="No costs yet." only %}
+      {% for expense in expenses %}
+        {% url 'cost_edit_form' expense.pk as edit_href %}
+        <li class="list-row" data-row>
+          <div class="min-w-0 row-span-2">
+            <a class="list-row-link list-row-title block" href="{{ edit_href }}" data-modal>{{ expense.description }}</a>
+            <p class="list-row-meta">{{ expense.date|date:"D, M j" }} · {{ expense.get_category_display }}{% if expense.per_lb %} · {{ expense.weight_lb|floatformat:"-2" }} lb at {{ expense.per_lb|money }}/lb{% endif %}{% if expense.rabbit %} · {{ expense.rabbit.name }}{% endif %}{% if expense.litter %} · {{ expense.litter.pairing }} litter{% endif %}</p>
+          </div>
+          <span class="list-row-value">{{ expense.amount|money }}</span>
+          {% url 'cost_delete' expense.pk as remove_action %}
+          {% include "components/row_actions.html" with name=expense.description edit_href=edit_href remove_action=remove_action undo="Cost removed." only %}
+        </li>
+      {% endfor %}
+    {% include "components/list_panel_end.html" %}
   </div>
 {% endblock %}

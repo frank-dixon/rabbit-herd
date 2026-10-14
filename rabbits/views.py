@@ -277,7 +277,7 @@ def rabbit_detail(request, pk):
             **culling.form_context(request, rabbit),
             **shows.form_context(request, rabbit),
             **dict(zip(("cost_items", "cost_total"), costs.linked(rabbit.expenses.all()))),
-            "cost_add_url": f"/costs/?rabbit={rabbit.pk}&new=1#add",
+            "cost_add_url": f"/costs/new/?rabbit={rabbit.pk}",
             "today_iso": timezone.localdate().isoformat(),
             **doe_schedule_context(request, rabbit),
             "location_choices": location_options(request.user)[:-1] if settings.FEATURE_LOCATIONS else [],

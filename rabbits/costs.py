@@ -1,6 +1,8 @@
 """Feed purchases and other costs, with simple totals.
 
-One form adds a cost or, with ?edit=<id>, edits one. A cost can be linked
+New cost (/costs/new/) and Edit (/costs/<id>/edit/) are sheet pages that the
+shared modal opens over the list; saving redirects to the list, whose
+[data-refresh] region the modal swaps in place. A cost can be linked
 to a rabbit or a litter, which counts it on that page. Totals cover this
 month, this year and all time, plus this month's feed per active rabbit
 and the year's average feed price per pound.
@@ -12,11 +14,13 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .health import parse
 from .models import Expense, Litter, Rabbit
+from .templatetags.money import money
 
 CENT = Decimal("0.01")
 
@@ -89,52 +93,73 @@ def totals(user, today=None):
                    year.values("category").annotate(total=Sum("amount")).order_by("-total")]
     return {
         "month": total(month), "year": total(year), "all": total(mine),
-        "by_category": by_category, "active": active,
+        "by_category": by_category, "by_category_chips": [(label, money(amount)) for label, amount in by_category], "active": active,
+        "active_label": f"{active} active rabbit{'' if active == 1 else 's'}",
         "feed_per_rabbit": (feed_month / active).quantize(CENT) if active and feed_month else None,
         "price_per_lb": (feed_year["amount"] / feed_year["pounds"]).quantize(CENT) if feed_year["pounds"] else None,
         "month_label": f"{today:%B}", "year_label": str(today.year),
     }
 
 
-def _render(request, values, errors, editing, status=200):
-    rabbits, litters = _options(request.user)
+def _list(request):
     expenses = list(Expense.objects.filter(owner=request.user).select_related("rabbit", "litter__pairing__doe", "litter__pairing__buck")[:200])
-    return render(request, "rabbits/costs.html", {
-        "expenses": expenses, "values": values, "errors": errors, "editing": editing,
+    return render(request, "rabbits/costs.html", {"expenses": expenses, "totals": totals(request.user), "wide": True})
+
+
+def _form(request, values, errors, editing, status=200):
+    rabbits, litters = _options(request.user)
+    return render(request, "rabbits/cost_form.html", {
+        "values": values, "errors": errors, "editing": editing,
         "categories": Expense.Category.choices, "rabbit_options": rabbits, "litter_options": litters,
-        "totals": totals(request.user), "today_iso": timezone.localdate().isoformat(), "wide": True,
+        "today_iso": timezone.localdate().isoformat(),
     }, status=status)
+
+
+def _values(expense):
+    return {"date": expense.date.isoformat(), "category": expense.category, "description": expense.description,
+            "amount": str(expense.amount), "weight_lb": str(expense.weight_lb or ""),
+            "rabbit": str(expense.rabbit_id or ""), "litter": str(expense.litter_id or "")}
+
+
+def _create(request):
+    values, errors, cleaned = _clean(request)
+    if errors:
+        return _form(request, values, errors, None, status=400)
+    Expense.objects.create(owner=request.user, **cleaned)
+    messages.success(request, "Cost added.")
+    return redirect("cost_list")
 
 
 @login_required
 def cost_list(request):
     if request.method == "POST":
-        values, errors, cleaned = _clean(request)
-        if not errors:
-            Expense.objects.create(owner=request.user, **cleaned)
-            messages.success(request, "Cost added.")
-            return redirect("cost_list")
-        return _render(request, values, errors, None, status=400)
-    editing = None
-    if request.GET.get("edit", "").isdigit():
-        editing = Expense.objects.filter(owner=request.user, pk=request.GET["edit"]).first()
-    if editing:
-        values = {"date": editing.date.isoformat(), "category": editing.category, "description": editing.description,
-                  "amount": str(editing.amount), "weight_lb": str(editing.weight_lb or ""),
-                  "rabbit": str(editing.rabbit_id or ""), "litter": str(editing.litter_id or "")}
-    else:
-        values = {"date": timezone.localdate().isoformat(), "category": Expense.Category.FEED,
-                  "rabbit": request.GET.get("rabbit", ""), "litter": request.GET.get("litter", "")}
-    return _render(request, values, {}, editing)
+        return _create(request)
+    edit = request.GET.get("edit", "")
+    if edit.isdigit():
+        return redirect("cost_edit_form", pk=int(edit))
+    if request.GET.get("new") or request.GET.get("rabbit") or request.GET.get("litter"):
+        query = request.GET.copy()
+        query.pop("new", None)
+        return redirect(reverse("cost_new") + (f"?{query.urlencode()}" if query else ""))
+    return _list(request)
 
 
 @login_required
-@require_POST
+def cost_new(request):
+    if request.method == "POST":
+        return _create(request)
+    return _form(request, {"date": timezone.localdate().isoformat(), "category": Expense.Category.FEED,
+                           "rabbit": request.GET.get("rabbit", ""), "litter": request.GET.get("litter", "")}, {}, None)
+
+
+@login_required
 def cost_edit(request, pk):
     expense = get_object_or_404(Expense, owner=request.user, pk=pk)
+    if request.method != "POST":
+        return _form(request, _values(expense), {}, expense)
     values, errors, cleaned = _clean(request)
     if errors:
-        return _render(request, values, errors, expense, status=400)
+        return _form(request, values, errors, expense, status=400)
     for key, value in cleaned.items():
         setattr(expense, key, value)
     expense.save()
