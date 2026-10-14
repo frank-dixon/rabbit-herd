@@ -30,8 +30,8 @@ class WaitlistTests(TestCase):
         first, second = page.context["open_entries"]
         self.assertEqual((first.buyer, first.position, [r.name for r in first.fits]), ("Dana Ruiz", 1, ["Bluebell"]))
         self.assertEqual([r.name for r in second.fits], ["Bluebell", "Castor Buck"])
-        self.assertContains(page, "Wants: Any rabbit")
-        self.assertContains(page, "Wants: blue mini rex doe")
+        self.assertContains(page, "Wants Any rabbit")
+        self.assertContains(page, "Wants blue mini rex doe")
         self.assertContains(page, "$25.00 deposit")
         editing = self.client.get(self.url + f"?edit={first.pk}")
         self.assertContains(editing, "Edit Dana Ruiz's request")

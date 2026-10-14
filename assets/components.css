@@ -64,3 +64,6 @@
 .app-modal-body .v2-hero > :is(div:first-child, h1) { display: none; }
 .app-modal-body .v2-hero:not(:has(> :not(div:first-child, h1))) { display: none; }
 .app-modal-body [data-action-bar] { position: static; padding: 0; margin-top: 24px; background: none; backdrop-filter: none; }
+/* Links inside a row (a rabbit name) sit above the row's stretched edit link. */
+.list-row a:not(.list-row-link), .list-row button { position: relative; z-index: 1; }
+.list-panel + .list-panel { margin-top: 24px; }

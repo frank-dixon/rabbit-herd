@@ -49,6 +49,8 @@ def _clean(request):
 def _render(request, values, errors, editing, status=200):
     entries = list(WaitlistEntry.objects.filter(owner=request.user).select_related("rabbit"))
     candidates = list(Rabbit.objects.filter(owner=request.user, archived_at__isnull=True, status=Rabbit.Status.GROWING))
+    for entry in entries:
+        entry.edit_href = f"?edit={entry.pk}#form"
     open_entries = [entry for entry in entries if entry.status in WaitlistEntry.OPEN]
     for position, entry in enumerate(open_entries, start=1):
         entry.position = position

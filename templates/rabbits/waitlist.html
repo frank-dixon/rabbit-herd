@@ -4,13 +4,13 @@
 {% block title %}Waitlist · {{ app_name }}{% endblock %}
 
 {% block content %}
-  {% include "components/page_header.html" with title="Waitlist" primary_label="New buyer" primary_href="?new=1#form" subtitle="Buyers waiting for a rabbit, first come, first served." only %}
+  {% include "components/page_header.html" with title="Waitlist" primary_label="New buyer" primary_href="?new=1#form" primary_modal=True subtitle="Buyers waiting for a rabbit, first come, first served." only %}
   <details class="add-sheet mt-6" id="form" data-add-sheet{% if request.GET.new or errors or editing %} open{% endif %}>
     <summary class="hidden">New buyer</summary>
-    <section class="ruled pt-4 lg:max-w-2xl" aria-labelledby="wait-form-heading">
+    <section class="ruled pt-4 lg:max-w-2xl" aria-labelledby="wait-form-heading" data-modal-content data-add-sheet-body>
       <h2 class="text-base font-semibold" id="wait-form-heading">{% if editing %}Edit {{ editing.buyer }}'s request{% else %}Add a buyer{% endif %}</h2>
       {% if editing %}{% url 'waitlist_edit' editing.pk as action %}{% else %}{% url 'waitlist' as action %}{% endif %}
-      <form class="mt-3 grid grid-cols-2 gap-2" method="post" action="{{ action }}" novalidate>
+      <form class="mt-3 grid grid-cols-2 gap-x-4 gap-y-5" method="post" action="{{ action }}" novalidate>
         {% csrf_token %}
         <div class="col-span-2">{% include "components/text_input.html" with name="buyer" label="Buyer" value=values.buyer errors=errors.buyer only %}</div>
         <div class="col-span-2">{% include "components/text_input.html" with name="reach" label="Phone or email (optional)" value=values.reach only %}</div>
@@ -18,6 +18,7 @@
         {% include "components/select.html" with name="sex" label="Sex" options=sex_options value=values.sex errors=errors.sex placeholder="Either" only %}
         {% include "components/text_input.html" with name="breed" label="Breed (optional)" value=values.breed only %}
         {% include "components/text_input.html" with name="color" label="Color (optional)" value=values.color only %}
+        <p class="col-span-2 -mt-1 text-[13px] text-muted">Breed and color match any growing-out rabbit whose breed or color contains what you type.</p>
         {% include "components/select.html" with name="status" label="Status" options=status_options value=values.status errors=errors.status only %}
         {% include "components/text_input.html" with name="deposit" label="Deposit ($, optional)" inputmode="decimal" value=values.deposit errors=errors.deposit only %}
         <div class="col-span-2">{% include "components/select.html" with name="rabbit" label="Rabbit offered or sold (optional)" options=rabbit_options value=values.rabbit errors=errors.rabbit placeholder="None yet" only %}</div>
@@ -30,54 +31,37 @@
           <a class="text-sm text-muted underline hover:text-ink" href="{% url 'waitlist' %}" data-sheet-close>Cancel</a>
         </div>
       </form>
-      <p class="mt-3 text-sm text-neutral-600">Breed and color match any growing-out rabbit whose breed or color contains what you type.</p>
     </section>
   </details>
-  <div class="mt-6">
-    <section aria-labelledby="open-heading">
-      <h2 class="text-base font-semibold" id="open-heading">Waiting ({{ open_entries|length }})</h2>
-      {% if open_entries %}
-        <ol class="mt-2 flex flex-col gap-3" data-waitlist-open>
-          {% for entry in open_entries %}
-            <li class="rounded border border-neutral-300 bg-white p-4{% if entry == editing %} ring-2 ring-accent{% endif %}">
-              <div class="flex items-start justify-between gap-3">
-                <div class="min-w-0">
-                  <p class="text-sm text-neutral-600">#{{ entry.position }} · asked {{ entry.requested_on|date:"M j, Y" }}</p>
-                  <p class="break-words text-lg font-semibold">{{ entry.buyer }}</p>
-                  <p class="break-words">Wants: {{ entry.wants }}</p>
-                  {% if entry.reach %}<p class="break-words text-sm text-neutral-700">{{ entry.reach }}</p>{% endif %}
-                  <p class="mt-1 text-sm"><span class="pill" data-wait-status="{{ entry.status }}">{{ entry.get_status_display }}</span>{% if entry.rabbit %} · <a class="underline" href="{% url 'rabbit_detail' entry.rabbit.pk %}">{{ entry.rabbit.name }}</a>{% endif %}{% if entry.deposit %} · {{ entry.deposit|money }} deposit{% endif %}</p>
-                  {% if entry.notes %}<p class="mt-1 whitespace-pre-line break-words text-sm text-neutral-800">{{ entry.notes }}</p>{% endif %}
-                </div>
-                <div class="flex shrink-0 gap-3 text-sm">
-                  <a class="text-neutral-600 underline" href="?edit={{ entry.pk }}#form">Edit<span class="sr-only"> {{ entry.buyer }}</span></a>
-                  <form method="post" action="{% url 'waitlist_delete' entry.pk %}" data-undo-remove="Removed {{ entry.buyer }} from the waitlist.">
-                    {% csrf_token %}<button type="submit" class="text-neutral-600 underline">Remove<span class="sr-only"> {{ entry.buyer }}</span></button>
-                  </form>
-                </div>
-              </div>
-              {% if entry.status == "waiting" %}
-                <p class="mt-2 border-t border-neutral-200 pt-2 text-sm" data-fits>{% if entry.fits %}Fits now: {% for rabbit in entry.fits %}<a class="underline" href="{% url 'rabbit_detail' rabbit.pk %}">{{ rabbit.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}<span class="text-neutral-600">No growing-out rabbit fits yet.</span>{% endif %}</p>
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ol>
-      {% else %}
-        <p class="mt-2 text-neutral-600">Nobody is waiting.</p>
-      {% endif %}
-      {% if closed_entries %}
-        <h2 class="mt-6 text-base font-semibold">Closed</h2>
-        <ul class="mt-2 divide-y divide-neutral-200 rounded border border-neutral-300 bg-white px-4 text-sm" data-waitlist-closed>
-          {% for entry in closed_entries %}
-            <li class="flex items-start justify-between gap-3 py-2">
-              <span class="min-w-0 break-words"><span class="font-medium">{{ entry.buyer }}</span> · {{ entry.wants }} · {{ entry.get_status_display }}{% if entry.rabbit %} · <a class="underline" href="{% url 'rabbit_detail' entry.rabbit.pk %}">{{ entry.rabbit.name }}</a>{% endif %}</span>
-              <a class="shrink-0 text-neutral-600 underline" href="?edit={{ entry.pk }}#form">Edit<span class="sr-only"> {{ entry.buyer }}</span></a>
-            </li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    </section>
-
-
+  <div data-refresh="waitlist">
+    {% include "components/list_panel_start.html" with title="Waiting" count=open_entries|length id="open-heading" hook="waitlist-open" empty="Nobody is waiting." only %}
+      {% for entry in open_entries %}
+        <li class="list-row" data-row>
+          <div class="min-w-0 row-span-2">
+            <a class="list-row-link list-row-title block" href="?edit={{ entry.pk }}#form" data-modal><span class="text-muted">#{{ entry.position }}</span> {{ entry.buyer }}</a>
+            <p class="list-row-meta">Wants {{ entry.wants }} · asked {{ entry.requested_on|date:"D, M j" }}{% if entry.reach %} · {{ entry.reach }}{% endif %}{% if entry.rabbit %} · <a class="underline-offset-2 hover:underline" href="{% url 'rabbit_detail' entry.rabbit.pk %}">{{ entry.rabbit.name }}</a>{% endif %}</p>
+            {% if entry.notes %}<p class="list-row-meta whitespace-pre-line break-words">{{ entry.notes }}</p>{% endif %}
+            {% if entry.status == "waiting" %}<p class="list-row-meta" data-fits>{% if entry.fits %}Fits now: {% for rabbit in entry.fits %}<a class="text-ink underline-offset-2 hover:underline" href="{% url 'rabbit_detail' rabbit.pk %}">{{ rabbit.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}No growing-out rabbit fits yet.{% endif %}</p>{% endif %}
+          </div>
+          <span class="list-row-value"><span class="pill" data-wait-status="{{ entry.status }}">{{ entry.get_status_display }}</span>{% if entry.deposit %}<span class="block text-[13px] font-normal text-muted">{{ entry.deposit|money }} deposit</span>{% endif %}</span>
+          {% url 'waitlist_delete' entry.pk as remove_action %}
+          {% include "components/row_actions.html" with name=entry.buyer edit_href=entry.edit_href remove_action=remove_action undo="Removed from the waitlist." only %}
+        </li>
+      {% endfor %}
+    {% include "components/list_panel_end.html" %}
+    {% if closed_entries %}
+      {% include "components/list_panel_start.html" with title="Closed" count=closed_entries|length id="closed-heading" hook="waitlist-closed" only %}
+        {% for entry in closed_entries %}
+          <li class="list-row" data-row>
+            <div class="min-w-0">
+              <a class="list-row-link list-row-title block" href="?edit={{ entry.pk }}#form" data-modal>{{ entry.buyer }}</a>
+              <p class="list-row-meta">Wanted {{ entry.wants }}{% if entry.rabbit %} · <a class="underline-offset-2 hover:underline" href="{% url 'rabbit_detail' entry.rabbit.pk %}">{{ entry.rabbit.name }}</a>{% endif %}</p>
+            </div>
+            <span class="list-row-value"><span class="pill" data-wait-status="{{ entry.status }}">{{ entry.get_status_display }}</span></span>
+            {% include "components/row_actions.html" with name=entry.buyer edit_href=entry.edit_href only %}
+          </li>
+        {% endfor %}
+      {% include "components/list_panel_end.html" %}
+    {% endif %}
   </div>
 {% endblock %}
