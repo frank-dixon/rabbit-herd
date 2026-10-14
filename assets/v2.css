@@ -62,3 +62,9 @@ html[data-layout="v2"] main form :is(input[type="email"], input[required]):not([
 @media (prefers-reduced-motion: reduce) { html[data-layout="v2"] main form :is(input, select, textarea) { transition: none; } }
 html[data-layout="v2"] [data-action-bar] { border-top-color: transparent; background: var(--v2-sheet); }
 html[data-layout="v2"] .v2-sheet :is(button, a).mo-press { border-radius: 0.875rem; }
+/* Multi-line notes keep a light frame: one hairline under a tall box reads as broken. */
+html[data-layout="v2"] main form:not([data-swap-root] form, [data-filters] form) textarea:not([hidden]) { border-width: 1px; border-radius: 0.75rem; padding: 0.625rem 0.75rem; }
+/* Form pages without the sheet still speak in the brand green. */
+html[data-layout="v2"] main form { accent-color: var(--v2-brand); }
+html[data-layout="v2"] main form button[type="submit"].bg-accent { background-color: var(--v2-brand); color: var(--v2-on-brand); border-radius: 0.875rem; }
+html[data-layout="v2"] main form button[type="submit"].bg-accent:hover { background-color: color-mix(in oklab, var(--v2-brand) 90%, black); }
