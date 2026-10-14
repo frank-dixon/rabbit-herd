@@ -23,7 +23,7 @@
         <div data-nojs-only>{% include "components/button.html" with label="Upload" type="submit" variant="secondary" full=True only %}</div>
       </form>
     </li>
-    {% for photo in photos %}
+    {% for photo in photos %}{% if back_to == "photos" or forloop.counter <= 3 %}
       {% with number=forloop.counter|stringformat:"s" %}
       <li class="photo-tile relative" id="photo-{{ photo.pk }}">
         <a href="#photo-{{ photo.pk }}-options" data-photo-open="photo-{{ photo.pk }}-options" class="block rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
@@ -81,7 +81,8 @@
         </dialog>
       </li>
       {% endwith %}
-    {% endfor %}
+    {% endif %}{% endfor %}
+    {% if back_to != "photos" and photos|length > 3 %}<li class="photo-tile"><a class="photo-more" href="{{ photos_url }}" data-photo-more><span class="photo-tile-media grid place-items-center text-lg font-semibold num">+{{ photos|length|add:"-3" }}</span><span class="photo-tile-cap">All photos</span></a></li>{% endif %}
   </ul>
   {% if not photos %}{% include "components/empty.html" with title="No photos yet." text="A side-on photo every few weeks makes growth easy to compare." compact=True kind="photos" icon=ui_icons.photos only %}{% endif %}
 </section>

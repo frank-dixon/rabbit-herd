@@ -58,6 +58,8 @@
     <div class="flex flex-col gap-4">
       {% include "rabbits/_photos_card.html" %}
 
+      <div data-refresh="card-weights">{% include "rabbits/_weights_card.html" %}</div>
+
       <section class="ruled pt-4" aria-labelledby="relatives-heading" data-refresh="relatives">
         <div class="flex items-center justify-between gap-3"><h2 class="text-base font-semibold" id="relatives-heading">Parents and relatives</h2>{% url 'rabbit_edit_step' rabbit.pk 'relatives' as relatives_url %}{% include "components/button.html" with label="Edit" sr_suffix="relatives" href=relatives_url variant="secondary" modal=True only %}</div>
         {% if kindling_note %}<p class="mt-2 text-sm text-neutral-600" data-kindling-note>{{ kindling_note }}</p>{% endif %}
@@ -83,8 +85,6 @@
         {% endif %}
         <p class="mt-3">{% url 'rabbit_pedigree' rabbit.pk as pedigree_url %}{% include "components/button.html" with label="View pedigree" href=pedigree_url variant="secondary" only %}</p>
       </section>
-
-      <div data-refresh="card-weights">{% include "rabbits/_weights_card.html" %}</div>
 
       <div data-refresh="card-health">{% include "rabbits/_health_card.html" %}</div>
 
