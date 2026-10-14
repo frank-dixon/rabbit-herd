@@ -20,24 +20,14 @@
     <section class="scroll-mt-20 ruled pt-4" id="dates" aria-labelledby="dates-heading">
       <h2 class="text-base font-semibold" id="dates-heading">Dates</h2>
       <p class="mt-1 text-sm text-neutral-600">Bred {{ litter.bred_on|date:"l, M j, Y" }} · {{ litter.schedule_name }} schedule.</p>
-      <ul class="mt-3 flex flex-col divide-y divide-neutral-200 rounded border border-neutral-300" data-tasks>
-        {% for task in tasks %}
-          <li class="flex flex-wrap items-center justify-between gap-2 p-3" data-task="{{ task.key }}">
-            <div class="min-w-0">
-              <p class="font-semibold{% if task.done %} line-through text-neutral-600{% endif %}">{{ task.label }}</p>
-              <p class="text-sm text-neutral-600">{% if task.key == "rebreed" %}{{ task.age }} days after kindling{% elif task.age %}Kits {{ task.age }} days old{% else %}Day {{ task.day }}{% endif %} · {{ task.date|date:"D, M j" }}{% if not task.done %}{% if task.date < today %} · <span class="font-semibold text-red-800">overdue</span>{% elif task.date == today %} · <span class="font-semibold text-neutral-900">today</span>{% endif %}{% else %} · done{% endif %}</p>
-            </div>
-            {% if litter.converted_at %}{% elif task.age or task.key != "due" and not litter.kindled_on %}
-              <form method="post" action="{% url 'litter_task' litter.pk %}">
-                {% csrf_token %}<input type="hidden" name="task" value="{{ task.key }}"><input type="hidden" name="done" value="{{ task.done|yesno:'0,1' }}">
-                {% include "components/button.html" with label=task.done|yesno:"Undo,Mark done" sr_suffix=task.label type="submit" variant="secondary" size="small" only %}
-              </form>
-            {% endif %}
-          </li>
-        {% endfor %}
-      </ul>
+      {% include "rabbits/_litter_steps.html" with steps=tasks %}
+      {% if done_tasks %}
+        <details class="mt-3" data-done-steps><summary class="cursor-pointer text-sm text-muted">Done ({{ done_tasks|length }})</summary>
+          {% include "rabbits/_litter_steps.html" with steps=done_tasks %}
+        </details>
+      {% endif %}
     </section>
-    {% include "rabbits/_covers_card.html" %}
+    {% if covers or not litter.kindled_on %}{% include "rabbits/_covers_card.html" %}{% endif %}
     <section class="scroll-mt-20 ruled pt-4" id="kindling" aria-labelledby="kindling-heading">
       <h2 class="text-base font-semibold" id="kindling-heading">Kindling</h2>
       {% if litter.kindled_on %}

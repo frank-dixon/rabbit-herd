@@ -171,8 +171,9 @@ def litter_detail(request, pk):
     outcome_kits = list(litter.kits.select_related("sold_to").prefetch_related("weights", "photos"))
     outcome = O.outcome(litter, outcome_kits, unit, timezone.localdate())
     past = O.is_past(litter, outcome_kits, timezone.localdate())
+    all_tasks = litter.tasks()
     return render(request, "rabbits/litter_detail.html", {
-        "litter": litter, "tasks": litter.tasks(), "kits": kits, "outcome": outcome, "is_past": past,
+        "litter": litter, "tasks": [t for t in all_tasks if not t["done"]], "done_tasks": [t for t in all_tasks if t["done"]], "kits": kits, "outcome": outcome, "is_past": past,
         "done_on": O.done_on(litter, outcome_kits) if past else None,
         "timeline": O.timeline(litter, outcome_kits) if litter.kindled_on else [], "room": room, "card": card,
         "today": timezone.localdate(), "wide": True,
