@@ -582,6 +582,8 @@ def draft_from_rabbit(rabbit):
         parsed = parse_legacy_breed(rabbit.breed)
     if parsed is None:
         draft["legacy_breed"] = clean_text(rabbit.breed)
+        # A breed type saved without its breed details still counts as answered.
+        draft["breed_type"] = rabbit.breed_type or draft.get("breed_type", "")
     else:
         breed_type, purebred, parts = parsed
         draft["breed_type"] = breed_type

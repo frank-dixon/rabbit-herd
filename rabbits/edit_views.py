@@ -260,6 +260,16 @@ def rabbit_quick_edit(request, pk, step):
                 return JsonResponse({"errors": quick_errors(form)}, status=400)
             flow.save_draft(request.session, draft, key)
             return redirect(quick_url(rabbit.pk, step, check=True))
+        color_only = step == "color" and blocked_card(draft, request.user) in ("breed-type", "breed")
+        if color_only:
+            # The breed answers are incomplete, but the color stands on its own.
+            rabbit.color, rabbit.color_is_standard = form.cleaned_data["color"], form.cleaned_data["color_is_standard"]
+            rabbit.save(update_fields=["color", "color_is_standard"])
+            flow.clear_draft(request.session, key)
+            if inline:
+                return JsonResponse({"saved": True})
+            messages.success(request, f"{rabbit.name} was saved.")
+            return redirect(detail)
         if step in SIMPLE:
             # A self-contained answer: save just its fields, so an older rabbit
             # with other answers still missing can be corrected one row at a time.
@@ -292,7 +302,10 @@ def rabbit_quick_edit(request, pk, step):
         messages.success(request, f"{rabbit.name} was saved.")
         return redirect(detail)
 
-    for needed in NEEDS.get(step, []):
+    # Color goes straight to its card when the breed type is known; with no
+    # breed list to offer, the card simply asks for a description.
+    needs = [] if step == "color" and draft.get("breed_type") else NEEDS.get(step, [])
+    for needed in needs:
         if not flow.bound_form(needed, draft, request.user).is_valid():
             flow.save_draft(request.session, draft, flow.edit_key(rabbit.pk))
             return redirect(card_url(rabbit.pk, needed, check=True))

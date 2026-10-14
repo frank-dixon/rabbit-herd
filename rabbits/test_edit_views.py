@@ -146,3 +146,16 @@ class EditFlowTests(FlowTestMixin, TestCase):
 
     def test_unknown_card_is_404(self):
         self.assertEqual(self.client.get(self.card("review")).status_code, 404)
+
+
+class ColorRowTests(FlowTestMixin, TestCase):
+    def test_color_skips_the_breed_type_question_when_it_is_set(self):
+        self.client.force_login(self.user)
+        self.juniper.breed, self.juniper.breed_type = "Barn mix", "crossbred"
+        self.juniper.save()
+        url = reverse("rabbit_quick_edit", args=[self.juniper.pk, "color"])
+        page = self.client.get(url)
+        self.assertEqual(page.status_code, 200)
+        self.client.post(url, {"color": "Broken black", "action": "next"})
+        self.juniper.refresh_from_db()
+        self.assertEqual(self.juniper.color, "Broken black")
