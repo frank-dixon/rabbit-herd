@@ -36,7 +36,7 @@ def build_tree(rabbit, generations=PEDIGREE_GENERATIONS):
 
 
 def cell(position, other, row):
-    herd = isinstance(other, Rabbit)
+    herd = isinstance(other, Rabbit) and not other.deleted_at  # a deleted rabbit shows, unlinked
     color = (other.color if herd else "") or (row.color if row else "")
     breed = (other.short_breed if herd else "") or (row.breed if row else "") or ("" if herd else other.details)
     return {

@@ -125,6 +125,10 @@ def _child_saved(sender, instance, created, raw=False, **kwargs):
         return
     old = getattr(instance, "_history_old", None)
     changes = diff(old, instance) if old is not None else []
+    if sender._meta.model_name == "rabbitphoto" and [c["field"] for c in changes] == ["Is main"]:
+        if instance.is_main:  # the old main's "No" is implied
+            log(instance.rabbit_id, "changed", "photo", "Set a new main photo.")
+        return
     if changes:
         log(instance.rabbit_id, "changed", sender._meta.verbose_name,
             f"Changed {describe(instance)}: {', '.join(c['field'] for c in changes)}.", changes)

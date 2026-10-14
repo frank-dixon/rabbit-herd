@@ -569,6 +569,16 @@ class Relative(models.Model):
         return self.herd_rabbit or self.outside
 
     @property
+    def live_herd_rabbit(self):
+        """The herd rabbit to link to, or None when it's in Recently deleted (shown, but unavailable)."""
+        rabbit = self.herd_rabbit
+        return rabbit if rabbit is not None and not rabbit.deleted_at else None
+
+    @property
+    def unavailable(self):
+        return self.herd_rabbit is not None and bool(self.herd_rabbit.deleted_at)
+
+    @property
     def breed_text(self):
         """A herd rabbit's own breed in short form, else the recorded breed."""
         if self.herd_rabbit_id:

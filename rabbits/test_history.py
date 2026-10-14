@@ -41,3 +41,21 @@ class HistoryTests(TestCase):
         self.assertEqual(self.client.get(url).status_code, 404)
         self.client.force_login(self.user)
         self.assertContains(self.client.get(url), "Added Hazel.")
+
+    def test_set_main_photo_is_logged_once(self):
+        from io import BytesIO
+
+        from django.core.files.base import ContentFile
+        from PIL import Image
+
+        from .models import RabbitPhoto
+
+        buf = BytesIO()
+        Image.new("RGB", (10, 10), "white").save(buf, "JPEG")
+        first = RabbitPhoto(rabbit=self.rabbit, is_main=True)
+        first.image.save("a.jpg", ContentFile(buf.getvalue()), save=True)
+        second = RabbitPhoto(rabbit=self.rabbit)
+        second.image.save("b.jpg", ContentFile(buf.getvalue()), save=True)
+        self.client.force_login(self.user)
+        self.client.post(reverse("rabbit_photo_set_main", args=[second.pk]))
+        self.assertEqual(HistoryEntry.objects.filter(summary="Set a new main photo.").count(), 1)
