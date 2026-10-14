@@ -2,7 +2,7 @@ from django.urls import path
 
 from . import weigh_in
 
-from . import kit_compare, litters, siblings
+from . import kit_compare, litter_check_views, litters, siblings
 
 urlpatterns = [
     path("", litters.litter_list, name="litter_list"),
@@ -15,5 +15,7 @@ urlpatterns = [
     path("<int:pk>/task/", litters.litter_task, name="litter_task"),
     path("<int:pk>/kindling/", litters.litter_kindle, name="litter_kindle"),
     path("<int:pk>/kits/", litters.litter_add_kit, name="litter_add_kit"),
+    path("<int:pk>/checks/", litter_check_views.litter_check, name="litter_check"),
+    path("<int:pk>/convert/", litter_check_views.litter_convert, name="litter_convert"),
     path("<int:pk>/delete/", litters.litter_delete, name="litter_delete"),
 ]

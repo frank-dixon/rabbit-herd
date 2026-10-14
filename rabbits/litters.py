@@ -14,7 +14,7 @@ from django.utils.dateparse import parse_time
 from django.views.decorators.http import require_POST
 
 from . import costs, flow
-from .models import Breed, BreedShare, Cover, Litter, Pairing, Rabbit, Relative, prefs, weight_text
+from .models import Breed, BreedShare, Cover, Litter, LitterCheck, Pairing, Rabbit, Relative, prefs, weight_text
 
 DATE_REQUIRED = "Enter the date, like {example}."
 DATE_FUTURE = "That date is in the future."
@@ -86,11 +86,34 @@ def litter_detail(request, pk):
         kit.latest_weight_on = latest.date if latest else None
     room = (litter.survivors or 0) - len(kits)
     covers = list(litter.covers.all())
+    from . import litter_kits as K
+    from .litter_check_views import entry_unit
+
+    slots = K.ensure_slots(litter) if litter.kindled_on else []
+    checks = list(litter.checks.prefetch_related("rows__kit__rabbit"))
+    for slot in slots:
+        slot.last = next((row for c in checks for row in c.rows.all() if row.kit_id == slot.pk), None)
+        slot.last_whole = next((c for c in checks if c.mode == "whole"), None)
+        mine = [(row.litter_check.date, row.grams) for c in checks for row in c.rows.all() if row.kit_id == slot.pk and row.grams]
+        if slot.last_whole and slot.last_whole.average_grams:
+            mine.append((slot.last_whole.date, slot.last_whole.average_grams))
+        slot.weight_text = weight_text(max(mine)[1], unit) if mine else ""
+    for c in checks:
+        c.weight_label = weight_text(c.grams, unit) if c.grams else ""
+        for row in c.rows.all():
+            row.weight_label = weight_text(row.grams, unit) if row.grams else ""
     return render(request, "rabbits/litter_detail.html", {
         "litter": litter, "tasks": litter.tasks(), "kits": kits, "room": room,
         "today": timezone.localdate(), "wide": True,
         "subtitle": f"Litter bred {litter.bred_on:%b} {litter.bred_on.day}, {litter.bred_on.year} · due {litter.due_on:%b} {litter.due_on.day}",
         "sex_options": Rabbit.Sex.choices,
+        "slots": slots, "checks": checks, "check_mode": "each" if request.GET.get("check") == "each" else "whole",
+        "entry_unit": entry_unit(request.user), "litter_title": K.litter_title(litter),
+        "status_choices": LitterCheck.Status.choices, "weight_kinds": LitterCheck.WeightKind.choices,
+        "check_options": [{"href": f"?check={k}#checks", "label": l, "selected": k == ("each" if request.GET.get("check") == "each" else "whole")}
+                          for k, l in LitterCheck.Mode.choices],
+        "unconverted": [s for s in slots if not s.rabbit_id],
+        "missing_sex": [s for s in slots if not s.rabbit_id and s.sex not in Rabbit.Sex.values],
         "covers": covers, "cover_outcomes": Cover.Outcome.choices,
         "counted_cover": next((c.pk for c in covers if c.outcome == Cover.Outcome.COVERED), None),
         **dict(zip(("cost_items", "cost_total"), costs.linked(litter.expenses.all()))),
@@ -102,6 +125,9 @@ def litter_detail(request, pk):
 @require_POST
 def litter_task(request, pk):
     litter = own_litter(request, pk)
+    if litter.converted_at:
+        messages.error(request, "This litter was converted and is read-only.")
+        return redirect("litter_detail", litter.pk)
     task = request.POST.get("task")
     done = request.POST.get("done") == "1"
     if task == "palpate":
@@ -124,6 +150,9 @@ def litter_task(request, pk):
 @require_POST
 def litter_kindle(request, pk):
     litter = own_litter(request, pk)
+    if litter.converted_at:
+        messages.error(request, "This litter was converted and is read-only.")
+        return redirect("litter_detail", litter.pk)
     kindled_on = parse_date(request.POST.get("kindled_on"))
     alive = parse_count(request.POST.get("born_alive"))
     dead = parse_count(request.POST.get("born_dead"), 0)
@@ -164,6 +193,9 @@ def kit_breed(doe, buck):
 @require_POST
 def litter_add_kit(request, pk):
     litter = own_litter(request, pk)
+    if litter.converted_at:
+        messages.error(request, "This litter was converted and is read-only.")
+        return redirect("litter_detail", litter.pk)
     back = redirect(f"/litters/{litter.pk}/#kits")
     if litter.kindled_on is None:
         messages.error(request, "Record the kindling first.")
@@ -203,6 +235,9 @@ def litter_add_kit(request, pk):
 @require_POST
 def litter_delete(request, pk):
     litter = own_litter(request, pk)
+    if litter.converted_at:
+        messages.error(request, "This litter was converted and is read-only.")
+        return redirect("litter_detail", litter.pk)
     pairing = litter.pairing
     litter.delete()
     messages.success(request, "The litter was removed. Kits already in your herd stay there.")
