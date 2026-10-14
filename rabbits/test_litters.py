@@ -108,17 +108,17 @@ class WeanProcessTests(TestCase):
 
     def test_mark_weaned_and_task_list(self):
         page = self.client.get(reverse("task_list"))
-        self.assertContains(page, "Wean: Hazel (kits 28 days)")
+        self.assertContains(page, "Wean · Hazel × ")
         self.client.post(reverse("litter_task", args=[self.litter.pk]), {"task": "wean", "done": "1"})
         self.litter.refresh_from_db()
         self.assertTrue(self.litter.weaned)
-        self.assertNotContains(self.client.get(reverse("task_list")), "Wean: Hazel")
+        self.assertNotContains(self.client.get(reverse("task_list")), "Wean · Hazel")
 
     def test_old_litters_stay_off_the_task_list(self):
         self.litter.kindled_on = timezone.localdate() - datetime.timedelta(days=400)
         self.litter.bred_on = self.litter.kindled_on - datetime.timedelta(days=31)
         self.litter.save()
         page = self.client.get(reverse("task_list"))
-        self.assertNotContains(page, "Wean: Hazel")
-        self.assertNotContains(page, "Process: Hazel")
+        self.assertNotContains(page, "Wean · Hazel")
+        self.assertNotContains(page, "Process · Hazel")
 

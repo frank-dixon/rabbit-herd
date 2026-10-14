@@ -115,7 +115,7 @@ class ScheduleAppliedTests(TestCase):
         self.assertEqual(tasks["process"]["age"], 84)
         self.assertEqual(tasks["rebreed"]["date"], self.today + datetime.timedelta(days=35))
         page = self.client.get(reverse("task_list"))
-        self.assertContains(page, "Palpate: Clover (day 14)")
+        self.assertContains(page, "Palpate · Clover × ")
 
     def test_mark_rebred(self):
         self.litter.kindled_on = self.today

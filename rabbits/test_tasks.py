@@ -41,16 +41,16 @@ class TaskTests(TestCase):
         pairing = Pairing.objects.create(owner=self.owner, doe=self.doe, buck=self.buck)
         litter = Litter.objects.create(owner=self.owner, pairing=pairing, bred_on=self.today - datetime.timedelta(days=13))
         page = self.client.get(reverse("task_list"))
-        self.assertContains(page, "Palpate: Hazel (day 12)")
-        self.assertContains(page, "Put the nest box in: Hazel (day 28)")
-        self.assertContains(page, "Due to kindle: Hazel (day 31)")
+        self.assertContains(page, "Palpate · Hazel × ")
+        self.assertContains(page, "Put the nest box in · Hazel × ")
+        self.assertContains(page, "Due to kindle · Hazel × ")
         home = self.client.get("/")
         nxt = home.content.decode().split("data-next-up", 1)[1]
         self.assertIn("csrfmiddlewaretoken", nxt.split("</ul>", 1)[0])
         self.assertContains(home, "Due in the next 7 days")
-        self.assertContains(home, "Palpate: Hazel")
+        self.assertContains(home, "Palpate · Hazel")
         self.client.post(reverse("litter_task", args=[litter.pk]), {"task": "palpate", "done": "1", "next": "/tasks/"})
-        self.assertNotContains(self.client.get(reverse("task_list")), "Palpate: Hazel")
+        self.assertNotContains(self.client.get(reverse("task_list")), "Palpate · Hazel")
         litter.kindled_on = self.today
         litter.born_alive = 3
         litter.save()

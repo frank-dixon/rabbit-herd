@@ -28,7 +28,7 @@ class DailySummaryTests(TestCase):
         [message] = mail.outbox
         self.assertEqual(message.to, ["remind@example.com"])
         self.assertIn("2 things due", message.subject)
-        self.assertIn("Palpate: Clover (day 12)", message.body)
+        self.assertIn("Palpate · Clover × Basil", message.body)
         self.assertIn("Trim nails (since Oct 10)", message.body)
         self.assertNotIn("Order feed", message.body)
         self.assertEqual(reminders.send_due(self.now), 0)

@@ -65,6 +65,14 @@ def form_context(values, errors):
     return {"values": values, "errors": errors, "repeat_options": repeat_options(), "unit_options": unit_options()}
 
 
+def short_date(day):
+    """Tue, Oct 13 (the app's date format), with the year only when it isn't this year."""
+    if day is None:
+        return ""
+    text = f"{day:%a, %b} {day.day}"
+    return text if day.year == timezone.localdate().year else f"{text}, {day.year}"
+
+
 def open_items(user, today=None):
     """Every open task and litter date, soonest first, as plain dicts."""
     today = today or timezone.localdate()
@@ -81,9 +89,10 @@ def open_items(user, today=None):
         litter.owner = user  # Shares the user's cached settings; no query per litter.
         for task in litter.tasks():
             if not task["done"]:
-                when = f"kits {task['age']} days" if "age" in task else f"day {task['day']}"
+                pair = f"{litter.pairing.doe.name} × {litter.pairing.buck.name}"
+                start = f"Kindled {short_date(litter.kindled_on)}" if litter.kindled_on else f"Bred {short_date(litter.bred_on)}"
                 items.append({"kind": "litter", "pk": litter.pk, "key": task["key"], "date": task["date"],
-                              "title": f"{task['label']}: {litter.pairing.doe.name} ({when})",
+                              "title": f"{task['label']} · {pair}", "detail": start,
                               "rabbit": litter.pairing.doe, "url": reverse("litter_detail", args=[litter.pk])})
     for item in items:
         item["overdue"] = item["date"] < today
