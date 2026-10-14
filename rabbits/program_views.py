@@ -194,11 +194,11 @@ def program_detail(request, pk):
     program = owned(request, pk)
     if program.step != Program.Step.PLAN:
         return redirect("program_goal" if program.step == Program.Step.GOAL else "program_breeders", program.pk)
-    # Phones (the "narrow" cookie, set by the page) open on Tree: Flow needs width.
-    default = "tree" if request.COOKIES.get("narrow") == "1" else "flow"
-    view = request.GET.get("view", default)
+    # No ?view: wide screens get Flow, phones Tree, both rendered and chosen by
+    # a CSS media query so the first paint is right without a script or reload.
+    view = request.GET.get("view")
     if view not in dict(VIEWS):
-        view = default
+        view = None
     plan = plan_mod.build(program)
     if plan.get("missing"):
         messages.error(request, "A breeder in this plan is no longer in your records. Pick the starting pairing again.")
@@ -208,8 +208,9 @@ def program_detail(request, pk):
     odds_by = best_odds(plan_mod.ranked_pairings(program, plan["breeders"], plan_mod.pedigree(request.user)))
     picked = set(plan["picked"]) | ({plan["g2"]["mate"]["key"]} if plan.get("g2") else set())
     return render(request, "programs/detail.html", {
-        "program": program, "plan": plan, "view": view, "flow": flow_svg(plan, program) if view == "flow" else None,
-        "view_options": [{"href": f"?view={k}", "label": l, "selected": k == view} for k, l in VIEWS],
+        "program": program, "plan": plan, "view": view, "flow": flow_svg(plan, program) if view in ("flow", None) else None,
+        "wide_options": [{"href": f"?view={k}", "label": l, "selected": k == (view or "flow")} for k, l in VIEWS],
+        "narrow_options": [{"href": f"?view={k}", "label": l, "selected": k == (view or "tree")} for k, l in VIEWS],
         "breeders": breeder_cards(program, plan["breeders"], odds_by, picked), "wide": True,
     })
 
