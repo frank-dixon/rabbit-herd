@@ -47,7 +47,7 @@ ADULT = {
 }
 
 # name, sex, breed, color, age_days, status, genes "A B C D E En", extras.
-# NZ red here is aa ee (rufus-modified self red, as Frank's herd is recorded).
+# NZ red is A_ ee (agouti-based red with rufus); reds carry a where the pedigree allows.
 # Genes follow each rabbit's recorded parents; carriers are deliberate.
 # "dam"/"sire" name herd rabbits; "dam_out"/"sire_out" name outside ancestors.
 HERD = [
@@ -60,7 +60,7 @@ HERD = [
      {"tattoo": "NZ2302", "archived": 40, "dam": "Nimbus", "sire": "Basalt", "loc": "B9"}),
     ("Obsidian", "buck", NZ, "Black", 1100, "breeding", "aa Bb Cc Dd EE enen",
      {"tattoo": "NZ2301", "loc": "B1", "dam_out": "Nightshade", "sire_out": "Old Coal"}),
-    ("Ember", "buck", NZ, "Red", 1050, "breeding", "aa BB CC Dd ee enen",
+    ("Ember", "buck", NZ, "Red", 1050, "breeding", "Aa BB CC Dd ee enen",
      {"tattoo": "NZ2309", "loc": "B3", "dam_out": "Cinnabar", "sire_out": "Old Coal"}),
     ("Ink", "doe", NZ, "Black", 980, "breeding", "aa BB Cc Dd EE enen",
      {"tattoo": "NZ2314", "loc": "D1", "dam": "Nimbus", "sire": "Basalt"}),
@@ -68,7 +68,7 @@ HERD = [
      {"tattoo": "NZ2404", "loc": "B4", "eye": "ruby", "dam_out": "Alba", "sire": "Basalt"}),
     ("Slate", "buck", NZ, "Blue", 900, "breeding", "aa BB Cc dd EE enen",
      {"tattoo": "NZ2406", "loc": "B2", "dam_out": "Skyline", "sire": "Basalt"}),
-    ("Garnet", "doe", NZ, "Red", 900, "culled", "aa BB CC Dd ee enen",
+    ("Garnet", "doe", NZ, "Red", 900, "culled", "Aa BB CC Dd ee enen",
      {"tattoo": "NZ2311", "died": 90, "cull": "Poor mothering on two litters.", "dam_out": "Cinnabar", "sire": "Ember"}),
     ("Patch", "buck", NZ, "Broken Black", 880, "breeding", "aa Bb Cc Dd EE Enen",
      {"tattoo": "NZ2407", "loc": "B5", "dam_out": "Nightshade", "sire_out": "Checkers"}),
@@ -76,7 +76,7 @@ HERD = [
      {"tattoo": "NZ2408", "loc": "D5", "dam": "Nimbus", "sire": "Basalt"}),
     ("Snow", "doe", NZ, "REW", 800, "breeding", "aa BB cc dd EE enen",
      {"tattoo": "NZ2411", "loc": "D12", "eye": "ruby", "dam_out": "Alba", "sire": "Frost"}),
-    ("Coral", "doe", NZ, "Red", 780, "breeding", "aa BB Cc Dd ee enen",
+    ("Coral", "doe", NZ, "Red", 780, "breeding", "Aa BB Cc Dd ee enen",
      {"tattoo": "NZ2412", "loc": "D8", "dam_out": "Cinnabar", "sire": "Ember"}),
     ("Shadow", "doe", NZ, "Black", 720, "breeding", "aa Bb CC Dd EE enen",
      {"tattoo": "NZ2410", "loc": "D2", "dam": "Ink", "sire": "Obsidian"}),
@@ -88,7 +88,7 @@ HERD = [
      {"tattoo": "NZ2418", "loc": "D6", "dam": "Indigo", "sire": "Slate"}),
     ("Pinto", "buck", NZ, "Broken Black", 600, "sold", "aa Bb Cc Dd EE Enen",
      {"tattoo": "NZ2415", "buyer": 0, "dam": "Ink", "sire": "Patch"}),
-    ("Sienna", "doe", NZ, "Red", 560, "breeding", "aa BB CC DD ee enen",
+    ("Sienna", "doe", NZ, "Red", 560, "breeding", "AA BB CC DD ee enen",
      {"tattoo": "NZ2504", "loc": "D9", "dam": "Coral", "sire": "Ember"}),
     ("Mirage", "doe", CAL, "Californian", 550, "sold", "aa BB chch Dd EE enen",
      {"tattoo": "CA2410", "buyer": 2, "eye": "ruby", "dam": "Sierra", "sire_out": "Pacific"}),
@@ -101,9 +101,9 @@ HERD = [
     # Sold REW: hides chocolate (bb) and otter (at) under cc → Known rabbits goals
     ("Blizzard", "doe", NZ, "REW", 480, "sold", "ata bb cc Dd EE enen",
      {"tattoo": "NZ2503", "buyer": 1, "eye": "ruby", "dam_out": "Alba", "sire_out": "Old Coal"}),
-    ("Domino", "doe", NZ, "Broken Red", 470, "breeding", "aa BB CC Dd ee Enen",
+    ("Domino", "doe", NZ, "Broken Red", 470, "breeding", "Aa BB CC Dd ee Enen",
      {"tattoo": "NZ2507", "loc": "D16", "dam_out": "Cinnabar", "sire_out": "Checkers"}),
-    ("Copper", "doe", NZ, "Red", 430, "breeding", "aa BB CC Dd ee enen",
+    ("Copper", "doe", NZ, "Red", 430, "breeding", "Aa BB CC Dd ee enen",
      {"tattoo": "NZ2509", "loc": "D10", "dam": "Coral", "sire": "Ember"}),
     ("Raven", "doe", NZ, "Black", 400, "breeding", "aa BB CC Dd EE enen",
      {"tattoo": "NZ2508", "loc": "D4", "dam": "Ink", "sire": "Slate"}),
@@ -115,7 +115,7 @@ HERD = [
      {"tattoo": "NZ2512", "loc": "D14", "eye": "ruby", "dam": "Snow", "sire": "Frost"}),
     ("Harlequin", "doe", NZ, "Broken Black", 320, "breeding", "aa Bb CC Dd EE Enen",
      {"tattoo": "NZ2515", "loc": "D17", "dam": "Shadow", "sire": "Patch"}),
-    ("Flame", "doe", NZ, "Red", 300, "breeding", "aa BB CC Dd ee enen",
+    ("Flame", "doe", NZ, "Red", 300, "breeding", "Aa BB CC Dd ee enen",
      {"tattoo": "NZ2514", "loc": "D11", "dam": "Sienna", "sire": "Ember"}),
     # Juniors converted from Ink × Patch (kindled 95 days ago)
     ("Jet", "buck", NZ, "Black", 95, "growing", "aa Bb Cc Dd EE enen", {"loc": "G1", "kit_of": "converted"}),
@@ -433,15 +433,16 @@ class Command(BaseCommand):
 
         # 6. Just kindled (Coral × Ember, red × red), 2 days
         kindled = litter("Coral", "Ember", 33, nest_box_in=True, kindled_on=day(2), born_alive=8, born_dead=1,
-                      notes="Red × red; eight pink kits, one stillborn. Fur-lined nest.")
-        for i in range(1, 9):
-            LitterKit.objects.create(litter=kindled, number=i, color="Red")
+                      notes="Red × red (both carry a): six red, two tort, one stillborn.")
+        # Aa ee × Aa ee: about a quarter aa ee tort.
+        for i, col in enumerate(["Red", "Red", "Tort", "Red", "Red", "Red", "Tort", "Red"], 1):
+            LitterKit.objects.create(litter=kindled, number=i, color=col)
         Cover.objects.create(litter=kindled, date=day(33), time=datetime.time(7, 30), outcome="covered")
         Cover.objects.create(litter=kindled, date=day(33), time=datetime.time(18, 0), outcome="covered")
         # 7. Red × REW kindled 9 days (Ivory × Ember): reds and blacks, all carrying c
         rew = litter("Ivory", "Ember", 40, nest_box_in=True, kindled_on=day(9), born_alive=7,
-                     notes="REW × red: kits show red or black, every one carries c.")
-        for i, col in enumerate(["Red", "Black", "Red", "Red", "Black", "Black", "Red"], 1):
+                     notes="REW × red: red, tort, chestnut and black kits, every one carries c.")
+        for i, col in enumerate(["Red", "Black", "Chestnut", "Tort", "Chestnut", "Black", "Red"], 1):
             LitterKit.objects.create(litter=rew, number=i, color=col)
         LitterCheck.objects.create(litter=rew, date=day(2), mode="whole", kit_count=7, grams=NZ_CURVE[1] + 5,
                                    weight_kind="average", status="healthy", note="All nursing; fat bellies.")
