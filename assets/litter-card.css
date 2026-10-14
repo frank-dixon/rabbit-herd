@@ -1,0 +1,59 @@
+/* Litter card (Direction A2): one soft-shadowed card holding the litter photo,
+   key numbers and the kits as tiles. Strict 4/8px spacing; no borders. */
+.lc { margin-top: 24px; background: var(--surface); border-radius: 12px; padding: 24px; box-shadow: 0 1px 2px rgb(16 24 20 / 0.06), 0 8px 24px -8px rgb(16 24 20 / 0.12); }
+.lc-banner { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 48px; margin-top: 16px; padding: 8px 8px 8px 16px; border-radius: 8px; background: var(--well); font-size: 14px; line-height: 20px; }
+.lc-h { font-size: 15px; line-height: 20px; font-weight: 600; margin: 0; }
+.lc-muted { color: var(--muted); font-size: 13px; line-height: 20px; margin: 0; }
+.lc-photo { display: flex; align-items: center; gap: 16px; }
+.lc-upload { margin-top: 8px; }
+.lc-img { position: relative; aspect-ratio: 1 / 1; overflow: hidden; border-radius: 8px; background: var(--well); }
+.lc-img > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.lc-img-96 { width: 96px; flex: none; }
+.lc-tag { position: absolute; left: 8px; top: 8px; height: 16px; display: flex; align-items: center; padding: 0 4px; border-radius: 4px; font-size: 10px; line-height: 16px; font-weight: 500; color: #4C544F; background: rgb(255 255 255 / 0.9); }
+.lc-btn { height: 32px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 6px; font-size: 13px; line-height: 16px; font-weight: 500; white-space: nowrap; cursor: pointer; text-decoration: none; transition: background-color 120ms ease-out; }
+.lc-btn:focus-within, .lc-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lc-btn-pri { background: var(--accent); color: var(--on-accent); box-shadow: 0 1px 1px rgb(0 0 0 / 0.12); }
+.lc-btn-pri:hover { background: var(--accent-hover, var(--accent)); }
+.lc-btn-sec { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line), 0 1px 1px rgb(0 0 0 / 0.04); }
+.lc-btn-sec:hover { background: var(--hover, var(--well)); }
+.lc-btn[aria-busy="true"], .lc-chg[aria-busy="true"] { opacity: 0.6; pointer-events: none; }
+.lc-kv { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 24px 0 0; }
+.lc-kv-first { margin-top: 0; }
+.lc-kv > div { padding: 0 16px; border-left: 1px solid var(--line-soft); min-width: 0; }
+.lc-kv > div:first-child { padding-left: 0; border-left: 0; }
+.lc-kv dt { color: var(--muted); font-size: 12px; line-height: 16px; }
+.lc-kv dd { margin: 4px 0 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; }
+.lc-kv dd.lc-t { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lc-od { color: var(--r-ink, #A3271E); }
+.lc-hr { height: 1px; background: var(--line-soft); margin: 24px 0; }
+.lc-sh { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.lc-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.lc-kg { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.lc-kt { display: grid; grid-template-rows: auto 20px 16px 16px 20px; row-gap: 4px; min-width: 0; padding: 8px 8px 12px; border-radius: 10px; background: var(--well); }
+.lc-kg-nopill .lc-kt { grid-template-rows: auto 20px 16px 16px; }
+.lc-kt .lc-img { margin-bottom: 4px; background: var(--surface); }
+.lc-name { margin: 4px 0 0; font-weight: 600; font-size: 14px; line-height: 20px; color: var(--ink); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+a.lc-name:hover { text-decoration: underline; text-underline-offset: 4px; }
+.lc-m { margin: 0; color: var(--muted); font-size: 12px; line-height: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lc-pill { justify-self: start; height: 20px; }
+.lc-none { visibility: hidden; }
+.lc-chg { position: absolute; right: 8px; bottom: 8px; height: 24px; display: flex; align-items: center; padding: 0 8px; border-radius: 4px; background: rgb(255 255 255 / 0.92); color: #1A1F1C; font-size: 11px; line-height: 16px; font-weight: 500; cursor: pointer; }
+.lc-chg:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lc-links { display: flex; gap: 16px; margin: 16px 0 0; font-size: 13px; line-height: 20px; }
+.lc-links a { color: var(--accent); text-decoration: none; }
+.lc-links a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.lc-err { margin: 8px 0 0; color: var(--r-ink, #A3271E); font-size: 12px; line-height: 16px; }
+@media (max-width: 1023px) { .lc-kg { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 639px) {
+  .lc { padding: 16px; }
+  .lc-kv { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 16px; }
+  .lc-kv > div { padding: 0 12px; }
+  .lc-kv > div:nth-child(4) { padding-left: 0; border-left: 0; }
+  .lc-kv dd { font-size: 18px; }
+  .lc-kv .lc-wide { grid-column: span 2; }
+  .lc-kg { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .lc-sh { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .lc-banner { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px 16px; }
+  .lc-img-96 { width: 80px; }
+}
+@media (prefers-reduced-motion: reduce) { .lc-btn { transition: none; } }

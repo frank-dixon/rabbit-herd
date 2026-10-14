@@ -670,6 +670,16 @@ def photo_file_path(instance, filename):
     return f"rabbit-photos/{instance.rabbit.owner_id}/{uuid.uuid4().hex}{extension}"
 
 
+def litter_photo_path(instance, filename):
+    """Litter and kit photos: a random name under the owner's folder, served
+    only through the owner check in rabbits.litter_photos."""
+    extension = Path(filename).suffix.lower()
+    if extension not in {".jpg", ".jpeg", ".png", ".webp"}:
+        extension = ""
+    owner_id = instance.owner_id if hasattr(instance, "owner_id") else instance.litter.owner_id
+    return f"litter-photos/{owner_id}/{uuid.uuid4().hex}{extension}"
+
+
 def valid_taken_date(value, birth_date=None, today=None):
     """The date, or None when it's in the future or before the birth date."""
     today = today or timezone.localdate()
@@ -876,8 +886,12 @@ class Litter(models.Model):
     born_dead = models.PositiveSmallIntegerField(default=0)
     died_after = models.PositiveSmallIntegerField(default=0, help_text="Kits lost after birth.")
     notes = models.CharField(max_length=200, blank=True)
-    # Set once when every kit became its own rabbit; the litter is read-only after.
+    # Set once when every kit became its own rabbit; the litter is read-only after
+    # and listed under Archived litters.
     converted_at = models.DateTimeField(null=True, blank=True)
+    # The litter's photo. Each kit shows it until the kit has its own; with
+    # none, a stock newborn photo chosen by the parents' coats stands in.
+    photo = models.ImageField(upload_to=litter_photo_path, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1027,6 +1041,7 @@ class LitterKit(models.Model):
     sex = models.CharField(max_length=8, choices=Rabbit.Sex.choices, blank=True)
     color = models.CharField(max_length=80, blank=True)
     rabbit = models.OneToOneField(Rabbit, related_name="litter_slot", null=True, blank=True, on_delete=models.SET_NULL)
+    photo = models.ImageField(upload_to=litter_photo_path, blank=True)
 
     class Meta:
         ordering = ["number"]

@@ -38,6 +38,7 @@ import { bindRabbitInline } from "./rabbit-inline.mjs";
 import { bindSegmented } from "./segmented.mjs";
 import { bindListSwap } from "./list-swap.mjs";
 import { bindAuthForms } from "./auth-form.mjs";
+import { bindLitterPhotos } from "./litter-photos.mjs";
 import { bindAddSheets, bindMoreMenus } from "./add-sheet.mjs";
 import { bindModal } from "./modal.mjs";
 import { bindSideMenu } from "./side-menu.mjs";
@@ -364,6 +365,7 @@ function start() {
   bindListSwap(document, window);
   bindSideMenu(document, window);
   bindAuthForms(document, window);
+  bindLitterPhotos(document);
   bindAddSheets(document);
   bindMoreMenus(document);
   bindModal(document, window);

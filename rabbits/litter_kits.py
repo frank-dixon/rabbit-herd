@@ -104,6 +104,7 @@ def convert(litter_id, user, typed):
     """Make every kit that is still only a number its own rabbit, once.
     Returns the litter's kit rabbits. Raises ConvertError when the typed
     name doesn't match or a kit has no sex; a second submit is a no-op."""
+    from .litter_photos import copy_to_rabbit
     from .litters import kit_breed
     from .tattoo import suggest
 
@@ -139,6 +140,7 @@ def convert(litter_id, user, typed):
                 copy_row(row, kit, unit)
             slot.rabbit = kit
             slot.save(update_fields=["rabbit"])
+            copy_to_rabbit(slot, litter)
             HistoryEntry.objects.create(rabbit=kit, action=HistoryEntry.Action.ADDED, subject="litter",
                                         summary=f"Made its own rabbit from litter {title} (kit {slot.number})")
         litter.converted_at = timezone.now()

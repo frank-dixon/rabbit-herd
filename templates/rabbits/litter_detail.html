@@ -6,13 +6,14 @@
   {% url 'pairing_detail' litter.pairing.pk as pairing_url %}
   {% include "components/page_header.html" with title=litter.pairing|stringformat:"s" subtitle=subtitle back_label="Pairing" back_href=pairing_url rabbit=litter.pairing.doe rabbit2=litter.pairing.buck only %}
   {% if litter.converted_at %}
-    <p class="mt-4 flex flex-wrap items-center gap-x-2 rounded-lg border border-line bg-surface px-4 py-3 text-sm" data-converted><span class="pill pill-g">Converted</span> Every kit became its own rabbit on {{ litter.converted_at|date:"D, M j" }}. This litter is read-only. <a class="underline underline-offset-4" href="#kits">See the rabbits</a></p>
+    <div class="lc-banner" data-converted><span>This litter is archived and read-only. Its kits are now junior rabbits.</span><a class="lc-btn lc-btn-sec" href="{% url 'litter_list' %}?archived=1">Archived litters</a></div>
   {% elif unconverted %}
     <dialog id="convert-dialog" class="confirm-dialog m-auto w-[calc(100%-2rem)] max-w-md rounded-xl border border-line bg-surface p-5 text-ink shadow-xl backdrop:bg-ink/40" aria-labelledby="convert-dialog-title">
       <h2 class="text-lg font-semibold" id="convert-dialog-title">Convert {{ unconverted|length }} kit{{ unconverted|pluralize }} to rabbits?</h2>
       <div class="mt-2">{% include "rabbits/_convert_form.html" with title=litter_title todo=unconverted missing=missing_sex js=True %}</div>
     </dialog>
   {% endif %}
+  {% include "rabbits/_litter_main.html" %}
   <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
     <section class="scroll-mt-20 ruled pt-4" id="dates" aria-labelledby="dates-heading">
       <h2 class="text-base font-semibold" id="dates-heading">Dates</h2>
@@ -61,49 +62,8 @@
       </details>{% endif %}
     </section>
     {% include "rabbits/_litter_checks.html" %}
-    <section class="scroll-mt-20 ruled pt-4 lg:col-span-2" id="kits" aria-labelledby="kits-heading">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <h2 class="text-base font-semibold" id="kits-heading">{% if litter.converted_at %}Rabbits from this litter{% else %}Kits{% endif %}</h2>
-        {% if unconverted and not litter.converted_at %}<a class="mo-press inline-flex min-h-10 cursor-pointer items-center rounded-md border border-line bg-surface px-4 text-sm font-medium text-ink hover:border-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" href="{% url 'litter_convert' litter.pk %}" data-delete-open="convert-dialog">Convert to individual rabbits…</a>{% endif %}
-      </div>
-      {% if unconverted and not litter.converted_at %}
-        <ul class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4" data-slots>
-          {% for slot in unconverted %}
-            <li class="kit-card flex flex-col overflow-hidden rounded-lg border border-dashed border-line bg-surface">
-              <span class="flex aspect-square w-full items-center justify-center bg-surface-2 text-2xl font-semibold text-muted" aria-hidden="true">{{ slot.number }}</span>
-              <div class="flex flex-1 flex-col gap-0.5 p-2.5">
-                <p class="truncate font-semibold">{{ slot.label }}</p>
-                <p class="truncate text-sm text-muted">{{ slot.get_sex_display|default:"Sex unknown" }}{% if slot.color %} · {{ slot.color }}{% endif %}</p>
-                <p class="num text-sm">{% if slot.weight_text %}{{ slot.weight_text }}{% else %}<span class="text-muted">Not weighed</span>{% endif %}</p>
-                {% if slot.last.status %}<p class="text-xs text-muted">{{ slot.last.get_status_display }}{% if slot.last.note %} · {{ slot.last.note|truncatechars:40 }}{% endif %}</p>{% endif %}
-              </div>
-            </li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-      {% if kits %}
-        <ul class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4" data-kits>
-          {% for kit in kits %}
-            <li class="kit-card group relative flex flex-col overflow-hidden rounded-lg border border-line bg-surface transition-colors hover:border-field">
-              {% include "rabbits/_rabbit_thumb.html" with rabbit=kit main=kit.main_photo size_class="aspect-square w-full text-2xl" sizes="(min-width: 640px) 240px, 50vw" only %}
-              <div class="flex flex-1 flex-col gap-0.5 p-2.5">
-                <a class="truncate font-semibold after:absolute after:inset-0 after:content-[''] focus:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-accent" href="{% url 'rabbit_detail' kit.pk %}">{{ kit.name }}</a>
-                <p class="truncate text-sm text-muted">{{ kit.get_sex_display }} · {{ kit.color|default:"Color not set" }}</p>
-                <p class="num text-sm">{% if kit.latest_weight_text %}{{ kit.latest_weight_text }} <span class="text-muted">· {{ kit.latest_weight_on|date:"M j" }}</span>{% else %}<span class="text-muted">Not weighed</span>{% endif %}</p>
-                {% if kit.tattoo %}<p class="num text-xs text-muted">{{ kit.tattoo }}</p>{% endif %}
-                <div class="relative z-10 mt-auto pt-2">
-                  {% if kit.latest_cull %}
-                    <a class="pill {% if kit.latest_cull.decision == 'keep' %}pill-g{% elif kit.latest_cull.decision == 'cull' %}pill-r{% endif %}" href="{% url 'rabbit_detail' kit.pk %}#culling" data-kit-decision="{{ kit.latest_cull.decision }}"{% if kit.latest_cull.reason %} title="{{ kit.latest_cull.reason|truncatechars:140 }}"{% endif %}>{{ kit.latest_cull.get_decision_display }} · {{ kit.latest_cull.date|date:"M j" }}</a>
-                  {% else %}
-                    <a class="inline-flex min-h-8 items-center text-xs text-muted underline underline-offset-4 hover:text-ink" href="{% url 'rabbit_detail' kit.pk %}#culling">Evaluate<span class="sr-only"> {{ kit.name }}</span></a>
-                  {% endif %}
-                </div>
-              </div>
-            </li>
-          {% endfor %}
-        </ul>
-        <p class="mt-3 flex flex-wrap items-center gap-3 text-sm"><a class="mo-press inline-flex min-h-10 items-center gap-2 rounded-md bg-accent px-4 font-semibold text-on-accent hover:bg-accent/90" href="{% url 'litter_weigh_in' litter.pk %}" data-weigh-link><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v16M7 20h10M5 8h14M5 8l-3 6a3 3 0 0 0 6 0zM19 8l-3 6a3 3 0 0 0 6 0z"/></svg>Weigh kits</a><a class="underline" href="{% url 'litter_siblings' litter.pk %}" data-siblings-link>Compare siblings</a><a class="underline" href="{% url 'litter_compare' litter.pk %}" data-compare-link>Compare kit photos</a></p>
-      {% endif %}
+    {% if not litter.converted_at and litter.kindled_on and room > 0 %}<section class="scroll-mt-20 ruled pt-4 lg:col-span-2" id="add-kit" aria-labelledby="add-kit-heading">
+      <h2 class="text-base font-semibold" id="add-kit-heading">Add kits to your herd</h2>
       {% if litter.converted_at %}
       {% elif not litter.kindled_on %}
         <p class="mt-2 text-sm text-neutral-600">After kindling you can add the surviving kits to your herd.</p>
@@ -120,7 +80,7 @@
       {% else %}
         <p class="mt-2 text-sm text-neutral-600">Every surviving kit is in your herd.</p>
       {% endif %}
-    </section>
+    </section>{% endif %}
     <div class="lg:col-span-2">{% include "rabbits/_linked_costs.html" with add_url=cost_add_url heading_id="litter-costs-heading" %}</div>
   </div>
   {% if not litter.converted_at %}<form class="mt-4" method="post" action="{% url 'litter_delete' litter.pk %}">

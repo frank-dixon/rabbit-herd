@@ -101,6 +101,8 @@
       {% if feature_locations %}{% include "rabbits/_location_card.html" %}{% endif %}
       {% if schedule_options %}{% url 'doe_schedule' rabbit.pk as schedule_action %}{% include "rabbits/_schedule_picker.html" with action=schedule_action options=schedule_options value=schedule_value current=schedule_current help="New litters from her pairings use this, unless a pairing sets its own." recalc_label="Also move her open litters to these dates" %}{% endif %}
 
+      {% if archived_litters %}<p class="text-sm" data-archived-litters-link><a class="text-accent underline-offset-4 hover:underline" href="{% url 'litter_list' %}?archived=1&amp;doe={{ rabbit.pk }}">Archived litters from {{ rabbit.name }} <span class="num text-muted">{{ archived_litters }}</span></a></p>{% endif %}
+
       {% include "rabbits/_source_card.html" %}
 
       {% include "rabbits/_genetics.html" %}

@@ -1,0 +1,55 @@
+{# The litter card (Direction A2): photo, key numbers and the kits as tiles inside one card. #}
+<section class="lc scroll-mt-20" id="kits" aria-labelledby="kits-heading" data-litter-card>
+  {% if not litter.converted_at %}
+    <div class="lc-photo">
+      <div class="lc-img lc-img-96" data-photo-target="litter"><img src="{{ card.img }}" alt="{% if card.own %}Litter photo{% else %}Stock newborn photo{% endif %}" loading="lazy" decoding="async">{% if not card.own %}<span class="lc-tag" data-placeholder-tag>Placeholder</span>{% endif %}</div>
+      <div class="min-w-0">
+        <h2 class="lc-h" data-litter-photo-title>{% if card.own %}Litter photo{% else %}No litter photo yet{% endif %}</h2>
+        <p class="lc-muted" data-litter-photo-note>{% if card.own %}Kits show this photo until they have their own.{% else %}Showing a stock newborn photo matched to the parents’ coats.{% endif %}</p>
+        <form class="lc-upload" method="post" action="{% url 'litter_photo' litter.pk %}" enctype="multipart/form-data" data-photo-form="litter">
+          {% csrf_token %}
+          <label class="lc-btn {% if card.own %}lc-btn-sec{% else %}lc-btn-pri{% endif %}" data-litter-photo-btn><span>{% if card.own %}Change litter photo{% else %}Upload litter photo{% endif %}</span><input class="sr-only" type="file" name="photo" accept="image/jpeg,image/png,image/webp,image/heic" data-photo-input></label>
+          <noscript><button class="lc-btn lc-btn-sec" type="submit">Save</button></noscript>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+  {% if litter.kindled_on %}
+    <dl class="lc-kv{% if litter.converted_at %} lc-kv-first{% endif %}">
+      <div><dt>Born alive</dt><dd class="num">{{ litter.born_alive|default_if_none:"–" }}</dd></div>
+      <div><dt>Surviving</dt><dd class="num">{{ litter.survivors|default_if_none:"–" }}</dd></div>
+      <div><dt>Lost</dt><dd class="num">{{ litter.died_after }}</dd></div>
+      <div><dt>Avg. weight</dt><dd class="num">{{ card.avg|default:"–" }}</dd></div>
+      {% if litter.converted_at %}<div class="lc-wide"><dt>Converted</dt><dd class="lc-t">{{ litter.converted_at|date:"M j, Y" }}</dd></div>
+      {% elif card.next %}<div class="lc-wide"><dt>Next</dt><dd class="lc-t">{{ card.next.label }}{% if card.next_overdue %} · <span class="lc-od">overdue</span>{% else %} · {{ card.next.date|date:"M j" }}{% endif %}</dd></div>
+      {% else %}<div class="lc-wide"><dt>Next</dt><dd class="lc-t">Nothing due</dd></div>{% endif %}
+    </dl>
+  {% endif %}
+  {% if card.tiles %}
+    <div class="lc-hr"></div>
+    <div class="lc-sh">
+      <h2 class="lc-h" id="kits-heading">{% if litter.converted_at %}Kits at conversion{% else %}Kits · <span class="num">{{ card.tiles|length }}</span>{% endif %}</h2>
+      {% if litter.converted_at %}<span class="lc-muted">Open a kit to see its rabbit record</span>
+      {% else %}<div class="lc-acts">
+        {% if kits %}<a class="lc-btn lc-btn-sec" href="{% url 'litter_weigh_in' litter.pk %}" data-weigh-link>Weigh kits</a>{% endif %}
+        {% if unconverted %}<a class="lc-btn lc-btn-pri" href="{% url 'litter_convert' litter.pk %}" data-delete-open="convert-dialog">Convert to junior rabbits</a>{% endif %}
+      </div>{% endif %}
+    </div>
+    <ul class="lc-kg{% if not card.any_pill %} lc-kg-nopill{% endif %}" data-kits>
+      {% for t in card.tiles %}
+        <li class="lc-kt">
+          <div class="lc-img"{% if t.upload %} data-photo-target="kit"{% endif %}><img src="{{ t.img }}" alt="" loading="lazy" decoding="async"{% if t.inherits %} data-inherits{% endif %}>{% if t.placeholder %}<span class="lc-tag" data-placeholder-tag>Placeholder</span>{% endif %}
+            {% if t.upload %}<form method="post" action="{{ t.upload }}" enctype="multipart/form-data" data-photo-form="kit">{% csrf_token %}<label class="lc-chg">Change photo<span class="sr-only"> of {{ t.name }}</span><input class="sr-only" type="file" name="photo" accept="image/jpeg,image/png,image/webp,image/heic" data-photo-input></label></form>{% endif %}
+          </div>
+          {% if t.href %}<a class="lc-name" href="{{ t.href }}">{{ t.name }}</a>{% else %}<p class="lc-name">{{ t.name }}</p>{% endif %}
+          <p class="lc-m">{{ t.line1 }}</p>
+          <p class="lc-m">{{ t.line2 }}</p>
+          {% if t.decision %}<span class="pill{% if t.tone %} pill-{{ t.tone }}{% endif %} lc-pill" data-kit-decision="{{ t.decision }}"{% if t.reason %} title="{{ t.reason }}"{% endif %}>{{ t.pill }}</span>
+          {% elif t.href and not litter.converted_at %}<a class="lc-m" href="{{ t.href }}#culling">Evaluate<span class="sr-only"> {{ t.name }}</span></a>
+          {% elif card.any_pill %}<span class="pill lc-pill lc-none">–</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+    {% if kits and not litter.converted_at %}<p class="lc-links"><a href="{% url 'litter_siblings' litter.pk %}" data-siblings-link>Compare siblings</a><a href="{% url 'litter_compare' litter.pk %}" data-compare-link>Compare kit photos</a></p>{% endif %}
+  {% endif %}
+</section>

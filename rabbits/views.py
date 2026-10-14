@@ -14,7 +14,7 @@ from django.views.decorators.http import require_POST
 
 from . import color_odds, costs, culling, genetics, purebred, shows
 from .forms import GenesForm, PhotoUploadForm
-from .models import Contact, Gene, HealthNote, Location, Rabbit, Weight, prefs
+from .models import Contact, Gene, HealthNote, Litter, Location, Rabbit, Weight, prefs
 
 def owned_rabbits(user):
     return Rabbit.objects.filter(owner=user)
@@ -250,6 +250,8 @@ def rabbit_detail(request, pk):
             "rabbit": rabbit, "retention": prefs(request.user).deleted_retention_days,
             "wide": True,
             "main_photo": main,
+            "archived_litters": (Litter.objects.filter(owner=request.user, pairing__doe=rabbit, converted_at__isnull=False).count()
+                                 if rabbit.sex == Rabbit.Sex.DOE else 0),
             "purebred_info": purebred.purebred(rabbit),
             "extra_photos": [photo for photo in photos if photo is not main],
             "photos": photos,

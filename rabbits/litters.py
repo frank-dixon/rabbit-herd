@@ -96,11 +96,15 @@ def litter_list(request):
     litters = list(Litter.objects.filter(owner=request.user)
                    .select_related("pairing__doe", "pairing__buck", "breeding_schedule")
                    .prefetch_related("pairing__doe__photos", "pairing__buck__photos", "kits__photos"))
+    archived = request.GET.get("archived") == "1"
+    doe = request.GET.get("doe", "")
+    litters = [l for l in litters if bool(l.converted_at) == archived and (not doe.isdigit() or l.pairing.doe_id == int(doe))]
     cards = [litter_card(litter, today) for litter in litters]
     expecting = sorted((c for c in cards if c["stage"] == "expecting"), key=lambda c: c["litter"].due_on)
     kindled = sorted((c for c in cards if c["stage"] == "kindled"), key=lambda c: c["litter"].kindled_on, reverse=True)
     return render(request, "rabbits/litters.html", {
-        "open": expecting, "kindled": kindled, "today": today, "wide": True, "view": view,
+        "open": expecting, "kindled": kindled, "today": today, "wide": True, "view": view, "archived": archived,
+        "archived_count": Litter.objects.filter(owner=request.user, converted_at__isnull=False).count(),
         "view_options": [{"href": f"?view={k}", "label": l, "icon": k, "selected": view == k} for k, l in (("grid", "Grid"), ("list", "List"))],
     })
 
@@ -129,12 +133,14 @@ def litter_detail(request, pk):
         if slot.last_whole and slot.last_whole.average_grams:
             mine.append((slot.last_whole.date, slot.last_whole.average_grams))
         slot.weight_text = weight_text(max(mine)[1], unit) if mine else ""
+        slot.grams = max(mine)[1] if mine else None
     for c in checks:
         c.weight_label = weight_text(c.grams, unit) if c.grams else ""
         for row in c.rows.all():
             row.weight_label = weight_text(row.grams, unit) if row.grams else ""
+    card = litter_main_card(litter, slots, kits, unit)
     return render(request, "rabbits/litter_detail.html", {
-        "litter": litter, "tasks": litter.tasks(), "kits": kits, "room": room,
+        "litter": litter, "tasks": litter.tasks(), "kits": kits, "room": room, "card": card,
         "today": timezone.localdate(), "wide": True,
         "subtitle": f"Litter bred {litter.bred_on:%b} {litter.bred_on.day}, {litter.bred_on.year} · due {litter.due_on:%b} {litter.due_on.day}",
         "sex_options": Rabbit.Sex.choices,
@@ -150,6 +156,47 @@ def litter_detail(request, pk):
         **dict(zip(("cost_items", "cost_total"), costs.linked(litter.expenses.all()))),
         "cost_add_url": f"/costs/?litter={litter.pk}&new=1#add",
     })
+
+
+def litter_main_card(litter, slots, kits, unit):
+    """The litter card: the litter photo (or a stock placeholder), key numbers
+    and one tile per kit. Kits show their own photo, else the litter's."""
+    from .litter_photos import kit_photo_url, litter_photo_url, placeholder_url, rabbit_photo_url
+
+    own = litter_photo_url(litter)
+    litter_img = own or placeholder_url(litter)
+    by_pk = {k.pk: k for k in kits}
+
+    def tile_for_rabbit(kit, slot=None):
+        main = kit.main_photo
+        img = rabbit_photo_url(main) if main else (kit_photo_url(slot) if slot and slot.photo else litter_img)
+        weight = f"{kit.latest_weight_text}" if kit.latest_weight_text else "Not weighed"
+        cull = kit.latest_cull
+        return {"name": kit.name, "line1": f"{kit.get_sex_display()} · {kit.color or 'Color not set'}",
+                "line2": kit.tattoo or ("Junior · " + kit.get_status_display().lower() if litter.converted_at else weight),
+                "img": img, "placeholder": not main and not (slot and slot.photo) and not own,
+                "href": reverse("rabbit_detail", args=[kit.pk]),
+                "pill": cull.get_decision_display() if cull else "", "decision": cull.decision if cull else "", "reason": (cull.reason or "")[:140] if cull else "", "tone": {"keep": "g", "cull": "r", "sell": "y", "undecided": ""}.get(cull.decision, "") if cull else "",
+                "upload": reverse("kit_photo", args=[litter.pk, slot.number]) if slot and not litter.converted_at else ""}
+
+    tiles, seen = [], set()
+    for slot in slots:
+        if slot.rabbit_id and slot.rabbit_id in by_pk:
+            tiles.append(tile_for_rabbit(by_pk[slot.rabbit_id], slot))
+            seen.add(slot.rabbit_id)
+        elif not slot.rabbit_id and not litter.converted_at:
+            tiles.append({"name": slot.label, "line1": " · ".join(x for x in (slot.get_sex_display() or "Sex unknown", slot.color) if x),
+                          "line2": slot.weight_text or "Not weighed", "img": kit_photo_url(slot) or litter_img,
+                          "placeholder": not slot.photo and not own, "href": "", "pill": "", "tone": "",
+                          "upload": reverse("kit_photo", args=[litter.pk, slot.number])})
+    tiles += [tile_for_rabbit(k) for k in kits if k.pk not in seen]
+    for t in tiles:
+        t["inherits"] = t["img"] == litter_img
+    weighed = [s.grams for s in slots if getattr(s, "grams", None)]
+    task = litter.next_task()
+    return {"img": litter_img, "own": bool(own), "tiles": tiles, "any_pill": any(t["pill"] for t in tiles),
+            "avg": weight_text(round(sum(weighed) / len(weighed)), unit) if weighed else "",
+            "next": task, "next_overdue": bool(task and task["date"] < timezone.localdate())}
 
 
 @login_required
