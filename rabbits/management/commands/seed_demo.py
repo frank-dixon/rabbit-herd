@@ -147,7 +147,8 @@ NAMES = ["Juniper", "Bramble", "Thistle", "Clover", "Hazel", "Rowan", "Maple", "
          "Duchess", "Baron", "Major", "Captain", "Bear", "Biscuit", "Butterscotch", "Cocoa", "Hank", "Otis"]
 RABBITRY = {"Black": ("Kessler New Zealands", "KNZ"), "Blue": ("Cedar Run Meat Rabbits", "CR"),
             "Red": ("Northwind NZ", "NW"), "REW": ("Kessler New Zealands", "KNZ"),
-            "Broken Black": ("Northwind NZ", "NW"), "Californian": ("Fairhaven Californians", "FC")}
+            "Broken Black": ("Northwind NZ", "NW"), "Californian": ("Fairhaven Californians", "FC"),
+            "Fawn": ("Big Timber Flemish", "BTF")}
 OUTSIDE_SEX_WORD = {"Old Coal": "buck", "Checkers": "buck", "Pacific": "buck"}
 OUTSIDE_COLOR = {"Old Coal": "Black", "Nightshade": "Black", "Skyline": "Blue", "Cinnabar": "Red", "Alba": "REW",
                  "Checkers": "Broken Black", "Sunset": "Californian", "Pacific": "Californian"}
@@ -634,6 +635,9 @@ class Command(BaseCommand):
         # --- Old litters: converted at 6–7 weeks; every kit got a real outcome ---
         conversions = self.convert_old_litters(user, R, gene_map, buyers, breeds, today)
 
+        # --- Goliath: one exceptionally large Flemish Giant buck, bought as a junior ---
+        self.flemish(user, today, outs)
+
         # --- Full 3-generation pedigrees (14 ancestors) for every rabbit ---
         pedigree_rows = self.pedigrees(user, R, parents, outs)
 
@@ -671,6 +675,59 @@ class Command(BaseCommand):
             "waitlist": WaitlistEntry.objects.filter(owner=user).count(),
             "locations": Location.objects.filter(owner=user).count(),
         }
+
+    def flemish(self, user, today, outs):
+        """Flemish Giant growth, Gompertz W(t) = A·exp(-b·exp(-k·t)).
+        Shape from Flemish Giant weekly means (44 g birth, 506 g at 6 wk, 1217 g
+        at 12 wk, 1453 g at 14 wk) in "Comparative study on growth performance of
+        broiler rabbits and biochemical parameters in New Zealand white rabbits"
+        (NZW / APAU Black / Flemish Giant, Korutla vet college farm, 2022–23), and
+        "Growth analysis in rabbit using Gompertz non-linear model" (Indonesian
+        Local / Flemish Giant / Rex, birth–63 d; Flemish Giant had the highest
+        asymptotic mature weight). Those flocks are low-input;
+        this buck sits at the top end of US show/meat Giants: asymptote A = 9.6 kg
+        (~21 lb), above the ARBA senior buck minimum of 13 lb (Standard of
+        Perfection), so he gains ~0.4 kg/wk early and plateaus after a year."""
+        import math
+        from django.core.files import File
+        A, birth, k = 9600, 80, 0.0173
+        b = math.log(A / birth)
+        born = today - datetime.timedelta(days=434)       # 62 weeks old
+        bought = born + datetime.timedelta(days=70)        # 10-week junior, ~12 months ago
+        seller = Contact.objects.create(owner=user, name="Dale Pruitt", rabbitry="Big Timber Flemish",
+                                        phone="(717) 555-0193", location="Lancaster, PA", is_breeder=True,
+                                        notes="Flemish Giants, fawn and sandy lines. Sold us Goliath as a 10-week junior.")
+        g = Rabbit.objects.create(
+            owner=user, name="Goliath", tattoo="BTF0731", sex="buck", breed="Flemish Giant", breed_type="purebred",
+            color="Fawn", birth_date=born, status="breeding", line="Big Timber", source=seller)
+        dam = OutsideRabbit.objects.create(owner=user, name="BTF Clementine", details="Fawn doe · Big Timber Flemish · BTF0412")
+        sire = OutsideRabbit.objects.create(owner=user, name="BTF Atlas", details="Fawn buck · Big Timber Flemish · BTF0388")
+        OUTSIDE_COLOR.update({dam.name: "Fawn", sire.name: "Fawn"})
+        outs[dam.name], outs[sire.name] = dam, sire
+        Relative.objects.bulk_create([
+            Relative(rabbit=g, relationship="dam", outside=dam, color="Fawn", breed="Flemish Giant"),
+            Relative(rabbit=g, relationship="sire", outside=sire, color="Fawn", breed="Flemish Giant")])
+        rows, d = [], bought
+        while d <= today:
+            t = (d - born).days
+            noise = ((t * 37) % 141 - 70)                  # ±70 g weekly scatter
+            rows.append(Weight(rabbit=g, date=d, grams=int(A * math.exp(-b * math.exp(-k * t))) + noise,
+                               note="Arrival weigh-in" if d == bought else ""))
+            d += datetime.timedelta(days=7)
+        Weight.objects.bulk_create(rows)
+        Expense.objects.create(owner=user, date=bought, category="other", amount=Decimal("125.00"), rabbit=g,
+                               description="Goliath, Flemish Giant junior buck (Big Timber Flemish)")
+        HealthNote.objects.bulk_create([
+            HealthNote(rabbit=g, date=bought + datetime.timedelta(days=1), kind="checkup",
+                       notes="Arrived bright; quarantined 30 days away from the NZ row. Moved to a 36×48 floor pen."),
+            HealthNote(rabbit=g, date=born + datetime.timedelta(days=240), kind="checkup",
+                       notes="Hocks checked: no sore hocks. Added a resting mat; he's 19½ lb at 8 months."),
+            HealthNote(rabbit=g, date=today - datetime.timedelta(days=20), kind="checkup",
+                       notes="Growth flattening as expected past a year. Considering him as a terminal sire on NZ does.")])
+        with open(Path(__file__).resolve().parents[2] / "demo_photos" / "nz" / "flemish-fawn-adult.jpg", "rb") as fh:
+            RabbitPhoto.objects.create(rabbit=g, is_main=True, notes="Frank's fawn Flemish Giant.",
+                                       taken_at=today - datetime.timedelta(days=30), image=File(fh, name="goliath.jpg"))
+        return g
 
     def pedigrees(self, user, R, parents, outs):
         """Write all 14 pedigree positions on every demo rabbit. Herd rabbits are
