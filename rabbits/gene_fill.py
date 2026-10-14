@@ -115,7 +115,7 @@ BROKEN_WORDS = r"broken|charlie|checkered|\bspot|papillon|butterfly|markings|har
 # color of the breed; a color name applies only to that variety. The
 # breed's entries win over what the color words alone would fill.
 BREEDS = {
-    "creme d'argent": {"*": {"A": "A_", "B": "B_", "C": "C_", "D": "D_", "E": "ee", "En": "enen", **SILVERING}},
+    "creme d'argent": {"*": {"A": "aa", "B": "B_", "C": "C_", "D": "D_", "E": "ee", "En": "enen", **SILVERING}},
     "champagne d'argent": {"*": {"A": "aa", "B": "B_", "C": "C_", "D": "D_", "E": "E_", "En": "enen", **SILVERING}},
     "argente noir": {"*": {"A": "aa", "B": "B_", "C": "C_", "D": "D_", "E": "E_", "En": "enen", **SILVERING}},
     "argente bleu": {"*": {"A": "aa", "B": "B_", "C": "C_", "D": "dd", "E": "E_", "En": "enen", **SILVERING}},
@@ -206,6 +206,26 @@ def from_breed_and_color(breed, color, eye=""):
         # color, so it carries at least one C.
         add({"C": "C_", "V": "V_"})
     return genes
+
+
+def eye_from_genes(genes):
+    """The eye color a set of genes proves, or "" when they don't settle it.
+    Albinos (cc) and Himalayan points (ch) have ruby eyes, Vienna whites (vv)
+    blue, dilutes (dd) blue-gray, and full-color non-dilutes brown."""
+    c, d, v = (str(genes.get(k) or "").strip() for k in ("C", "D", "V"))
+    if c == "cc":
+        return "ruby"
+    if v == "vv":
+        return "blue"
+    if c.startswith("ch") and not c.startswith("cch"):
+        return "ruby"
+    if not c or c.startswith("_"):
+        return ""
+    if d == "dd":
+        return "blue-gray"
+    if d.startswith("D"):
+        return "brown"
+    return ""
 
 
 def narrow_with_parents(genes, parents):

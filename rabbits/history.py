@@ -112,8 +112,12 @@ def _rabbit_saved(sender, instance, created, raw=False, **kwargs):
             "Moved to Recently deleted." if instance.deleted_at else "Restored from Recently deleted.")
         return
     changes = diff(old, instance)
+    filled = {label(instance._meta.get_field(name)) for name in getattr(instance, "_history_filled", ())}
+    for change in changes:
+        if change["field"] in filled:
+            change["filled"] = True
     if changes:
-        names = ", ".join(c["field"] for c in changes)
+        names = ", ".join(c["field"] + (" (filled in from the genes)" if c.get("filled") else "") for c in changes)
         log(instance.pk, "changed", "rabbit", f"Changed {names}.", changes)
 
 
@@ -121,7 +125,8 @@ def _child_saved(sender, instance, created, raw=False, **kwargs):
     if raw or off() or not getattr(instance, "rabbit_id", None):
         return
     if created:
-        log(instance.rabbit_id, "added", sender._meta.verbose_name, f"Added {describe(instance)}.")
+        how = ", filled in from the breed, color and parents" if getattr(instance, "_history_filled", False) else ""
+        log(instance.rabbit_id, "added", sender._meta.verbose_name, f"Added {describe(instance)}{how}.")
         return
     old = getattr(instance, "_history_old", None)
     changes = diff(old, instance) if old is not None else []

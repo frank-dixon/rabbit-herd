@@ -2,6 +2,7 @@
 <input type="hidden" name="gene_auto" value="{{ gene_auto }}" data-gene-auto>
 {{ gene_suggestions_json|json_script:"gene-suggestions" }}
 {% include "components/select.html" with name="eye_color" label="Eye color" value=eye_color options=eye_options errors=eye_error placeholder="Not recorded" help="Ruby eyes on a white coat prove cc. Blue eyes on a white coat point to Vienna." only %}
+{% if eye_auto %}<p class="-mt-2 text-xs text-neutral-600" data-eye-filled>Filled from the genes. Pick another to set it yourself.</p>{% endif %}
 <p class="rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-3 text-sm text-neutral-800" id="gene-source" data-gene-source>
   {% if gene_filled_any %}Empty dropdowns were filled from {{ gene_source }}. Change any of them to set it yourself.{% elif gene_source %}{{ gene_source }} doesn't prove any genes on its own. Set them below if you know them.{% else %}Pick a breed and color to fill these in.{% endif %}
 </p>

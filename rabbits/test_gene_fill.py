@@ -65,6 +65,7 @@ class BreedTests(SimpleTestCase):
         creme = fill("", breed="Creme d'Argent")
         self.assertEqual(creme["E"], "ee")
         self.assertEqual(creme["Si"], "sisi")
+        self.assertEqual(creme["A"], "aa")  # every Creme variety is a silvered self orange
         self.assertEqual(fill("", breed="Champagne d'Argent")["A"], "aa")
         self.assertEqual(fill("", breed="Florida White"), {"C": "cc"})
         self.assertEqual(fill("", breed="Californian")["C"], "ch_")

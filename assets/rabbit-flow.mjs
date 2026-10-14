@@ -342,8 +342,10 @@ function bindGeneFill(form) {
       }
       setGeneValue(field, value);
     });
-    hidden.value = autoText(result.auto, loci);
+    hidden.value = autoText(result.auto, loci); // the eye color is now the keeper's
     show(result.auto);
+    const eyeHint = form.querySelector("[data-eye-filled]");
+    if (eyeHint) eyeHint.hidden = true;
   });
   form.addEventListener("change", function (event) {
     const owner = event.target.closest && event.target.closest("[data-gene]");
@@ -354,7 +356,7 @@ function bindGeneFill(form) {
     const auto = parseAuto(hidden.value);
     if (locus in auto && auto[locus] !== geneValue(owner)) {
       delete auto[locus];
-      hidden.value = autoText(auto, loci);
+      hidden.value = autoText(auto, loci.concat("eye")); // a filled eye color stays filled
       show(auto);
     }
   });

@@ -462,6 +462,7 @@ def genes_context(draft, user, errors):
         "eye_error": errors.get("eye_color", []),
         "gene_other": draft["gene_other"],
         "gene_other_auto": "other" in auto,
+        "eye_auto": bool(draft["eye_color"]) and auto.get(flow.EYE) == draft["eye_color"],
         "gene_other_error": errors.get("gene_other", []),
         "gene_auto": draft["gene_auto"],
         "gene_source": source,

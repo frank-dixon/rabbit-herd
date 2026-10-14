@@ -632,6 +632,8 @@ def update_rabbit(draft, user, rabbit):
             setattr(rabbit, field, answers[field])
         rabbit.purebred = purebred
         rabbit.breed = short_breed(breed_line(purebred, shares))
+        if answers["eye_color"] and parse_auto(draft["gene_auto"]).get(EYE) == answers["eye_color"]:
+            rabbit._history_filled = {"eye_color"}
         rabbit.save()
         rabbit.breed_shares.all().delete()
         BreedShare.objects.bulk_create(
@@ -703,19 +705,20 @@ def prefill_breed_from_parents(draft, rows):
 # never touched. The script keeps gene_auto in step as it fills live.
 
 AUTO_LOCI = gene_fill.LOCI + [gene_fill.OTHER]
+EYE = "eye"  # the eye color, filled from the genes, shares the gene_auto record
 
 
 def parse_auto(text):
     out = {}
     for part in str(text or "").split(";"):
         locus, sep, value = part.partition("=")
-        if sep and locus in AUTO_LOCI:
+        if sep and (locus in AUTO_LOCI or locus == EYE):
             out[locus] = value
     return out
 
 
 def auto_text(auto):
-    return ";".join(f"{locus}={auto[locus]}" for locus in AUTO_LOCI if locus in auto)
+    return ";".join(f"{locus}={auto[locus]}" for locus in AUTO_LOCI + [EYE] if locus in auto)
 
 
 def auto_loci(draft):
@@ -760,9 +763,10 @@ def gene_suggestions(draft, user, eye=None):
     """{locus: genotype} the breed, color and eye color prove, narrowed by
     the parents. `eye` overrides the draft's eye color."""
     breed = flow_forms.purebred_breed(draft)
-    found = gene_fill.from_breed_and_color(
-        breed.name if breed else "", draft_color_text(draft), draft["eye_color"] if eye is None else eye
-    )
+    if eye is None:
+        # An eye color we filled in came from these genes, so it proves nothing new.
+        eye = "" if parse_auto(draft["gene_auto"]).get(EYE) == draft["eye_color"] else draft["eye_color"]
+    found = gene_fill.from_breed_and_color(breed.name if breed else "", draft_color_text(draft), eye)
     return gene_fill.narrow_with_parents(found, parent_genes(draft, user))
 
 
@@ -784,8 +788,15 @@ def fill_genes(draft, user, suggestions=None):
             auto[locus] = suggestions[locus]
         elif still_auto:
             draft[key] = ""
+    # The eye color follows the genes until the keeper picks one.
+    eye, filled_eye = draft["eye_color"], before.get(EYE)
+    if not eye or eye == filled_eye:
+        found = gene_fill.eye_from_genes({locus: draft[gene_key(locus)] for locus in gene_fill.LOCI})
+        draft["eye_color"] = found or ""
+        if found:
+            auto[EYE] = found
     draft["gene_auto"] = auto_text(auto)
-    return set(auto)
+    return set(auto) - {EYE}
 
 
 def save_genes(rabbit, genes, auto):
@@ -814,7 +825,9 @@ def save_genes(rabbit, genes, auto):
                 existing.save()
             continue
         certainty = Gene.Certainty.KNOWN if locus in auto and locus != Gene.Locus.OTHER else Gene.Certainty.PROBABLE
-        Gene.objects.create(rabbit=rabbit, locus=locus, genotype=value, certainty=certainty)
+        gene = Gene(rabbit=rabbit, locus=locus, genotype=value, certainty=certainty)
+        gene._history_filled = locus in auto
+        gene.save()
 
 
 def genes_line(draft):
