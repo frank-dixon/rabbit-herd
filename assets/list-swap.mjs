@@ -61,7 +61,7 @@ export function bindListSwap(doc, win) {
     return true;
   };
 
-  async function go(url, push) {
+  async function go(url, push, source = null) {
     pending?.abort();
     const ctl = new AbortController();
     pending = ctl;
@@ -76,6 +76,7 @@ export function bindListSwap(doc, win) {
       if (push) win.history.pushState({ listSwap: true }, "", url);
       if (doc.startViewTransition && !reducedMotion(win)) await doc.startViewTransition(run).updateCallbackDone;
       else run();
+      root.dispatchEvent(new win.CustomEvent("list-swap:done", { bubbles: true, detail: { source } }));
     } catch (error) {
       if (error?.name === "AbortError") return;
       win.location.assign(url);
@@ -90,13 +91,13 @@ export function bindListSwap(doc, win) {
     if (!link || event.defaultPrevented || link.hasAttribute("download")) return;
     if (!swappable(link.href, win.location.href, event, link.target)) return;
     event.preventDefault();
-    go(link.href, true);
+    go(link.href, true, link);
   });
   root.addEventListener("submit", (event) => {
     const form = event.target;
     if ((form.method || "get").toLowerCase() !== "get" || event.defaultPrevented) return;
     event.preventDefault();
-    go(formUrl(form.action || win.location.href, new FormData(form, event.submitter)).href, true);
+    go(formUrl(form.action || win.location.href, new FormData(form, event.submitter)).href, true, form);
   });
   win.history.replaceState({ listSwap: true }, "");
   win.addEventListener("popstate", (event) => { if (event.state?.listSwap) go(win.location.href, false); });

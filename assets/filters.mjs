@@ -1,6 +1,8 @@
 /*
  * Rabbit list filters: with JS, a change in the filter panel submits at
- * once and the Apply button steps aside. Esc or a tap outside closes it.
+ * once and the Apply button steps aside. Once the list has swapped in, the
+ * panel closes and focus goes back to the Filter button, which now shows the
+ * active-filter count. Esc, a tap outside, or a tab or layout change closes it too.
  */
 export function bindFilters(root) {
   const form = root.querySelector("[data-filter-form]");
@@ -12,10 +14,25 @@ export function bindFilters(root) {
     select.addEventListener("change", () => form.requestSubmit());
   });
   if (!panel) return;
+  const close = (focus) => {
+    if (!panel.open) return;
+    panel.open = false;
+    if (focus) panel.querySelector("summary")?.focus();
+  };
   root.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && panel.open) { panel.open = false; panel.querySelector("summary").focus(); }
+    if (event.key === "Escape" && panel.open) close(true);
   });
   root.addEventListener("pointerdown", (event) => {
-    if (panel.open && !panel.contains(event.target)) panel.open = false;
+    if (panel.open && !panel.contains(event.target)) close(false);
+  });
+  // A tab, layout or chip link chosen by keyboard: no pointerdown, so close here.
+  root.addEventListener("click", (event) => {
+    const link = event.target.closest?.("a[href]");
+    if (link && !panel.contains(link)) close(false);
+  });
+  root.addEventListener("list-swap:done", (event) => {
+    const fromFilters = event.detail?.source === form;
+    close(fromFilters && panel.contains(document.activeElement));
+    if (fromFilters && !panel.open && document.activeElement === document.body) panel.querySelector("summary")?.focus();
   });
 }
