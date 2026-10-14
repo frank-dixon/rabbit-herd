@@ -14,10 +14,7 @@ date, and so every due date, follows the first cover that took. covers, counted_
             <p class="text-sm"><span class="num font-medium">{{ cover.date|date:"D, M j" }}{% if cover.time %} · {{ cover.time|time:"g:i A" }}{% endif %}</span> · {{ cover.get_outcome_display }}{% if cover.pk == counted_cover %}<span class="ml-2 pill pill-g" data-counts>Counts</span>{% endif %}</p>
             {% if cover.note %}<p class="break-words text-sm text-muted">{{ cover.note }}</p>{% endif %}
           </div>
-          <form method="post" action="{% url 'cover_delete' litter.pk cover.pk %}" class="shrink-0" data-undo-remove="Cover removed.">
-            {% csrf_token %}
-            <button type="submit" class="mo-press rounded-md px-2 py-1 text-sm text-muted hover:bg-side hover:text-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Remove<span class="sr-only"> the cover on {{ cover.date|date:"M j" }}</span></button>
-          </form>
+          {% url 'cover_delete' litter.pk cover.pk as remove_action %}{% include "components/row_actions.html" with name="this cover" remove_action=remove_action undo="Cover removed." only %}
         </li>
       {% endfor %}
     </ol>
