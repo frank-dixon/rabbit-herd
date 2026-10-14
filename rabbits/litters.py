@@ -82,7 +82,8 @@ def litter_card(litter, today):
         weaned = litter.converted_at or not task
         card.update(stage="kindled", age=age, pill=("Converted" if litter.converted_at else "Weaned" if weaned and age >= 28 else "Nursing"),
                     tone=("o" if litter.converted_at else "g"), alive=litter.survivors, total=(litter.born_alive or 0) + (litter.born_dead or 0),
-                    does=sum(k.sex == "doe" for k in kits), bucks=sum(k.sex == "buck" for k in kits))
+                    does=sum(k.sex == "doe" for k in kits), bucks=sum(k.sex == "buck" for k in kits),
+                    recorded=len(kits))  # kits on record: the count to show when kindling numbers were never entered
     return card
 
 

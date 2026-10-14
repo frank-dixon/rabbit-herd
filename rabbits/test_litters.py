@@ -76,6 +76,17 @@ class LitterTests(TestCase):
         self.assertEqual(self.client.get(reverse("litter_detail", args=[litter.pk])).status_code, 404)
         self.assertEqual(self.client.post(reverse("litter_add_kit", args=[litter.pk]), {"name": "X", "sex": "doe"}).status_code, 404)
 
+    def test_card_counts_recorded_kits_when_kindling_numbers_are_missing(self):
+        litter = self.start(40)
+        Litter.objects.filter(pk=litter.pk).update(kindled_on=self.today - datetime.timedelta(days=9))
+        self.assertContains(self.client.get(reverse("litter_list")), "Kits not counted yet")
+        for name, sex in (("A", "doe"), ("B", "doe"), ("C", "buck")):
+            Rabbit.objects.create(owner=self.owner, name=name, sex=sex, breed="Rex", color="Black",
+                                  birth_date=self.today, litter=litter)
+        page = self.client.get(reverse("litter_list"))
+        self.assertNotContains(page, "Kits not counted yet")
+        self.assertContains(page, "3 kits")
+        self.assertContains(page, "2 does, 1 buck")
 
 class WeanProcessTests(TestCase):
     def setUp(self):
@@ -110,3 +121,4 @@ class WeanProcessTests(TestCase):
         page = self.client.get(reverse("task_list"))
         self.assertNotContains(page, "Wean: Hazel")
         self.assertNotContains(page, "Process: Hazel")
+
