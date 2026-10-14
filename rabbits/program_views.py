@@ -40,7 +40,7 @@ def steps(current, program=None):
 
 @login_required
 def program_list(request):
-    from .index_items import index_view, stat, view_options
+    from .index_items import index_view, sorted_items, stat, view_options
 
     programs = list(Program.objects.filter(owner=request.user).select_related("dam", "sire").prefetch_related("dam__photos", "sire__photos"))
     view = index_view(request, "programs", "grid")
@@ -49,10 +49,12 @@ def program_list(request):
     active = sum(1 for p in programs if p.step == Program.Step.PLAN)
     stats = [stat("Active", active, "with a plan"), stat("In setup", len(programs) - active, "goal or breeders"),
              stat("Best odds", f"{best:.0%}" if best is not None else "—", "next litter on target")]
+    columns = [{"label": "Program", "sort": "name"}, {"label": "Progress", "wide_only": True}, {"label": "Odds", "align": "r", "wide_only": True, "sort": "odds"},
+               {"label": "Next step", "wide_only": True}, {"label": "Rabbits", "wide_only": True}, {"label": "Status", "align": "r", "sort": "status"}]
+    items = sorted_items(request, items, columns, desc_first=("odds", "status"))
     return render(request, "programs/list.html", {
         "programs": programs, "items": items, "view": view, "view_options": view_options(request, view), "stats": stats,
-        "columns": [{"label": "Program"}, {"label": "Progress", "wide_only": True}, {"label": "Odds", "align": "r", "wide_only": True},
-                    {"label": "Next step", "wide_only": True}, {"label": "Rabbits", "wide_only": True}, {"label": "Status", "align": "r"}],
+        "columns": columns,
         "wide": True})
 
 
@@ -100,6 +102,7 @@ def program_item(program):
                {"label": "Rabbits", "thumbs": thumbs, "value": "None yet"}],
         "foot": {"label": "Next", "strong": nxt, "text": nxt_sub},
         "mobile": f"{progress['label']} · {odds} · {nxt}",
+        "sort": {"name": program.title.lower(), "odds": float(item["best"]) if item["best"] is not None else None, "status": item["rank"]},
         "cells": [{"kind": "lead"}, {"kind": "progress", "wide_only": True, **progress},
                   {"kind": "text", "main": odds, "big": True, "align": "r", "wide_only": True},
                   {"kind": "text", "main": nxt, "sub": nxt_sub, "wide_only": True, "wrap": True},

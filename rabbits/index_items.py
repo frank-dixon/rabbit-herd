@@ -61,3 +61,22 @@ def ordinal(n):
 
 def place_tone(n):
     return {1: "y", 2: "b"}.get(n, "")
+
+
+def sorted_items(request, items, columns, desc_first=()):
+    """Apply ?sort= to items (each carries a "sort" dict of key -> value) and
+    attach a shared sort header (rabbits/sorting.py, components/sort_th.html)
+    to every column that names a "sort" key. No ?sort= keeps the page's order."""
+    from . import sorting
+
+    keys = [c["sort"] for c in columns if c.get("sort")]
+    raw = request.GET.get("sort", "")
+    key, desc = sorting.parse(raw, keys) if raw else ("", False)
+    params = {k: v for k, v in request.GET.items() if k != "sort"}
+    heads = {h["key"]: h for h in sorting.headers([(c["sort"], c["label"]) for c in columns if c.get("sort")], key, desc, params, desc_first)}
+    for c in columns:
+        c["h"] = heads.get(c.get("sort"))
+        c["cls"] = " ".join(x for x in ("r" if c.get("align") == "r" else "", "it-wide" if c.get("wide_only") else "") if x)
+    if key:
+        items = sorting.apply(items, {k: (lambda it, k=k: it.get("sort", {}).get(k)) for k in keys}, key, desc)
+    return items

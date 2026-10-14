@@ -51,3 +51,10 @@ class IndexPageTests(TestCase):
         stats = {s["label"]: s for s in self.client.get(reverse("show_list")).context["stats"]}
         self.assertEqual(stats["Legs earned"]["value"], 2)
         self.assertEqual(stats["Closest to GC"]["value"], "Hazel · 2 of 3")
+
+    def test_shows_sort_by_place_from_shared_header(self):
+        for back, place in ((10, 3), (20, 1), (30, 2)):
+            ShowEntry.objects.create(rabbit=self.rabbit, show_name=f"Show {place}", date=self.today - datetime.timedelta(days=back), placing=place)
+        page = self.client.get(reverse("show_list") + "?sort=place")
+        self.assertEqual([it["sort"]["place"] for it in page.context["items"]], [1, 2, 3])
+        self.assertContains(page, 'aria-sort="ascending"')

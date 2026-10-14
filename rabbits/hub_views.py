@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .index_items import index_view, ordinal, place_tone, stat, tabs, view_options
+from .index_items import index_view, ordinal, place_tone, sorted_items, stat, tabs, view_options
 from .models import HealthNote, ShowEntry
 
 LEGS_FOR_GC = 3  # ARBA: three legs, at least one as a senior, make a Grand Champion.
@@ -33,13 +33,15 @@ def health_list(request):
     shown = {"open": open_notes, "resolved": [n for n in notes if n.resolved], "all": notes}[tab]
     items = sorted((health_item(n, today) for n in shown), key=lambda it: it["order"])
     recent = sum(1 for n in notes if (today - n.date).days <= 30)
+    columns = [{"label": "Rabbit", "sort": "rabbit"}, {"label": "Type", "sort": "type"}, {"label": "Note", "wide_only": True}, {"label": "Follow-up", "wide_only": True, "sort": "follow"},
+               {"label": "State", "align": "r", "wide_only": True}, {"label": "", "align": "r"}]
+    items = sorted_items(request, items, columns)
     return render(request, "hub/health.html", {
         "notes": notes, "items": items, "wide": True, "view": view, "view_options": view_options(request, view),
         "tabs": tabs(request, tab, [("open", "Open", len(open_notes)), ("resolved", "Resolved", len(notes) - len(open_notes)), ("all", "All", len(notes))]),
         "stats": [stat("Open", len(open_notes), "notes to watch"), stat("Overdue", overdue, "follow-ups past due", "r" if overdue else ""),
                   stat("Logged in 30 days", recent, "all types")],
-        "columns": [{"label": "Rabbit"}, {"label": "Type"}, {"label": "Note", "wide_only": True}, {"label": "Follow-up", "wide_only": True},
-                    {"label": "State", "align": "r", "wide_only": True}, {"label": "", "align": "r"}],
+        "columns": columns,
     })
 
 
@@ -65,6 +67,7 @@ def health_item(note, today):
         "cells": [{"kind": "lead"}, {"kind": "pill", **kind}, {"kind": "text", "main": note.notes, "wide_only": True, "wrap": True},
                   {"kind": "text", "main": follow, "sub": when, "tone": tone, "wide_only": True},
                   {"kind": "pill", "align": "r", "wide_only": True, **state}, {"kind": "action", "align": "r"}],
+        "sort": {"rabbit": note.rabbit.name.lower(), "type": note.kind, "follow": None if note.resolved else note.follow_up_on},
         "order": (note.resolved, not (note.follow_up_on and not note.resolved), note.follow_up_on or today, -note.date.toordinal()),
     }
 
@@ -91,15 +94,16 @@ def show_list(request):
     year = timezone.localdate().year
     leader = max(legs.items(), key=lambda kv: kv[1], default=None)
     leader_name = next((e.rabbit.name for e in entries if leader and e.rabbit_id == leader[0]), "")
-    items = [show_item(e, legs[e.rabbit_id]) for e in entries]
+    columns = [{"label": "Rabbit", "sort": "rabbit"}, {"label": "Show", "sort": "date"}, {"label": "Place", "sort": "place"}, {"label": "Award", "wide_only": True},
+               {"label": "Toward GC", "align": "r", "wide_only": True, "sort": "legs"}]
+    items = sorted_items(request, [show_item(e, legs[e.rabbit_id]) for e in entries], columns, desc_first=("date", "legs"))
     return render(request, "hub/shows.html", {
         "entries": entries, "items": items, "wide": True, "view": view, "view_options": view_options(request, view),
         "stats": [stat(f"Entries in {year}", sum(1 for e in entries if e.date.year == year), f"{len(entries)} all time"),
                   stat("Legs earned", sum(legs.values()), f"{LEGS_FOR_GC} make a Grand Champion"),
                   stat("Closest to GC", f"{leader_name} · {min(leader[1], LEGS_FOR_GC)} of {LEGS_FOR_GC}" if leader else "—",
                        "Grand Champion ready" if leader and leader[1] >= LEGS_FOR_GC else "legs so far")],
-        "columns": [{"label": "Rabbit"}, {"label": "Show"}, {"label": "Place"}, {"label": "Award", "wide_only": True},
-                    {"label": "Toward GC", "align": "r", "wide_only": True}],
+        "columns": columns,
     })
 
 
@@ -116,6 +120,7 @@ def show_item(entry, legs):
         "thumbs": [entry.rabbit], "thumb_size": "md", "badge": place,
         "kv": [{"label": f"{when}{f' · {entry.location}' if entry.location else ''}", "value": entry.show_name}],
         "foot": {"pill": award, "progress": progress},
+        "sort": {"rabbit": entry.rabbit.name.lower(), "date": entry.date, "place": entry.placing, "legs": legs},
         "mobile": f"{entry.award + ' · ' if entry.award else ''}{progress['label']}",
         "cells": [{"kind": "lead"}, {"kind": "text", "main": entry.show_name, "sub": when, "wrap": True},
                   {"kind": "pill", **place}, {"kind": "pill", "wide_only": True, "label": entry.award, "tone": "y"},

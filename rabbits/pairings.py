@@ -134,7 +134,7 @@ def pairing_list(request):
         buck = pick(request.user, values["buck"], Rabbit.Sex.BUCK)
         if doe and buck:
             check = {"doe": doe, "buck": buck, "warnings": inbreeding_warnings(doe, buck), "age": age_warnings(doe, buck)}
-    from .index_items import index_view, stat, view_options
+    from .index_items import index_view, sorted_items, stat, view_options
 
     pairings = list(Pairing.objects.filter(owner=request.user).select_related("doe", "buck")
                     .prefetch_related("doe__photos", "buck__photos", "doe__genes", "buck__genes", "litters"))
@@ -143,10 +143,12 @@ def pairing_list(request):
     count = lambda label: sum(1 for it in items if it["pill"]["label"] == label)
     stats = [stat("Bred, due soon", count("Bred"), "waiting to kindle"), stat("Kits on ground", count("Kits on ground"), "not yet weaned or moved"),
              stat("High COI", sum(1 for it in items if it["coi"] >= 25), "25% or more", "r" if any(it["coi"] >= 25 for it in items) else "")]
+    columns = [{"label": "Pair", "sort": "pair"}, {"label": "Inbreeding", "wide_only": True, "sort": "coi"}, {"label": "Predicted colors", "wide_only": True},
+               {"label": "Last litter", "wide_only": True, "sort": "bred"}, {"label": "Status", "align": "r", "sort": "status"}]
+    items = sorted_items(request, items, columns, desc_first=("coi", "bred"))
     return render(request, "rabbits/pairings.html", {
         "pairings": pairings, "items": items, "view": view, "view_options": view_options(request, view), "stats": stats,
-        "columns": [{"label": "Pair"}, {"label": "Inbreeding", "wide_only": True}, {"label": "Predicted colors", "wide_only": True},
-                    {"label": "Last litter", "wide_only": True}, {"label": "Status", "align": "r"}], "errors": errors, "values": values, "check": check, "wide": True,
+        "columns": columns, "errors": errors, "values": values, "check": check, "wide": True,
         "doe_options": herd_choices(request.user, Rabbit.Sex.DOE),
         "buck_options": herd_choices(request.user, Rabbit.Sex.BUCK),
     })
@@ -229,6 +231,7 @@ def pairing_items(user, pairings):
             "mobile": f"{result} · COI {coi:.1f}%",
             "cells": [{"kind": "lead"}, {"kind": "pill", "wide_only": True, **coi_pill}, {"kind": "chips", "chips": chips, "wide_only": True},
                       {"kind": "text", "main": when, "sub": result, "wide_only": True}, {"kind": "pill", "align": "r", **pill}],
+            "sort": {"pair": f"{p.doe.name} {p.buck.name}".lower(), "coi": coi, "bred": litter.bred_on if litter else None, "status": STATUS_ORDER[pill["label"]]},
             "order": (STATUS_ORDER[pill["label"]], -(litter.bred_on.toordinal() if litter else 0)),
         })
     items.sort(key=lambda it: it["order"])

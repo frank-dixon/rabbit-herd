@@ -1,5 +1,5 @@
 {# The shared list rows for index pages: columns [{label, align, wide_only}], items with cells in the same order. #}
 <div class="wt-card it-rows"><table class="wt-table">
-  <thead><tr>{% for c in columns %}<th class="{% if c.align == 'r' %}r {% endif %}{% if c.wide_only %}it-wide{% endif %}">{{ c.label }}</th>{% endfor %}</tr></thead>
+  <thead><tr>{% for c in columns %}{% if c.h %}{% include "components/sort_th.html" with h=c.h cls=c.cls only %}{% else %}<th class="{{ c.cls }}">{{ c.label }}</th>{% endif %}{% endfor %}</tr></thead>
   <tbody>{% for it in items %}<tr class="{% if it.dim %}is-dim{% endif %}">{% for cell in it.cells %}{% include "components/item_cell.html" with it=it cell=cell %}{% endfor %}</tr>{% endfor %}</tbody>
 </table></div>
