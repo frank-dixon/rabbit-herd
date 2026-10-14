@@ -132,9 +132,9 @@ class Command(BaseCommand):
     def herd(self, user, today):
         day = lambda n: today - datetime.timedelta(days=n)  # noqa: E731
         # Rebuild only the demo account's herd, so re-runs update rather than duplicate.
-        old_files = list(RabbitPhoto.objects.filter(rabbit__owner=user).values_list("image", flat=True))
+        old_files = list(RabbitPhoto.objects.filter(rabbit__in=Rabbit.all_objects.filter(owner=user)).values_list("image", flat=True))
         for model in (Task, WaitlistEntry, Expense, Litter, Pairing, Rabbit, Contact, Location):
-            model.objects.filter(owner=user).delete()
+            getattr(model, "all_objects", model.objects).filter(owner=user).delete()
 
         breeds = {b.name: b for b in Breed.objects.filter(name__in={row[2] for row in HERD})}
         buyers = [Contact.objects.create(owner=user, name=n, rabbitry=r, phone=p, location=loc, is_buyer=True,

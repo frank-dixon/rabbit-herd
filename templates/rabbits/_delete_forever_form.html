@@ -1,0 +1,19 @@
+{# Remove a deleted rabbit for good: type "delete <name>". rabbit, phrase, typed, error, field_id, js. #}
+<form method="post" action="{% url 'rabbit_delete_forever' rabbit.pk %}" data-delete-form data-phrase="{{ phrase }}">
+  {% csrf_token %}
+  <p class="text-muted">This removes {{ rabbit.name }}, its photos, records and history for good. It can't be undone.</p>
+  <label class="mt-4 block text-sm font-medium" for="{{ field_id }}{{ rabbit.pk }}">Type ‘{{ phrase }}’ to confirm</label>
+  <input class="mt-1 block h-11 w-full rounded-md border bg-surface px-3 text-base text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent {% if error %}border-danger{% else %}border-field/70{% endif %}"
+    id="{{ field_id }}{{ rabbit.pk }}" name="confirm" type="text" value="{{ typed }}" autocomplete="off" autocapitalize="off" spellcheck="false" data-delete-input
+    {% if error %}aria-invalid="true" aria-describedby="{{ field_id }}{{ rabbit.pk }}_error"{% endif %}>
+  {% if error %}<p class="mt-1 text-sm font-medium text-danger" id="{{ field_id }}{{ rabbit.pk }}_error">{{ error }}</p>{% endif %}
+  <div class="mt-5 flex flex-col gap-2 sm:flex-row-reverse sm:justify-start">
+    {% include "components/button.html" with label="Remove for good" type="submit" variant="danger" disabled=js only %}
+    {% if js %}
+      <button type="button" class="mo-press inline-flex min-h-10 cursor-pointer items-center justify-center rounded-md border border-line bg-surface px-4 py-2 font-medium text-ink hover:border-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2" data-delete-close>Cancel</button>
+    {% else %}
+      {% url 'rabbit_trash' as trash_url %}
+      {% include "components/button.html" with label="Cancel" href=trash_url variant="secondary" only %}
+    {% endif %}
+  </div>
+</form>

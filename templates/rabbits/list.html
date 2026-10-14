@@ -167,4 +167,5 @@
   {% endif %}
   </div>
   </div>
+  {% if deleted_count %}<p class="mt-6 text-center text-sm"><a href="{% url 'rabbit_trash' %}" class="inline-flex min-h-11 items-center text-muted underline underline-offset-4 hover:text-ink">Recently deleted · <span class="num">{{ deleted_count }}</span></a></p>{% endif %}
 {% endblock %}

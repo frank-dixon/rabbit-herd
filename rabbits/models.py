@@ -73,6 +73,13 @@ def color_text(color, is_standard):
     return f"{color} {OFF_STANDARD_NOTE}" if is_standard is False else color
 
 
+class LiveRabbitManager(models.Manager):
+    """Rabbits that are not in Recently deleted."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
+
+
 class Rabbit(models.Model):
     """One rabbit owned by one account. Archiving keeps the row."""
 
@@ -142,6 +149,9 @@ class Rabbit(models.Model):
     death_date = models.DateField(null=True, blank=True)
     death_cause = models.CharField(max_length=120, blank=True)
     archived_at = models.DateTimeField(null=True, blank=True)
+    # Set when deleted: the rabbit sits in Recently deleted until restored or purged
+    # (HerdSettings.deleted_retention_days). Rabbit.objects hides it everywhere.
+    deleted_at = models.DateTimeField(null=True, blank=True, editable=False)
     location = models.ForeignKey(
         "Location",
         related_name="rabbits",
@@ -169,15 +179,19 @@ class Rabbit(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    objects = LiveRabbitManager()
+    all_objects = models.Manager()  # includes Recently deleted
+
     class Meta:
         ordering = ["name", "pk"]
+        base_manager_name = "all_objects"
         indexes = [
             models.Index(fields=["owner", "archived_at"]),
         ]
         constraints = [
             models.UniqueConstraint(
                 "owner", models.functions.Upper("tattoo"),
-                condition=~models.Q(tattoo=""), name="one_tattoo_per_owner",
+                condition=~models.Q(tattoo="") & models.Q(deleted_at__isnull=True), name="one_tattoo_per_owner",
             ),
         ]
 
@@ -1204,6 +1218,16 @@ class HerdSettings(models.Model):
     daily_email = models.BooleanField("Email me a daily summary", default=False)
     daily_email_time = models.TimeField("Send at", default=clock_time(6, 0))
     daily_email_sent_on = models.DateField(null=True, blank=True, editable=False)
+
+    class Retention(models.IntegerChoices):
+        WEEK = 7, "7 days"
+        MONTH = 30, "30 days"
+        QUARTER = 90, "90 days"
+        YEAR = 365, "1 year"
+
+    deleted_retention_days = models.PositiveSmallIntegerField(
+        "Keep deleted rabbits for", choices=Retention.choices, default=Retention.MONTH,
+        help_text="Deleted rabbits wait in Recently deleted this long, then are removed for good.")
 
     name = "Standard"
 

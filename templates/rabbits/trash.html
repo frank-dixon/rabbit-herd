@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Recently deleted · {{ app_name }}{% endblock %}
+{% block content %}
+  {% url 'rabbit_list' as list_url %}
+  {% if retention == 365 %}{% with subtitle="Deleted rabbits stay here for a year, then are removed for good." %}{% include "components/page_header.html" with title="Recently deleted" subtitle=subtitle back_label="Rabbits" back_href=list_url only %}{% endwith %}
+  {% else %}{% with subtitle="Deleted rabbits stay here for "|add:retention|stringformat:"s"|add:" days, then are removed for good." %}{% include "components/page_header.html" with title="Recently deleted" subtitle=subtitle back_label="Rabbits" back_href=list_url only %}{% endwith %}{% endif %}
+  <p class="mt-2 text-sm text-muted">Change how long in <a class="text-accent underline underline-offset-4" href="{% url 'account' %}#rabbitry">Settings</a>.</p>
+  {% if rabbits %}
+    <ul class="mt-5 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+      {% for rabbit in rabbits %}
+        <li class="flex flex-wrap items-center gap-3 px-3 py-2.5">
+          {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=rabbit.main_photo size_class="list-thumb shrink-0 rounded-md text-base" only %}
+          <div class="min-w-0 flex-1">
+            <p class="truncate font-medium">{{ rabbit.name }}{% if rabbit.tattoo %} <span class="text-sm font-normal text-muted">· {{ rabbit.tattoo }}</span>{% endif %}</p>
+            <p class="num text-sm text-muted">Deleted {{ rabbit.deleted_at|date:"D, M j" }} · removed {{ rabbit.purge_on|date:"D, M j" }}</p>
+          </div>
+          <div class="flex shrink-0 gap-2">
+            <form method="post" action="{% url 'rabbit_undelete' rabbit.pk %}">{% csrf_token %}{% include "components/button.html" with label="Restore" type="submit" variant="secondary" sr_suffix=rabbit.name only %}</form>
+            {% url 'rabbit_delete_forever' rabbit.pk as forever_url %}
+            <a href="{{ forever_url }}" data-delete-open="forever-{{ rabbit.pk }}" class="mo-press inline-flex min-h-10 items-center justify-center rounded-md border border-line bg-surface px-3.5 font-medium text-danger hover:border-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Remove<span class="sr-only"> {{ rabbit.name }} for good</span></a>
+          </div>
+          <dialog id="forever-{{ rabbit.pk }}" class="confirm-dialog m-auto w-[calc(100%-2rem)] max-w-md rounded-xl border border-line bg-surface p-5 text-ink shadow-xl backdrop:bg-ink/40" aria-labelledby="forever-{{ rabbit.pk }}-title">
+            <h2 class="text-lg font-semibold" id="forever-{{ rabbit.pk }}-title">Remove {{ rabbit.name }} for good?</h2>
+            <div class="mt-2">{% include "rabbits/_delete_forever_form.html" with rabbit=rabbit phrase="delete "|add:rabbit.name typed="" error="" field_id="id_forever_" js=True only %}</div>
+          </dialog>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    {% include "components/empty.html" with title="Nothing here." text="Rabbits you delete wait here for a while in case you change your mind." only %}
+  {% endif %}
+{% endblock %}

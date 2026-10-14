@@ -1,3 +1,5 @@
+import datetime
+
 from django.conf import settings
 from urllib.parse import urlencode
 
@@ -12,7 +14,7 @@ from django.views.decorators.http import require_POST
 
 from . import color_odds, costs, culling, genetics, purebred, shows
 from .forms import GenesForm, PhotoUploadForm
-from .models import Contact, Gene, HealthNote, Location, Rabbit, Weight
+from .models import Contact, Gene, HealthNote, Location, Rabbit, Weight, prefs
 
 def owned_rabbits(user):
     return Rabbit.objects.filter(owner=user)
@@ -178,6 +180,7 @@ def rabbit_list(request):
             "filter_chips": chips,
             "active_count": active_count,
             "archived_count": archived_count,
+            "deleted_count": Rabbit.all_objects.filter(owner=request.user, deleted_at__isnull=False).count(),
             "former_count": former_count,
             "former_qs": query_string({}, tab="former"),
             "sex_options": Rabbit.Sex.choices,
@@ -244,7 +247,7 @@ def rabbit_detail(request, pk):
     photos = list(rabbit.photos.all())
     main = next((photo for photo in photos if photo.is_main), None)
     context = {
-            "rabbit": rabbit,
+            "rabbit": rabbit, "retention": prefs(request.user).deleted_retention_days,
             "wide": True,
             "main_photo": main,
             "purebred_info": purebred.purebred(rabbit),
@@ -376,28 +379,64 @@ def delete_phrase_matches(rabbit, typed):
 
 @login_required
 def rabbit_delete(request, pk):
-    """Delete a rabbit for good once its owner types "delete <name>".
-    GET shows the confirm page, which also works without JavaScript."""
+    """Move a rabbit to Recently deleted (restorable until the keeper's retention runs out).
+    GET shows the confirm page, which also works without JavaScript; the rabbit page's dialog
+    posts here directly."""
     rabbit = owned_rabbit(request.user, pk)
-    error = ""
-    typed = ""
+    if request.method == "POST":
+        rabbit.deleted_at = timezone.now()
+        rabbit.save(update_fields=["deleted_at", "updated_at"])
+        messages.success(request, f"{rabbit.name} was moved to Recently deleted.")
+        return redirect("rabbit_list")
+    return render(request, "rabbits/delete.html", {"rabbit": rabbit, "retention": prefs(request.user).deleted_retention_days,
+                                                   "wide": True})
+
+
+def deleted_rabbit(user, pk):
+    return get_object_or_404(Rabbit.all_objects, owner=user, pk=pk, deleted_at__isnull=False)
+
+
+@login_required
+def rabbit_trash(request):
+    """Recently deleted: restore a rabbit, or remove it for good (typed confirm)."""
+    days = prefs(request.user).deleted_retention_days
+    rabbits = list(Rabbit.all_objects.filter(owner=request.user, deleted_at__isnull=False)
+                   .order_by("-deleted_at").prefetch_related("photos"))
+    for rabbit in rabbits:
+        rabbit.purge_on = timezone.localtime(rabbit.deleted_at).date() + datetime.timedelta(days=days)
+    return render(request, "rabbits/trash.html", {"rabbits": rabbits, "retention": days})
+
+
+@login_required
+@require_POST
+def rabbit_undelete(request, pk):
+    rabbit = deleted_rabbit(request.user, pk)
+    if rabbit.tattoo and Rabbit.objects.filter(owner=request.user, tattoo__iexact=rabbit.tattoo).exists():
+        messages.error(request, f"Another rabbit now has ear tattoo {rabbit.tattoo}. Change one of them, then restore {rabbit.name}.")
+        return redirect("rabbit_trash")
+    rabbit.deleted_at = None
+    rabbit.save(update_fields=["deleted_at", "updated_at"])
+    messages.success(request, f"{rabbit.name} was restored.")
+    return redirect("rabbit_detail", pk=rabbit.pk)
+
+
+@login_required
+def rabbit_delete_forever(request, pk):
+    """Remove a deleted rabbit for good once its owner types "delete <name>"."""
+    from .purge import hard_delete
+
+    rabbit = deleted_rabbit(request.user, pk)
+    error, typed = "", ""
     if request.method == "POST":
         typed = request.POST.get("confirm", "")
         if delete_phrase_matches(rabbit, typed):
             name = rabbit.name
-            files = [(photo.image.storage, photo.image.name) for photo in rabbit.photos.all() if photo.image.name]
-            with transaction.atomic():
-                rabbit.delete()
-                for storage, file_name in files:
-                    transaction.on_commit(lambda s=storage, n=file_name: s.delete(n))
-            messages.success(request, f"{name} was deleted.")
-            return redirect("rabbit_list")
-        error = f"Type “{delete_phrase(rabbit)}” exactly to delete {rabbit.name}."
-    response = render(
-        request,
-        "rabbits/delete.html",
-        {"rabbit": rabbit, "phrase": delete_phrase(rabbit), "typed": typed, "error": error, "wide": True},
-    )
+            hard_delete(rabbit)
+            messages.success(request, f"{name} was removed for good.")
+            return redirect("rabbit_trash")
+        error = f"Type “{delete_phrase(rabbit)}” exactly to remove {rabbit.name} for good."
+    response = render(request, "rabbits/delete_forever.html",
+                      {"rabbit": rabbit, "phrase": delete_phrase(rabbit), "typed": typed, "error": error, "wide": True})
     if error:
         response.status_code = 400
     return response

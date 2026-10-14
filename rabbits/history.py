@@ -8,7 +8,7 @@ import threading
 from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 
 _state = threading.local()
-SKIP = {"id", "owner", "created_at", "updated_at", "c_carrier_dismissed", "image", "uploaded_at", "relative", "next_occurrence"}
+SKIP = {"deleted_at", "id", "owner", "created_at", "updated_at", "c_carrier_dismissed", "image", "uploaded_at", "relative", "next_occurrence"}
 
 
 @contextlib.contextmanager
@@ -95,7 +95,7 @@ def _remember(sender, instance, raw=False, **kwargs):
     if raw or off() or not instance.pk:
         instance._history_old = None
         return
-    instance._history_old = sender.objects.filter(pk=instance.pk).first()
+    instance._history_old = sender._base_manager.filter(pk=instance.pk).first()
 
 
 def _rabbit_saved(sender, instance, created, raw=False, **kwargs):
@@ -106,6 +106,10 @@ def _rabbit_saved(sender, instance, created, raw=False, **kwargs):
         return
     old = getattr(instance, "_history_old", None)
     if old is None:
+        return
+    if bool(old.deleted_at) != bool(instance.deleted_at):
+        log(instance.pk, "deleted" if instance.deleted_at else "changed", "rabbit",
+            "Moved to Recently deleted." if instance.deleted_at else "Restored from Recently deleted.")
         return
     changes = diff(old, instance)
     if changes:
@@ -132,7 +136,7 @@ def _child_deleted(sender, instance, **kwargs):
     rabbit_id = getattr(instance, "rabbit_id", None)
     if off() or not rabbit_id or rabbit_id in getattr(_state, "going", set()):
         return  # the rabbit itself is going; its history goes with it
-    if not Rabbit.objects.filter(pk=rabbit_id).exists():
+    if not Rabbit._base_manager.filter(pk=rabbit_id).exists():
         return
     log(instance.rabbit_id, "deleted", sender._meta.verbose_name, f"Deleted {describe(instance)}.")
 

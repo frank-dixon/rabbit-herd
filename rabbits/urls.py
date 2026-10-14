@@ -5,6 +5,9 @@ from . import history, culling, shows, pedigree, health, contact_views, location
 
 urlpatterns = [
     path("", views.rabbit_list, name="rabbit_list"),
+    path("deleted/", views.rabbit_trash, name="rabbit_trash"),
+    path("deleted/<int:pk>/restore/", views.rabbit_undelete, name="rabbit_undelete"),
+    path("deleted/<int:pk>/remove/", views.rabbit_delete_forever, name="rabbit_delete_forever"),
     path("<int:pk>/weights/", weights.weight_add, name="rabbit_weight_add"),
     path("weights/<int:pk>/delete/", weights.weight_delete, name="rabbit_weight_delete"),
     path("<int:pk>/health/", health.health_add, name="rabbit_health_add"),

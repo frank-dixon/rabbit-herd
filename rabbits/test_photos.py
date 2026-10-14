@@ -418,7 +418,7 @@ class PhotoDisplayTests(PhotoTestCase):
             add_photo(rabbit, is_main=True)
             add_photo(rabbit)
         self.client.get(reverse("rabbit_list"))  # warm the session
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(12):
             # session, user, rabbits, photos, breed shares, relatives and breed names (purebred
             # check), one for the tab counts and breed filter, one for locations, and two for
             # the Tasks tab's due badge (open tasks, open litters, herd settings for litter dates)

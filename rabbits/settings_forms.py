@@ -65,8 +65,15 @@ class BreedingScheduleForm(ScheduleChecks, forms.ModelForm):
 class RabbitryForm(forms.ModelForm):
     class Meta:
         model = HerdSettings
-        fields = ["rabbitry_name", "prefix", "tattoo_format"]
+        fields = ["rabbitry_name", "prefix", "tattoo_format", "deleted_retention_days"]
         labels = {"prefix": "Prefix"}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["deleted_retention_days"].required = False  # older forms without the field keep the setting
+
+    def clean_deleted_retention_days(self):
+        return self.cleaned_data.get("deleted_retention_days") or self.instance.deleted_retention_days or 30
 
     def clean_tattoo_format(self):
         value = " ".join(self.cleaned_data.get("tattoo_format", "").split())

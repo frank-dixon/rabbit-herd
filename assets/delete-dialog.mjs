@@ -2,8 +2,9 @@
  * Delete-a-rabbit dialog. The Delete link goes to a confirm page without
  * script; with script it opens a native <dialog> instead. showModal() makes
  * the rest of the page inert (a real focus trap) and Esc closes it.
- * The confirm button stays disabled until the typed text matches; the
- * server checks the text again either way.
+ * With a typed phrase (removing for good), the confirm button stays disabled
+ * until the text matches; the server checks it again. Without one (moving to
+ * Recently deleted) it is a plain confirm and Cancel takes focus.
  */
 
 export function tidy(text) {
@@ -24,20 +25,21 @@ export function bindDeleteDialog(root) {
     const input = dialog.querySelector("[data-delete-input]");
     const submit = form.querySelector('button[type="submit"]');
     const update = () => {
+      if (!input) return;
       const ok = phraseMatches(input.value, form.dataset.phrase);
       submit.disabled = !ok;
       submit.classList.toggle("opacity-50", !ok);
       submit.classList.toggle("cursor-not-allowed", !ok);
     };
-    input.addEventListener("input", update);
+    input?.addEventListener("input", update);
     form.addEventListener("submit", (event) => {
-      if (!phraseMatches(input.value, form.dataset.phrase)) {
+      if (input && !phraseMatches(input.value, form.dataset.phrase)) {
         event.preventDefault();
       }
     });
     dialog.querySelector("[data-delete-close]").addEventListener("click", () => dialog.close());
     dialog.addEventListener("close", () => {
-      input.value = "";
+      if (input) input.value = "";
       update();
       opener.focus();
     });
@@ -45,7 +47,7 @@ export function bindDeleteDialog(root) {
       event.preventDefault();
       update();
       dialog.showModal();
-      input.focus();
+      (input || dialog.querySelector("[data-delete-close]")).focus();
     });
   });
 }
