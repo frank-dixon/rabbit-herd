@@ -1,7 +1,5 @@
-{% extends "base.html" %}
+{% extends "components/sheet_base.html" %}
 {% block title %}Convert kits · {{ title }} · {{ app_name }}{% endblock %}
-{% block content %}
-  {% url 'litter_detail' litter.pk as back %}
-  {% include "components/page_header.html" with title="Convert to individual rabbits" subtitle=title back_label="Litter" back_href=back only %}
-  <div class="max-w-lg">{% include "rabbits/_convert_form.html" with js=False %}</div>
-{% endblock %}
+{% block eyebrow %}{% url 'litter_detail' litter.pk as back %}<p class="v2-eyebrow"><a class="underline-offset-2 hover:underline" href="{{ back }}">{{ title }}</a></p>{% endblock %}
+{% block sheet_title %}Convert to individual rabbits{% endblock %}
+{% block sheet %}{% include "rabbits/_convert_form.html" with js=False %}{% endblock %}
