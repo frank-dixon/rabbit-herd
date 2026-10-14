@@ -1,0 +1,8 @@
+/* Shared rabbit card/row meta lines (templates/rabbits/_rabbit_meta.html). One line each, never wrapping. */
+.rm-line, .rm-stat { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.rm-line { margin-top: 2px; font-size: 0.8125rem; color: var(--color-ink, #1F2421); }
+.rm-ago { color: var(--color-muted, #5E6660); }
+.rm-stat { margin-top: 2px; font-size: 0.75rem; color: var(--color-muted, #5E6660); }
+.rm-stat.is-a { color: #8A5A00; font-weight: 500; }
+.rm-stat.is-r { color: var(--color-danger, #A3312A); }
+.rm-stat.is-g { color: #2F6B45; }

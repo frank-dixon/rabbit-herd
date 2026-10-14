@@ -158,6 +158,67 @@ def list_row_columns(user, rabbits):
         r.age_until = r.death_date if r.status in Rabbit.FORMER else None
 
 
+def ago_text(day, today):
+    days = (today - day).days
+    if days <= 0:
+        return "today"
+    if days == 1:
+        return "yesterday"
+    if days < 14:
+        return f"{days}d ago"
+    if days < 63:
+        return f"{days // 7} wk ago"
+    return day.strftime("%b %-d") if day.year == today.year else day.strftime("%b %-d, %Y")
+
+
+def card_stats(user, rabbits, today):
+    """One context line per card: does (due, nursing, last litter), bucks (last
+    bred), juniors (vs the breed curve). Two queries for the whole page."""
+    from . import growth_curve as G
+
+    ids = [r.pk for r in rabbits if r.status not in Rabbit.FORMER]
+    by_doe, by_buck = {}, {}
+    gestation = prefs(user).gestation_days
+    for lit in (Litter.objects.filter(owner=user).filter(Q(pairing__doe_id__in=ids) | Q(pairing__buck_id__in=ids))
+                .select_related("pairing", "breeding_schedule").order_by("-bred_on", "-pk")):
+        by_doe.setdefault(lit.pairing.doe_id, []).append(lit)
+        by_buck.setdefault(lit.pairing.buck_id, lit)
+    for r in rabbits:
+        w = getattr(r, "last_weight", None)
+        r.weight_ago = ago_text(w.date, today) if w else ""
+        r.stat, r.stat_tone = "", ""
+        if r.status in Rabbit.FORMER:
+            continue
+        if r.status == Rabbit.Status.GROWING:
+            points, _ = G.curve_for(r)
+            vs = G.versus(points, (w.date - r.birth_date).days, w.grams) if (w and points and r.birth_date) else None
+            if vs is not None:
+                pct = round(abs(vs) * 100)
+                if abs(vs) <= G.ON_TRACK:
+                    r.stat, r.stat_tone = "On track vs curve", "g"
+                else:
+                    r.stat, r.stat_tone = f"{pct}% {'ahead of' if vs > 0 else 'behind'} curve", "g" if vs > 0 else "r"
+            continue
+        if r.sex == "doe":
+            lits = by_doe.get(r.pk, [])
+            open_lit = next((l for l in lits if not l.kindled_on and not l.converted_at), None)
+            if open_lit:
+                days = (open_lit.bred_on + datetime.timedelta(days=(open_lit.breeding_schedule.gestation_days
+                        if open_lit.breeding_schedule_id else gestation)) - today).days
+                if days >= -7:
+                    r.stat = f"Due in {days} day{'' if days == 1 else 's'}" if days > 0 else ("Due today" if days == 0 else f"{-days} days past due")
+                    r.stat_tone = "a" if days <= 3 else ""
+                    continue
+            kindled = next((l for l in lits if l.kindled_on), None)
+            if kindled and not kindled.weaned and not kindled.converted_at and (today - kindled.kindled_on).days <= 56:
+                r.stat = f"Kits {(today - kindled.kindled_on).days} days old"
+            elif kindled:
+                n = kindled.born_alive or 0
+                r.stat = f"Last litter {kindled.kindled_on.strftime('%b %-d')} · {n} kit{'' if n == 1 else 's'}"
+        elif r.sex == "buck" and r.pk in by_buck:
+            r.stat = f"Last bred {by_buck[r.pk].bred_on.strftime('%b %-d')}"
+
+
 @login_required
 def rabbit_list(request):
     view = list_view_choice(request)
@@ -189,6 +250,7 @@ def rabbit_list(request):
         rabbits = [rabbit for rabbit in rabbits if bool(rabbit.purebred_info) == want]
     # Sold rabbits go last; sort is stable, so each group keeps its order.
     list_row_columns(request.user, rabbits)
+    card_stats(request.user, rabbits, timezone.localdate())
     if filters["sort"]:
         rabbits = sort_by_age(rabbits, filters["sort"])
     else:
