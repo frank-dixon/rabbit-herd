@@ -332,3 +332,8 @@ html[data-density="compact"] .list-thumb { width: 2.25rem; height: 2.25rem; }
   .status-flow [data-new-buyer] { display: none; }
   .status-flow:has(select[name="buyer"] option[value="new"]:checked) [data-new-buyer] { display: grid; }
 }
+
+/* Relatives: a herd rabbit brings its own breed, color, line and genes. */
+.relative-herd-note { display: none; }
+[data-relative-row]:has(select[data-role="ref"] option[value^="h:"]:checked) [data-relative-traits] { display: none; }
+[data-relative-row]:has(select[data-role="ref"] option[value^="h:"]:checked) .relative-herd-note { display: block; }

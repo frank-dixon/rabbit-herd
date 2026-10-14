@@ -573,7 +573,8 @@ class RelativesForm(StepForm):
                     "target": target,
                     "new_name": new_name,
                     "new_details": new_details,
-                    **self.traits(base),
+                    # A herd rabbit's breed, color, line and genes live on its own page.
+                    **(NO_TRAITS if isinstance(target, Rabbit) else self.traits(base)),
                     "to_herd": herd,
                 }
             )
@@ -640,6 +641,7 @@ class RelativesForm(StepForm):
         }
 
 
+NO_TRAITS = {"color": "", "line": "", "breed": "", "genes": []}
 HERD_BORN_REQUIRED = "Enter the birth date to add this rabbit to your herd. Guess the month if you need to."
 GENE_UNREADABLE = "Choose a genotype from the list, or leave it as Not recorded."
 EYE_COLOR_UNKNOWN = "Choose an eye color from the list, or leave it blank."

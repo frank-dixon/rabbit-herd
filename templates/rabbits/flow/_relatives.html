@@ -9,7 +9,8 @@
             <h2 class="font-semibold">Relative {{ item.number }}</h2>
             {% include "components/button.html" with label="Remove" sr_suffix=item.sr_name type="submit" name="action" value=item.remove_action variant="secondary" only %}
           </div>
-          {% include "components/select.html" with name=item.ref_name label="Rabbit" value=item.row.ref groups=ref_groups errors=item.ref_error placeholder="Choose a rabbit…" large=True only %}
+          {% include "components/select.html" with name=item.ref_name label="Rabbit" value=item.row.ref groups=ref_groups errors=item.ref_error placeholder="Choose a rabbit…" large=True data_role="ref" only %}
+          <p class="relative-herd-note text-sm text-neutral-600">Breed, color, line and genes come from this rabbit's own page.</p>
           <details class="rounded border border-dashed border-neutral-300 px-3 py-2"{% if item.open_new %} open{% endif %}>
             <summary class="cursor-pointer text-sm font-medium text-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Not listed? Add an outside rabbit</summary>
             <div class="mt-2 space-y-3">
@@ -37,7 +38,7 @@
             </div>
           </details>
           {% include "components/select.html" with name=item.relationship_name label="Relationship" value=item.row.relationship options=item.relationships errors=item.relationship_error placeholder="Choose a relationship…" help="Dam means the mother and sire means the father. Each can be listed once." large=True data_role="relationship" only %}
-          <fieldset class="space-y-3 rounded border border-neutral-200 px-3 py-2">
+          <fieldset data-relative-traits class="space-y-3 rounded border border-neutral-200 px-3 py-2">
             <legend class="px-1 text-sm font-semibold text-neutral-800">Breed, color and line (optional)</legend>
             {% include "components/text_input.html" with name=item.breed_name label="Breed (outside rabbits)" value=item.row.breed errors=item.breed_error help="Herd rabbits show their own breed, so this is only for rabbits outside your herd." only %}
             {% if item.parent_colors %}
@@ -48,7 +49,7 @@
             {% endif %}
             {% include "components/text_input.html" with name=item.line_name label="Line or strain" value=item.row.line errors=item.line_error help="For example the breeder's herd name, to tell same-breed lines apart." only %}
           </fieldset>
-          <details class="rounded border border-dashed border-neutral-300 px-3 py-2"{% if item.open_genes %} open{% endif %}>
+          <details data-relative-traits class="rounded border border-dashed border-neutral-300 px-3 py-2"{% if item.open_genes %} open{% endif %}>
             <summary class="cursor-pointer text-sm font-medium text-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Genes they carry (optional)</summary>
             <p class="mt-2 text-sm text-neutral-600">Write a genotype like c/c or En/en, and mark whether it's known (for example from test litters) or probable.</p>
             <div class="mt-2 space-y-3">
