@@ -1,47 +1,29 @@
-/* Flat (v2) layout: opt-in from Settings > Appearance > Form layout
-   (html[data-layout="v2"]). A solid brand-green block holds a small eyebrow
-   and the title; a white sheet with rounded top corners overlaps it; fields
-   are a label over one hairline. The tokens and classes are meant to grow
-   into the rest of the UI. */
+/* Form system (from the Flat v2 work, now the only layout): forms sit on the
+   page itself, no boxed sheet. A small eyebrow and title, a thin progress
+   track in the accent, fields as a label over one hairline. The html
+   data-layout="v2" attribute is constant and only scopes these rules. */
 :root {
-  --v2-brand: #22573B;          /* Bramble Burrow green (Forest) */
-  --v2-on-brand: #FFFFFF;
-  --v2-eyebrow: rgb(255 255 255 / 0.72);
-  --v2-track: rgb(255 255 255 / 0.22);
-  --v2-sheet: var(--surface);
-  --v2-sheet-radius: 1.75rem;
+  --v2-brand: var(--accent);
+  --v2-on-brand: var(--on-accent);
+  --v2-sheet: transparent;
   --v2-hairline: var(--line);
   --v2-field-ink: var(--ink);
-  --v2-ok: #2E7D4F;
-  --v2-gap: 2rem;               /* between fields: lots of air */
+  --v2-ok: var(--g-ink);
+  --v2-gap: 2rem;
 }
-@media (prefers-color-scheme: dark) { html:not([data-mode="light"]) { --v2-brand: #1E4630; --v2-ok: #7CC79C; } }
-html[data-mode="dark"] { --v2-brand: #1E4630; --v2-ok: #7CC79C; }
 
 html:not([data-layout="v2"]) .v2-only, html[data-layout="v2"] .v2-hide { display: none !important; }
 
 @layer components {
-  /* Full-bleed on phones, a centered card from md up. */
-  .v2-card { margin: -1.5rem -1rem 0; display: flex; flex-direction: column; min-height: calc(100dvh - 3.5rem); }
-  .v2-card > .v2-sheet { flex: 1; }
-  @media (min-width: 768px) {
-    .v2-card { margin: 0 auto; max-width: 32rem; border-radius: var(--v2-sheet-radius); overflow: hidden; border: 1px solid var(--v2-hairline); min-height: 0; }
-    .v2-card-wide { max-width: 42rem; }
-  }
-  .v2-hero { background: var(--v2-brand); color: var(--v2-on-brand); padding: 2.5rem 1.5rem calc(var(--v2-sheet-radius) + 1.75rem); }
-  .v2-eyebrow { color: var(--v2-eyebrow); font-size: 0.875rem; font-weight: 500; }
-  .v2-title { margin-top: 0.25rem; font-size: 1.75rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
-  .v2-track { height: 3px; border-radius: 9999px; background: var(--v2-track); margin-top: 1.25rem; }
-  .v2-track > span { display: block; height: 100%; border-radius: inherit; background: var(--v2-on-brand); }
-  .v2-sheet {
-    position: relative; margin-top: calc(var(--v2-sheet-radius) * -1); background: var(--v2-sheet);
-    border-radius: var(--v2-sheet-radius) var(--v2-sheet-radius) 0 0; padding: 2.25rem 1.5rem 2rem;
-    /* Buttons and links on the sheet speak in the brand green. */
-    --accent: var(--v2-brand); --on-accent: var(--v2-on-brand); --accent-soft: color-mix(in oklab, var(--v2-brand) 12%, var(--surface));
-  }
-  @media (prefers-color-scheme: dark) { html:not([data-mode="light"]) .v2-sheet { --accent: #7CC79C; --on-accent: #0B2416; } }
-  html[data-mode="dark"] .v2-sheet { --accent: #7CC79C; --on-accent: #0B2416; }
-  .v2-or { display: flex; align-items: center; gap: 1rem; color: var(--muted); font-size: 0.75rem; letter-spacing: 0.08em; opacity: 0.8; }
+  .v2-card { margin: 0 auto; max-width: 32rem; display: flex; flex-direction: column; }
+  .v2-card-wide { max-width: 42rem; }
+  .v2-hero { padding: 0.5rem 0 1.25rem; color: var(--ink); }
+  .v2-eyebrow { color: var(--muted); font-size: 0.8125rem; font-weight: 500; }
+  .v2-title { margin-top: 0.25rem; font-size: 1.75rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.02em; text-wrap: balance; }
+  .v2-track { height: 4px; border-radius: 9999px; background: var(--track); margin-top: 1rem; }
+  .v2-track > span { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+  .v2-sheet { position: relative; background: transparent; padding: 0.5rem 0 2rem; }
+  .v2-or { display: flex; align-items: center; gap: 1rem; color: var(--muted); font-size: 0.75rem; letter-spacing: 0.08em; }
   .v2-or::before, .v2-or::after { content: ""; flex: 1; border-top: 1px solid var(--v2-hairline); }
 }
 
@@ -67,53 +49,11 @@ html[data-layout="v2"] main form:not([data-swap-root] form, [data-filters] form)
 /* Form pages without the sheet still speak in the brand green. */
 html[data-layout="v2"] main form { accent-color: var(--v2-brand); }
 html[data-layout="v2"] main form button[type="submit"].bg-accent { background-color: var(--v2-brand); color: var(--v2-on-brand); border-radius: 0.875rem; }
-html[data-layout="v2"] main form button[type="submit"].bg-accent:hover { background-color: color-mix(in oklab, var(--v2-brand) 90%, black); }
+html[data-layout="v2"] main form button[type="submit"].bg-accent:hover { background-color: var(--accent-hover); }
 
-/* v2 app background (every page under Flat, light or dark system mode): a deep,
-   low-chroma tone of the theme's accent hue with a barely-there 135° shift to
-   its neighbors (hue ±15°, lightness within 0.02). Painted on a fixed layer, so
-   scrolling never repaints it. Text that sits on the page itself (titles,
-   subtitles, section headers, the top bar) switches to light tones; cards,
-   sheets, dialogs and the tab bar get the theme's own ink back, so their
-   contents are unchanged. */
-html[data-layout="v2"] {
-  --bg-1: color-mix(in oklab, var(--accent) 16%, #0c100e);
-  --bg-2: var(--bg-1); --bg-3: var(--bg-1);
-  --page-ink: #EEF2EF; --page-muted: #BAC4BF; --page-line: rgb(255 255 255 / 0.14); --page-field: rgb(255 255 255 / 0.4);
-  /* the theme's own values, resolved here and inherited as-is by surfaces */
-  --ink-card: var(--ink); --muted-card: var(--muted-base); --line-card: var(--line); --canvas-card: var(--canvas); --field-card: var(--field);
-}
-@supports (color: oklch(from red l c h)) {
-  html[data-layout="v2"] {
-    --bg-1: oklch(from var(--accent) 0.215 0.03 calc(h - 15));
-    --bg-2: oklch(from var(--accent) 0.205 0.03 h);
-    --bg-3: oklch(from var(--accent) 0.222 0.03 calc(h + 15));
-    --page-ink: oklch(from var(--accent) 0.96 0.012 h);
-    --page-muted: oklch(from var(--accent) 0.82 0.03 h);
-  }
-}
-html[data-layout="v2"] body {
-  color-scheme: dark; color: var(--page-ink);
-  --ink: var(--page-ink); --muted: var(--page-muted); --line: var(--page-line); --field: var(--page-field); --canvas: var(--bg-2);
-}
-html[data-layout="v2"] body::before {
-  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: linear-gradient(135deg in oklab, var(--bg-1), var(--bg-2) 50%, var(--bg-3));
-}
-html[data-layout="v2"] body.bg-canvas { background-color: transparent; }
-html[data-layout="v2"] body :is(.bg-surface, .bg-white, [class*="bg-surface/"], [class*="bg-white/"], .bg-accent-soft, .bg-second-soft, .v2-card, .v2-sheet, dialog, .app-panel, .tabbar, [role="menu"], [role="listbox"], [role="tooltip"]) {
-  color: var(--ink-card);
-  --ink: var(--ink-card); --muted: var(--muted-card); --line: var(--line-card); --field: var(--field-card); --canvas: var(--canvas-card);
-}
-@media (prefers-color-scheme: light) { html[data-layout="v2"]:not([data-mode="dark"]) body :is(.bg-surface, .bg-white, .v2-card, .v2-sheet, dialog, .app-panel, .tabbar) { color-scheme: light; } }
-html[data-layout="v2"][data-mode="light"] body :is(.bg-surface, .bg-white, .v2-card, .v2-sheet, dialog, .app-panel, .tabbar) { color-scheme: light; }
-
-/* v2: the side rail sits on the dark page too. */
-html[data-layout="v2"] [data-app-rail] { background-color: rgb(0 0 0 / 0.18); border-right-color: var(--page-line); }
-
-/* v2: the sticky top bar is a translucent dark blur over the page. */
-html[data-layout="v2"] [data-shell] header.sticky { background-color: color-mix(in oklab, var(--bg-2) 62%, transparent); border-bottom-color: var(--page-line); }
+/* The sticky top bar: the page color, translucent, blurred. No background motion in the app. */
+html[data-layout="v2"] [data-shell] header.sticky { background-color: color-mix(in oklab, var(--canvas) 82%, transparent); border-bottom-color: var(--line); }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  html[data-layout="v2"] [data-shell] header.sticky { background-color: color-mix(in oklab, var(--bg-2) 94%, transparent); }
+  html[data-layout="v2"] [data-shell] header.sticky { background-color: var(--canvas); }
 }
-html[data-layout="v2"] [data-shell] header.sticky { -webkit-backdrop-filter: blur(14px) saturate(1.1); backdrop-filter: blur(14px) saturate(1.1); }
+html[data-layout="v2"] [data-shell] header.sticky { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }

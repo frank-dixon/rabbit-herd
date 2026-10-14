@@ -19,7 +19,7 @@ class FlowLayoutTests(TestCase):
     def test_add_card_uses_wide_page_and_puts_next_first(self):
         page = self.client.get(reverse("rabbit_flow_step", args=["name"]), follow=True)
         self.assertContains(page, "max-w-6xl")
-        self.assertContains(page, "max-w-2xl")
+        self.assertContains(page, "v2-card-wide")
         row = self.row(page)
         self.assertIn('value="next"', row)
         self.assertNotIn('value="back"', row[: row.index('value="next"')])

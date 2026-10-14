@@ -6,7 +6,7 @@
   {% if ui_layout == "v2" %}
   <div class="v2-card v2-card-wide pb-28 md:pb-0">
     <div class="v2-hero">
-      <p class="v2-eyebrow">{% if editing %}<a class="underline-offset-2 hover:underline" href="{{ overview_url }}">{{ editing.name }}</a> · Edit{% else %}Add a rabbit · {{ number }} of {{ count }}{% endif %}</p>
+      {% if editing %}<div class="flex items-center gap-2.5" data-page-thumb>{% include "rabbits/_page_thumb.html" with rabbit=editing size_class="h-8 w-8 shrink-0 rounded-md text-sm" only %}<p class="v2-eyebrow"><a class="underline-offset-2 hover:underline" href="{{ overview_url }}">{{ editing.name }}</a> · Edit</p></div>{% else %}<p class="v2-eyebrow">Add a rabbit · {{ number }} of {{ count }}</p>{% endif %}
       <h1 class="v2-title focus:outline-none" tabindex="-1" id="question">{{ question }}</h1>
       {% if not editing %}<div class="v2-track" aria-hidden="true"><span style="width: {{ percent }}%"></span></div>{% endif %}
     </div>
