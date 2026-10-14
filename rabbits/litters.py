@@ -95,15 +95,25 @@ def litter_list(request):
     today = timezone.localdate()
     litters = list(Litter.objects.filter(owner=request.user)
                    .select_related("pairing__doe", "pairing__buck", "breeding_schedule")
-                   .prefetch_related("pairing__doe__photos", "pairing__buck__photos", "kits__photos"))
+                   .prefetch_related("pairing__doe__photos", "pairing__buck__photos", "kits__photos", "kits__weights"))
     archived = request.GET.get("archived") == "1"
     doe = request.GET.get("doe", "")
     litters = [l for l in litters if bool(l.converted_at) == archived and (not doe.isdigit() or l.pairing.doe_id == int(doe))]
+    from . import litter_outcomes as O
+
+    unit = prefs(request.user).weight_unit
+    past, current = [], []
+    if not archived:
+        for litter in litters:
+            kits = list(litter.kits.all())
+            (past if O.is_past(litter, kits, today) else current).append((litter, kits))
+        litters = [l for l, _ in current]
+    past_rows = sorted((O.past_row(l, k, unit) for l, k in past), key=lambda r: r["litter"].kindled_on, reverse=True)
     cards = [litter_card(litter, today) for litter in litters]
     expecting = sorted((c for c in cards if c["stage"] == "expecting"), key=lambda c: c["litter"].due_on)
     kindled = sorted((c for c in cards if c["stage"] == "kindled"), key=lambda c: c["litter"].kindled_on, reverse=True)
     return render(request, "rabbits/litters.html", {
-        "open": expecting, "kindled": kindled, "today": today, "wide": True, "view": view, "archived": archived,
+        "open": expecting, "kindled": kindled, "today": today, "past": past_rows, "past_after": O.PAST_AFTER_DAYS, "wide": True, "view": view, "archived": archived,
         "archived_count": Litter.objects.filter(owner=request.user, converted_at__isnull=False).count(),
         "view_options": [{"href": f"?view={k}", "label": l, "icon": k, "selected": view == k} for k, l in (("grid", "Grid"), ("list", "List"))],
     })
@@ -139,8 +149,15 @@ def litter_detail(request, pk):
         for row in c.rows.all():
             row.weight_label = weight_text(row.grams, unit) if row.grams else ""
     card = litter_main_card(litter, slots, kits, unit)
+    from . import litter_outcomes as O
+
+    outcome_kits = list(litter.kits.select_related("sold_to").prefetch_related("weights", "photos"))
+    outcome = O.outcome(litter, outcome_kits, unit, timezone.localdate())
+    past = O.is_past(litter, outcome_kits, timezone.localdate())
     return render(request, "rabbits/litter_detail.html", {
-        "litter": litter, "tasks": litter.tasks(), "kits": kits, "room": room, "card": card,
+        "litter": litter, "tasks": litter.tasks(), "kits": kits, "outcome": outcome, "is_past": past,
+        "done_on": O.done_on(litter, outcome_kits) if past else None,
+        "timeline": O.timeline(litter, outcome_kits) if litter.kindled_on else [], "room": room, "card": card,
         "today": timezone.localdate(), "wide": True,
         "subtitle": f"Litter bred {litter.bred_on:%b} {litter.bred_on.day}, {litter.bred_on.year} · due {litter.due_on:%b} {litter.due_on.day}",
         "sex_options": Rabbit.Sex.choices,
@@ -379,3 +396,20 @@ def cover_delete(request, pk, cover_pk):
     sync_bred_on(litter)
     messages.success(request, "Cover removed.")
     return redirect(reverse("litter_detail", args=[litter.pk]) + "#covers")
+
+
+@login_required
+@require_POST
+def litter_note_add(request, pk):
+    """A dated note on the litter's Notes timeline."""
+    from .models import LitterNote
+
+    litter = own_litter(request, pk)
+    text = request.POST.get("text", "").strip()[:500]
+    day = parse_date(request.POST.get("date", "")) or timezone.localdate()
+    if text:
+        LitterNote.objects.create(litter=litter, date=min(day, timezone.localdate()), text=text)
+        messages.success(request, "Note added.")
+    else:
+        messages.error(request, "Write a note first.", extra_tags="toast")
+    return redirect(f"/litters/{litter.pk}/#notes")

@@ -153,6 +153,8 @@ class Rabbit(models.Model):
     sold_to = models.ForeignKey("Contact", related_name="rabbits_bought", null=True, blank=True,
                                 on_delete=models.SET_NULL, verbose_name="Sold to")
     sale_price = models.DecimalField("Sale price", max_digits=8, decimal_places=2, null=True, blank=True)
+    # Carcass weight after processing (culled for meat), for the litter's dress-out.
+    dressed_grams = models.PositiveIntegerField("Dressed weight (g)", null=True, blank=True)
     archived_at = models.DateTimeField(null=True, blank=True)
     # Set when deleted: the rabbit sits in Recently deleted until restored or purged
     # (HerdSettings.deleted_retention_days). Rabbit.objects hides it everywhere.
@@ -1051,6 +1053,18 @@ class LitterKit(models.Model):
     @property
     def label(self):
         return self.rabbit.name if self.rabbit_id else f"Kit {self.number}"
+
+
+class LitterNote(models.Model):
+    """A dated note on a litter, shown in its Notes timeline."""
+
+    litter = models.ForeignKey(Litter, related_name="dated_notes", on_delete=models.CASCADE)
+    date = models.DateField()
+    text = models.CharField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date", "-pk"]
 
 
 class LitterCheck(models.Model):

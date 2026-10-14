@@ -1,0 +1,39 @@
+{% load photos %}{# The litter's Outcome (kits kept, sold, processed, lost; live and dressed weights) and dated Notes. #}
+{% if outcome %}
+<section class="mt-8 scroll-mt-20" id="outcome" aria-labelledby="outcome-heading" data-litter-outcome>
+  <div class="oc-head"><h2 class="text-base font-semibold" id="outcome-heading">Outcome</h2>{% include "rabbits/_outcome_legend.html" %}</div>
+  <div class="oc-card">
+    <dl class="oc-stats">
+      <div><dt>Raised</dt><dd class="num">{{ outcome.raised }} of {{ outcome.total }}</dd><p>{{ outcome.lost_note }}</p></div>
+      <div><dt>Kept · sold · processed</dt><dd class="num">{{ outcome.split }}</dd><p>{{ outcome.sold_note }}</p></div>
+      <div><dt>Avg. live weight</dt><dd class="num">{{ outcome.avg_live|default:"—" }}</dd><p>at processing</p></div>
+      <div><dt>Dress-out</dt><dd class="num">{{ outcome.dress_pct|default:"—" }}</dd><p>{% if outcome.avg_dressed %}{{ outcome.avg_dressed }} avg dressed{% else %}No dressed weights yet{% endif %}</p></div>
+      <div><dt>Feed cost</dt><dd class="num">{{ outcome.feed_per_lb|default:"—" }}</dd><p>{% if outcome.days %}{{ outcome.days }} days to processing{% else %}{{ outcome.cost_note }}{% endif %}</p></div>
+    </dl>
+    {% if outcome.bar %}<div style="padding:0 24px 8px"><span class="oc-bar">{% for b in outcome.bar %}<i class="oc-{{ b.kind }}" style="width:{{ b.pct }}%"></i>{% endfor %}</span></div>{% endif %}
+    {% if outcome.rows %}<div class="oc-tbl" style="padding-top:8px;padding-bottom:16px">
+      <table>
+        <thead><tr><th>Kit</th><th>Outcome</th><th class="r">Live wt</th><th class="r oc-hm">Dressed</th><th class="r oc-hm">Dress-out</th><th class="r oc-hm">Days</th></tr></thead>
+        <tbody>{% for row in outcome.rows %}{% with main=row.kit.main_photo %}
+          <tr><td><a class="oc-row-link" href="{% url 'rabbit_detail' row.kit.pk %}">{% if main %}<img class="oc-kit" {% photo_src main "32px" 96 %} alt="" loading="lazy">{% else %}<span class="oc-kit grid place-items-center bg-accent-soft text-xs font-semibold text-accent" aria-hidden="true">{{ row.kit.name|first|upper }}</span>{% endif %}{{ row.kit.name }}</a></td>
+            <td><span class="pill {% if row.kind == 'kept' %}pill-g{% elif row.kind == 'sold' %}pill-b{% elif row.kind == 'processed' %}pill-y{% endif %}">{{ row.label }}</span></td>
+            <td class="r num">{{ row.live|default:"—" }}</td><td class="r num oc-hm">{{ row.dressed|default:"—" }}</td><td class="r num oc-hm">{{ row.pct|default:"—" }}</td><td class="r num oc-hm">{{ row.days|default_if_none:"—" }}</td></tr>
+        {% endwith %}{% endfor %}</tbody>
+      </table>
+    </div>{% endif %}
+  </div>
+</section>
+{% endif %}
+{% if litter.kindled_on %}
+<section class="mt-8 scroll-mt-20" id="notes" aria-labelledby="notes-heading" data-litter-notes>
+  <details class="group/n">
+    <summary class="oc-head list-none" style="cursor:default"><h2 class="text-base font-semibold" id="notes-heading">Notes</h2><span class="oc-btn" role="button">Add note</span></summary>
+    <form class="oc-note-form" method="post" action="{% url 'litter_note_add' litter.pk %}">{% csrf_token %}
+      <input type="date" name="date" value="{{ today|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}" aria-label="Date">
+      <input type="text" name="text" maxlength="500" placeholder="What happened" aria-label="Note" required>
+      <button type="submit" class="oc-btn oc-btn-pri">Save</button>
+    </form>
+  </details>
+  <div class="oc-card mt-4">{% if timeline %}<ul class="oc-tl">{% for item in timeline %}<li><span class="text-sm text-muted num">{{ item.date|date:"M j" }}</span><span class="text-sm">{{ item.text }}</span></li>{% endfor %}</ul>{% else %}<p class="oc-tl text-sm text-muted">No notes yet.</p>{% endif %}</div>
+</section>
+{% endif %}

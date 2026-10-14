@@ -19,5 +19,6 @@ urlpatterns = [
     path("<int:pk>/convert/", litter_check_views.litter_convert, name="litter_convert"),
     path("<int:pk>/photo/", litter_photos.litter_photo, name="litter_photo"),
     path("<int:pk>/kits/<int:number>/photo/", litter_photos.kit_photo, name="kit_photo"),
+    path("<int:pk>/notes/", litters.litter_note_add, name="litter_note_add"),
     path("<int:pk>/delete/", litters.litter_delete, name="litter_delete"),
 ]

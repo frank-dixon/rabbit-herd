@@ -13,7 +13,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from .flow_forms import DEATH_CAUSES
-from .models import Contact, CullNote, Rabbit
+from .models import Contact, CullNote, Rabbit, prefs
 from .views import owned_rabbit
 
 HINTS = {"breeding": "In the breeding program.", "growing": "Young stock being grown out.",
@@ -56,6 +56,17 @@ def rabbit_status(request, pk):
                     raise InvalidOperation
             except InvalidOperation:
                 errors["price"] = "Enter an amount like 45 or 45.00."
+        dressed_unit = "kg" if prefs(request.user).weight_unit == "kg" else "lb"
+        dressed = None
+        raw = data.get("dressed", "").strip().replace(",", ".")
+        if status == "culled" and raw:
+            try:
+                value = Decimal(raw)
+                dressed = int(value * (1000 if dressed_unit == "kg" else Decimal("453.59237")))
+                if not 0 < dressed <= 15000:
+                    raise InvalidOperation
+            except InvalidOperation:
+                errors["dressed"] = "Enter a weight like 2.6 lb or 1.2 kg."
         buyer = None
         if status == "sold":
             picked = data.get("buyer", "")
@@ -79,6 +90,7 @@ def rabbit_status(request, pk):
                     rabbit.sold_on, rabbit.sold_to, rabbit.sale_price = day, buyer, price
                 else:
                     rabbit.sold_on, rabbit.sold_to, rabbit.sale_price = None, None, None
+                rabbit.dressed_grams = dressed if status == "culled" else None
                 rabbit.save()
                 reason = data.get("reason", "").strip()[:1000]
                 if status == "culled" and reason:
@@ -91,8 +103,16 @@ def rabbit_status(request, pk):
     context = {
         "rabbit": rabbit, "tiles": tiles, "errors": errors, "buyers": buyers, "today": today.isoformat(),
         "death_causes": DEATH_CAUSES, "data": data,
+        "dressed_unit": "kg" if prefs(request.user).weight_unit == "kg" else "lb",
+        "dressed": data.get("dressed") or (_dressed_value(rabbit, request.user) if rabbit.dressed_grams else ""),
         "sold_on": data.get("sold_on") or (rabbit.sold_on or today).isoformat(),
         "culled_on": data.get("culled_on") or ((rabbit.death_date if rabbit.status == "culled" else None) or today).isoformat(),
         "deceased_on": data.get("deceased_on") or ((rabbit.death_date if rabbit.status == "deceased" else None) or today).isoformat(),
     }
     return render(request, "rabbits/status.html", context, status=400 if errors else 200)
+
+
+def _dressed_value(rabbit, user):
+    if prefs(user).weight_unit == "kg":
+        return f"{Decimal(rabbit.dressed_grams) / 1000:.2f}"
+    return f"{Decimal(rabbit.dressed_grams) / Decimal('453.59237'):.2f}"

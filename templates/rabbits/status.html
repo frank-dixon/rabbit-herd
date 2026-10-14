@@ -37,6 +37,10 @@
       <div><label class="block text-sm font-medium" for="id_culled_on">Culled on</label>
         <input class="mt-1 block h-11 w-full rounded-md border border-field/70 bg-surface px-3 text-base text-ink focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent aria-[invalid=true]:border-danger" type="date" id="id_culled_on" name="culled_on" value="{{ culled_on }}" max="{{ today }}"{% if errors.culled_on %} aria-invalid="true" aria-describedby="id_culled_on_error"{% endif %}>
         {% if errors.culled_on %}<p class="mt-1 text-sm text-danger" id="id_culled_on_error">{{ errors.culled_on }}</p>{% endif %}</div>
+      <div><label class="block text-sm font-medium" for="id_dressed">Dressed weight, {{ dressed_unit }} (optional)</label>
+        <input class="mt-1 block h-11 w-full rounded-md border border-field/70 bg-surface px-3 text-base text-ink focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent aria-[invalid=true]:border-danger" type="text" inputmode="decimal" id="id_dressed" name="dressed" value="{{ dressed }}" placeholder="{% if dressed_unit == 'kg' %}1.2{% else %}2.6{% endif %}"{% if errors.dressed %} aria-invalid="true" aria-describedby="id_dressed_error"{% endif %}>
+        <p class="mt-1 text-sm text-muted">For processed fryers: the carcass weight, so the litter shows its dress-out.</p>
+        {% if errors.dressed %}<p class="mt-1 text-sm text-danger" id="id_dressed_error">{{ errors.dressed }}</p>{% endif %}</div>
       <div><label class="block text-sm font-medium" for="id_reason">Reason (saved as a cull note)</label>
         <textarea class="mt-1 block min-h-24 w-full rounded-md border border-field/70 bg-surface px-3 py-2 text-base focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" id="id_reason" name="reason" maxlength="1000">{{ data.reason }}</textarea></div>
     </fieldset>

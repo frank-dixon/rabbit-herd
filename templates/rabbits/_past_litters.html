@@ -1,0 +1,26 @@
+{# Past litters (Option 1): a collapsible table under the active litters. past: litter_outcomes.past_row() list. #}
+<section class="mt-8" aria-labelledby="past-heading" data-past-litters>
+  <details open>
+    <summary class="oc-head" style="margin-bottom:0">
+      <span class="oc-tog" id="past-heading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>Past litters <span class="num font-normal text-muted">{{ past|length }}</span></span>
+      {% include "rabbits/_outcome_legend.html" %}
+    </summary>
+    <div class="oc-card oc-tbl mt-4">
+      <table>
+        <thead><tr><th>Pair · kindled</th><th class="r oc-hm">Born / raised</th><th>Outcome</th><th class="r oc-hm">Avg. grow-out</th><th class="r oc-hm"><span class="sr-only">State</span></th></tr></thead>
+        <tbody>
+          {% for row in past %}
+            <tr data-past-litter="{{ row.litter.pk }}">
+              <td><a class="oc-row-link" href="{% url 'litter_detail' row.litter.pk %}"><span class="oc-pair" aria-hidden="true">{% include "components/rabbit_avatar.html" with rabbit=row.doe only %}{% include "components/rabbit_avatar.html" with rabbit=row.buck only %}</span><span class="min-w-0"><span class="block font-semibold">{{ row.title }}</span><span class="block text-xs text-muted">{{ row.litter.kindled_on|date:"M j, Y" }}</span></span></a></td>
+              <td class="r num oc-hm">{{ row.born }} / {{ row.raised }}</td>
+              <td><span class="block text-sm">{{ row.summary }}</span><span class="oc-bar mt-1" style="max-width:200px">{% for b in row.bar %}<i class="oc-{{ b.kind }}" style="width:{{ b.pct }}%"></i>{% endfor %}</span></td>
+              <td class="r num oc-hm">{{ row.growout|default:"—" }}</td>
+              <td class="r oc-hm"><span class="pill">Done</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="mt-2 text-xs text-muted">Litters move here when every kit has an outcome, or {{ past_after }} days after kindling.</p>
+  </details>
+</section>

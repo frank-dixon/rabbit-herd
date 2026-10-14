@@ -1,0 +1,51 @@
+/* Past litters table, litter Outcome and Notes. A white card with the soft card shadow, hairline rows,
+   4/8px spacing. Outcome colours: kept = accent, sold = blue, processed = wheat, lost = gray. */
+:root { --oc-kept: var(--accent); --oc-sold: #4C8DF0; --oc-processed: #C9A15A; --oc-lost: #C9CDC9; }
+.oc-card { background: var(--surface); border-radius: 12px; box-shadow: var(--card-shadow); }
+.oc-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+.oc-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; line-height: 16px; color: var(--muted); }
+.oc-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.oc-legend b, .oc-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+.oc-bar { height: 4px; border-radius: 8px; background: var(--well); display: flex; overflow: hidden; }
+.oc-bar i { display: block; height: 100%; }
+.oc-kept { background: var(--oc-kept); } .oc-sold { background: var(--oc-sold); } .oc-processed { background: var(--oc-processed); } .oc-lost { background: var(--oc-lost); }
+.oc-tog { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; cursor: pointer; list-style: none; }
+.oc-tog::-webkit-details-marker { display: none; }
+.oc-tog svg { width: 16px; height: 16px; color: var(--muted); transition: transform 150ms ease-out; }
+details:not([open]) > .oc-tog svg { transform: rotate(-90deg); }
+.oc-tbl { padding: 8px 24px; }
+.oc-tbl table { width: 100%; }
+.oc-tbl th { text-align: left; padding: 8px 16px 8px 0; white-space: nowrap; }
+.oc-tbl td { padding: 12px 16px 12px 0; vertical-align: middle; }
+.oc-tbl tbody tr:last-child td { border-bottom: 0; }
+.oc-tbl .r { text-align: right; }
+.oc-tbl a.oc-row-link { display: flex; align-items: center; gap: 12px; color: inherit; }
+.oc-pair { display: flex; flex-shrink: 0; }
+.oc-pair > :last-child { margin-left: -8px; box-shadow: 0 0 0 2px var(--surface); border-radius: 8px; }
+.oc-pair img, .oc-pair span { width: 40px !important; height: 40px !important; border-radius: 8px !important; }
+.oc-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 24px; margin: 0; }
+.oc-stats > div { padding: 0 16px; border-left: 1px solid var(--line-soft); min-width: 0; }
+.oc-stats > div:first-child { padding-left: 0; border-left: 0; }
+.oc-stats dt { font-size: 12px; line-height: 16px; color: var(--muted); }
+.oc-stats dd { margin: 4px 0 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; }
+.oc-stats p { font-size: 12px; line-height: 16px; color: var(--muted); margin-top: 4px; }
+.oc-kit { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; aspect-ratio: 1/1; flex-shrink: 0; }
+.oc-tl { list-style: none; margin: 0; padding: 16px 24px; }
+.oc-tl li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+.oc-tl li:last-child { border-bottom: 0; }
+.oc-btn { display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 6px; font-size: 13px; font-weight: 500; background: var(--well); color: var(--ink); cursor: pointer; border: 0; }
+.oc-btn:hover { background: var(--hover); }
+.oc-btn-pri { background: var(--accent); color: var(--on-accent); } .oc-btn-pri:hover { background: var(--accent-hover); }
+.oc-note-form { display: grid; grid-template-columns: 160px minmax(0, 1fr) auto; gap: 8px; padding: 16px 24px 0; align-items: center; }
+.oc-note-form input { height: 32px; border-radius: 6px; background: var(--well); border: 0; padding: 0 8px; font-size: 14px; width: 100%; }
+@media (max-width: 700px) {
+  .oc-hm { display: none; }
+  .oc-tbl { padding: 4px 16px; }
+  .oc-tbl td { padding-right: 8px; }
+  .oc-pair img, .oc-pair span { width: 32px !important; height: 32px !important; }
+  .oc-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 16px; padding: 16px; }
+  .oc-stats > div:nth-child(odd) { padding-left: 0; border-left: 0; }
+  .oc-stats > div:last-child { grid-column: span 2; padding-left: 0; border-left: 0; }
+  .oc-tl { padding: 8px 16px; } .oc-tl li { grid-template-columns: 72px minmax(0, 1fr); gap: 12px; }
+  .oc-note-form { grid-template-columns: 1fr; padding: 16px 16px 0; }
+}
