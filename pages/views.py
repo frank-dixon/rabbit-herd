@@ -75,12 +75,17 @@ def account(request):
         theme = request.POST.get("ui_theme", user.ui_theme)
         density = request.POST.get("ui_density", user.ui_density)
         mode = request.POST.get("ui_mode", user.ui_mode)
-        if theme in dict(user.THEMES) and density in dict(user.DENSITIES) and mode in dict(user.MODES):
-            user.ui_theme, user.ui_density, user.ui_mode = theme, density, mode
-            user.save(update_fields=["ui_theme", "ui_density", "ui_mode"])
-            if request.headers.get("X-Requested-With") == "fetch":
-                return HttpResponse(status=204)
-            messages.success(request, "Settings saved.")
+        layout = request.POST.get("ui_layout", user.ui_layout)
+        if theme in dict(user.THEMES) and density in dict(user.DENSITIES) and mode in dict(user.MODES) and layout in dict(user.LAYOUTS):
+            user.ui_theme, user.ui_density, user.ui_mode, user.ui_layout = theme, density, mode, layout
+            user.save(update_fields=["ui_theme", "ui_density", "ui_mode", "ui_layout"])
+            # Signed-out pages (sign in, reset) follow the last layout chosen on this device.
+            response = HttpResponse(status=204) if request.headers.get("X-Requested-With") == "fetch" else None
+            if response is None:
+                messages.success(request, "Settings saved.")
+                response = redirect(request.POST.get("next") if url_has_allowed_host_and_scheme(request.POST.get("next", ""), {request.get_host()}) else "account")
+            response.set_cookie("layout", layout, max_age=365 * 86400, samesite="Lax", secure=request.is_secure(), httponly=True)
+            return response
         return redirect(request.POST.get("next") if url_has_allowed_host_and_scheme(request.POST.get("next", ""), {request.get_host()}) else "account")
     kinds = [("rabbits", "Rabbits"), ("litters", "Litters"), ("weights", "Weights"), ("shows", "Show results"), ("costs", "Costs")]
     themes = [
@@ -96,7 +101,7 @@ def account(request):
     current_theme = dict(user.THEMES).get(user.ui_theme, "")
     sections = settings_sections(current_theme)
     return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes, "settings_sections": sections, "settings_nav": settings_nav(sections), "wide": True,
-                                                  "tab_slots": slots, "mode_options": [{"value": k, "label": l, "selected": user.ui_mode == k} for k, l in user.MODES], "density_options": [{"value": k, "label": l, "selected": user.ui_density == k} for k, l in user.DENSITIES], "tab_destinations": destinations, "side_groups": side_groups(user)})
+                                                  "tab_slots": slots, "mode_options": [{"value": k, "label": l, "selected": user.ui_mode == k} for k, l in user.MODES], "layout_options": [{"value": k, "label": l, "selected": user.ui_layout == k} for k, l in user.LAYOUTS], "density_options": [{"value": k, "label": l, "selected": user.ui_density == k} for k, l in user.DENSITIES], "tab_destinations": destinations, "side_groups": side_groups(user)})
 
 
 def side_groups(user):

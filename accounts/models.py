@@ -61,6 +61,9 @@ class User(AbstractUser):
     ui_density = models.CharField(max_length=8, choices=DENSITIES, default="roomy")
     # Light or Dark overrides the device setting for every theme; System follows it.
     ui_mode = models.CharField(max_length=8, choices=MODES, default="system")
+    # Form pages' layout: the current one, or the flat v2 sheet (opt-in).
+    LAYOUTS = [("classic", "Classic"), ("v2", "Flat (v2)")]
+    ui_layout = models.CharField(max_length=8, choices=LAYOUTS, default="classic")
     # The Rabbits page layout, remembered per account.
     LIST_VIEWS = [("grid", "Grid"), ("list", "List")]
     ui_list_view = models.CharField(max_length=8, choices=LIST_VIEWS, default="grid")

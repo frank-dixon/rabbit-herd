@@ -30,9 +30,11 @@ def ui(request):
     user = getattr(request, "user", None)
     if user is not None and user.is_authenticated:
         theme, density, mode = user.ui_theme or "c1", user.ui_density or "roomy", user.ui_mode or "system"
+        layout = user.ui_layout or "classic"
     else:
         theme, density, mode = "c1", "roomy", "system"
-    return {"ui_theme": theme, "ui_density": density, "ui_mode": mode, "ui_icons": ICONS, "ui_theme_color": THEME_COLOR.get(theme, THEME_COLOR["c1"])[0],
+        layout = "v2" if request.COOKIES.get("layout") == "v2" else "classic"
+    return {"ui_layout": layout, "ui_theme": theme, "ui_density": density, "ui_mode": mode, "ui_icons": ICONS, "ui_theme_color": THEME_COLOR.get(theme, THEME_COLOR["c1"])[0],
             "ui_theme_color_dark": THEME_COLOR.get(theme, THEME_COLOR["c1"])[1]}
 
 

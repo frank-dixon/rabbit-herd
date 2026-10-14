@@ -10,6 +10,10 @@
       {% include "components/segmented.html" with label="Mode" name="ui_mode" options=mode_options only %}
     </fieldset>
     <fieldset class="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-lg border border-line bg-surface px-4 py-3">
+      <div class="min-w-0"><legend class="float-left font-medium">Form layout</legend><p class="clear-left text-sm text-muted">Flat shows sign-in, the add-a-rabbit steps and edit forms on a plain sheet with underlined fields.</p></div>
+      {% include "components/segmented.html" with label="Form layout" name="ui_layout" options=layout_options only %}
+    </fieldset>
+    <fieldset class="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-lg border border-line bg-surface px-4 py-3">
       <div class="min-w-0"><legend class="float-left font-medium">Spacing</legend><p class="clear-left text-sm text-muted">Compact fits more on screen: tighter rows, cards and grids everywhere.</p></div>
       {% include "components/segmented.html" with label="Spacing" name="ui_density" options=density_options only %}
     </fieldset>
