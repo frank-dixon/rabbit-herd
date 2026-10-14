@@ -38,6 +38,7 @@ import { bindPrefetch } from "./prefetch.mjs";
 import { bindScrollSpy } from "./scrollspy.mjs";
 import { bindRabbitInline } from "./rabbit-inline.mjs";
 import { bindSegmented } from "./segmented.mjs";
+import { bindFamilyTree } from "./family-tree.mjs";
 import { bindListSwap } from "./list-swap.mjs";
 import { bindWeightsPage } from "./weights-page.mjs";
 import { bindAuthForms } from "./auth-form.mjs";
@@ -367,6 +368,7 @@ function start() {
   bindScrollSpy(document, window);
   bindRabbitInline(document, window);
   bindSegmented(document);
+  bindFamilyTree(document);
   bindListSwap(document, window);
   bindWeightsPage(document, window);
   bindSideMenu(document, window);
