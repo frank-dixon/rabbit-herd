@@ -72,9 +72,9 @@
             </label>
           </div>
           <div class="filter-foot">
-            {% if filtering %}<a class="filter-reset" href="?{{ clear_qs }}">Reset</a>{% else %}<span class="filter-reset is-off" aria-hidden="true">Reset</span>{% endif %}
+            <a class="filter-reset{% if not filtering %} is-off{% endif %}" href="?{{ clear_qs }}" data-filter-reset{% if not filtering %} aria-disabled="true" tabindex="-1"{% endif %}>Reset</a>
             <button type="submit" class="filter-done mo-press" data-filter-apply>Apply</button>
-            <button type="button" class="filter-done mo-press" data-filter-done hidden>Done</button>
+            <button type="button" class="filter-done mo-press" data-filter-done hidden>Show {{ rabbits|length }} rabbit{{ rabbits|length|pluralize }}</button>
           </div>
         </div>
       </details>
@@ -92,7 +92,7 @@
     {% endif %}</div>
   </form>
 
-  <div data-swap="results">
+  <div data-swap="results" data-result-count="{{ rabbits|length }}">
   {% if rabbits %}
 
     {% if view == 'grid' and ui_density == 'compact' %}

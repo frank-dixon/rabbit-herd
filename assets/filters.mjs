@@ -1,7 +1,8 @@
 /*
  * Rabbit list filters: with JS, a change in the filter panel submits at
- * once and the Apply button steps aside. Once the list has swapped in, the
- * panel closes and focus goes back to the Filter button, which now shows the
+ * once and the Apply button steps aside. The panel stays open and its
+ * primary button reads "Show N rabbits" with the new count; tapping it closes
+ * the panel and focus goes back to the Filter button, which shows the
  * active-filter count. Esc, a tap outside, or a tab or layout change closes it too.
  */
 export function bindFilters(root) {
@@ -36,8 +37,17 @@ export function bindFilters(root) {
   root.addEventListener("list-swap:done", () => syncSort(form, form.ownerDocument?.defaultView?.location?.href));
   root.addEventListener("list-swap:done", (event) => {
     const fromFilters = event.detail?.source === form;
-    close(fromFilters && panel.contains(document.activeElement));
-    if (fromFilters && !panel.open && document.activeElement === document.body) panel.querySelector("summary")?.focus();
+    const count = root.querySelector("[data-result-count]")?.dataset.resultCount;
+    if (done && count !== undefined) done.textContent = `Show ${count} rabbit${count === "1" ? "" : "s"}`;
+    const reset = panel.querySelector("[data-filter-reset]");
+    if (reset) {
+      const on = Boolean(root.querySelector(".filter-count"));
+      reset.classList.toggle("is-off", !on);
+      if (on) { reset.removeAttribute("aria-disabled"); reset.removeAttribute("tabindex"); } else { reset.setAttribute("aria-disabled", "true"); reset.tabIndex = -1; }
+    }
+    if (fromFilters && panel.open) return;
+    close(false);
+    if (fromFilters && document.activeElement === document.body) panel.querySelector("summary")?.focus();
   });
 }
 
