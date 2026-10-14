@@ -194,8 +194,16 @@ def g2_options(program, dam, sire, breeders, ped):
         coi = ped.coi(mate["node"], kit_node) if want == "buck" else ped.coi(kit_node, mate["node"])
         relation = "father × daughter" if mate["key"] == sire["key"] else ("mother × son" if mate["key"] == dam["key"] else "")
         rows.append({"mate": mate, "odds": odds, "coi": coi, "over": coi * 100 > program.max_coi, "relation": relation})
-    rows.sort(key=lambda r: (r["over"], -r["odds"], r["coi"], r["mate"]["name"]))
+    rows.sort(key=lambda r: mate_rank(program, r))
     return rows
+
+
+def mate_rank(program, row):
+    """Sort key for G2 mates: within the COI limit first; for a broken target a
+    known solid (en en) mate before any that could throw charlies; then target
+    odds, inbreeding and name."""
+    charlie_risk = program.target.get("En") == "Enen" and row["mate"]["genes"].get("En") != ("en", "en")
+    return (row["over"], charlie_risk, -row["odds"], row["coi"], row["mate"]["name"])
 
 
 def grouped(rows, keep=4):

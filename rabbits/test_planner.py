@@ -84,3 +84,22 @@ class PlanRowsTests(SimpleTestCase):
         self.assertEqual([r["name"] for r in out], ["Broken blue", "C0", "C1", "C2", "C3", "Other colors", "Charlies"])
         self.assertEqual(out[-1]["chance"], Fr(1, 4))
         self.assertEqual(sum(r["chance"] for r in out), sum(r["chance"] for r in rows))
+
+
+class MateRankTests(SimpleTestCase):
+    def _row(self, name, en, odds, over=False):
+        return {"mate": {"name": name, "genes": {"En": en}}, "odds": odds, "coi": F(0), "over": over}
+
+    def test_broken_target_prefers_solid_mate_over_better_odds(self):
+        from types import SimpleNamespace
+
+        from .program_plan import mate_rank
+        program = SimpleNamespace(target={"En": "Enen", "D": "dd"})
+        rows = [self._row("Broken", ("En", "en"), F(1, 4)), self._row("Unknown", ("_", "_"), F(1, 3)),
+                self._row("Solid", ("en", "en"), F(1, 8)), self._row("Solid over", ("en", "en"), F(1, 2), over=True)]
+        self.assertEqual([r["mate"]["name"] for r in sorted(rows, key=lambda r: mate_rank(program, r))],
+                         ["Solid", "Unknown", "Broken", "Solid over"])
+        # Without a solid option the best odds still win; solid targets ignore pattern.
+        self.assertEqual(sorted(rows[:2], key=lambda r: mate_rank(program, r))[0]["mate"]["name"], "Unknown")
+        program.target = {"D": "dd"}
+        self.assertEqual(sorted(rows[:3], key=lambda r: mate_rank(program, r))[0]["mate"]["name"], "Unknown")
