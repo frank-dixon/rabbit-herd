@@ -1,11 +1,6 @@
-{% extends "base.html" %}
+{% extends "components/sheet_base.html" %}
 
 {% block title %}{{ heading }} · {{ app_name }}{% endblock %}
-
-{% block content %}
-  {% if contact %}{% url 'contact_detail' contact.pk as back_url %}{% include "components/page_header.html" with title=heading back_label=contact.name back_href=back_url only %}
-  {% else %}{% url 'contact_list' as back_url %}{% include "components/page_header.html" with title=heading back_label="Contacts" back_href=back_url only %}{% endif %}
-  <section class="mt-6 ruled pt-4">
-    {% include "components/form.html" with form=form submit_label=submit_label %}
-  </section>
-{% endblock %}
+{% block eyebrow %}{% if contact %}{% url 'contact_detail' contact.pk as back_url %}<p class="v2-eyebrow"><a class="underline-offset-2 hover:underline" href="{{ back_url }}">{{ contact.name }}</a></p>{% else %}<p class="v2-eyebrow"><a class="underline-offset-2 hover:underline" href="{% url 'contact_list' %}">Contacts</a></p>{% endif %}{% endblock %}
+{% block sheet_title %}{{ heading }}{% endblock %}
+{% block sheet %}{% if contact %}{% url 'contact_detail' contact.pk as back_url %}{% else %}{% url 'contact_list' as back_url %}{% endif %}{% include "components/form.html" with form=form submit_label=submit_label sheet=True cancel_href=back_url %}{% endblock %}

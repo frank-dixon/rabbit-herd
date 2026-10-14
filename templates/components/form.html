@@ -1,5 +1,5 @@
-{# Whole form. Pass form and submit_label. action, method, enctype, include_next, and next are optional. #}
-<form class="space-y-4" method="{{ method|default:'post' }}" {% if action %}action="{{ action }}"{% endif %} {% if enctype %}enctype="{{ enctype }}"{% endif %}>
+{# Whole form. Pass form and submit_label; sheet (with cancel_href) uses the sticky sheet action bar. action, method, enctype, include_next, and next are optional. #}
+<form class="{% if sheet %}space-y-5{% else %}space-y-4{% endif %}" method="{{ method|default:'post' }}" {% if action %}action="{{ action }}"{% endif %} {% if enctype %}enctype="{{ enctype }}"{% endif %}>
   {% csrf_token %}
   {% if include_next %}
     <input type="hidden" name="next" value="{{ next }}">
@@ -17,5 +17,7 @@
   {% for field in form.visible_fields %}
     {% include "components/field.html" with field=field only %}
   {% endfor %}
+  {% if sheet %}{% include "components/sheet_actions.html" with label=submit_label cancel_href=cancel_href only %}{% else %}
   {% include "components/button.html" with label=submit_label type="submit" variant="primary" only %}
+  {% endif %}
 </form>
