@@ -101,5 +101,7 @@ class MateRankTests(SimpleTestCase):
                          ["Solid", "Unknown", "Broken", "Solid over"])
         # Without a solid option the best odds still win; solid targets ignore pattern.
         self.assertEqual(sorted(rows[:2], key=lambda r: mate_rank(program, r))[0]["mate"]["name"], "Unknown")
+        hopeless = self._row("Solid, no chance", ("en", "en"), F(0))
+        self.assertEqual(sorted([hopeless, rows[0]], key=lambda r: mate_rank(program, r))[0]["mate"]["name"], "Broken")
         program.target = {"D": "dd"}
         self.assertEqual(sorted(rows[:3], key=lambda r: mate_rank(program, r))[0]["mate"]["name"], "Unknown")

@@ -199,11 +199,12 @@ def g2_options(program, dam, sire, breeders, ped):
 
 
 def mate_rank(program, row):
-    """Sort key for G2 mates: within the COI limit first; for a broken target a
+    """Sort key for G2 mates: within the COI limit first, then any chance of
+    the target at all; for a broken target a
     known solid (en en) mate before any that could throw charlies; then target
     odds, inbreeding and name."""
     charlie_risk = program.target.get("En") == "Enen" and row["mate"]["genes"].get("En") != ("en", "en")
-    return (row["over"], charlie_risk, -row["odds"], row["coi"], row["mate"]["name"])
+    return (row["over"], row["odds"] == 0, charlie_risk, -row["odds"], row["coi"], row["mate"]["name"])
 
 
 def grouped(rows, keep=4):
