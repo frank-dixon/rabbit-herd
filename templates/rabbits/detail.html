@@ -7,7 +7,7 @@
   {% url 'rabbit_edit' rabbit.pk as edit_url %}
   {% url 'rabbit_list' as list_url %}
   {% url 'rabbit_photos' rabbit.pk as photos_url %}
-  {% with badge=rabbit.is_archived|yesno:"Archived · ,"|add:rabbit.status_tag %}{% include "components/page_header.html" with title=rabbit.name badge=badge back_label="Rabbits" back_href=list_url rabbit=rabbit actions_template="rabbits/_detail_actions.html" %}{% endwith %}
+  <div data-refresh="header">{% with badge=rabbit.is_archived|yesno:"Archived · ,"|add:rabbit.status_tag %}{% include "components/page_header.html" with title=rabbit.name badge=badge back_label="Rabbits" back_href=list_url rabbit=rabbit actions_template="rabbits/_detail_actions.html" %}{% endwith %}</div>
   <dialog id="delete-dialog" class="confirm-dialog m-auto w-[calc(100%-2rem)] max-w-md rounded-xl border border-line bg-surface p-5 text-ink shadow-xl backdrop:bg-ink/40" aria-labelledby="delete-dialog-title">
     <h2 class="text-lg font-semibold" id="delete-dialog-title">Delete {{ rabbit.name }}?</h2>
     <div class="mt-2">{% include "rabbits/_delete_form.html" with js=True %}</div>
@@ -24,7 +24,7 @@
         {% endif %}
       </figure>
       {% url 'rabbit_quick_edit' rabbit.pk 'sex' as sex_href %}{% url 'rabbit_quick_edit' rabbit.pk 'breed' as breed_href %}{% url 'rabbit_quick_edit' rabbit.pk 'color' as color_href %}{% url 'rabbit_quick_edit' rabbit.pk 'line' as line_href %}{% url 'rabbit_quick_edit' rabbit.pk 'birth-date' as birth_date_href %}{% url 'rabbit_quick_edit' rabbit.pk 'name' as name_href %}{% url 'rabbit_status' rabbit.pk as status_href %}
-      <dl class="flex flex-1 flex-col p-2" data-facts>
+      <dl class="flex flex-1 flex-col p-2" data-facts data-refresh="facts">
         {% include "rabbits/facts/row_start.html" with label="Sex" slug="sex" href=sex_href only %}{{ rabbit.get_sex_display }}{% include "rabbits/facts/row_end.html" %}
         {% include "rabbits/facts/row_start.html" with label="Breed" slug="breed" href=breed_href only %}{{ rabbit.breed_line|default:"Not set" }}{% if purebred_info %} <span class="ml-1 inline-block rounded-full bg-accent-soft px-2 py-0.5 align-middle text-xs font-medium text-accent" data-purebred="{{ purebred_info.source }}">Purebred{% if purebred_info.source == "parents" %} · from both parents{% endif %}</span>{% if purebred_info.source == "parents" and rabbit.breed_line != purebred_info.breed %}<span class="block text-sm text-muted">Both parents are {{ purebred_info.breed }}.</span>{% endif %}{% endif %}{% include "rabbits/facts/row_end.html" %}
         {% include "rabbits/facts/row_start.html" with label="Color" slug="color" href=color_href only %}{% if rabbit.color_line %}{{ rabbit.color_line }}{% else %}<span class="text-muted">Add color</span>{% endif %}{% include "rabbits/facts/row_end.html" %}
@@ -49,8 +49,8 @@
     <div class="flex flex-col gap-4">
       {% include "rabbits/_photos_card.html" %}
 
-      <section class="ruled pt-4" aria-labelledby="relatives-heading">
-        <h2 class="text-base font-semibold" id="relatives-heading">Parents and relatives</h2>
+      <section class="ruled pt-4" aria-labelledby="relatives-heading" data-refresh="relatives">
+        <div class="flex items-center justify-between gap-3"><h2 class="text-base font-semibold" id="relatives-heading">Parents and relatives</h2>{% url 'rabbit_edit_step' rabbit.pk 'relatives' as relatives_url %}{% include "components/button.html" with label="Edit" sr_suffix="relatives" href=relatives_url variant="secondary" modal=True only %}</div>
         {% if kindling_note %}<p class="mt-2 text-sm text-neutral-600" data-kindling-note>{{ kindling_note }}</p>{% endif %}
         {% if relatives %}
           <ul class="mt-3 grid grid-cols-1 gap-3">
@@ -69,7 +69,7 @@
                     {% endif %}
                   </span>
                 {% if relative.live_herd_rabbit %}</a>{% else %}
-                  <a class="ml-auto shrink-0 self-start text-sm underline" href="{% url 'relative_add_to_herd' relative.pk %}">Add to my herd<span class="sr-only">: {{ relative.other.name }}</span></a>
+                  <a class="ml-auto shrink-0 self-start text-sm underline" href="{% url 'relative_add_to_herd' relative.pk %}" data-modal>Add to my herd<span class="sr-only">: {{ relative.other.name }}</span></a>
                 </div>{% endif %}
               </li>
             {% endfor %}

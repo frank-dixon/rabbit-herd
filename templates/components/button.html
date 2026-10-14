@@ -1,7 +1,7 @@
-{# Button or link. Pass label, variant (primary, secondary, danger), href, type, disabled, id, name, value, data_next, data_email_field, data_authenticated. size="large" gives a 56px tap target, grow fills a row, full spans the width, and sr_suffix adds words only screen readers hear, such as which row a Remove button belongs to. #}
+{# Button or link. Pass label, modal (open the link in the shared modal), variant (primary, secondary, danger), href, type, disabled, id, name, value, data_next, data_email_field, data_authenticated. size="large" gives a 56px tap target, grow fills a row, full spans the width, and sr_suffix adds words only screen readers hear, such as which row a Remove button belongs to. #}
 {% if href %}
   <a
-    href="{{ href }}"
+    href="{{ href }}"{% if modal %} data-modal{% endif %}
     {% if id %}id="{{ id }}"{% endif %}
     class="inline-flex items-center justify-center {% if size == 'large' %}min-h-14 rounded-md px-5 text-lg font-semibold{% else %}min-h-10 rounded-md px-4 py-2 font-medium{% endif %}{% if grow %} flex-1{% endif %}{% if full %} w-full{% endif %} {% if variant == 'secondary' %}border border-line bg-surface text-ink hover:border-field{% elif variant == 'danger' %}border border-line bg-surface text-danger hover:border-danger{% else %}bg-accent text-on-accent hover:bg-accent/90{% endif %} focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas mo-press{% if disabled %} pointer-events-none cursor-not-allowed opacity-50{% endif %}"
     {% if disabled %}aria-disabled="true" tabindex="-1"{% endif %}

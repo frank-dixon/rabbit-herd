@@ -101,3 +101,29 @@ html { scrollbar-gutter: stable; }
 }
 /* Settings sections land below the sticky header. */
 .settings-section > [id] { scroll-margin-top: 5.5rem; }
+/* Shared modal (components/modal.html). Scale and fade in; reduced motion is instant. */
+.app-modal { margin: auto; padding: 0; border: 0; background: transparent; max-width: min(40rem, calc(100vw - 2rem)); width: 100%; max-height: calc(100dvh - 4rem); overflow: visible; color: var(--ink); }
+.app-modal-panel { display: flex; flex-direction: column; max-height: calc(100dvh - 4rem); border: 1px solid var(--line); border-radius: 0.9rem; background: var(--canvas); box-shadow: 0 24px 60px -12px rgb(0 0 0 / 0.35); overflow: hidden; }
+.app-modal-body { overflow-y: auto; overscroll-behavior: contain; padding: 1.25rem; }
+.app-modal::backdrop { background: rgb(10 14 14 / 0.45); }
+.app-modal [data-action-bar] { position: sticky; }
+.app-modal [data-page-header], .app-modal [data-back-link], .app-modal .net-banner { display: none; }
+@media (max-width: 639px) {
+  .app-modal { max-width: 100vw; max-height: 100dvh; height: 100dvh; margin: 0; }
+  .app-modal-panel { height: 100dvh; max-height: 100dvh; border-radius: 0; border: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .app-modal[open] .app-modal-panel { animation: modal-in 180ms cubic-bezier(.2,.8,.2,1); }
+  .app-modal[open]::backdrop { animation: modal-fade 180ms ease-out; }
+  .app-modal[data-closing] .app-modal-panel { animation: modal-out 140ms ease-in forwards; }
+  .app-modal[data-closing]::backdrop { animation: modal-fade 140ms ease-in reverse forwards; }
+  @media (max-width: 639px) {
+    .app-modal[open] .app-modal-panel { animation-name: sheet-in; }
+    .app-modal[data-closing] .app-modal-panel { animation-name: sheet-out; }
+  }
+}
+@keyframes modal-in { from { opacity: 0; transform: scale(.96) translateY(6px); } }
+@keyframes modal-out { to { opacity: 0; transform: scale(.97); } }
+@keyframes modal-fade { from { opacity: 0; } }
+@keyframes sheet-in { from { transform: translateY(100%); } }
+@keyframes sheet-out { to { transform: translateY(100%); } }

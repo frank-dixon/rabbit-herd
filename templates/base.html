@@ -45,6 +45,7 @@
     <div class="toasts" data-toasts aria-live="polite" data-print-hide></div>
   {% endif %}
   {% block content %}{% endblock %}
+  {% if user.is_authenticated %}{% include "components/modal.html" %}{% endif %}
 {% endblock %}
 
 {% block scripts %}

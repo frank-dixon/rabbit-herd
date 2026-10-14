@@ -1,0 +1,12 @@
+{% comment %}The one shared modal: a native <dialog> that modal.mjs fills with any edit page (links marked
+data-modal). showModal() makes the page behind inert, so focus stays inside; Esc and a backdrop click close it.
+Centred card on wider screens, a full-height sheet on phones. Without JS the links open the pages instead.{% endcomment %}
+<dialog class="app-modal" aria-labelledby="app-modal-title" data-modal data-print-hide>
+  <div class="app-modal-panel">
+    <div class="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
+      <h2 class="min-w-0 truncate text-base font-semibold" id="app-modal-title" data-modal-title></h2>
+      <button type="button" class="mo-press inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-muted hover:bg-side hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" data-modal-close><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg><span class="sr-only">Close</span></button>
+    </div>
+    <div class="app-modal-body" data-modal-body aria-live="polite"></div>
+  </div>
+</dialog>

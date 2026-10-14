@@ -14,4 +14,4 @@ menu, so it works without JavaScript; Delete still opens the confirm dialog with
     <a href="{{ delete_url }}" data-delete-open="delete-dialog" role="menuitem" class="flex min-h-10 items-center rounded-md px-3 text-sm font-medium text-danger hover:bg-danger-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Delete {{ rabbit.name }}…</a>
   </div>
 </details>
-{% include "components/button.html" with label="Edit" href=edit_url variant="primary" only %}
+{% include "components/button.html" with label="Edit" href=edit_url variant="primary" modal=True only %}

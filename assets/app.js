@@ -39,6 +39,7 @@ import { bindSegmented } from "./segmented.mjs";
 import { bindListSwap } from "./list-swap.mjs";
 import { bindAuthForms } from "./auth-form.mjs";
 import { bindAddSheets, bindMoreMenus } from "./add-sheet.mjs";
+import { bindModal } from "./modal.mjs";
 import { focusSmooth, reducedMotion } from "./motion.mjs";
 
 /**
@@ -363,6 +364,7 @@ function start() {
   bindAuthForms(document, window);
   bindAddSheets(document);
   bindMoreMenus(document);
+  bindModal(document, window);
   // Arriving to log a weight (a swipe or the Log weight button): focus the entry.
   if (new URLSearchParams(window.location.search).has("weigh")) {
     const weigh = document.querySelector('#weights form[action$="/weights/"] input:not([type=hidden]):not([type=date])');

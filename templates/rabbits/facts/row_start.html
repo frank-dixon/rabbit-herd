@@ -1,9 +1,9 @@
-{% comment %}One row of the rabbit's facts. The whole row links to the one-card edit (works without JS); with
-inline_name set, rabbit-inline.mjs edits it in place instead. Close with facts/row_end.html. label, href, slug,
+{% comment %}One row of the rabbit's facts. The whole row links to the one-card edit (works without JS); with JS it opens
+in the shared modal, or with inline_name set, rabbit-inline.mjs edits it in place. Close with facts/row_end.html. label, href, slug,
 inline_name, inline_type, inline_value.{% endcomment %}
 <div class="group relative grid grid-cols-[5.5rem_minmax(0,1fr)] items-baseline gap-x-3 rounded-md px-2 py-2 transition-colors duration-150 hover:bg-side focus-within:bg-side data-[editing]:bg-accent-soft sm:grid-cols-[6.5rem_minmax(0,1fr)]" data-fact="{{ slug }}">
   <dt class="text-sm text-muted group-data-[editing]:font-medium group-data-[editing]:text-accent">{{ label }}</dt>
   <dd class="min-w-0 break-words pr-7">
-    <a class="absolute inset-0 z-[1] rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent group-data-[editing]:hidden" href="{{ href }}" data-fact-edit{% if inline_name %} data-inline-name="{{ inline_name }}" data-inline-type="{{ inline_type|default:'text' }}" data-inline-value="{{ inline_value }}" data-inline-label="{{ label }}"{% endif %}><span class="sr-only">Change {{ label|lower }}</span></a>
+    <a class="absolute inset-0 z-[1] rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent group-data-[editing]:hidden" href="{{ href }}" data-modal data-fact-edit{% if inline_name %} data-inline-name="{{ inline_name }}" data-inline-type="{{ inline_type|default:'text' }}" data-inline-value="{{ inline_value }}" data-inline-label="{{ label }}"{% endif %}><span class="sr-only">Change {{ label|lower }}</span></a>
     <svg class="pointer-events-none absolute right-2 top-2.5 h-4 w-4 text-muted opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 group-data-[editing]:hidden max-md:opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg>
     <span data-fact-value>

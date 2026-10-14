@@ -26,6 +26,9 @@ class QuickEditTests(FlowTestMixin, TestCase):
         self.assertIn(f'href="{reverse("rabbit_status", args=[self.rabbit.pk])}"', facts)  # the status flow
         for name in ("line", "birth_date", "tattoo"):
             self.assertIn(f'data-inline-name="{name}"', facts)
+        for slug in ("sex", "breed", "color"):
+            self.assertIn(f'href="{self.url(slug)}" data-modal', facts, slug)
+        self.assertIn('<dialog class="app-modal"', page)
         self.assertIn('href="#location"', facts)
 
     def test_card_has_save_and_cancel(self):
