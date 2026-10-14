@@ -1,0 +1,11 @@
+{# Setup progress: 1 Goal, 2 Breeders, 3 Plan. Reached steps link back. #}
+<ol class="mt-5 grid grid-cols-3 gap-3" aria-label="Setup steps">
+  {% for s in steps %}
+    <li class="border-t-2 pt-2 {% if s.current %}border-accent{% elif s.done %}border-accent/40{% else %}border-line{% endif %}"{% if s.current %} aria-current="step"{% endif %}>
+      {% if program and s.done and not s.current and s.key != 'plan' %}<a class="block rounded-sm hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" href="{% if s.key == 'goal' %}{% url 'program_goal' program.pk %}{% else %}{% url 'program_breeders' program.pk %}{% endif %}">{% endif %}
+      <span class="block text-sm font-semibold"><span class="num">{{ s.n }}</span> · {{ s.label }}</span>
+      <span class="hidden text-xs text-muted sm:block">{{ s.help }}</span>
+      {% if program and s.done and not s.current and s.key != 'plan' %}</a>{% endif %}
+    </li>
+  {% endfor %}
+</ol>

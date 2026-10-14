@@ -345,3 +345,36 @@ html[data-density="compact"] .list-thumb { width: 2.25rem; height: 2.25rem; }
   /* Touch screens keep full-size tap targets. */
   html[data-density="compact"] main { --spacing: 0.2rem; }
 }
+
+/* Breeding planner: outcome shades shared by the flow bands, bars and dots. */
+@layer components {
+  .pf-target { --pf: var(--accent); }
+  .pf-charlie { --pf: var(--danger); }
+  .pf-s1 { --pf: color-mix(in oklab, var(--accent) 45%, var(--surface)); }
+  .pf-s2 { --pf: color-mix(in oklab, var(--second) 55%, var(--surface)); }
+  .pf-s3 { --pf: color-mix(in oklab, var(--muted) 45%, var(--surface)); }
+  .pf-s4 { --pf: color-mix(in oklab, var(--accent) 22%, var(--surface)); }
+  .pf-s5 { --pf: color-mix(in oklab, var(--muted) 25%, var(--surface)); }
+  .pf-node { --pf: var(--ink); }
+  .pf-carry { --pf: var(--accent); }
+  .pf-planned { --pf: var(--surface); }
+  .pf-dot { width: 0.625rem; height: 0.625rem; border-radius: 9999px; background: var(--pf); flex-shrink: 0; }
+  .pf-fill { background: var(--pf); }
+  .plan-flow rect { fill: var(--pf); }
+  .plan-flow rect.pf-dashed { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .pf-band { fill: var(--pf); opacity: 0.55; }
+  .pf-band.pf-stop { opacity: 0.22; }
+  .pf-band.pf-carry { opacity: 0.35; }
+  .pf-label, .pf-pair { position: absolute; transform: translateY(-50%); font-size: 0.75rem; line-height: 1.25; white-space: nowrap; pointer-events: none; }
+  .pf-label.pf-end { transform: translate(-100%, -50%); text-align: right; }
+  .pf-label b, .pf-pair b { font-weight: 600; }
+  .pf-label small, .pf-pair small, .pf-pair .num { display: block; color: var(--muted); font-size: 0.6875rem; }
+  .pf-label-target b, .pf-label-target .num { color: var(--accent); }
+  .pf-pair { padding: 0.25rem 0.5rem; border-radius: 0.375rem; background: color-mix(in oklab, var(--surface) 88%, transparent); }
+  .plan-tree .pt-children { margin-left: 1.25rem; padding-left: 1rem; border-left: 1px solid var(--line); margin-top: 0.5rem; display: grid; gap: 0.5rem; }
+  .pt-node { display: flex; align-items: center; gap: 0.75rem; border: 1px solid var(--line); border-radius: 0.5rem; padding: 0.5rem 0.75rem; background: var(--surface); }
+  .pt-kept { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .pt-off { color: var(--muted); }
+  .pt-next { border-color: var(--second); }
+  .pt-alt { border-style: dashed; color: var(--muted); }
+}

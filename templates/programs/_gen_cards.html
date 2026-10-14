@@ -1,0 +1,27 @@
+<div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+  <section class="rounded-lg border border-line bg-surface p-4" aria-labelledby="g1-heading">
+    <div class="flex items-center justify-between gap-2"><h2 class="flex items-center gap-2 font-semibold" id="g1-heading">G1 <span class="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">{{ plan.g1.status }}</span></h2><span class="text-sm text-muted">Due {{ plan.g1.due }}</span></div>
+    <div class="mt-3 flex items-center gap-3">{% include "programs/_pair_avatars.html" with a=plan.dam b=plan.sire only %}<span><b class="text-sm">{{ plan.dam.name }} × {{ plan.sire.name }}</b><span class="num block text-xs">{{ plan.g1.genes }}</span></span></div>
+    {% include "programs/_outcome_list.html" with rows=plan.g1.rows only %}
+    {% if program.traits %}<p class="mt-3 rounded-md bg-accent-soft/60 p-3 text-sm">Look for: {{ program.traits|join:", " }}. Keep the best {{ program.target_label|lower }} {{ plan.kit_word }}.</p>{% endif %}
+  </section>
+  {% if plan.g2 %}
+  <section class="rounded-lg border border-second/60 bg-surface p-4 ring-1 ring-second/30" aria-labelledby="g2-heading">
+    <div class="flex items-center justify-between gap-2"><h2 class="flex items-center gap-2 font-semibold" id="g2-heading">G2 <span class="rounded-full bg-second/15 px-2 py-0.5 text-xs font-medium text-second">Next</span></h2><span class="text-sm text-muted">{{ plan.g2.date }}</span></div>
+    <div class="mt-3 flex items-center gap-3">{% include "programs/_pair_avatars.html" with a=plan.dam b=plan.g2.mate only %}<span><b class="text-sm">{{ plan.g2.pair_label }}</b><span class="num block text-xs">{{ plan.g2.genes }}</span></span></div>
+    {% include "programs/_outcome_list.html" with rows=plan.g2.rows only %}
+    <p class="mt-3 rounded-md bg-accent-soft/60 p-3 text-sm">{{ plan.g2.note }}</p>
+    <div class="mt-3 flex flex-wrap gap-2">
+      {% url 'program_g2' program.pk as g2_url %}{% include "components/button.html" with label="Swap buck" href=g2_url variant="secondary" size="small" only %}
+      <form method="post" action="{% url 'program_schedule' program.pk %}">{% csrf_token %}{% if program.g2_task and not program.g2_task.done_at %}<span class="inline-flex min-h-9 items-center text-sm text-muted">On your tasks for {{ program.g2_task.due_on|date:"D, M j" }}</span>{% else %}{% include "components/button.html" with label="Add to schedule" type="submit" variant="primary" size="small" only %}{% endif %}</form>
+    </div>
+  </section>
+  <section class="rounded-lg border border-line bg-surface p-4" aria-labelledby="goal-heading">
+    <div class="flex items-center justify-between gap-2"><h2 class="flex items-center gap-2 font-semibold" id="goal-heading">Goal <span class="rounded-full border border-line px-2 py-0.5 text-xs font-medium text-muted">{% if plan.progress.kept >= plan.progress.of %}Reached{% else %}Planned{% endif %}</span></h2><span class="text-sm text-muted">{{ plan.g2.goal_date }}</span></div>
+    <p class="mt-3 text-sm">Keep {{ program.keep_count }} {{ program.target_label|lower }} {{ plan.keep_word }} from G2. With {{ plan.n }} kits at <b class="num">{{ plan.g2.odds }}</b>, the chance of at least {{ program.keep_count }} {{ program.target_label|lower }} is <b class="num">{{ plan.g2.hits }}</b>{% if program.keep_sex != "any" %}; at least {{ program.keep_count }} {{ plan.keep_word }} among them is about <b class="num">{{ plan.g2.kept }}</b>{% endif %}.</p>
+    {% if plan.g2.charlies %}<p class="mt-3 rounded-md bg-accent-soft/60 p-3 text-sm">{{ plan.g2.mate.name }} is broken too, so about <b class="num">{{ plan.g2.charlies }}</b> of kits will be charlies. A solid mate avoids them at lower target odds.</p>{% elif plan.charlie_tip %}<p class="mt-3 rounded-md bg-accent-soft/60 p-3 text-sm">Keep breeding broken × solid. Broken × broken gives <b class="num">25%</b> charlies.</p>{% endif %}
+  </section>
+  {% else %}
+  <section class="rounded-lg border border-line bg-surface p-4 lg:col-span-2"><h2 class="font-semibold">G2</h2><p class="mt-2 text-sm text-muted">No {% if program.keep_sex == "buck" %}doe{% else %}buck{% endif %} to pair with a kept {{ plan.kit_word }} yet. Add one from your herd or an outside breeder below.</p></section>
+  {% endif %}
+</div>

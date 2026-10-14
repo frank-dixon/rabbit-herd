@@ -1,0 +1,18 @@
+{# Flow: SVG bands from rabbits.program_flow, with HTML labels laid over at the same proportions. #}
+<div class="overflow-x-auto pb-1">
+  <div class="min-w-[680px]">
+    <div class="grid grid-cols-4 text-[0.7rem] font-semibold tracking-wide text-muted uppercase" aria-hidden="true">
+      <span>G0 · Pairing</span><span class="pl-[2%]">G1 · Kits{% if plan.g1.due %}, due {{ plan.g1.due }}{% endif %}</span><span class="pl-[6%]">G2 · Pairing</span><span class="text-right">G2 · Kits</span>
+    </div>
+    <div class="plan-flow relative mt-2 min-h-72" style="aspect-ratio: {{ flow.w }} / {{ flow.h }}">
+      <svg class="absolute inset-0 h-full w-full" viewBox="0 0 {{ flow.w }} {{ flow.h }}" preserveAspectRatio="none" role="img" aria-label="Kits from {{ plan.dam.name }} × {{ plan.sire.name }}: {% for r in plan.g1.rows %}{{ r.name }} {{ r.pct }}{% if not forloop.last %}, {% endif %}{% endfor %}.{% if plan.g2 %} Kept {{ plan.kit_word }} × {{ plan.g2.mate.name }}: {% for r in plan.g2.rows %}{{ r.name }} {{ r.pct }}{% if not forloop.last %}, {% endif %}{% endfor %}.{% endif %}">
+        {% for s in flow.shapes %}{% if s.d %}<path class="pf-band {{ s.cls }}{% if not s.kept %} pf-stop{% endif %}" d="{{ s.d }}"/>{% else %}<rect class="{{ s.cls }}{% if s.dashed %} pf-dashed{% endif %}" x="{{ s.rect.0 }}" y="{{ s.rect.1 }}" width="{{ s.rect.2 }}" height="{{ s.rect.3 }}" rx="2" vector-effect="non-scaling-stroke"/>{% endif %}{% endfor %}
+      </svg>
+      {% for l in flow.labels %}
+        <span class="pf-label{% if l.anchor == 'end' %} pf-end{% endif %}{% if l.target %} pf-label-target{% endif %}" style="left: {% widthratio l.x flow.w 100 %}%; top: {% widthratio l.y flow.h 100 %}%" aria-hidden="true"><b>{{ l.name }}</b> <span class="num">{{ l.pct }}</span>{% if l.sub %}<small>{{ l.sub }}</small>{% endif %}</span>
+      {% endfor %}
+      <span class="pf-pair" style="left: {% widthratio flow.g0.x flow.w 100 %}%; top: 50%" aria-hidden="true"><b>{{ plan.dam.name }} × {{ plan.sire.name }}</b><span class="num">{{ plan.g1.genes }}</span><small>{% if plan.g1.bred %}Bred {{ plan.g1.bred }}{% else %}Planned{% endif %}</small></span>
+      {% if plan.g2 %}<span class="pf-pair pf-pair-planned" style="left: {% widthratio flow.g2x flow.w 100 %}%; top: 50%" aria-hidden="true"><b>{{ plan.g2.pair_label }}</b><span class="num">{{ plan.g2.genes }}</span><small>Planned {{ plan.g2.date }}</small></span>{% endif %}
+    </div>
+  </div>
+</div>

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Outside breeder · {{ program.title }} · {{ app_name }}{% endblock %}
+{% block content %}
+  {% include "components/page_header.html" with title="Outside breeder" subtitle="A rabbit from another rabbitry. The plan weighs only its genes and inbreeding." back_label="Back" back_href=back only %}
+  <form class="mt-5 max-w-2xl rounded-lg border border-line bg-surface p-4 sm:p-5" method="post" novalidate>
+    {% csrf_token %}<input type="hidden" name="next" value="{{ back }}">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {% include "programs/_input.html" with name="name" label="Name" value=values.name error=errors.name only %}
+      <fieldset>
+        <legend class="block text-sm font-medium">Sex</legend>
+        <div class="mt-1 grid grid-cols-2 gap-2">{% for v, l in sexes %}<label class="flex min-h-10 cursor-pointer items-center justify-center rounded-lg border border-field text-sm has-checked:border-accent has-checked:bg-accent-soft has-checked:font-semibold has-focus-visible:ring-2 has-focus-visible:ring-accent"><input class="sr-only" type="radio" name="sex" value="{{ v }}" {% if values.sex == v %}checked{% endif %}>{{ l }}</label>{% endfor %}</div>
+        {% if errors.sex %}<p class="mt-1 text-sm text-danger">{{ errors.sex }}</p>{% endif %}
+      </fieldset>
+      {% include "programs/_input.html" with name="breed" label="Breed" value=values.breed error=errors.breed only %}
+      {% include "programs/_input.html" with name="rabbitry" label="Rabbitry" value=values.rabbitry error=errors.rabbitry only %}
+    </div>
+    <fieldset class="mt-5">
+      <legend class="font-semibold">Genes <span class="text-sm font-normal text-muted">Leave a locus blank if unknown.</span></legend>
+      <div class="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {% for g in gene_rows %}{% include "programs/_input.html" with name=g.name label=g.locus value=g.value error=g.error placeholder=g.hint mono=True only %}{% endfor %}
+      </div>
+    </fieldset>
+    <div class="mt-5 flex justify-end gap-2">
+      {% include "components/button.html" with label="Cancel" href=back variant="secondary" only %}
+      {% include "components/button.html" with label="Add breeder" type="submit" only %}
+    </div>
+  </form>
+{% endblock %}

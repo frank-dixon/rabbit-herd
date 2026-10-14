@@ -1,0 +1,27 @@
+{# Tree: every pairing and its kits. The kept line is outlined; the alternative stays visible, dashed. #}
+<ul class="plan-tree space-y-2 text-sm">
+  <li>
+    <div class="pt-node pt-pair">{% include "programs/_pair_avatars.html" with a=plan.dam b=plan.sire only %}<span><b>{{ plan.dam.name }} × {{ plan.sire.name }}</b> <span class="text-muted">G1 · {% if plan.g1.bred %}due {{ plan.g1.due }}{% else %}planned{% endif %}</span><span class="num block text-xs">{{ plan.g1.genes }}</span></span></div>
+    <ul class="pt-children">
+      {% for row in plan.g1.rows %}
+        <li>
+          <div class="pt-node{% if row.target %} pt-kept{% else %} pt-off{% endif %}"><span class="min-w-0"><b>{{ row.name }} {% if row.target %}{{ plan.kit_word }}{% endif %}</b> <span class="text-muted">{% if row.target %}keep{% else %}not continued{% endif %}</span>{% if row.target and plan.g1.kept_text %}<span class="num block text-xs">{{ plan.g1.kept_text }}</span>{% endif %}</span>{% include "programs/_mini_bar.html" with row=row only %}</div>
+          {% if row.target and plan.g2 %}
+            <ul class="pt-children">
+              <li>
+                <div class="pt-node pt-pair pt-next">{% include "programs/_pair_avatars.html" with a=plan.dam b=plan.g2.mate only %}<span><b>{{ plan.g2.pair_label }}</b> <span class="text-muted">G2 · {{ plan.g2.date }}</span><span class="num block text-xs">{{ plan.g2.genes }}</span></span></div>
+                <ul class="pt-children">{% for r in plan.g2.rows %}<li><div class="pt-node{% if r.target %} pt-kept{% else %} pt-off{% endif %}"><b>{{ r.name }}</b> <span class="text-muted">{% if r.target %}goal{% endif %}</span>{% include "programs/_mini_bar.html" with row=r only %}</div></li>{% endfor %}</ul>
+              </li>
+              {% if plan.alt_row %}
+              <li>
+                <div class="pt-node pt-pair pt-alt">{% include "programs/_pair_avatars.html" with a=plan.dam b=plan.alt_row.mate only %}<span><b>{{ plan.alt_row.label }}</b> <span class="text-muted">alternative · COI {{ plan.alt_row.coi }}</span><span class="num block text-xs">{{ plan.alt_row.genes }}</span></span></div>
+                <ul class="pt-children"><li><div class="pt-node pt-off"><b>{{ program.target_label }}</b> <span class="num ml-auto">{{ plan.alt_row.odds }}</span></div></li></ul>
+              </li>
+              {% endif %}
+            </ul>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </li>
+</ul>

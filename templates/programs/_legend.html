@@ -1,0 +1,4 @@
+<ul class="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted" aria-label="Legend">
+  {% for row in plan.legend %}<li class="flex items-center gap-1.5"><span class="pf-dot pf-{{ row.shade }}" aria-hidden="true"></span>{{ row.name }}{% if row.target %} (target){% endif %}</li>{% endfor %}
+  
+</ul>

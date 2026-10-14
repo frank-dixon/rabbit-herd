@@ -1,0 +1,5 @@
+<div>
+  <label class="block text-sm font-medium" for="id_{{ name }}">{{ label }}</label>
+  <input class="mt-1 block w-full rounded-lg border bg-surface px-3 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent {% if error %}border-danger{% else %}border-field{% endif %}{% if mono %} num{% endif %}" id="id_{{ name }}" name="{{ name }}" value="{{ value }}" {% if placeholder %}placeholder="{{ placeholder }}"{% endif %} autocomplete="off" {% if error %}aria-invalid="true" aria-describedby="id_{{ name }}_error"{% endif %}>
+  {% if error %}<p class="mt-1 text-sm text-danger" id="id_{{ name }}_error">{{ error }}</p>{% endif %}
+</div>

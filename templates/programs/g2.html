@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}G2 mate · {{ program.title }} · {{ app_name }}{% endblock %}
+{% block content %}
+  {% url 'program_detail' program.pk as back %}
+  {% include "components/page_header.html" with title="Choose the G2 mate" subtitle="Ranked by target odds, then inbreeding." back_label="Back to the program" back_href=back only %}
+  <form class="mt-5 max-w-3xl" method="post">
+    {% csrf_token %}
+    <fieldset>
+      <legend class="sr-only">Mate for the kept G1 {{ plan.kit_word }}</legend>
+      <div class="space-y-2">
+        {% for r in rows %}
+          <label class="flex cursor-pointer flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-line bg-surface p-3 transition-colors duration-150 hover:border-field has-checked:border-accent has-checked:ring-1 has-checked:ring-accent has-focus-visible:ring-2 has-focus-visible:ring-accent motion-reduce:transition-none">
+            <input class="accent-[var(--color-accent)]" type="radio" name="mate" value="{{ r.mate.key }}" {% if r.mate.key == current %}checked{% endif %}>
+            <span class="min-w-0 flex-1"><b>{{ r.mate.name }}</b> <span class="text-sm text-muted">{{ r.mate.where }} · {{ r.mate.breed }}</span><span class="num block text-xs">{{ r.genes_text }}</span></span>
+            <span class="text-sm"><span class="num font-semibold">{{ r.odds_text }}</span> <span class="text-muted">target</span></span>
+            <span class="text-sm {% if r.over %}text-danger{% endif %}">COI <span class="num">{{ r.coi_text }}</span>{% if r.relation %} · {{ r.relation }}{% endif %}{% if r.over %} · over your limit{% endif %}</span>
+          </label>
+        {% empty %}
+          <p class="rounded-lg border border-line bg-surface p-4 text-sm text-muted">No possible mates yet.</p>
+        {% endfor %}
+      </div>
+    </fieldset>
+    <div class="mt-4 flex flex-wrap justify-between gap-2">
+      <a class="inline-flex min-h-10 items-center text-sm font-medium text-accent hover:underline" href="{% url 'program_outside' program.pk %}?next={{ request.path|urlencode }}">+ Outside breeder</a>
+      <div class="flex gap-2">{% include "components/button.html" with label="Cancel" href=back variant="secondary" only %}{% include "components/button.html" with label="Use this mate" type="submit" only %}</div>
+    </div>
+  </form>
+{% endblock %}

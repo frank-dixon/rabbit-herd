@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}{% if program %}{{ program.title }}{% else %}New program{% endif %} · {{ app_name }}{% endblock %}
+{% block content %}
+  {% url 'program_list' as list_url %}
+  {% if program and program.step == 'plan' %}{% url 'program_detail' program.pk as back_url %}{% else %}{% firstof list_url as back_url %}{% endif %}
+  {% include "components/page_header.html" with title=program.title|default:"New breeding program" subtitle="Set a goal, pick breeders, then review the plan." back_label=program|yesno:"Back to the program,Programs" back_href=back_url only %}
+  {% include "programs/_steps.html" %}
+
+  {% if stage == "goal" %}
+  <form class="mt-5 rounded-lg border border-line bg-surface p-4 sm:p-5" method="post" action="{% if program %}{% url 'program_goal' program.pk %}{% else %}{% url 'program_new' %}{% endif %}" novalidate>
+    {% csrf_token %}
+    <h2 class="font-semibold"><span class="num">1</span> · Goal</h2>
+    <fieldset class="mt-4">
+      <legend class="eyebrow">Target color</legend>
+      {% if errors.target %}<p class="mt-1 text-sm text-danger" id="target-error">{{ errors.target }}</p>{% endif %}
+      <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        {% for t in targets %}
+          <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-line p-3 transition-colors duration-150 hover:border-field has-checked:border-accent has-checked:ring-1 has-checked:ring-accent has-focus-visible:ring-2 has-focus-visible:ring-accent">
+            <input class="mt-1 h-4 w-4 shrink-0 accent-[var(--accent)]" type="radio" name="target_key" value="{{ t.key }}"{% if values.target_key == t.key %} checked{% endif %}>
+            <span class="min-w-0"><span class="block text-sm font-semibold">{{ t.label }}</span><span class="num block text-xs text-ink">{{ t.genes }}</span><span class="block text-xs text-muted">{{ t.text }}</span></span>
+          </label>
+        {% endfor %}
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-dashed border-line p-3 hover:border-field has-checked:border-accent has-checked:ring-1 has-checked:ring-accent has-focus-visible:ring-2 has-focus-visible:ring-accent">
+          <input class="mt-1 h-4 w-4 shrink-0 accent-[var(--accent)]" type="radio" name="target_key" value="custom"{% if values.target_key == 'custom' %} checked{% endif %} data-custom-target>
+          <span class="min-w-0"><span class="block text-sm font-semibold">Custom</span><span class="block text-xs text-muted">Set the genes yourself, below</span></span>
+        </label>
+      </div>
+      <details class="custom-target mt-3 rounded-lg border border-line px-3 py-2"{% if values.target_key == 'custom' %} open{% endif %}>
+        <summary class="cursor-pointer text-sm font-medium">Custom genes</summary>
+        <p class="mt-1 text-sm text-muted">Pick only the genes that matter. “Shows A” means at least one A and nothing more dominant.</p>
+        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {% for row in custom_rows %}
+            <label class="block text-sm font-medium">{{ row.locus }}
+              <select class="num mt-1 block h-10 w-full rounded-md border border-field/70 bg-surface px-2" name="{{ row.name }}">
+                <option value="">Any</option>
+                {% for value, label in row.options %}<option value="{{ value }}"{% if row.value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </label>
+          {% endfor %}
+        </div>
+      </details>
+    </fieldset>
+    <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div>
+        {% include "components/text_input.html" with name="traits" label="Traits to select for (optional)" value=values.traits help="Separate with commas, such as dark brown eyes, 8–10 lb adult, even butterfly. They’re shown as what to look for in each litter." only %}
+      </div>
+      <fieldset>
+        <legend class="block text-sm font-medium">Finish when</legend>
+        <div class="mt-1 flex flex-wrap items-center gap-2 text-sm">
+          <input class="num h-10 w-16 rounded-md border border-field/70 bg-surface px-2 text-center" type="number" name="keep_count" min="1" max="20" value="{{ values.keep_count }}" aria-label="How many to keep">
+          <select class="h-10 rounded-md border border-field/70 bg-surface px-2" name="keep_sex" aria-label="Of which sex">
+            {% for value, label in keep_sex_choices %}<option value="{{ value }}"{% if values.keep_sex == value %} selected{% endif %}>{{ label|lower }}</option>{% endfor %}
+          </select>
+          <span>of the target are kept</span>
+        </div>
+        {% if errors.keep_count %}<p class="mt-1 text-sm text-danger">{{ errors.keep_count }}</p>{% endif %}
+        <div class="mt-3 flex flex-wrap items-center gap-3">
+          <span class="text-sm">Highest COI</span>
+          <div class="seg relative inline-grid shrink-0 auto-cols-fr grid-flow-col rounded-md border border-line bg-canvas p-0.5" role="radiogroup" aria-label="Highest COI" data-segmented>
+            <span class="seg-thumb shadow-sm" aria-hidden="true" data-seg-thumb></span>
+            {% for value, label in coi_choices %}
+              <label class="num inline-flex min-h-[34px] cursor-pointer items-center justify-center rounded-[5px] px-3 text-sm font-medium has-focus-visible:ring-2 has-focus-visible:ring-accent" data-seg-option><input class="sr-only" type="radio" name="max_coi" value="{{ value }}"{% if values.max_coi == value %} checked{% endif %}>{{ label }}</label>
+            {% endfor %}
+          </div>
+        </div>
+        <p class="mt-1 text-xs text-muted">Pairings above it are ranked last and marked.</p>
+      </fieldset>
+    </div>
+    <div class="mt-4 max-w-md">{% include "components/text_input.html" with name="name" label="Program name (optional)" value=values.name help="Named for you from the target and the doe if left blank." only %}</div>
+    <div class="mt-5 flex items-center justify-end gap-2 border-t border-line pt-4">
+      <a class="rounded-md px-3 py-2 text-sm text-muted hover:text-ink" href="{{ back_url }}">Cancel</a>
+      {% include "components/button.html" with label="Next: breeders" type="submit" variant="primary" only %}
+    </div>
+  </form>
+  {% else %}
+  <section class="mt-5 rounded-lg border border-line bg-surface p-4 sm:p-5" aria-labelledby="goal-summary">
+    <div class="flex items-baseline justify-between gap-3">
+      <h2 class="font-semibold" id="goal-summary"><span class="num">1</span> · Goal</h2>
+      <span class="text-sm text-muted">Done · <a class="font-medium text-accent hover:underline" href="{% url 'program_goal' program.pk %}">Edit</a></span>
+    </div>
+    <dl class="mt-3 grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
+      <div><dt class="eyebrow">Target color</dt><dd class="mt-1 font-semibold">{{ program.target_label }} <span class="num ml-1 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">{{ target_text }}</span></dd></div>
+      <div><dt class="eyebrow">Traits to select for</dt><dd class="mt-1 flex flex-wrap gap-1.5">{% for t in program.traits %}<span class="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">{{ t }}</span>{% empty %}<span class="text-muted">None</span>{% endfor %}</dd></div>
+      <div><dt class="eyebrow">Finish when</dt><dd class="mt-1">{{ program.keep_count }} {{ program.target_label|lower }} {{ program.get_keep_sex_display|lower }} kept<br>Max COI <span class="num">{{ program.max_coi.normalize }}%</span></dd></div>
+    </dl>
+  </section>
+  <form class="mt-4 rounded-lg border border-line bg-surface p-4 sm:p-5" method="post" action="{% url 'program_breeders' program.pk %}">
+    {% csrf_token %}
+    <h2 class="font-semibold"><span class="num">2</span> · Starting pairing <span class="ml-1 text-sm font-normal text-muted">Ranked by odds of {{ program.target_label|lower }} kits</span></h2>
+    {% if error %}<p class="mt-2 text-sm text-danger">{{ error }}</p>{% endif %}
+    {% if rows %}
+      <fieldset class="mt-3 space-y-2">
+        <legend class="sr-only">Starting pairing</legend>
+        {% for row in rows %}
+          <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-line p-3 transition-colors duration-150 hover:border-field has-checked:border-accent has-checked:ring-1 has-checked:ring-accent has-focus-visible:ring-2 has-focus-visible:ring-accent">
+            <input class="h-4 w-4 shrink-0 accent-[var(--accent)]" type="radio" name="pairing" value="{{ row.value }}"{% if row.value == selected %} checked{% endif %}>
+            {% include "programs/_pair_avatars.html" with a=row.doe b=row.buck only %}
+            <span class="min-w-0 flex-1">
+              <span class="block text-sm font-semibold">{{ row.doe.name }} × {{ row.buck.name }}{% if row.buck.outside %} <span class="ml-1 rounded-full border border-line px-1.5 text-[0.7rem] font-medium text-muted">outside</span>{% endif %}</span>
+              <span class="num block text-xs">{% include "programs/_genes.html" with genes=row.doe.genes target=program.target only %} × {% include "programs/_genes.html" with genes=row.buck.genes target=program.target only %}</span>
+              <span class="block text-xs text-muted">{{ row.note }}</span>
+            </span>
+            <span class="shrink-0 text-right"><span class="num block font-semibold">{{ row.odds }}</span><span class="num block text-xs {% if row.over %}text-danger{% else %}text-muted{% endif %}">COI {{ row.coi_text }}</span></span>
+          </label>
+        {% endfor %}
+      </fieldset>
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm text-muted">Showing {{ rows|length }} of {{ total }} possible pairing{{ total|pluralize }}.{% if not show_all and total > rows|length %} <a class="font-medium text-accent hover:underline" href="?all=1">Show all</a>{% endif %}</p>
+        <div class="flex gap-2">
+          {% url 'program_goal' program.pk as goal_url %}{% include "components/button.html" with label="Back" href=goal_url variant="secondary" only %}
+          {% include "components/button.html" with label="Build plan" type="submit" variant="primary" only %}
+        </div>
+      </div>
+    {% else %}
+      <p class="mt-3 text-sm text-muted">No pairings yet. A program needs a doe in your herd and a buck, from your herd or an outside one.</p>
+    {% endif %}
+  </form>
+  {% include "programs/_breeders.html" %}
+  {% endif %}
+{% endblock %}

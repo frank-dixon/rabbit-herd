@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Programs · {{ app_name }}{% endblock %}
+{% block content %}
+  {% url 'program_new' as new_url %}
+  {% include "components/page_header.html" with title="Programs" subtitle="Breed toward a color over generations, with the odds, inbreeding and dates worked out." primary_label="New program" primary_href=new_url only %}
+  {% if programs %}
+    <ul class="mt-6 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+      {% for program in programs %}
+        <li>
+          <a class="list-row flex items-center gap-4 px-4 hover:bg-side focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent" href="{% if program.step == 'plan' %}{% url 'program_detail' program.pk %}{% elif program.step == 'breeders' %}{% url 'program_breeders' program.pk %}{% else %}{% url 'program_goal' program.pk %}{% endif %}">
+            <span class="min-w-0 flex-1">
+              <span class="block font-semibold">{{ program.title }}</span>
+              <span class="block text-sm text-muted">{{ program.target_label|default:"No target yet" }}{% if program.step != 'plan' %} · setup: {{ program.get_step_display|lower }}{% else %} · keep {{ program.keep_count }} {{ program.get_keep_sex_display|lower }}{% endif %} · started {{ program.created_at|date:"D, M j" }}</span>
+            </span>
+            <svg class="h-4 w-4 shrink-0 text-field" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    {% include "components/empty.html" with title="No breeding programs yet." text="Pick a target color, choose breeders, and see a two-generation plan with odds and inbreeding for each pairing." href=new_url action="Start a program" icon=ui_icons.programs only %}
+  {% endif %}
+{% endblock %}

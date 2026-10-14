@@ -1,0 +1,22 @@
+<div class="overflow-x-auto">
+  <table class="w-full min-w-[720px] text-left text-sm">
+    <thead class="text-xs text-muted"><tr class="border-b border-line"><th class="py-2 pr-3 font-medium">Gen</th><th class="py-2 pr-3 font-medium">Pairing</th><th class="py-2 pr-3 font-medium">Genotypes</th><th class="py-2 pr-3 font-medium">Target odds</th><th class="py-2 pr-3 font-medium">Litter of {{ plan.n }}</th><th class="py-2 pr-3 font-medium">Other kits</th><th class="py-2 pr-3 font-medium">COI</th><th class="py-2 font-medium">Dates</th></tr></thead>
+    <tbody class="divide-y divide-line">
+      <tr>
+        <th class="py-3 pr-3 font-semibold" scope="row">G1</th><td class="py-3 pr-3">{{ plan.dam.name }} × {{ plan.sire.name }}</td><td class="num py-3 pr-3 text-xs">{{ plan.g1.genes }}</td><td class="num py-3 pr-3 font-semibold">{{ plan.g1.odds }}</td><td class="py-3 pr-3">{{ plan.g1.expected }}</td>
+        <td class="py-3 pr-3 text-muted">{% for r in plan.g1.rows %}{% if not r.target %}{{ r.name }} {{ r.pct }}{% if not forloop.last %} · {% endif %}{% endif %}{% endfor %}</td><td class="num py-3 pr-3">{{ plan.g1.coi }}</td><td class="py-3">{% if plan.g1.bred %}Bred {{ plan.g1.bred }} · due {{ plan.g1.due }}{% else %}Due {{ plan.g1.due }} if bred today{% endif %}</td>
+      </tr>
+      {% if plan.g2 %}
+      <tr class="bg-accent-soft/40">
+        <th class="py-3 pr-3 font-semibold" scope="row">G2</th><td class="py-3 pr-3">{{ plan.g2.pair_label }}</td><td class="num py-3 pr-3 text-xs">{{ plan.g2.genes }}</td><td class="num py-3 pr-3 font-semibold">{{ plan.g2.odds }}</td><td class="py-3 pr-3">{{ plan.g2.expected }}</td>
+        <td class="py-3 pr-3 text-muted">{% for r in plan.g2.rows %}{% if not r.target %}{{ r.name }} {{ r.pct }}{% if not forloop.last %} · {% endif %}{% endif %}{% endfor %}{% if plan.charlie_tip %} · no charlies{% endif %}</td><td class="num py-3 pr-3 {% if plan.g2.over %}text-danger{% endif %}">{{ plan.g2.coi }}</td><td class="py-3">{{ plan.g2.date }} · due {{ plan.g2.due }}</td>
+      </tr>
+      {% endif %}
+      {% if plan.alt_row %}
+      <tr class="text-muted">
+        <th class="py-3 pr-3 font-semibold" scope="row">G2 alt.</th><td class="py-3 pr-3">{{ plan.alt_row.label }}</td><td class="num py-3 pr-3 text-xs">{{ plan.alt_row.genes }}</td><td class="num py-3 pr-3">{{ plan.alt_row.odds }}</td><td class="py-3 pr-3">{{ plan.alt_row.expected }}</td><td class="py-3 pr-3"></td><td class="num py-3 pr-3">{{ plan.alt_row.coi }}</td><td class="py-3">{{ plan.alt_row.advice }}</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>

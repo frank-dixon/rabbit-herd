@@ -2,8 +2,8 @@
 (segmented.mjs measures it; motion.css eases it, reduced motion makes it instant). Without JS the chosen option
 shows the static active style. Links by default (each segment a plain link); pass name for radio segments
 inside a form (options: value, label, selected).
-label (for screen readers), options: [{href, label, selected, icon} or {value, label, selected}], icon_only, name.{% endcomment %}
-<div class="seg relative inline-grid shrink-0 auto-cols-fr grid-flow-col rounded-md border border-line bg-canvas p-0.5" {% if name %}role="radiogroup"{% else %}role="group"{% endif %} aria-label="{{ label }}" data-segmented>
+label (for screen readers), swap_sync (keep in step with a no-reload list swap), options: [{href, label, selected, icon} or {value, label, selected}], icon_only, name.{% endcomment %}
+<div class="seg relative inline-grid shrink-0 auto-cols-fr grid-flow-col rounded-md border border-line bg-canvas p-0.5" {% if name %}role="radiogroup"{% else %}role="group"{% endif %} aria-label="{{ label }}" data-segmented{% if swap_sync %} data-swap-sync{% endif %}>
   <span class="seg-thumb shadow-sm" aria-hidden="true" data-seg-thumb></span>
   {% for option in options %}
     {% if name %}

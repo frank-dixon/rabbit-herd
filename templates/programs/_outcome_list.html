@@ -1,0 +1,2 @@
+<div class="mt-3 flex h-2 overflow-hidden rounded-full bg-side" aria-hidden="true">{% for r in rows %}<span class="pf-fill pf-{{ r.shade }} h-full" style="width: {{ r.width|floatformat:2 }}%"></span>{% endfor %}</div>
+<ul class="mt-3 space-y-1.5 text-sm">{% for r in rows %}<li class="flex items-center gap-2"><span class="pf-dot pf-{{ r.shade }}" aria-hidden="true"></span><span class="{% if r.target %}font-semibold{% endif %}">{{ r.name }}</span><span class="num ml-auto">{{ r.pct }}</span></li>{% endfor %}</ul>

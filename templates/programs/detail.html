@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ program.title }} · {{ app_name }}{% endblock %}
+{% block content %}
+  {% url 'program_list' as list_url %}
+  {% include "programs/_detail_header.html" %}
+  <section class="mt-5 grid grid-cols-1 gap-4 rounded-lg border border-line bg-surface p-4 sm:grid-cols-3 sm:p-5" aria-label="Goal">
+    <div>
+      <h2 class="eyebrow">Target</h2>
+      <p class="mt-1 font-semibold">{{ program.target_label }} <span class="num ml-1 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">{{ plan.target_text }}</span></p>
+      {% if program.traits %}<p class="mt-1 text-sm text-muted">Traits: {{ program.traits|join:" · " }}</p>{% endif %}
+    </div>
+    <div>
+      <h2 class="eyebrow">Finish when</h2>
+      <p class="mt-1 text-sm">Keep {{ program.keep_count }} {{ program.target_label|lower }} {{ plan.keep_word }}</p>
+      <p class="mt-1 text-xs text-muted">Max COI <span class="num">{{ program.max_coi.normalize }}%</span></p>
+    </div>
+    <div>
+      <h2 class="eyebrow">Progress</h2>
+      <p class="mt-1"><span class="num text-xl font-semibold">{{ plan.progress.kept }} / {{ plan.progress.of }}</span> <span class="text-sm text-muted">{{ plan.keep_word }} kept{% if plan.g2 %} · est. {{ plan.g2.goal_date|slice:"1:" }}{% endif %}</span></p>
+      <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-side" role="progressbar" aria-valuemin="0" aria-valuemax="{{ plan.progress.of }}" aria-valuenow="{{ plan.progress.kept }}" aria-label="{{ program.target_label }} {{ plan.keep_word }} kept"><div class="h-full rounded-full bg-accent" style="width: {% if plan.progress.kept %}{{ plan.progress.pct }}{% elif plan.litter %}8{% else %}0{% endif %}%"></div></div>
+      <p class="mt-1 text-xs text-muted">{% if plan.litter and not plan.litter.kindled_on %}G1 litter due {{ plan.g1.due }}{% elif plan.litter %}G1 kits born {{ plan.litter.kindled_on|date:"D, M j" }}{% else %}G1 not bred yet{% endif %}</p>
+    </div>
+  </section>
+
+  <section class="mt-4 rounded-lg border border-line bg-surface p-4 sm:p-5" aria-labelledby="plan-heading" data-swap-root>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h2 class="font-semibold" id="plan-heading">Plan <span class="ml-1 text-sm font-normal text-muted" data-swap="plan-hint">{% if view == "flow" %}Band height = share of kits. Teal bands continue; pale ones stop.{% elif view == "tree" %}Every pairing and its kits. The kept line is outlined; the alternative is dashed.{% else %}One row per pairing, with odds, expected count, inbreeding and dates.{% endif %}</span></h2>
+      {% include "components/segmented.html" with label="Plan view" options=view_options swap_sync=True only %}
+    </div>
+    <div class="mt-4" data-swap="results">
+      {% if view == "flow" %}{% include "programs/_flow.html" %}{% elif view == "tree" %}{% include "programs/_tree.html" %}{% else %}{% include "programs/_table.html" %}{% endif %}
+      {% include "programs/_legend.html" %}
+    </div>
+  </section>
+
+  {% include "programs/_gen_cards.html" %}
+  {% include "programs/_breeders.html" %}
+  <details class="group mt-6 text-right">
+    <summary class="inline-flex min-h-9 cursor-pointer list-none items-center text-sm text-muted underline-offset-2 hover:text-danger hover:underline [&::-webkit-details-marker]:hidden">Delete program</summary>
+    <form class="mt-2 inline-flex flex-wrap items-center justify-end gap-3 rounded-lg border border-line bg-surface p-3 text-sm" method="post" action="{% url 'program_delete' program.pk %}">
+      {% csrf_token %}<span>Delete {{ program.title }}? Your rabbits and litters stay.</span>
+      {% include "components/button.html" with label="Delete" type="submit" variant="danger" size="small" only %}
+    </form>
+  </details>
+{% endblock %}

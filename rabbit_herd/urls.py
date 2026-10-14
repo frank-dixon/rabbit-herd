@@ -17,6 +17,7 @@ urlpatterns = [
     path("pairings/", include("rabbits.pairing_urls")),
     path("litters/", include("rabbits.litter_urls")),
     path("tasks/", include("rabbits.task_urls")),
+    path("programs/", include("rabbits.program_urls")),
     path("export/<slug:kind>.csv", export_csv, name="export_csv"),
     path("waitlist/", include("rabbits.waitlist_urls")),
     path("costs/", include("rabbits.cost_urls")),
