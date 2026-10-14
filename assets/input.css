@@ -379,3 +379,7 @@ html[data-density="compact"] .list-thumb { width: 2.25rem; height: 2.25rem; }
   .pt-next { border-color: var(--second); }
   .pt-alt { border-style: dashed; color: var(--muted); }
 }
+
+/* Every page header keeps clear air before the first card, even when its
+   actions wrap below the title on phones. Collapses with larger top margins. */
+[data-page-header] { margin-bottom: 1rem; }

@@ -6,7 +6,7 @@
 {% block content %}<span data-refreshable hidden></span>
   {% url 'rabbit_list' as list_url %}
   <div class="mx-auto max-w-5xl" data-today>
-    <div class="flex items-end gap-3">
+    <div class="flex items-end gap-3" data-page-header>
       <div class="min-w-0">
         <h1 class="text-[1.75rem] leading-tight font-semibold tracking-tight md:text-[2.25rem]">Today</h1>
         <p class="mt-0.5 text-sm text-muted">{{ today|date:"D, M j" }}</p>
