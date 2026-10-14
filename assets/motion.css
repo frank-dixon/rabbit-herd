@@ -136,3 +136,23 @@ html { scrollbar-gutter: stable; }
 @keyframes modal-fade { from { opacity: 0; } }
 @keyframes sheet-in { from { transform: translateY(100%); } }
 @keyframes sheet-out { to { transform: translateY(100%); } }
+
+/* App background: a quiet ombre of three neighbors of the theme's accent hue
+   (accent hue -28°, the accent, +28°), each only a few percent into the
+   canvas so text and cards keep their contrast. Painted on a fixed layer, so
+   scrolling never repaints it and iOS (no background-attachment: fixed) gets
+   the same result. Browsers without relative colors keep the plain canvas. */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: var(--canvas);
+}
+@supports (color: oklch(from red l c h)) {
+  :root {
+    --ombre-mix: 9%;
+    --ombre-1: color-mix(in oklab, oklch(from var(--accent) l c calc(h - 28)) var(--ombre-mix), var(--canvas));
+    --ombre-2: color-mix(in oklab, var(--accent) calc(var(--ombre-mix) * 0.8), var(--canvas));
+    --ombre-3: color-mix(in oklab, oklch(from var(--accent) l c calc(h + 28)) var(--ombre-mix), var(--canvas));
+  }
+  body::before { background: linear-gradient(135deg in oklab, var(--ombre-1), var(--ombre-2) 50%, var(--ombre-3)); }
+  body.bg-canvas { background-color: transparent; }
+}
