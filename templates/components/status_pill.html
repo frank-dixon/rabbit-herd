@@ -1,0 +1,2 @@
+{# A status pill colored by the one status map (rabbits/status_pills.py). Each tone adds a small icon so color isn't the only cue. #}
+{% if label %}<span class="pill{% if tone %} pill-{{ tone }}{% endif %}{% if extra %} {{ extra }}{% endif %}" data-status-pill>{{ label }}</span>{% endif %}

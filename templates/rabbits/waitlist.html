@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load money %}
+{% load money status %}
 
 {% block title %}Waitlist · {{ app_name }}{% endblock %}
 
@@ -43,7 +43,7 @@
             {% if entry.notes %}<p class="list-row-meta whitespace-pre-line break-words">{{ entry.notes }}</p>{% endif %}
             {% if entry.status == "waiting" %}<p class="list-row-meta" data-fits>{% if entry.fits %}Fits now: {% for rabbit in entry.fits %}<a class="text-ink underline-offset-2 hover:underline" href="{% url 'rabbit_detail' rabbit.pk %}">{{ rabbit.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}No growing-out rabbit fits yet.{% endif %}</p>{% endif %}
           </div>
-          <span class="list-row-value"><span class="pill" data-wait-status="{{ entry.status }}">{{ entry.get_status_display }}</span>{% if entry.deposit %}<span class="block text-[13px] font-normal text-muted">{{ entry.deposit|money }} deposit</span>{% endif %}</span>
+          <span class="list-row-value"><span class="pill{% with t=entry.get_status_display|status_tone %}{% if t %} pill-{{ t }}{% endif %}{% endwith %}" data-wait-status="{{ entry.status }}">{{ entry.get_status_display }}</span>{% if entry.deposit %}<span class="block text-[13px] font-normal text-muted">{{ entry.deposit|money }} deposit</span>{% endif %}</span>
           {% url 'waitlist_delete' entry.pk as remove_action %}
           {% include "components/row_actions.html" with name=entry.buyer edit_href=entry.edit_href remove_action=remove_action undo="Removed from the waitlist." only %}
         </li>
@@ -57,7 +57,7 @@
               <a class="list-row-link list-row-title block" href="?edit={{ entry.pk }}#form" data-modal>{{ entry.buyer }}</a>
               <p class="list-row-meta">Wanted {{ entry.wants }}{% if entry.rabbit %} · <a class="underline-offset-2 hover:underline" href="{% url 'rabbit_detail' entry.rabbit.pk %}">{{ entry.rabbit.name }}</a>{% endif %}</p>
             </div>
-            <span class="list-row-value"><span class="pill" data-wait-status="{{ entry.status }}">{{ entry.get_status_display }}</span></span>
+            <span class="list-row-value"><span class="pill{% with t=entry.get_status_display|status_tone %}{% if t %} pill-{{ t }}{% endif %}{% endwith %}" data-wait-status="{{ entry.status }}">{{ entry.get_status_display }}</span></span>
             {% include "components/row_actions.html" with name=entry.buyer edit_href=entry.edit_href only %}
           </li>
         {% endfor %}

@@ -13,6 +13,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_time
 from django.views.decorators.http import require_POST
 
+from .status_pills import tone
 from . import costs, flow
 from .models import Breed, BreedShare, Cover, Litter, LitterCheck, Pairing, Rabbit, Relative, prefs, weight_text
 
@@ -76,14 +77,16 @@ def litter_card(litter, today):
     if litter.kindled_on is None:
         days = (litter.due_on - today).days
         card.update(stage="expecting", pill=("Overdue" if days < 0 else "Due today" if days == 0 else "Expecting"),
-                    tone=("r" if days < 0 else "y" if days <= 3 else "b"), due_days=days)
+                    due_days=days)
+        card["tone"] = tone(card["pill"])
     else:
         age = (today - litter.kindled_on).days
         weaned = litter.converted_at or not task
         card.update(stage="kindled", age=age, pill=("Converted" if litter.converted_at else "Weaned" if weaned and age >= 28 else "Nursing"),
-                    tone=("o" if litter.converted_at else "g"), alive=litter.survivors, total=(litter.born_alive or 0) + (litter.born_dead or 0),
+                    alive=litter.survivors, total=(litter.born_alive or 0) + (litter.born_dead or 0),
                     does=sum(k.sex == "doe" for k in kits), bucks=sum(k.sex == "buck" for k in kits),
                     recorded=len(kits))  # kits on record: the count to show when kindling numbers were never entered
+        card["tone"] = tone(card["pill"]) or "o"
     return card
 
 
