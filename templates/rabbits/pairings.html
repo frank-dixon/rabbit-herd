@@ -15,9 +15,9 @@
         {% include "components/select.html" with name="doe" label="Doe" options=doe_options value=values.doe errors=errors.doe placeholder="Choose a doe…" only %}
         {% include "components/select.html" with name="buck" label="Buck" options=buck_options value=values.buck errors=errors.buck placeholder="Choose a buck…" only %}
         <div class="sm:col-span-2">{% include "components/text_input.html" with name="notes" label="Notes (optional)" value=values.notes only %}</div>
-        {% if check %}<div class="sm:col-span-2">{% include "rabbits/_pairing_warnings.html" with warnings=check.warnings doe=check.doe buck=check.buck age_warnings=check.age only %}</div>{% endif %}
+        <div class="sm:col-span-2" data-pairing-check aria-live="polite">{% if check %}{% if check.duplicate %}<p class="pair-dup" data-pair-duplicate>You already saved {{ check.doe.name }} × {{ check.buck.name }}. <a class="underline" href="{% url 'pairing_detail' check.duplicate.pk %}">Open that pairing</a> or save another.</p>{% endif %}{% include "rabbits/_pairing_warnings.html" with warnings=check.warnings doe=check.doe buck=check.buck age_warnings=check.age only %}{% endif %}</div>
         <div class="flex flex-col gap-2 sm:col-span-2 sm:flex-row">
-          {% include "components/button.html" with label="Check relatedness" type="submit" name="action" value="check" variant="secondary" only %}
+          <span class="contents" data-pair-check-btn>{% include "components/button.html" with label="Check relatedness" type="submit" name="action" value="check" variant="secondary" only %}</span>
           {% include "components/button.html" with label="Save pairing" type="submit" name="action" value="save" variant="primary" only %}
           <span class="self-center"><a class="text-sm text-muted underline hover:text-ink" href="{{ request.path }}" data-sheet-close>Cancel</a></span>
         </div>

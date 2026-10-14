@@ -127,3 +127,6 @@
 .photo-more .photo-tile-media{background:var(--color-hover);color:var(--color-ink);border-radius:6px}
 .photo-more:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
 .list-panel.is-tight { margin-top: 12px; }
+
+/* New pairing: same pair already saved. */
+.pair-dup{margin-top:12px;padding:8px 12px;border-radius:6px;background:var(--color-hover);font-size:.875rem}

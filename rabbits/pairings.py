@@ -109,6 +109,12 @@ def pick(user, raw, sex):
         status=Rabbit.Status.DECEASED).first()
 
 
+def pair_check(user, doe, buck):
+    """What the New pairing form shows once both are chosen: relatedness, ages, and an existing same pair."""
+    same = Pairing.objects.filter(owner=user, doe=doe, buck=buck).order_by("-pk").first()
+    return {"doe": doe, "buck": buck, "warnings": inbreeding_warnings(doe, buck), "age": age_warnings(doe, buck), "duplicate": same}
+
+
 @login_required
 def pairing_list(request):
     errors = {}
@@ -128,12 +134,12 @@ def pairing_list(request):
             messages.success(request, f"{pairing} was saved.")
             return redirect("pairing_detail", pairing.pk)
         if not errors:
-            check = {"doe": doe, "buck": buck, "warnings": inbreeding_warnings(doe, buck), "age": age_warnings(doe, buck)}
+            check = pair_check(request.user, doe, buck)
     elif values["doe"] and values["buck"]:
         doe = pick(request.user, values["doe"], Rabbit.Sex.DOE)
         buck = pick(request.user, values["buck"], Rabbit.Sex.BUCK)
         if doe and buck:
-            check = {"doe": doe, "buck": buck, "warnings": inbreeding_warnings(doe, buck), "age": age_warnings(doe, buck)}
+            check = pair_check(request.user, doe, buck)
     from .index_items import index_view, sorted_items, stat, view_options
 
     pairings = list(Pairing.objects.filter(owner=request.user).select_related("doe", "buck")

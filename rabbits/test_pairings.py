@@ -67,3 +67,16 @@ class PairingTests(TestCase):
 
     def test_nav_lists_pairings(self):
         self.assertContains(self.client.get(reverse("pairing_list")), 'href="/pairings/"')
+
+
+class PairingCheckTests(TestCase):
+    def test_check_by_query_string_warns_on_a_saved_pair(self):
+        owner = user("dup@example.com")
+        self.client.force_login(owner)
+        doe, buck = make(owner, "Clover", "doe"), make(owner, "Basil", "buck")
+        url = reverse("pairing_list")
+        self.assertNotContains(self.client.get(url, {"doe": doe.pk, "buck": buck.pk}), "data-pair-duplicate")
+        Pairing.objects.create(owner=owner, doe=doe, buck=buck)
+        page = self.client.get(url, {"doe": doe.pk, "buck": buck.pk})
+        self.assertContains(page, "You already saved Clover × Basil.")
+        self.assertContains(page, "data-pair-check-btn")
