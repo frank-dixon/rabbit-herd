@@ -4,7 +4,7 @@
 
 {% block content %}
   <div data-swap-root>
-  {% include "components/page_header.html" with title="Pairings" primary_label="New pairing" primary_href="?new=1#new-pairing" subtitle="Planned and past breedings, with inbreeding and predicted colors." actions_template="components/view_toggle.html" compact_actions=True %}
+  {% include "components/page_header.html" with title="Pairings" primary_label="New pairing" primary_href="?new=1#new-pairing" subtitle="Planned and past breedings, with inbreeding and predicted colors." actions_template="components/view_toggle.html" %}
   <details class="add-sheet" id="new-pairing" data-add-sheet{% if request.GET.new or errors or check %} open{% endif %}>
     <summary class="hidden">New pairing</summary>
     <section class="mt-6 ruled pt-4" aria-labelledby="new-pairing-heading">

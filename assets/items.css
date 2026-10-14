@@ -47,3 +47,4 @@ td .it-chips { margin-top: 0; max-width: 280px; }
   .it-mobile { display: block; font-size: 12px; line-height: 16px; color: var(--muted); margin-top: 4px; white-space: normal; }
   .it-rows .wt-name .it-title { max-width: 180px; }
 }
+.text-danger .it-sub, .it-sub.text-danger { color: var(--danger); }

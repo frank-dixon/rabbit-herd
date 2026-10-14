@@ -3,7 +3,7 @@
 {% block content %}
   {% url 'program_new' as new_url %}
   <div data-swap-root>
-  {% include "components/page_header.html" with title="Programs" subtitle="Color goals over generations, with odds and next steps." primary_label="New program" primary_href=new_url actions_template="components/view_toggle.html" compact_actions=True %}
+  {% include "components/page_header.html" with title="Programs" subtitle="Color goals over generations, with odds and next steps." primary_label="New program" primary_href=new_url actions_template="components/view_toggle.html" %}
   {% if programs %}
       {% include "components/stat_cards.html" with stats=stats label="Programs" only %}
       <div data-swap="results">{% if view == "list" %}{% include "components/item_rows.html" %}{% else %}{% include "components/item_grid.html" %}{% endif %}</div>
