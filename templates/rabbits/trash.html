@@ -6,9 +6,9 @@
   {% else %}{% with subtitle="Deleted rabbits stay here for "|add:retention|stringformat:"s"|add:" days, then are removed for good." %}{% include "components/page_header.html" with title="Recently deleted" subtitle=subtitle back_label="Rabbits" back_href=list_url only %}{% endwith %}{% endif %}
   <p class="mt-2 text-sm text-muted">Change how long in <a class="text-accent underline underline-offset-4" href="{% url 'account' %}#rabbitry">Settings</a>.</p>
   {% if rabbits %}
-    <ul class="mt-5 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+    {% include "components/list_panel_start.html" with title="Deleted rabbits" count=rabbits|length id="trash-heading" hook="trash" only %}
       {% for rabbit in rabbits %}
-        <li class="flex flex-wrap items-center gap-3 px-3 py-2.5">
+        <li class="list-row flex flex-wrap items-center gap-3" data-row>
           {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=rabbit.main_photo size_class="list-thumb shrink-0 rounded-md text-base" only %}
           <div class="min-w-0 flex-1">
             <p class="truncate font-medium">{{ rabbit.name }}{% if rabbit.tattoo %} <span class="text-sm font-normal text-muted">· {{ rabbit.tattoo }}</span>{% endif %}</p>
@@ -25,7 +25,7 @@
           </dialog>
         </li>
       {% endfor %}
-    </ul>
+    {% include "components/list_panel_end.html" %}
   {% else %}
     {% include "components/empty.html" with title="Nothing here." text="Rabbits you delete wait here for a while in case you change your mind." only %}
   {% endif %}
