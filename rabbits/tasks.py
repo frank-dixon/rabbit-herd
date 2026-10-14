@@ -10,6 +10,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+
+from .templatetags.dates import short_date
 from django.views.decorators.http import require_POST
 
 from .models import Litter, Rabbit, Task, prefs
@@ -64,13 +66,6 @@ def parse_task(request, values):
 def form_context(values, errors):
     return {"values": values, "errors": errors, "repeat_options": repeat_options(), "unit_options": unit_options()}
 
-
-def short_date(day):
-    """Tue, Oct 13 (the app's date format), with the year only when it isn't this year."""
-    if day is None:
-        return ""
-    text = f"{day:%a, %b} {day.day}"
-    return text if day.year == timezone.localdate().year else f"{text}, {day.year}"
 
 
 def open_items(user, today=None):

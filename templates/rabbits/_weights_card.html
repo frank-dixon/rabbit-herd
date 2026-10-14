@@ -23,7 +23,7 @@
     <ul class="mt-3 divide-y divide-neutral-200 text-sm" data-weight-list>
       {% for weight in weights|slice:":6" %}
         <li class="flex items-start justify-between gap-3 py-2">
-          <span class="min-w-0"><span class="font-medium">{{ weight.grams|weigh:request.user }}</span> · {{ weight.date|date:"M j, Y" }}{% if weight.note %}<span class="block break-words text-neutral-600">{{ weight.note }}</span>{% endif %}</span>
+          <span class="min-w-0"><span class="font-medium">{{ weight.grams|weigh:request.user }}</span> · {{ weight.date|day }}{% if weight.note %}<span class="block break-words text-neutral-600">{{ weight.note }}</span>{% endif %}</span>
           {% url 'rabbit_weight_delete' weight.pk as remove_action %}{% include "components/row_actions.html" with name="this weight" remove_action=remove_action undo="Weight removed." only %}
         </li>
       {% endfor %}

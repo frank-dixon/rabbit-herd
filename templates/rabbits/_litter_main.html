@@ -20,7 +20,7 @@
       <div><dt>Surviving</dt><dd class="num">{{ litter.survivors|default_if_none:"–" }}</dd></div>
       <div><dt>Lost</dt><dd class="num">{{ litter.died_after }}</dd></div>
       <div><dt>Avg. weight</dt><dd class="num">{{ card.avg|default:"–" }}</dd></div>
-      {% if litter.converted_at %}<div class="lc-wide"><dt>Converted</dt><dd class="lc-t">{{ litter.converted_at|date:"M j, Y" }}</dd></div>
+      {% if litter.converted_at %}<div class="lc-wide"><dt>Converted</dt><dd class="lc-t">{{ litter.converted_at|day }}</dd></div>
       {% elif card.next %}<div class="lc-wide"><dt>Next</dt><dd class="lc-t">{{ card.next.label }}{% if card.next_overdue %} · <span class="lc-od">overdue</span>{% else %} · {{ card.next.date|date:"M j" }}{% endif %}</dd></div>
       {% else %}<div class="lc-wide"><dt>Next</dt><dd class="lc-t">Nothing due</dd></div>{% endif %}
     </dl>

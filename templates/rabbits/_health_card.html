@@ -8,7 +8,7 @@
             <p>{% status_pill note.get_kind_display %} · {{ note.date|date:"D, M j" }}</p>
             {% if note.notes %}<p class="whitespace-pre-line break-words text-neutral-800">{{ note.notes }}</p>{% endif %}
             {% if note.photos.all %}<ul class="mt-2 flex flex-wrap gap-2" aria-label="Photos">{% for photo in note.photos.all %}<li><a class="block overflow-hidden rounded-md ring-1 ring-line hover:ring-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" href="{% url 'rabbit_photos' rabbit.pk %}#photo-{{ photo.pk }}"><img draggable="false" class="h-16 w-16 object-cover" {% photo_src photo "64px" %} alt="Health photo {{ forloop.counter }}" loading="lazy" decoding="async"></a></li>{% endfor %}</ul>{% endif %}
-            {% if note.follow_up_on %}<p class="text-neutral-600">Follow up {{ note.follow_up_on|date:"M j, Y" }}{% if note.task.done_at %} · done{% elif note.task %} · <a class="underline" href="{% url 'task_list' %}">on your tasks</a>{% endif %}</p>{% endif %}
+            {% if note.follow_up_on %}<p class="text-neutral-600">Follow up {{ note.follow_up_on|day }}{% if note.task.done_at %} · done{% elif note.task %} · <a class="underline" href="{% url 'task_list' %}">on your tasks</a>{% endif %}</p>{% endif %}
           </div>
           {% url 'rabbit_health_delete' note.pk as remove_action %}{% with name=note.get_kind_display %}{% include "components/row_actions.html" with name=name remove_action=remove_action undo="Health note removed." only %}{% endwith %}
         </li>

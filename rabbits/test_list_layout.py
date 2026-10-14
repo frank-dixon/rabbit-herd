@@ -153,7 +153,7 @@ class DeceasedTests(TestCase):
     def test_detail_tag_and_died_row(self):
         page = self.client.get(reverse("rabbit_detail", args=[self.pepper.pk]))
         self.assertContains(page, ">Deceased</span>")
-        self.assertContains(page, "May 18, 2026 · Died kindling")
+        self.assertContains(page, "Mon, May 18 · Died kindling")
 
 
 class DensityTests(TestCase):

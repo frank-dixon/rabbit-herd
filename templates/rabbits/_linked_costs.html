@@ -2,7 +2,7 @@
 {% if cost_items %}{% with total=cost_total|money %}{% include "components/fold_start.html" with fold_id=heading_id|add:"-fold" heading_id=heading_id title="Costs" summary=total open=True only %}{% endwith %}{% else %}{% include "components/fold_start.html" with fold_id=heading_id|add:"-fold" heading_id=heading_id title="Costs" summary="None linked" open=False only %}{% endif %}
   {% if cost_items %}
     <ul class="mt-2 divide-y divide-neutral-200 text-sm">
-      {% for item in cost_items|slice:":5" %}<li class="flex justify-between gap-3 py-1.5"><span class="min-w-0 break-words">{{ item.description }} · <span class="text-neutral-600">{{ item.date|date:"M j, Y" }}</span></span><span class="shrink-0">{{ item.amount|money }}</span></li>{% endfor %}
+      {% for item in cost_items|slice:":5" %}<li class="flex justify-between gap-3 py-1.5"><span class="min-w-0 break-words">{{ item.description }} · <span class="text-neutral-600">{{ item.date|day }}</span></span><span class="shrink-0">{{ item.amount|money }}</span></li>{% endfor %}
     </ul>
     {% if cost_items|length > 5 %}<p class="mt-1 text-sm text-neutral-600">Showing 5 of {{ cost_items|length }}. The total counts them all.</p>{% endif %}
   {% else %}

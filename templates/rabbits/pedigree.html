@@ -16,7 +16,7 @@
       <div><dt class="text-neutral-600">Sex</dt><dd>{{ rabbit.get_sex_display }}</dd></div>
       <div><dt class="text-neutral-600">Breed</dt><dd class="break-words">{{ rabbit.short_breed }}</dd></div>
       <div><dt class="text-neutral-600">Color</dt><dd class="break-words">{{ rabbit.color_line }}</dd></div>
-      <div><dt class="text-neutral-600">Born</dt><dd>{{ rabbit.birth_date|date:"M j, Y" }}</dd></div>
+      <div><dt class="text-neutral-600">Born</dt><dd>{{ rabbit.birth_date|day }}</dd></div>
       <div><dt class="text-neutral-600">Ear tattoo</dt><dd>{{ rabbit.tattoo|default:"—" }}</dd></div>
       <div><dt class="text-neutral-600">Line</dt><dd class="break-words">{{ rabbit.line|default:"—" }}</dd></div>
     </dl>

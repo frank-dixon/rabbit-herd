@@ -5,7 +5,7 @@
       {% for entry in show_entries %}
         <li class="flex items-start justify-between gap-3 py-2{% if entry == show_editing %} bg-neutral-100{% endif %}">
           <div class="min-w-0">
-            <p><span class="font-medium">{{ entry.show_name }}</span> · {{ entry.date|date:"M j, Y" }}{% if entry.location %} · {{ entry.location }}{% endif %}</p>
+            <p><span class="font-medium">{{ entry.show_name }}</span> · {{ entry.date|day }}{% if entry.location %} · {{ entry.location }}{% endif %}</p>
             {% if entry.show_class or entry.placing or entry.award or entry.leg %}
               <p>{% if entry.show_class %}{{ entry.show_class }}{% endif %}{% if entry.show_class and entry.placing %}: {% endif %}{% if entry.placing %}<span class="font-medium">{{ entry.placing_text }}</span>{% endif %}{% if entry.award %}{% if entry.show_class or entry.placing %} · {% endif %}{{ entry.award }}{% endif %}{% if entry.leg %} <span class="ml-1 pill" data-leg>Leg</span>{% endif %}</p>
             {% endif %}

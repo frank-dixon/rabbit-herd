@@ -42,7 +42,7 @@
       <h2 class="text-base font-semibold" id="kindling-heading">Kindling</h2>
       {% if litter.kindled_on %}
         <dl class="mt-3 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm" data-kindling>
-          <dt class="text-neutral-600">Kindled</dt><dd>{{ litter.kindled_on|date:"M j, Y" }}</dd>
+          <dt class="text-neutral-600">Kindled</dt><dd>{{ litter.kindled_on|day }}</dd>
           <dt class="text-neutral-600">Born alive</dt><dd>{{ litter.born_alive }}</dd>
           <dt class="text-neutral-600">Born dead</dt><dd>{{ litter.born_dead }}</dd>
           <dt class="text-neutral-600">Lost since</dt><dd>{{ litter.died_after }}</dd>

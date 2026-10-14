@@ -11,7 +11,7 @@
         <tbody>
           {% for row in past %}
             <tr data-past-litter="{{ row.litter.pk }}">
-              <td><a class="oc-row-link" href="{% url 'litter_detail' row.litter.pk %}"><span class="oc-pair" aria-hidden="true">{% include "components/rabbit_avatar.html" with rabbit=row.doe only %}{% include "components/rabbit_avatar.html" with rabbit=row.buck only %}</span><span class="min-w-0"><span class="block font-semibold">{{ row.title }}</span><span class="block text-xs text-muted">{{ row.litter.kindled_on|date:"M j, Y" }}</span></span></a></td>
+              <td><a class="oc-row-link" href="{% url 'litter_detail' row.litter.pk %}"><span class="oc-pair" aria-hidden="true">{% include "components/rabbit_avatar.html" with rabbit=row.doe only %}{% include "components/rabbit_avatar.html" with rabbit=row.buck only %}</span><span class="min-w-0"><span class="block font-semibold">{{ row.title }}</span><span class="block text-xs text-muted">{{ row.litter.kindled_on|day }}</span></span></a></td>
               <td class="r num oc-hm">{{ row.born }} / {{ row.raised }}</td>
               <td><span class="block text-sm">{{ row.summary }}</span><span class="oc-bar mt-1" style="max-width:200px">{% for b in row.bar %}<i class="oc-{{ b.kind }}" style="width:{{ b.pct }}%"></i>{% endfor %}</span></td>
               <td class="r num oc-hm">{{ row.growout|default:"—" }}</td>

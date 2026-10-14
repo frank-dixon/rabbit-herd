@@ -5,7 +5,7 @@
       {% for note in cull_notes %}
         <li class="flex items-start justify-between gap-3 py-2{% if note == cull_editing %} bg-neutral-100{% endif %}">
           <div class="min-w-0">
-            <p><span class="pill" data-decision="{{ note.decision }}">{{ note.get_decision_display }}</span> · {{ note.date|date:"M j, Y" }}{% if forloop.first and cull_notes|length > 1 %} · <span class="text-neutral-600">latest</span>{% endif %}</p>
+            <p><span class="pill" data-decision="{{ note.decision }}">{{ note.get_decision_display }}</span> · {{ note.date|day }}{% if forloop.first and cull_notes|length > 1 %} · <span class="text-neutral-600">latest</span>{% endif %}</p>
             {% if note.reason %}<p class="mt-1 whitespace-pre-line break-words text-neutral-800">{{ note.reason }}</p>{% endif %}
           </div>
           {% url 'rabbit_cull_delete' note.pk as remove_action %}{% with pk=note.pk|stringformat:"d" %}{% with edit_href="?cull="|add:pk|add:"#culling" %}{% include "components/row_actions.html" with name=note.get_decision_display edit_href=edit_href modal_key="culling" remove_action=remove_action undo="Evaluation removed." only %}{% endwith %}{% endwith %}
@@ -19,7 +19,7 @@
   {% if cull_editing %}{% url 'rabbit_cull_edit' cull_editing.pk as cull_action %}{% else %}{% url 'rabbit_cull_add' rabbit.pk as cull_action %}{% endif %}
   <div data-modal-content="culling" data-add-sheet-body><form class="mt-4 pt-4" method="post" action="{{ cull_action }}">
     {% csrf_token %}
-    <h3 class="font-semibold">{% if cull_editing %}Edit the evaluation from {{ cull_editing.date|date:"M j, Y" }}{% else %}Add an evaluation{% endif %}</h3>
+    <h3 class="font-semibold">{% if cull_editing %}Edit the evaluation from {{ cull_editing.date|day }}{% else %}Add an evaluation{% endif %}</h3>
     <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
       {% if cull_editing %}
         {% include "components/text_input.html" with name="cull_date" label="Date" type="date" value=cull_editing.date|date:"Y-m-d" max=today_iso only %}

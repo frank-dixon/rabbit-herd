@@ -8,7 +8,7 @@
       <p class="break-words font-semibold text-neutral-900">{% if c.herd %}<a class="underline print:no-underline" href="{% url 'rabbit_detail' c.pk %}">{{ c.name }}</a>{% else %}{{ c.name }}{% endif %}{% if c.tattoo %} · {{ c.tattoo }}{% endif %}</p>
       {% if c.breed or c.color %}<p class="break-words">{{ c.breed }}{% if c.breed and c.color %} · {% endif %}{{ c.color }}</p>{% endif %}
       {% if c.outside and next_url %}{% include "components/outside_photo_form.html" with outside=c.rabbit next=next_url csrf_token=csrf_token only %}{% endif %}
-      {% if c.line or c.born %}<p class="break-words text-neutral-600">{% if c.born %}Born {{ c.born|date:"M j, Y" }}{% endif %}{% if c.born and c.line %} · {% endif %}{% if c.line %}Line: {{ c.line }}{% endif %}</p>{% endif %}
+      {% if c.line or c.born %}<p class="break-words text-neutral-600">{% if c.born %}Born {{ c.born|day }}{% endif %}{% if c.born and c.line %} · {% endif %}{% if c.line %}Line: {{ c.line }}{% endif %}</p>{% endif %}
     {% else %}
       <p class="text-neutral-500">Not recorded</p>
     {% endif %}

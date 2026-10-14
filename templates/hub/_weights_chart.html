@@ -35,7 +35,7 @@
         {% for d in c.dots %}<circle cx="{{ d.x }}" cy="{{ d.y }}" r="3" class="wt-dot"/>{% endfor %}
       </svg>
     {% endwith %}{% else %}<p class="py-8 text-sm text-muted">No weigh-ins yet.</p>{% endif %}
-    {% if sel.log %}<table class="wt-log-table" data-weight-history{% if sel.log|length > 12 %} data-long{% endif %}><thead><tr><th>Date</th><th class="r">Weight</th><th class="r">Gain</th></tr></thead><tbody>{% for w in sel.log %}<tr><td class="text-muted">{{ w.date|date:"M j, Y" }}</td><td class="r num">{{ w.text }}</td><td class="r num {% if w.gain|first == '+' %}wt-up{% elif w.gain|first == '−' %}wt-down{% else %}text-muted{% endif %}">{{ w.gain|default:"—" }}</td></tr>{% endfor %}</tbody></table>{% if sel.log|length > 12 %}<button type="button" class="wt-btn mt-2" data-history-more hidden>Show all {{ sel.log|length }} readings</button>{% endif %}{% endif %}
+    {% if sel.log %}<table class="wt-log-table" data-weight-history{% if sel.log|length > 12 %} data-long{% endif %}><thead><tr><th>Date</th><th class="r">Weight</th><th class="r">Gain</th></tr></thead><tbody>{% for w in sel.log %}<tr><td class="text-muted">{{ w.date|day }}</td><td class="r num">{{ w.text }}</td><td class="r num {% if w.gain|first == '+' %}wt-up{% elif w.gain|first == '−' %}wt-down{% else %}text-muted{% endif %}">{{ w.gain|default:"—" }}</td></tr>{% endfor %}</tbody></table>{% if sel.log|length > 12 %}<button type="button" class="wt-btn mt-2" data-history-more hidden>Show all {{ sel.log|length }} readings</button>{% endif %}{% endif %}
   </section>
   {% endwith %}{% endif %}
 </div>
