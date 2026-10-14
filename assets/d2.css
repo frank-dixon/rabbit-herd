@@ -8,11 +8,12 @@ body { font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; 
 
 /* Wells: bordered boxes of content become open sections on the page. Interactive
    tiles (labels, links, list cards) and dialogs keep their own frame. */
-main :is(section, div, ul, ol, dl, fieldset, form, table):is(.border, [class*="border "]):is(.bg-surface, .bg-white, [class*="bg-surface/"]):not(.kit-card, .seg, [data-segmented], dialog *, [role="menu"], [data-keep-frame]) {
+main :is(section, div, ul, ol, dl, fieldset, form, table):is(.border):is(.border-line, .border-neutral-200, .border-neutral-300, [class*="border-line/"]):is([class*="rounded"], .bg-surface, .bg-white):not(.kit-card, .seg, [data-segmented], [data-keep-frame], .border-dashed, [class*="bg-danger"], [class*="bg-accent-soft"], [class*="hover:"], dialog *, [role="menu"], [role="listbox"]) {
   background-color: transparent; border-color: transparent; border-radius: 0; box-shadow: none;
   padding-left: 0; padding-right: 0;
 }
-main :is(section, div, ul, fieldset):is(.border, [class*="border "]):is(.bg-surface, .bg-white):not(.kit-card, .seg, [data-segmented], dialog *, [data-keep-frame]) > :is(ul, div).-mx-4 { margin-left: 0; margin-right: 0; }
+main :is(section, div, ul, ol):is(.border):is(.border-line, .border-neutral-200, .border-neutral-300):not(.kit-card, .seg, [data-keep-frame], .border-dashed) > :is(ul, div, li).-mx-4 { margin-left: 0; margin-right: 0; }
+main :is(.divide-y) > li:is(.p-3, .px-3, .px-4) { padding-left: 0; padding-right: 0; }
 main .ruled { border-top-color: var(--line); }
 
 /* Tables: full width, no outer box, uppercase gray headers, hairline rows, a light row hover. */
@@ -86,3 +87,10 @@ main h1 { letter-spacing: -0.02em; }
 .pill-o { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
 a.pill { cursor: pointer; transition: filter 120ms ease-out; } a.pill:hover { filter: brightness(0.97); }
 a.pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Empty states: one mark, one line, one action, straight on the page. */
+main .empty:not(.empty-compact) { border-color: transparent; background: transparent; box-shadow: none; padding-left: 0; padding-right: 0; }
+
+/* Rabbit page without a photo: a short tinted placeholder, not a tall blank. */
+#facts figure > span[aria-hidden="true"] { background: linear-gradient(135deg, var(--photo-1), var(--photo-2)); color: var(--muted); aspect-ratio: 16 / 9; border-radius: 8px; }
+#facts { border-color: transparent; background: transparent; }
