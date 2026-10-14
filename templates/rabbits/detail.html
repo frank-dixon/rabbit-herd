@@ -14,7 +14,7 @@
   </dialog>
 
   <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
-    <section class="flex flex-col overflow-hidden rounded border border-neutral-300 bg-white sm:flex-row lg:flex-col" id="facts" aria-label="Details">
+    <section class="flex flex-col overflow-hidden rounded lg:sticky lg:top-[4.5rem] lg:max-h-[calc(100dvh-5.5rem)] lg:overflow-y-auto lg:overscroll-contain border border-neutral-300 bg-white sm:flex-row lg:flex-col" id="facts" aria-label="Details">
       <figure class="sm:w-2/5 sm:shrink-0 lg:w-full">
         {% if main_photo %}
           <img draggable="false" class="aspect-[4/3] w-full object-cover sm:h-full lg:h-auto" {% photo_src main_photo "(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" %} alt="{{ rabbit.name }}, main photo" fetchpriority="high" decoding="async">
