@@ -46,7 +46,7 @@
                   <p class="break-words text-lg font-semibold">{{ entry.buyer }}</p>
                   <p class="break-words">Wants: {{ entry.wants }}</p>
                   {% if entry.reach %}<p class="break-words text-sm text-neutral-700">{{ entry.reach }}</p>{% endif %}
-                  <p class="mt-1 text-sm"><span class="rounded-full border border-neutral-400 px-2 py-0.5 text-xs font-medium" data-wait-status="{{ entry.status }}">{{ entry.get_status_display }}</span>{% if entry.rabbit %} · <a class="underline" href="{% url 'rabbit_detail' entry.rabbit.pk %}">{{ entry.rabbit.name }}</a>{% endif %}{% if entry.deposit %} · {{ entry.deposit|money }} deposit{% endif %}</p>
+                  <p class="mt-1 text-sm"><span class="pill" data-wait-status="{{ entry.status }}">{{ entry.get_status_display }}</span>{% if entry.rabbit %} · <a class="underline" href="{% url 'rabbit_detail' entry.rabbit.pk %}">{{ entry.rabbit.name }}</a>{% endif %}{% if entry.deposit %} · {{ entry.deposit|money }} deposit{% endif %}</p>
                   {% if entry.notes %}<p class="mt-1 whitespace-pre-line break-words text-sm text-neutral-800">{{ entry.notes }}</p>{% endif %}
                 </div>
                 <div class="flex shrink-0 gap-3 text-sm">

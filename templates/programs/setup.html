@@ -18,7 +18,7 @@
           {% ifchanged t.tier %}<p class="col-span-full mt-2 text-xs font-medium tracking-wide text-muted uppercase first:mt-0">{{ t.badge }}</p>{% endifchanged %}
           <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-line p-3 transition-colors duration-150 hover:border-field has-checked:border-accent has-checked:ring-1 has-checked:ring-accent has-focus-visible:ring-2 has-focus-visible:ring-accent">
             <input class="mt-1 h-4 w-4 shrink-0 accent-[var(--accent)]" type="radio" name="target_key" value="{{ t.key }}"{% if values.target_key == t.key %} checked{% endif %}>
-            <span class="min-w-0 flex-1"><span class="flex items-start justify-between gap-2"><span class="text-sm font-semibold">{{ t.label }}</span><span class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium {% if t.tier == 1 %}bg-accent-soft text-accent{% elif t.tier == 2 %}bg-second-soft text-second-ink{% else %}border border-line text-muted{% endif %}">{{ t.badge }}</span></span><span class="num block text-xs text-ink">{{ t.genes }}</span><span class="mt-1 block text-xs text-ink">{{ t.how }}{% if t.odds %} <span class="num text-muted">· {{ t.odds }} a kit</span>{% endif %}</span></span>
+            <span class="min-w-0 flex-1"><span class="flex items-start justify-between gap-2"><span class="text-sm font-semibold">{{ t.label }}</span><span class="shrink-0 pill {% if t.tier == 1 %}pill-g{% elif t.tier == 2 %}pill-b{% elif t.tier == 3 %}pill-y{% endif %}">{{ t.badge }}</span></span><span class="num block text-xs text-ink">{{ t.genes }}</span><span class="mt-1 block text-xs text-ink">{{ t.how }}{% if t.odds %} <span class="num text-muted">· {{ t.odds }} a kit</span>{% endif %}</span></span>
           </label>
         {% endfor %}
         <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-dashed border-line p-3 hover:border-field has-checked:border-accent has-checked:ring-1 has-checked:ring-accent has-focus-visible:ring-2 has-focus-visible:ring-accent">
@@ -80,8 +80,8 @@
       <span class="text-sm text-muted">Done · <a class="font-medium text-accent hover:underline" href="{% url 'program_goal' program.pk %}">Edit</a></span>
     </div>
     <dl class="mt-3 grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
-      <div><dt class="eyebrow">Target color</dt><dd class="mt-1 font-semibold">{{ program.target_label }} <span class="num ml-1 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">{{ target_text }}</span></dd></div>
-      <div><dt class="eyebrow">Traits to select for</dt><dd class="mt-1 flex flex-wrap gap-1.5">{% for t in program.traits %}<span class="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">{{ t }}</span>{% empty %}<span class="text-muted">None</span>{% endfor %}</dd></div>
+      <div><dt class="eyebrow">Target color</dt><dd class="mt-1 font-semibold">{{ program.target_label }} <span class="num ml-1 pill pill-g">{{ target_text }}</span></dd></div>
+      <div><dt class="eyebrow">Traits to select for</dt><dd class="mt-1 flex flex-wrap gap-1.5">{% for t in program.traits %}<span class="pill pill-g">{{ t }}</span>{% empty %}<span class="text-muted">None</span>{% endfor %}</dd></div>
       <div><dt class="eyebrow">Finish when</dt><dd class="mt-1">{{ program.keep_count }} {{ program.target_label|lower }} {{ program.get_keep_sex_display|lower }} kept<br>Max COI <span class="num">{{ program.max_coi.normalize }}%</span></dd></div>
     </dl>
   </section>

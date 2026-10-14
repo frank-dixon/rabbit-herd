@@ -1,1 +1,1 @@
-<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {% if state == 'ready' %}bg-accent-soft text-accent{% elif state == 'access' %}bg-second-soft text-second-ink{% else %}bg-side text-muted{% endif %}">{{ text }}</span>
+<span class="pill {% if state == 'ready' %}pill-g{% elif state == 'access' %}pill-b{% endif %}">{{ text }}</span>

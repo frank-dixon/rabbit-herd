@@ -6,7 +6,7 @@
   {% url 'pairing_detail' litter.pairing.pk as pairing_url %}
   {% include "components/page_header.html" with title=litter.pairing|stringformat:"s" subtitle=subtitle back_label="Pairing" back_href=pairing_url rabbit=litter.pairing.doe rabbit2=litter.pairing.buck only %}
   {% if litter.converted_at %}
-    <p class="mt-4 flex flex-wrap items-center gap-x-2 rounded-lg border border-line bg-surface px-4 py-3 text-sm" data-converted><span class="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent">Converted</span> Every kit became its own rabbit on {{ litter.converted_at|date:"D, M j" }}. This litter is read-only. <a class="underline underline-offset-4" href="#kits">See the rabbits</a></p>
+    <p class="mt-4 flex flex-wrap items-center gap-x-2 rounded-lg border border-line bg-surface px-4 py-3 text-sm" data-converted><span class="pill pill-g">Converted</span> Every kit became its own rabbit on {{ litter.converted_at|date:"D, M j" }}. This litter is read-only. <a class="underline underline-offset-4" href="#kits">See the rabbits</a></p>
   {% elif unconverted %}
     <dialog id="convert-dialog" class="confirm-dialog m-auto w-[calc(100%-2rem)] max-w-md rounded-xl border border-line bg-surface p-5 text-ink shadow-xl backdrop:bg-ink/40" aria-labelledby="convert-dialog-title">
       <h2 class="text-lg font-semibold" id="convert-dialog-title">Convert {{ unconverted|length }} kit{{ unconverted|pluralize }} to rabbits?</h2>
@@ -93,7 +93,7 @@
                 {% if kit.tattoo %}<p class="num text-xs text-muted">{{ kit.tattoo }}</p>{% endif %}
                 <div class="relative z-10 mt-auto pt-2">
                   {% if kit.latest_cull %}
-                    <a class="inline-flex min-h-8 items-center rounded-full border px-2.5 text-xs font-medium {% if kit.latest_cull.decision == 'keep' %}border-accent/40 text-accent{% elif kit.latest_cull.decision == 'cull' %}border-danger/40 text-danger{% else %}border-line text-ink{% endif %}" href="{% url 'rabbit_detail' kit.pk %}#culling" data-kit-decision="{{ kit.latest_cull.decision }}"{% if kit.latest_cull.reason %} title="{{ kit.latest_cull.reason|truncatechars:140 }}"{% endif %}>{{ kit.latest_cull.get_decision_display }} · {{ kit.latest_cull.date|date:"M j" }}</a>
+                    <a class="pill {% if kit.latest_cull.decision == 'keep' %}pill-g{% elif kit.latest_cull.decision == 'cull' %}pill-r{% endif %}" href="{% url 'rabbit_detail' kit.pk %}#culling" data-kit-decision="{{ kit.latest_cull.decision }}"{% if kit.latest_cull.reason %} title="{{ kit.latest_cull.reason|truncatechars:140 }}"{% endif %}>{{ kit.latest_cull.get_decision_display }} · {{ kit.latest_cull.date|date:"M j" }}</a>
                   {% else %}
                     <a class="inline-flex min-h-8 items-center text-xs text-muted underline underline-offset-4 hover:text-ink" href="{% url 'rabbit_detail' kit.pk %}#culling">Evaluate<span class="sr-only"> {{ kit.name }}</span></a>
                   {% endif %}

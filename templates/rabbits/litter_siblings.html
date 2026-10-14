@@ -55,7 +55,7 @@
             </dl>
             <div class="mt-auto pt-3">
               {% if row.cull %}
-                <p class="flex flex-wrap items-center gap-2 text-sm"><span class="rounded-full px-2 py-0.5 text-xs font-medium {% if row.cull.decision == 'keep' %}bg-accent-soft text-accent{% elif row.cull.decision == 'cull' %}bg-danger/10 text-danger{% else %}border border-line text-muted{% endif %}">{{ row.cull.get_decision_display }}</span><span class="text-xs text-muted">{{ row.cull.date|date:"M j" }}</span></p>
+                <p class="flex flex-wrap items-center gap-2 text-sm"><span class="pill {% if row.cull.decision == 'keep' %}pill-g{% elif row.cull.decision == 'cull' %}pill-r{% endif %}">{{ row.cull.get_decision_display }}</span><span class="text-xs text-muted">{{ row.cull.date|date:"M j" }}</span></p>
                 {% if row.cull.reason %}<p class="mt-1 line-clamp-2 text-sm text-muted">{{ row.cull.reason }}</p>{% endif %}
               {% else %}
                 <a class="text-sm text-muted underline hover:text-ink" href="{% url 'rabbit_detail' row.kit.pk %}#culling">Add keep or cull</a>

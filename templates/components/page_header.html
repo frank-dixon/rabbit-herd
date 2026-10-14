@@ -14,7 +14,7 @@
       <div class="min-w-0">
         <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
           <h1 class="break-words text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]{% if focus_heading %} focus:outline-none{% endif %}"{% if heading_id %} id="{{ heading_id }}"{% endif %}{% if focus_heading %} tabindex="-1"{% endif %}>{{ title }}</h1>
-          {% if badge %}<span class="rounded-full border border-line px-2 py-0.5 text-xs whitespace-nowrap text-muted" data-header-badge>{{ badge }}</span>{% endif %}
+          {% if badge %}<span class="pill" data-header-badge>{{ badge }}</span>{% endif %}
         </div>
         {% if subtitle %}<p class="mt-1 text-muted">{{ subtitle }}</p>{% endif %}
       </div>

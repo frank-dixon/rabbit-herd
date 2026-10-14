@@ -115,7 +115,7 @@
               {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="aspect-[4/3] w-full text-4xl" sizes="(min-width: 1024px) 300px, (min-width: 640px) 50vw, 100vw" only %}
               <span class="block p-3">
                 <span class="block min-w-0 text-lg font-semibold [overflow-wrap:normal]"><span class="sr-only">Open </span>{{ rabbit.name }}</span>
-                <span class="mt-1 inline-block shrink-0 whitespace-nowrap rounded-full border border-neutral-400 px-2 py-0.5 text-xs" data-status-chip data-status="{{ rabbit.status }}">{{ rabbit.status_tag }}</span>
+                <span class="mt-1 pill" data-status-chip data-status="{{ rabbit.status }}">{{ rabbit.status_tag }}</span>
                 <span class="mt-1 block text-sm text-neutral-600">{% if rabbit.died_text %}{{ rabbit.died_text }} · {% endif %}{{ rabbit.get_sex_display }}{% if rabbit.short_breed %} · {{ rabbit.short_breed }}{% endif %}{% if rabbit.purebred_info and rabbit.purebred_info.source != "entered" %} · purebred{% endif %}{% if rabbit.tattoo %} · {{ rabbit.tattoo }}{% endif %}</span>
               </span>
             </a>
@@ -146,7 +146,7 @@
                   <span class="num hidden text-sm leading-tight lg:block">{% if rabbit.last_weight %}{{ rabbit.last_weight.text }}<span class="block text-xs text-muted">{{ rabbit.last_weight.date|date:"M j" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</span>
                   {% if feature_locations %}<span class="hidden min-w-0 break-words text-sm xl:block">{% if rabbit.location %}{{ rabbit.location.name }}{% else %}<span class="text-muted">—</span>{% endif %}</span>{% endif %}
                   <span class="hidden min-w-0 break-words text-sm leading-tight xl:block">{% if rabbit.next_item %}{{ rabbit.next_item.label }}<span class="block text-xs {% if rabbit.next_item.overdue %}text-danger{% else %}text-muted{% endif %}">{% if rabbit.next_item.overdue %}Overdue · {% endif %}{{ rabbit.next_item.date|date:"M j" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</span>
-                  <span class="justify-self-end lg:justify-self-start"><span class="inline-block whitespace-nowrap rounded-full border border-line px-2 py-0.5 text-xs" data-status-chip data-status="{{ rabbit.status }}">{{ rabbit.status_tag }}</span></span>
+                  <span class="justify-self-end lg:justify-self-start"><span class="pill" data-status-chip data-status="{{ rabbit.status }}">{{ rabbit.status_tag }}</span></span>
                 </a>
               </li>
             {% endwith %}

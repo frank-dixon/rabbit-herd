@@ -7,7 +7,7 @@
           <div class="min-w-0">
             <p><span class="font-medium">{{ entry.show_name }}</span> · {{ entry.date|date:"M j, Y" }}{% if entry.location %} · {{ entry.location }}{% endif %}</p>
             {% if entry.show_class or entry.placing or entry.award or entry.leg %}
-              <p>{% if entry.show_class %}{{ entry.show_class }}{% endif %}{% if entry.show_class and entry.placing %}: {% endif %}{% if entry.placing %}<span class="font-medium">{{ entry.placing_text }}</span>{% endif %}{% if entry.award %}{% if entry.show_class or entry.placing %} · {% endif %}{{ entry.award }}{% endif %}{% if entry.leg %} <span class="ml-1 rounded-full border border-neutral-400 px-2 py-0.5 text-xs font-medium" data-leg>Leg</span>{% endif %}</p>
+              <p>{% if entry.show_class %}{{ entry.show_class }}{% endif %}{% if entry.show_class and entry.placing %}: {% endif %}{% if entry.placing %}<span class="font-medium">{{ entry.placing_text }}</span>{% endif %}{% if entry.award %}{% if entry.show_class or entry.placing %} · {% endif %}{{ entry.award }}{% endif %}{% if entry.leg %} <span class="ml-1 pill" data-leg>Leg</span>{% endif %}</p>
             {% endif %}
             {% if entry.judge %}<p class="text-neutral-600">Judge: {{ entry.judge }}</p>{% endif %}
             {% if entry.notes %}<p class="mt-1 whitespace-pre-line break-words text-neutral-800">{{ entry.notes }}</p>{% endif %}

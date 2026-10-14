@@ -59,3 +59,30 @@ main h1 { letter-spacing: -0.02em; }
 [data-status-chip][data-status="growing"] { background: var(--y-soft); color: var(--y-ink); }
 [data-status-chip][data-status="sold"] { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
 [data-status-chip]:is([data-status="culled"], [data-status="deceased"]) { background: var(--r-soft); color: var(--r-ink); }
+
+/* Key numbers (Today): a gray label, a large tabular value, a small note; columns split by hairlines, no boxes. */
+.key-numbers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
+.key-numbers .kn { padding: 0.875rem 0 1rem; min-width: 0; }
+.key-numbers .kn:nth-child(even) { padding-left: 1rem; border-left: 1px solid var(--line); }
+.key-numbers .kn:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+.kn-label { font-size: 0.84375rem; color: var(--muted); }
+.kn-value { font-size: 1.5rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.02em; margin: 0.25rem 0 0.125rem; }
+.kn-note { font-size: 0.8125rem; color: var(--muted); overflow-wrap: anywhere; }
+@media (min-width: 768px) {
+  .key-numbers { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .key-numbers .kn { padding: 0.25rem 1.5rem 1.5rem; border-bottom: 0 !important; }
+  .key-numbers .kn:first-child { padding-left: 0; }
+  .key-numbers .kn + .kn { border-left: 1px solid var(--line); }
+  .kn-value { font-size: 1.75rem; }
+}
+
+/* The one status pill, app-wide: gray by default; g done/ready, b in progress/new,
+   y pending/due, r failed/overdue, o (outline) finished or neutral-past. The text always says the state. */
+.pill { display: inline-flex; align-items: center; gap: 0.25rem; white-space: nowrap; border-radius: 4px; padding: 1px 6px; font-size: 0.75rem; line-height: 1.25rem; font-weight: 500; background: var(--pill); color: var(--ink-2); }
+.pill-g { background: var(--g-soft); color: var(--g-ink); }
+.pill-b { background: var(--b-soft); color: var(--b-ink); }
+.pill-y { background: var(--y-soft); color: var(--y-ink); }
+.pill-r { background: var(--r-soft); color: var(--r-ink); }
+.pill-o { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
+a.pill { cursor: pointer; transition: filter 120ms ease-out; } a.pill:hover { filter: brightness(0.97); }
+a.pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

@@ -10,7 +10,7 @@
         {% if b.rabbit and b.rabbit.main_photo %}{% include "rabbits/_rabbit_thumb.html" with rabbit=b.rabbit main=b.rabbit.main_photo size_class="aspect-[4/3] w-full rounded-md" sizes="200px" only %}{% else %}<span class="grid aspect-[4/3] w-full place-items-center rounded-md bg-side text-2xl font-semibold text-accent" aria-hidden="true">{{ b.name|first|upper }}</span>{% endif %}
         <div class="mt-2 flex items-center justify-between gap-1">
           <span class="min-w-0 break-words font-semibold">{% if b.rabbit %}<a class="hover:underline" href="{% url 'rabbit_detail' b.rabbit.pk %}">{{ b.name }}</a>{% else %}{{ b.name }}{% endif %}</span>
-          {% if b.picked %}<span class="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">Picked</span>{% endif %}
+          {% if b.picked %}<span class="shrink-0 pill pill-g">Picked</span>{% endif %}
         </div>
         <p class="text-xs text-muted">{{ b.sex|capfirst }} · {{ b.breed }}</p>
         <p class="num mt-1 text-xs">{{ b.genes_text }}</p>

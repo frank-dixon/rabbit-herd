@@ -6,7 +6,7 @@
   <section class="mt-5 grid grid-cols-1 gap-4 rounded-lg border border-line bg-surface p-4 sm:grid-cols-3 sm:p-5" aria-label="Goal">
     <div>
       <h2 class="eyebrow">Target</h2>
-      <p class="mt-1 font-semibold">{{ program.target_label }} <span class="num ml-1 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">{{ plan.target_text }}</span></p>
+      <p class="mt-1 font-semibold">{{ program.target_label }} <span class="num ml-1 pill pill-g">{{ plan.target_text }}</span></p>
       {% if program.traits %}<p class="mt-1 text-sm text-muted">Traits: {{ program.traits|join:" · " }}</p>{% endif %}
     </div>
     <div>
