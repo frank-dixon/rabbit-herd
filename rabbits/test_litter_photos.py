@@ -54,8 +54,10 @@ class ArchiveOnConvertTests(ConvertTests):
         self.assertEqual(own.photos.get(is_main=True).image.read(), slots[0].photo.open("rb").read())
         self.assertTrue(inherited.photos.filter(is_main=True).exists())
         self.client.force_login(self.owner)
-        self.assertNotContains(self.client.get("/litters/"), f"/litters/{self.litter.pk}/")
-        self.assertContains(self.client.get("/litters/?archived=1"), f"/litters/{self.litter.pk}/")
+        # A converted litter is a past litter: it sits in the Past table, and ?archived=1 lands there.
+        page = self.client.get("/litters/")
+        self.assertContains(page, f'data-past-litter="{self.litter.pk}"')
+        self.assertRedirects(self.client.get("/litters/?archived=1"), "/litters/#past", fetch_redirect_response=False)
         page = self.client.get(f"/litters/{self.litter.pk}/")
         self.assertContains(page, "archived and read-only")
         self.assertContains(page, "Kits at conversion")

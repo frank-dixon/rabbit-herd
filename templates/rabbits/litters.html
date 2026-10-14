@@ -6,19 +6,9 @@
   {% url 'pairing_list' as pairings_url %}
   {% include "components/page_header.html" with title="Litters" subtitle="Start a litter from a pairing. Dates for palpating, the nest box and kindling are set for you." primary_label="Pairings" primary_href=pairings_url only %}
   <div class="mt-4 flex items-center justify-between gap-4">
-    {% if archived %}<a class="text-sm text-accent underline-offset-4 hover:underline" href="{% url 'litter_list' %}" data-archived-back>← Current litters</a>
-    {% elif archived_count %}<a class="text-sm text-accent underline-offset-4 hover:underline" href="{% url 'litter_list' %}?archived=1" data-archived-link>Archived litters <span class="num text-muted">{{ archived_count }}</span></a>{% else %}<span></span>{% endif %}
+    {% if past %}<a class="text-sm text-accent underline-offset-4 hover:underline" href="#past" data-archived-link>Past litters <span class="num text-muted">{{ past|length }}</span></a>{% else %}<span></span>{% endif %}
     {% include "components/segmented.html" with label="Layout" options=view_options icon_only=True only %}
   </div>
-  {% if archived %}
-    <section class="mt-2" aria-labelledby="archived-heading">
-      <h2 class="text-base font-semibold" id="archived-heading">Archived <span class="num font-normal text-muted">{{ kindled|length }}</span></h2>
-      <p class="mt-1 text-sm text-muted">Litters whose kits were converted to junior rabbits. Each one stays here, read-only.</p>
-      {% if kindled %}<ul class="mt-3 grid gap-3 {% if view == 'list' %}grid-cols-1{% else %}grid-cols-1 sm:grid-cols-2 xl:grid-cols-3{% endif %}" data-archived-litters data-view="{{ view }}">
-        {% for c in kindled %}{% include "rabbits/_litter_card.html" %}{% endfor %}
-      </ul>{% else %}<p class="mt-3 text-sm text-muted">No archived litters.</p>{% endif %}
-    </section>
-  {% else %}
   <section class="mt-2" aria-labelledby="open-heading">
     <h2 class="text-base font-semibold" id="open-heading">Expecting <span class="num font-normal text-muted">{{ open|length }}</span></h2>
     {% if open %}
@@ -38,5 +28,4 @@
     </section>
   {% endif %}
   {% if past %}{% include "rabbits/_past_litters.html" %}{% endif %}
-  {% endif %}
 {% endblock %}

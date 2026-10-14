@@ -96,9 +96,13 @@ def litter_list(request):
     litters = list(Litter.objects.filter(owner=request.user)
                    .select_related("pairing__doe", "pairing__buck", "breeding_schedule")
                    .prefetch_related("pairing__doe__photos", "pairing__buck__photos", "kits__photos", "kits__weights"))
-    archived = request.GET.get("archived") == "1"
     doe = request.GET.get("doe", "")
-    litters = [l for l in litters if bool(l.converted_at) == archived and (not doe.isdigit() or l.pairing.doe_id == int(doe))]
+    if request.GET.get("archived") == "1":
+        # Archived (converted) litters are past litters: the old link lands on the Past table.
+        from django.shortcuts import redirect
+        return redirect(reverse("litter_list") + (f"?doe={doe}" if doe.isdigit() else "") + "#past")
+    archived = False
+    litters = [l for l in litters if not doe.isdigit() or l.pairing.doe_id == int(doe)]
     from . import litter_outcomes as O
 
     unit = prefs(request.user).weight_unit
@@ -106,7 +110,8 @@ def litter_list(request):
     if not archived:
         for litter in litters:
             kits = list(litter.kits.all())
-            (past if O.is_past(litter, kits, today) else current).append((litter, kits))
+            # Converted litters are always past; others once every kit has an outcome or after 120 days.
+            (past if litter.converted_at or O.is_past(litter, kits, today) else current).append((litter, kits))
         litters = [l for l, _ in current]
     from . import sorting
     past_cols = [("kindled", "Pair · kindled"), ("born", "Born / raised"), ("growout", "Avg. grow-out")]
