@@ -1,5 +1,17 @@
 {% extends "base.html" %}
 {% block title %}{{ program.title }} · {{ app_name }}{% endblock %}
+{% block head %}{{ block.super }}
+<script>
+  /* Phones open on Tree. Remember the screen width for the server, and on a
+     first visit from a phone switch before the page paints. */
+  (function () {
+    var narrow = window.matchMedia("(max-width: 639px)").matches;
+    var had = /(?:^|; )narrow=1/.test(document.cookie);
+    document.cookie = "narrow=" + (narrow ? 1 : 0) + "; path=/; max-age=31536000; SameSite=Lax";
+    if (narrow && !had && !/[?&]view=/.test(location.search)) location.replace("?view=tree");
+  })();
+</script>
+{% endblock %}
 {% block content %}
   {% url 'program_list' as list_url %}
   {% include "programs/_detail_header.html" %}

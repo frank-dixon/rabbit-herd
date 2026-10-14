@@ -194,9 +194,11 @@ def program_detail(request, pk):
     program = owned(request, pk)
     if program.step != Program.Step.PLAN:
         return redirect("program_goal" if program.step == Program.Step.GOAL else "program_breeders", program.pk)
-    view = request.GET.get("view", "flow")
+    # Phones (the "narrow" cookie, set by the page) open on Tree: Flow needs width.
+    default = "tree" if request.COOKIES.get("narrow") == "1" else "flow"
+    view = request.GET.get("view", default)
     if view not in dict(VIEWS):
-        view = "flow"
+        view = default
     plan = plan_mod.build(program)
     if plan.get("missing"):
         messages.error(request, "A breeder in this plan is no longer in your records. Pick the starting pairing again.")
@@ -207,7 +209,7 @@ def program_detail(request, pk):
     picked = set(plan["picked"]) | ({plan["g2"]["mate"]["key"]} if plan.get("g2") else set())
     return render(request, "programs/detail.html", {
         "program": program, "plan": plan, "view": view, "flow": flow_svg(plan, program) if view == "flow" else None,
-        "view_options": [{"href": f"?view={k}" if k != "flow" else "?", "label": l, "selected": k == view} for k, l in VIEWS],
+        "view_options": [{"href": f"?view={k}", "label": l, "selected": k == view} for k, l in VIEWS],
         "breeders": breeder_cards(program, plan["breeders"], odds_by, picked), "wide": True,
     })
 
