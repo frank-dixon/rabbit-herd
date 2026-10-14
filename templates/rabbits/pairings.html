@@ -3,7 +3,8 @@
 {% block title %}Pairings · {{ app_name }}{% endblock %}
 
 {% block content %}
-  {% include "components/page_header.html" with title="Pairings" primary_label="New pairing" primary_href="?new=1#new-pairing" subtitle="Pick a doe and a buck from your herd. You'll see a warning when they share ancestors." only %}
+  <div data-swap-root>
+  {% include "components/page_header.html" with title="Pairings" primary_label="New pairing" primary_href="?new=1#new-pairing" subtitle="Planned and past breedings, with inbreeding and predicted colors." actions_template="components/view_toggle.html" compact_actions=True %}
   <details class="add-sheet" id="new-pairing" data-add-sheet{% if request.GET.new or errors or check %} open{% endif %}>
     <summary class="hidden">New pairing</summary>
     <section class="mt-6 ruled pt-4" aria-labelledby="new-pairing-heading">
@@ -27,16 +28,10 @@
   </section>
   </details>
   {% if pairings %}
-    <ul class="mt-4 flex flex-col divide-y divide-neutral-200 overflow-hidden rounded border border-neutral-300 bg-white" data-pairings>
-      {% for pairing in pairings %}
-        <li><a class="flex items-center gap-3 p-3 hover:bg-neutral-50" href="{% url 'pairing_detail' pairing.pk %}">
-          <span class="flex shrink-0 -space-x-2 [&>*]:ring-2 [&>*]:ring-surface" data-pair-avatars>{% include "components/rabbit_avatar.html" with rabbit=pairing.doe size="sm" only %}{% include "components/rabbit_avatar.html" with rabbit=pairing.buck size="sm" only %}</span>
-          <span class="min-w-0 flex-1"><span class="block break-words font-semibold">{{ pairing.doe.name }} × {{ pairing.buck.name }}</span>
-          <span class="block text-sm text-neutral-600">Saved {{ pairing.created_at|date:"M j, Y" }}{% if pairing.notes %} · {{ pairing.notes }}{% endif %}</span></span>
-        </a></li>
-      {% endfor %}
-    </ul>
+    {% include "components/stat_cards.html" with stats=stats label="Pairings" only %}
+    <div data-swap="results" data-pairings>{% if view == "list" %}{% include "components/item_rows.html" %}{% else %}{% include "components/item_grid.html" %}{% endif %}</div>
   {% else %}
-    <p class="mt-4 text-neutral-600">No pairings yet.</p>
+    <p class="mt-4 text-muted">No pairings yet.</p>
   {% endif %}
+  </div>
 {% endblock %}

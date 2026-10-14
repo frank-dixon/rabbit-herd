@@ -134,9 +134,19 @@ def pairing_list(request):
         buck = pick(request.user, values["buck"], Rabbit.Sex.BUCK)
         if doe and buck:
             check = {"doe": doe, "buck": buck, "warnings": inbreeding_warnings(doe, buck), "age": age_warnings(doe, buck)}
-    pairings = Pairing.objects.filter(owner=request.user).select_related("doe", "buck").prefetch_related("doe__photos", "buck__photos")
+    from .index_items import index_view, stat, view_options
+
+    pairings = list(Pairing.objects.filter(owner=request.user).select_related("doe", "buck")
+                    .prefetch_related("doe__photos", "buck__photos", "doe__genes", "buck__genes", "litters"))
+    view = index_view(request, "pairings", "grid")
+    items = pairing_items(request.user, pairings)
+    count = lambda label: sum(1 for it in items if it["pill"]["label"] == label)
+    stats = [stat("Bred, due soon", count("Bred"), "waiting to kindle"), stat("Kits on ground", count("Kits on ground"), "not yet weaned or moved"),
+             stat("High COI", sum(1 for it in items if it["coi"] >= 25), "25% or more", "r" if any(it["coi"] >= 25 for it in items) else "")]
     return render(request, "rabbits/pairings.html", {
-        "pairings": pairings, "errors": errors, "values": values, "check": check, "wide": True,
+        "pairings": pairings, "items": items, "view": view, "view_options": view_options(request, view), "stats": stats,
+        "columns": [{"label": "Pair"}, {"label": "Inbreeding", "wide_only": True}, {"label": "Predicted colors", "wide_only": True},
+                    {"label": "Last litter", "wide_only": True}, {"label": "Status", "align": "r"}], "errors": errors, "values": values, "check": check, "wide": True,
         "doe_options": herd_choices(request.user, Rabbit.Sex.DOE),
         "buck_options": herd_choices(request.user, Rabbit.Sex.BUCK),
     })
@@ -172,3 +182,54 @@ def pairing_delete(request, pk):
     pairing.delete()
     messages.success(request, f"The pairing {name} was removed.")
     return redirect("pairing_list")
+
+
+STATUS_ORDER = {"Bred": 0, "Kits on ground": 1, "Planned": 2, "Done": 3}
+
+
+def pairing_items(user, pairings):
+    """Pairings for the shared card/row: thumbs, COI and closest relation, predicted colors, last litter, status."""
+    from django.urls import reverse
+    from django.utils import timezone
+
+    from . import program_plan
+    from .swatches import swatch
+
+    today = timezone.localdate()
+    ped = program_plan.pedigree(user)
+    items = []
+    for p in pairings:
+        coi = float(ped.coi(("h", p.buck_id), ("h", p.doe_id))) * 100
+        warnings = inbreeding_warnings(p.doe, p.buck)
+        odds = color_odds.predict(p.doe, p.buck)
+        chips = [{"swatch": swatch(name), "label": name.replace(" (black points)", "").replace(" (blue points)", " blue"), "note": pct}
+                 for name, pct in odds["colors"][:3]]
+        litter = max(p.litters.all(), key=lambda l: l.bred_on, default=None)
+        if litter is None:
+            pill, when, result = {"label": "Planned", "tone": ""}, "Not bred yet", f"Saved {p.created_at:%b} {p.created_at.day}"
+        elif not litter.kindled_on:
+            days = (litter.due_on - today).days
+            pill = {"label": "Bred", "tone": "b"}
+            when, result = f"Bred {litter.bred_on:%b} {litter.bred_on.day}", f"Due {litter.due_on:%b} {litter.due_on.day}" + (f" · {days} days" if days >= 0 else f" · {-days} days late")
+        else:
+            done = bool(litter.converted_at)
+            pill = {"label": "Done" if done else "Kits on ground", "tone": "" if done else "g"}
+            raised = litter.survivors if getattr(litter, "survivors", None) is not None else litter.born_alive
+            when = f"{'Last litter' if done else 'Kindled'} {litter.kindled_on:%b} {litter.kindled_on.day}"
+            result = f"{litter.born_alive or 0} born, {raised or 0} {'raised' if done else 'alive'}"
+        tone = "r" if coi >= 25 else "y" if coi > 0 else ""
+        coi_pill = {"label": f"COI {coi:.1f}%".replace(".0%", "%"), "tone": tone}
+        relation = warnings[0] if warnings else "No shared ancestors on record"
+        items.append({
+            "href": reverse("pairing_detail", args=[p.pk]), "title": f"{p.doe.name} × {p.buck.name}",
+            "sub": f"{p.doe.color or 'Color not set'} × {p.buck.color or 'Color not set'}", "thumbs": [p.doe, p.buck],
+            "pill": pill, "coi": coi, "chips_label": "Predicted colors", "chips": chips,
+            "kv": [{"label": when, "value": result}, {"label": "Litters", "value": p.litters.count()}],
+            "foot": {"pill": coi_pill, "text": relation},
+            "mobile": f"{result} · COI {coi:.1f}%",
+            "cells": [{"kind": "lead"}, {"kind": "pill", "wide_only": True, **coi_pill}, {"kind": "chips", "chips": chips, "wide_only": True},
+                      {"kind": "text", "main": when, "sub": result, "wide_only": True}, {"kind": "pill", "align": "r", **pill}],
+            "order": (STATUS_ORDER[pill["label"]], -(litter.bred_on.toordinal() if litter else 0)),
+        })
+    items.sort(key=lambda it: it["order"])
+    return items
