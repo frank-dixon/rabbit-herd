@@ -1,0 +1,61 @@
+/* Direction 2 (revised): the app-wide treatment for every theme. Content sits
+   on the near-white (or dark) page; sections are split by whitespace and
+   hairlines, not boxes. Color is kept for the primary button, links, the
+   active nav item and tab, status pills, charts and focus rings. Hover is a
+   quick tint; buttons press down 1px. Nothing moves in the background. */
+
+body { font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+
+/* Wells: bordered boxes of content become open sections on the page. Interactive
+   tiles (labels, links, list cards) and dialogs keep their own frame. */
+main :is(section, div, ul, ol, dl, fieldset, form, table):is(.border, [class*="border "]):is(.bg-surface, .bg-white, [class*="bg-surface/"]):not(.kit-card, .seg, [data-segmented], dialog *, [role="menu"], [data-keep-frame]) {
+  background-color: transparent; border-color: transparent; border-radius: 0; box-shadow: none;
+  padding-left: 0; padding-right: 0;
+}
+main :is(section, div, ul, fieldset):is(.border, [class*="border "]):is(.bg-surface, .bg-white):not(.kit-card, .seg, [data-segmented], dialog *, [data-keep-frame]) > :is(ul, div).-mx-4 { margin-left: 0; margin-right: 0; }
+main .ruled { border-top-color: var(--line); }
+
+/* Tables: full width, no outer box, uppercase gray headers, hairline rows, a light row hover. */
+main table { border-collapse: collapse; }
+main thead th { font-size: 0.71875rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); }
+main tbody > tr { border-color: var(--line-soft); transition: background-color 110ms ease-out; }
+main tbody > tr > :is(td, th) { border-bottom: 1px solid var(--line-soft); }
+main tbody > tr:hover { background-color: var(--hover); }
+main :is(.divide-y, .divide-line) > * { border-color: var(--line-soft); }
+
+/* Pills: small, 4px radius, tinted background with darker text of the same hue. */
+main span:is(.rounded-full):is(.text-xs, [class*="text-[11px]"], [class*="text-[12px]"]):not(:has(svg:only-child)) { border-radius: 4px; }
+
+/* Buttons. Primary: the accent, a hairline shadow, a darker hover. Secondary: the
+   surface with a hairline ring and dark text. Both press down 1px. */
+:is(a, button).bg-accent { box-shadow: 0 1px 1px rgb(0 0 0 / 0.12); transition: background-color 120ms ease-out, transform 80ms ease-out; }
+:is(a, button).bg-accent:hover { background-color: var(--accent-hover); }
+:is(a, button).mo-press.border-line.bg-surface { border-color: transparent; box-shadow: 0 0 0 1px var(--line), 0 1px 1px rgb(0 0 0 / 0.05); }
+:is(a, button).mo-press.border-line.bg-surface:hover { background-color: var(--hover); }
+:is(a, button, label).mo-press:active, button[type="submit"]:active { transform: translateY(1px) !important; }
+:is(a, button):is(.rounded-md) { border-radius: 7px; }
+
+/* Segmented controls read as quiet tabs: a hairline track, the chosen one in the surface. */
+.seg { background-color: var(--well); border-color: transparent; }
+
+/* Quick hover tints on rows and nav. */
+[data-app-rail] a, [data-app-tabs] a, main li > a { transition: background-color 120ms ease-out, color 120ms ease-out; }
+
+/* The side rail and tab bar: on the page color, a hairline between. */
+[data-app-rail] { background-color: var(--canvas); border-right-color: var(--line); }
+[data-app-tabs].tabbar { background-color: color-mix(in oklab, var(--canvas) 92%, transparent); border-top-color: var(--line); }
+
+/* Key numbers: tight, semibold, tabular. */
+main .num { font-variant-numeric: tabular-nums; }
+main h1 { letter-spacing: -0.02em; }
+
+@media (prefers-reduced-motion: reduce) {
+  main tbody > tr, :is(a, button).bg-accent, [data-app-rail] a, [data-app-tabs] a, main li > a { transition: none; }
+  :is(a, button, label).mo-press:active, button[type="submit"]:active { transform: none !important; }
+}
+
+/* Status pills (rabbit list): Breeding gray, Growing out amber, Sold gray outline, Culled/Deceased red. */
+[data-status-chip][data-status] { border-radius: 4px !important; border-width: 0 !important; padding: 1px 6px !important; font-size: 0.75rem; font-weight: 500; background: var(--pill); color: var(--ink-2); backdrop-filter: none; }
+[data-status-chip][data-status="growing"] { background: var(--y-soft); color: var(--y-ink); }
+[data-status-chip][data-status="sold"] { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
+[data-status-chip]:is([data-status="culled"], [data-status="deceased"]) { background: var(--r-soft); color: var(--r-ink); }

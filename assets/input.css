@@ -2,6 +2,7 @@
 @import "./themes.css";
 @import "./motion.css";
 @import "./v2.css";
+@import "./d2.css";
 
 /* Self-hosted fonts (SIL OFL, licences in static/fonts) so the installed app
    renders the same offline. Instrument Sans for text, DM Mono for numbers. */
@@ -50,6 +51,14 @@
   --color-danger-soft: color-mix(in oklab, var(--danger) 12%, var(--surface));
   --color-photo-1: var(--photo-1);
   --color-photo-2: var(--photo-2);
+  --color-ink-2: var(--ink-2);
+  --color-hover: var(--hover);
+  --color-well: var(--well);
+  --color-faint: var(--faint);
+  --color-g-soft: var(--g-soft); --color-g-ink: var(--g-ink);
+  --color-b-soft: var(--b-soft); --color-b-ink: var(--b-ink);
+  --color-y-soft: var(--y-soft); --color-y-ink: var(--y-ink);
+  --color-r-soft: var(--r-soft); --color-r-ink: var(--r-ink);
 
   --color-white: var(--surface);
   --color-black: var(--ink);
@@ -180,7 +189,7 @@ html[data-menu-open] .app-scrim { opacity: 1; pointer-events: auto; }
 
 /* Swipe rows. */
 .swipe-row { position: relative; overflow: hidden; touch-action: pan-y; }
-.swipe-content { position: relative; z-index: 1; background: var(--surface); will-change: transform; }
+.swipe-content { position: relative; z-index: 1; background: var(--canvas); will-change: transform; }
 .swipe-bg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end; padding-inline: 1.25rem; font-weight: 600; font-size: 0.9rem; color: var(--on-accent); background: color-mix(in oklab, var(--accent) 70%, var(--surface)); transition: background-color var(--dur-1) var(--ease-out); }
 .swipe-armed .swipe-bg { background: var(--accent); }
 
@@ -245,14 +254,7 @@ select:not([multiple]):not([size]) {
 @keyframes pop-out { to { opacity: 0; transform: translateY(6px) scale(0.98); } }
 @media (prefers-reduced-motion: reduce) { .account-pop, .account-pop.is-leaving { animation-duration: 1ms; } }
 
-/* Theme swatches preview in the chosen mode. */
-.swatch-dark { display: none; }
-html[data-mode="dark"] .swatch-dark { display: grid; }
-html[data-mode="dark"] .swatch-light { display: none; }
-@media (prefers-color-scheme: dark) {
-  html:not([data-mode="light"]) .swatch-dark { display: grid; }
-  html:not([data-mode="light"]) .swatch-light { display: none; }
-}
+
 
 /* Collapsible sections: smooth height where the browser can animate to auto, instant otherwise. */
 .fold, .add-fold { interpolate-size: allow-keywords; }
