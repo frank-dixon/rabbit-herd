@@ -38,3 +38,12 @@ def ancestor_thumb(rabbit, color=""):
         # Outside details read like "Black doe · Kessler New Zealands · KNZ0412".
         color = color or (getattr(rabbit, "details", "") or "").split("·")[0]
     return {"photo": None, "src": coat_placeholder_url(color), "placeholder": True}
+
+
+@register.inclusion_tag("components/coat_swatch.html")
+def coat_swatch(rabbit, box=""):
+    """No-photo stand-in: a tile tinted from the recorded coat color, or a neutral rabbit silhouette when there is none."""
+    from rabbits.swatches import swatch
+
+    color = (getattr(rabbit, "color", "") or "").strip()
+    return {"box": box, "background": swatch(color) if color else "", "color": color}

@@ -28,7 +28,7 @@
           </figcaption>
           {% elif main_photo.notes %}<figcaption class="photo-credit px-1 pt-2 text-xs text-muted">{{ main_photo.notes }}</figcaption>{% endif %}
         {% else %}
-          <span class="flex aspect-[16/10] max-h-[200px] w-full items-center justify-center bg-neutral-100 text-5xl sm:aspect-square sm:max-h-none font-semibold text-neutral-500" aria-hidden="true">{{ rabbit.name|first|upper }}</span>
+          {% coat_swatch rabbit "aspect-[16/10] max-h-[200px] w-full sm:aspect-square sm:max-h-none" %}
         {% endif %}
       </figure>
       {% url 'rabbit_quick_edit' rabbit.pk 'sex' as sex_href %}{% url 'rabbit_quick_edit' rabbit.pk 'breed' as breed_href %}{% url 'rabbit_quick_edit' rabbit.pk 'color' as color_href %}{% url 'rabbit_quick_edit' rabbit.pk 'line' as line_href %}{% url 'rabbit_quick_edit' rabbit.pk 'birth-date' as birth_date_href %}{% url 'rabbit_quick_edit' rabbit.pk 'name' as name_href %}{% url 'rabbit_status' rabbit.pk as status_href %}

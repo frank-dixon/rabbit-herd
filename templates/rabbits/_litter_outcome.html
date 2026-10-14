@@ -15,7 +15,7 @@
       <table>
         <thead><tr><th>Kit</th><th>Outcome</th><th class="r">Live wt</th><th class="r oc-hm">Dressed</th><th class="r oc-hm">Dress-out</th><th class="r oc-hm">Days</th></tr></thead>
         <tbody>{% for row in outcome.rows %}{% with main=row.kit.main_photo %}
-          <tr><td><a class="oc-row-link" href="{% url 'rabbit_detail' row.kit.pk %}">{% if main %}<img class="oc-kit" {% photo_src main "32px" 96 %} alt="" loading="lazy">{% else %}<span class="oc-kit grid place-items-center bg-accent-soft text-xs font-semibold text-accent" aria-hidden="true">{{ row.kit.name|first|upper }}</span>{% endif %}{{ row.kit.name }}</a></td>
+          <tr><td><a class="oc-row-link" href="{% url 'rabbit_detail' row.kit.pk %}">{% if main %}<img class="oc-kit" {% photo_src main "32px" 96 %} alt="" loading="lazy">{% else %}{% coat_swatch row.kit "oc-kit" %}{% endif %}{{ row.kit.name }}</a></td>
             <td><span class="pill {% if row.kind == 'kept' %}pill-g{% elif row.kind == 'sold' %}pill-b{% elif row.kind == 'processed' %}pill-y{% endif %}">{{ row.label }}</span></td>
             <td class="r num">{{ row.live|default:"—" }}</td><td class="r num oc-hm">{{ row.dressed|default:"—" }}</td><td class="r num oc-hm">{{ row.pct|default:"—" }}</td><td class="r num oc-hm">{{ row.days|default_if_none:"—" }}</td></tr>
         {% endwith %}{% endfor %}</tbody>

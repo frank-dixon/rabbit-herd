@@ -1,6 +1,6 @@
-{% load photos %}{# rabbit, main (photo or None), size_class: classes for the box. Letter placeholder when there is no photo. #}
+{% load photos %}{# rabbit, main (photo or None), size_class: classes for the box. Coat-tinted swatch when there is no photo. #}
 {% if main %}
   <img draggable="false" class="{{ size_class }} object-cover" {% photo_src main sizes|default:"72px" 640 %} alt="" loading="lazy" decoding="async" data-avatar>
 {% else %}
-  <span class="{{ size_class }} flex items-center justify-center bg-neutral-100 font-semibold text-neutral-500" aria-hidden="true" data-avatar>{{ rabbit.name|first|upper }}</span>
+  {% coat_swatch rabbit size_class %}
 {% endif %}
