@@ -26,6 +26,7 @@ from rabbits.models import (
     Pairing, PedigreeEntry, Program, ProgramBreeder, Rabbit, RabbitPhoto, Relative,
     ShowEntry, Task, WaitlistEntry, Weight,
 )
+from rabbits.models import PEDIGREE_POSITIONS, LitterNote
 
 DEMO_EMAIL = "demo@bramble-burrow.app"
 NZ = "New Zealand"
@@ -33,7 +34,7 @@ CAL = "Californian"
 GENE_LOCI = ["A", "B", "C", "D", "E", "En"]
 
 # Kit growth (grams) at weeks 1..10. Pure NZ from the New Zealand White (NN)
-# means in Abou Khadiga et al. 2015 (J. Adv. Vet. Anim. Res. 2:120–127, Egypt
+# means in Abdel-Hamid 2015 (J. Adv. Vet. Anim. Res. 2:120–127, Egypt
 # 3×3 diallel; Table of body weight at 4/6/8/10 wk: 590 / 1105 / 1494 / 1810).
 # Weeks 1–3, 5, 7, 9 are linear interpolations between those and a ~60 g birth
 # weight. NZ×Californian (NN×CC in the same table: 607 / 1307 / 1710 / 1977)
@@ -138,6 +139,16 @@ OUTSIDE = [
     ("Sunset", "Californian doe · Fairhaven Californians"),
     ("Pacific", "Californian buck · Fairhaven Californians"),
 ]
+NAMES = ["Juniper", "Bramble", "Thistle", "Clover", "Hazel", "Rowan", "Maple", "Sorrel", "Briar", "Tansy",
+         "Fennel", "Moss", "Wren", "Sage", "Basil", "Pepper", "Nutmeg", "Willow", "Aspen", "Cedar", "Birch",
+         "Hickory", "Laurel", "Ivy", "Poppy", "Daisy", "Dusty", "Smokey", "Midnight", "Licorice", "Sable",
+         "Raven", "Pewter", "Storm", "Thunder", "Misty", "Ruby", "Rusty", "Ginger", "Paprika", "Saffron",
+         "Marigold", "Blaze", "Ash", "Ghost", "Snowball", "Frosty", "Pearl", "Opal", "Lily", "Ziggy", "Duke",
+         "Duchess", "Baron", "Major", "Captain", "Bear", "Biscuit", "Butterscotch", "Cocoa", "Hank", "Otis"]
+RABBITRY = {"Black": ("Kessler New Zealands", "KNZ"), "Blue": ("Cedar Run Meat Rabbits", "CR"),
+            "Red": ("Northwind NZ", "NW"), "REW": ("Kessler New Zealands", "KNZ"),
+            "Broken Black": ("Northwind NZ", "NW"), "Californian": ("Fairhaven Californians", "FC")}
+OUTSIDE_SEX_WORD = {"Old Coal": "buck", "Checkers": "buck", "Pacific": "buck"}
 OUTSIDE_COLOR = {"Old Coal": "Black", "Nightshade": "Black", "Skyline": "Blue", "Cinnabar": "Red", "Alba": "REW",
                  "Checkers": "Broken Black", "Sunset": "Californian", "Pacific": "Californian"}
 
@@ -620,6 +631,12 @@ class Command(BaseCommand):
             ShowEntry.objects.create(rabbit=R[nm], show_name=show, date=day(back), location="PA",
                                      show_class=cls, placing=place, out_of=of, award=award, judge="J. Miller", leg=leg)
 
+        # --- Old litters: converted at 6–7 weeks; every kit got a real outcome ---
+        conversions = self.convert_old_litters(user, R, gene_map, buyers, breeds, today)
+
+        # --- Full 3-generation pedigrees (14 ancestors) for every rabbit ---
+        pedigree_rows = self.pedigrees(user, R, parents, outs)
+
         # --- Breeding programs (planner) ---
         def target(key):
             from rabbits.program_plan import TARGET_KEYS
@@ -649,9 +666,206 @@ class Command(BaseCommand):
             "weights": Weight.objects.filter(rabbit__owner=user).count(), "photos": photos + 1,
             "tasks": Task.objects.filter(owner=user).count(), "expenses": Expense.objects.filter(owner=user).count(),
             "programs": Program.objects.filter(owner=user).count(),
+            "converted litters": conversions["litters"], "kit outcomes": conversions["outcomes"],
+            "pedigree entries": pedigree_rows,
             "waitlist": WaitlistEntry.objects.filter(owner=user).count(),
             "locations": Location.objects.filter(owner=user).count(),
         }
+
+    def pedigrees(self, user, R, parents, outs):
+        """Write all 14 pedigree positions on every demo rabbit. Herd rabbits are
+        used wherever the records reach; above that, outside ancestors (same color
+        line, a rabbitry and a tattoo) fill in, generated once and reused."""
+        out_parents, counter = {}, [0]
+
+        def outside_parents(o):
+            if o.pk not in out_parents:
+                color = OUTSIDE_COLOR.get(o.name) or o.details.split(" · ")[0]
+                rabbitry, prefix = RABBITRY.get(color, RABBITRY["Black"])
+                made = []
+                for sex in ("doe", "buck"):
+                    counter[0] += 1
+                    c = color if not (color.startswith("Broken") and sex == "doe") else color.replace("Broken ", "")
+                    name = f"{NAMES[(counter[0] * 7) % len(NAMES)]} {'II' if counter[0] % 3 == 0 else ''}".strip()
+                    made.append(OutsideRabbit.objects.create(
+                        owner=user, name=f"{prefix} {name}",
+                        details=f"{c} {'doe' if sex == 'doe' else 'buck'} · {rabbitry} · {prefix}{1000 + counter[0] * 37}"))
+                    OUTSIDE_COLOR[made[-1].name] = c
+                out_parents[o.pk] = tuple(made)
+            return out_parents[o.pk]
+
+        # Give the named outside ancestors a color, rabbitry and tattoo in their details.
+        for name, o in outs.items():
+            color = OUTSIDE_COLOR[name]
+            rabbitry, prefix = RABBITRY.get(color, RABBITRY["Black"])
+            o.details = f"{color} {OUTSIDE_SEX_WORD.get(name, 'doe')} · {rabbitry} · {prefix}{sum(map(ord, name)) * 7 % 900 + 100}"
+            o.save(update_fields=["details"])
+
+        def herd_parents(rabbit):
+            d, s_ = parents.get(rabbit.name, (None, None)) if rabbit.name in R and R[rabbit.name].pk == rabbit.pk else (None, None)
+            if d is None and s_ is None:
+                d, s_ = kit_parents.get(rabbit.pk, (None, None))
+            rows = {r.relationship: r for r in Relative.objects.filter(rabbit=rabbit, relationship__in=["dam", "sire"])}
+            dam = R[d] if d else (rows["dam"].herd_rabbit or rows["dam"].outside) if "dam" in rows else None
+            sire = R[s_] if s_ else (rows["sire"].herd_rabbit or rows["sire"].outside) if "sire" in rows else None
+            return dam, sire
+
+        cache = {}
+
+        def both(x):
+            key = (type(x).__name__, x.pk)
+            if key not in cache:
+                cache[key] = herd_parents(x) if isinstance(x, Rabbit) else outside_parents(x)
+            return cache[key]
+
+        kit_parents = {}
+        for rel in Relative.objects.filter(rabbit__owner=user, relationship__in=["dam", "sire"], herd_rabbit__isnull=False) \
+                .select_related("herd_rabbit"):
+            d, s_ = kit_parents.get(rel.rabbit_id, (None, None))
+            if rel.relationship == "dam":
+                d = rel.herd_rabbit.name
+            else:
+                s_ = rel.herd_rabbit.name
+            kit_parents[rel.rabbit_id] = (d, s_)
+
+        PedigreeEntry.objects.filter(rabbit__owner=user).delete()
+        rows = []
+        for rabbit in Rabbit.all_objects.filter(owner=user):
+            level = {"": rabbit}
+            for pos in PEDIGREE_POSITIONS:
+                child = level.get(pos[:-1])
+                if child is None:
+                    continue
+                dam, sire = both(child)
+                if dam is None or sire is None:
+                    o = OutsideRabbit.objects.create(owner=user, name="Unknown", details="")
+                    dam, sire = outside_parents(o) if dam is None and sire is None else (dam, sire)
+                anc = dam if pos.endswith("d") else sire
+                if anc is None:
+                    continue
+                level[pos] = anc
+                rows.append(PedigreeEntry(rabbit=rabbit, position=pos,
+                                          herd_rabbit=anc if isinstance(anc, Rabbit) else None,
+                                          outside=anc if isinstance(anc, OutsideRabbit) else None))
+        PedigreeEntry.objects.bulk_create(rows)
+        OutsideRabbit.objects.filter(owner=user, name="Unknown", pedigree_appearances__isnull=True).delete()
+        return len(rows)
+
+    def convert_old_litters(self, user, R, gene_map, buyers, breeds, today):
+        """Every litter kindled more than 42 days ago was converted at 6–7 weeks.
+        Kept in-house rabbits fill their slots; the rest got an outcome: sold
+        (buyer, price), culled, or grown out and processed at 10–12 weeks with a
+        live weight and dressed weight (56–60% dress-out), plus dated litter notes."""
+        from rabbits import planner as P
+        from rabbits.models import BreedShare
+
+        cutoff = today - datetime.timedelta(days=42)
+        lit_n = outcomes = 0
+        photo_by_color = {}
+        for ph in RabbitPhoto.objects.filter(rabbit__owner=user, is_main=True).select_related("rabbit"):
+            photo_by_color.setdefault(ph.rabbit.color.replace("Broken ", "").replace("Charlie ", ""), ph.image.name)
+        cull_why = ["Pinched hindquarters.", "Malocclusion starting.", "Narrow shoulders; poor depth.",
+                    "Slow grower; off feed for a week.", "Weepy eye that didn't clear."]
+        new_weights, new_photos, new_genes, new_rel, new_culls, shares, new_notes = [], [], [], [], [], [], []
+        litters = Litter.objects.filter(owner=user, kindled_on__lt=cutoff).order_by("kindled_on", "pairing__doe__name").select_related("pairing__doe", "pairing__buck")
+        for litter in litters:
+            doe, buck = litter.pairing.doe, litter.pairing.buck
+            kept = list(Rabbit.all_objects.filter(owner=user, litter=litter).order_by("pk"))
+            survivors = max(litter.survivors or 0, len(kept))
+            litter.born_alive = max(litter.born_alive or 0, survivors + (litter.died_after or 0))
+            age_days = (today - litter.kindled_on).days
+            convert_day = litter.kindled_on + datetime.timedelta(days=42 + (lit_n % 8))
+            litter.weaned = True
+            litter.processed = age_days >= 84
+            litter.rebred = True
+            litter.converted_at = timezone.make_aware(datetime.datetime.combine(convert_day, datetime.time(18, 0)))
+            litter.save()
+            LitterKit.objects.filter(litter=litter).delete()
+            day = lambda n: litter.kindled_on + datetime.timedelta(days=n)
+            new_notes += [LitterNote(litter=litter, date=day(18), text="Eyes open, all out of the box and eating pellets."),
+                          LitterNote(litter=litter, date=day(35), text="Weaned off the doe; moved to the grow-out pen.")]
+            if age_days >= 84:
+                new_notes.append(LitterNote(litter=litter, date=day(77 + lit_n % 7),
+                                            text="Processing day; hay-fed grow-outs dressed out well."))
+            dg = P.read_genes(dict(zip(GENE_LOCI, gene_map.get(doe.name, "").split())))
+            bg = P.read_genes(dict(zip(GENE_LOCI, gene_map.get(buck.name, "").split())))
+            options = sorted(P.kit_genotypes(dg, bg).items())
+            cross = doe.breed != buck.breed
+            for i in range(survivors):
+                number = i + 1
+                if i < len(kept):
+                    LitterKit.objects.create(litter=litter, number=number, sex=kept[i].sex, color=kept[i].color, rabbit=kept[i])
+                    continue
+                # A deterministic draw from the litter's kit genotypes
+                x, acc, pick = ((lit_n * 37 + i * 61) % 997) / 997, 0, options[-1][0]
+                for g, f in options:
+                    acc += float(f)
+                    if x < acc:
+                        pick = g
+                        break
+                color = P.phenotype(pick)
+                genes = ["".join(pair) for pair in pick]
+                sex = "doe" if (lit_n + i) % 2 else "buck"
+                k = i - len(kept)
+                if k == 0 and survivors - len(kept) >= 4:
+                    fate, end_wk = "sold", 8 + lit_n % 2
+                elif k == 1 and survivors - len(kept) >= 5:
+                    fate, end_wk = "culled", 6 + lit_n % 2
+                elif age_days < 70 + 14:
+                    fate, end_wk = "growing", None
+                else:
+                    fate, end_wk = "processed", 10 + (lit_n + i) % 3
+                end = litter.kindled_on + datetime.timedelta(days=end_wk * 7) if end_wk else None
+                kit = Rabbit.objects.create(
+                    owner=user, name=f"{doe.name} kit {number}", sex=sex,
+                    breed="NZ × Californian" if cross else doe.breed, breed_type="crossbred" if cross else "purebred",
+                    purebred=None if cross else breeds.get(doe.breed), color=color,
+                    birth_date=litter.kindled_on, litter=litter, line="Hollow Creek",
+                    status={"sold": "sold", "culled": "culled", "processed": "culled", "growing": "growing"}[fate],
+                    death_date=end if fate in ("culled", "processed") else None,
+                    death_cause={"culled": "Culled", "processed": f"Processed at {end_wk} weeks"}.get(fate, ""),
+                    sold_on=end if fate == "sold" else None,
+                    sold_to=buyers[(lit_n + i) % len(buyers)] if fate == "sold" else None,
+                    sale_price=Decimal(35 + (lit_n % 6) * 5) if fate == "sold" else None,
+                )
+                LitterKit.objects.create(litter=litter, number=number, sex=sex, color=color, rabbit=kit)
+                if cross:
+                    shares += [BreedShare(rabbit=kit, breed=breeds[NZ], percent=Decimal("50")),
+                               BreedShare(rabbit=kit, breed=breeds[CAL], percent=Decimal("50"))]
+                new_rel += [Relative(rabbit=kit, relationship="dam", herd_rabbit=doe),
+                            Relative(rabbit=kit, relationship="sire", herd_rabbit=buck)]
+                new_genes += [Gene(rabbit=kit, locus=l, genotype=g, certainty=Gene.Certainty.PROBABLE)
+                              for l, g in zip(GENE_LOCI, genes)]
+                curve = XC_CURVE if cross else NZ_CURVE
+                last_wk = end_wk or min(age_days // 7, 26)
+                for wk in range(1, last_wk + 1):
+                    grams = kit_grams(wk * 7, curve) + (((lit_n * 11 + i) * 13 + wk * 7) % 61) - 30
+                    note = f"Week {wk}"
+                    if fate == "processed" and wk == end_wk:
+                        note = "Live weight at processing"
+                        kit.dressed_grams = round(grams * (0.56 + ((lit_n * 11 + i) % 5) / 100))
+                        kit.save(update_fields=["dressed_grams"])
+                    new_weights.append(Weight(rabbit=kit, date=litter.kindled_on + datetime.timedelta(days=wk * 7),
+                                              grams=grams, note=note))
+                if fate in ("culled", "processed"):
+                    why = cull_why[(lit_n + i) % len(cull_why)] if fate == "culled" else \
+                        f"Grown out for meat; processed at {end_wk} weeks."
+                    new_culls.append(CullNote(rabbit=kit, date=end, decision="cull", reason=why))
+                base = color.replace("Broken ", "").replace("Charlie ", "")
+                name = photo_by_color.get(base) or photo_by_color.get("Black")
+                if name:
+                    new_photos.append(RabbitPhoto(rabbit=kit, image=name, is_main=True, taken_at=litter.kindled_on +
+                                                  datetime.timedelta(days=35)))
+                outcomes += 1
+            lit_n += 1
+        Weight.objects.bulk_create(new_weights)
+        Gene.objects.bulk_create(new_genes)
+        Relative.objects.bulk_create(new_rel)
+        CullNote.objects.bulk_create(new_culls)
+        BreedShare.objects.bulk_create(shares)
+        RabbitPhoto.objects.bulk_create(new_photos)
+        LitterNote.objects.bulk_create(new_notes)
+        return {"litters": lit_n, "outcomes": outcomes}
 
     def photos(self, rabbits, old_files):
         """Main photo per rabbit from rabbits/demo_photos/nz, matched to its color.
