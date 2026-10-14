@@ -1,0 +1,15 @@
+[
+  {"file": "black-adult.jpg", "color": "Black", "author": "Frank Dixon", "license": "Owned", "source": "frank/adult-black"},
+  {"file": "black-doe-kit.jpg", "color": "Black", "author": "Frank Dixon", "license": "Owned", "source": "frank/adult-black"},
+  {"file": "blue-adult.jpg", "color": "Blue", "author": "Frank Dixon", "license": "Owned", "source": "frank/adult-blue"},
+  {"file": "red-adult-wood.jpg", "color": "Red", "author": "Frank Dixon", "license": "Owned", "source": "frank/adult-fawn"},
+  {"file": "red-adult-face.jpg", "color": "Red", "author": "Frank Dixon", "license": "Owned", "source": "frank/adult-fawn"},
+  {"file": "red-adult-grass.jpg", "color": "Red", "author": "Frank Dixon", "license": "Owned", "source": "frank/adult-fawn"},
+  {"file": "red-adult-hay.jpg", "color": "Red", "author": "Frank Dixon", "license": "Owned", "source": "frank/adult-fawn"},
+  {"file": "blue-newborns.jpg", "color": "Blue", "author": "Frank Dixon", "license": "Owned", "source": "frank/newborn-blue"},
+  {"file": "red-newborns.jpg", "color": "Red", "author": "Frank Dixon", "license": "Owned", "source": "frank/newborn-red"},
+  {"file": "pink-newborns.jpg", "color": "REW", "author": "Frank Dixon", "license": "Owned", "source": "frank/newborn-pink"},
+  {"file": "rew-adult-web.jpg", "color": "REW", "author": "MOs810", "license": "CC BY-SA 4.0", "source": "https://commons.wikimedia.org/wiki/File:Nowozelandzki_bialy.jpg"},
+  {"file": "californian-adult-web.jpg", "color": "Californian", "author": "Kathy Shea", "license": "Public domain", "source": "https://commons.wikimedia.org/wiki/File:Californian_Rabbit.JPG"},
+  {"file": "broken-newborns-web.jpg", "color": "Broken", "author": "Joel Best Obinna", "license": "CC0", "source": "https://commons.wikimedia.org/wiki/File:New_Born_Rabbit_in_a_Nesting_box.jpg"}
+]

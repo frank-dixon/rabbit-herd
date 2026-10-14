@@ -1,22 +1,18 @@
-"""Seed (or refresh) the demo account: demo@bramble-burrow.app with a lived-in herd.
+"""Seed (or refresh) the demo account: a New Zealand rabbitry with Californian
+crosses, broken colors, and every major feature exercised.
 
-The password is read from the DEMO_PASSWORD environment variable inside the command;
-it is never taken as an argument, printed or logged. --no-password leaves the password
-alone: an existing account keeps its password; a new one gets no usable password (set it
-with `manage.py changepassword`).
+Login: demo@bramble-burrow.app. Password from DEMO_PASSWORD only (never printed).
+--no-password leaves an existing password alone. --genes-only rewrites genes on
+the existing demo rabbits by name without touching anything else.
 
-Every rabbit gets a saved main photo of its breed, from rabbits/demo_photos/ (Wikimedia
-Commons, CC/PD; author, license and source in attribution.json and in the photo's notes).
-
-Idempotent: re-running updates the account and rebuilds the demo herd in place, so
-nothing is duplicated. Dates are relative to today, so the herd always looks current.
-Only the demo account's own data is touched. --genes-only backfills just the\nrabbits' genes on an existing demo account, leaving the rest of it alone.
+Idempotent: rebuilds only the demo account's own data. Dates are relative to
+today so the herd always looks current. Never touches other users.
 """
 import datetime
 import json
 import os
-from pathlib import Path
 from decimal import Decimal
+from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.core.files import File
@@ -24,126 +20,193 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
-from rabbits.models import (Breed, Contact, CullNote, Expense, Gene, HealthNote, HerdSettings, Litter, Location, Pairing,
-                            Rabbit, RabbitPhoto, Task, WaitlistEntry, Weight)
-from rabbits.renditions import delete_renditions
+from rabbits.models import (
+    Breed, BreedingSchedule, Contact, Cover, CullNote, Expense, Gene, HealthNote,
+    HerdSettings, KitCheck, Litter, LitterCheck, LitterKit, Location, OutsideRabbit,
+    Pairing, PedigreeEntry, Program, ProgramBreeder, Rabbit, RabbitPhoto, Relative,
+    ShowEntry, Task, WaitlistEntry, Weight,
+)
 
 DEMO_EMAIL = "demo@bramble-burrow.app"
-
-# name, sex, breed, color, age in days, status, extra
-HERD = [
-    # Breeding bucks
-    ("Ashford", "buck", "Mini Rex", "Castor", 690, "breeding", {"tattoo": "HC2403", "line": "Hollow Creek"}),
-    ("Merrick", "buck", "Holland Lop", "Broken Chestnut", 540, "breeding", {"tattoo": "HC2411", "line": "Fairhaven"}),
-    # Does in the herd
-    ("Juniper", "doe", "Mini Rex", "Black", 820, "breeding", {"tattoo": "HC2302"}),
-    ("Marigold", "doe", "Mini Rex", "Broken Castor", 610, "breeding", {"tattoo": "HC2405"}),
-    ("Sorrel", "doe", "Mini Rex", "Red", 480, "breeding", {"tattoo": "HC2414"}),
-    ("Willa", "doe", "Mini Rex", "Opal", 400, "breeding", {"tattoo": "HC2420"}),
-    ("Thimble", "doe", "Holland Lop", "Tort", 560, "breeding", {"tattoo": "HC2409"}),
-    ("Pippa", "doe", "Holland Lop", "Broken Tort", 450, "breeding", {"tattoo": "HC2416"}),
-    ("Clementine", "doe", "Holland Lop", "Chestnut", 365, "breeding", {"tattoo": "HC2502"}),
-    ("Hazel", "doe", "Mini Rex", "Lynx", 300, "breeding", {"tattoo": "HC2507"}),
-    ("Briar", "doe", "Mini Rex", "Castor", 92, "growing", {"tattoo": "HC2603", "kit_of": "weaned"}),
-    ("Nettle", "doe", "Mini Rex", "Broken Castor", 92, "growing", {"tattoo": "HC2604", "kit_of": "weaned"}),
-    ("Fennel", "doe", "Holland Lop", "Broken Chestnut", 130, "growing", {"tattoo": "HC2601"}),
-    ("Rosalind", "doe", "Holland Lop", "Black Otter", 135, "growing", {"tattoo": "HC2602"}),
-    # Former bucks
-    ("Barnaby", "buck", "Mini Rex", "Blue", 1500, "deceased", {"died": 120, "cause": "Old age", "tattoo": "HC2201"}),
-    ("Cobalt", "buck", "Mini Rex", "Seal", 320, "culled", {"died": 60, "cull": "Narrow shoulders and a long body; not worth using.", "tattoo": "HC2508"}),
-    ("Wexley", "buck", "Holland Lop", "Fawn", 250, "culled", {"died": 30, "cull": "Crown set too far back and ears not lopped fully.", "tattoo": "HC2512"}),
-    # Culled does
-    ("Elsie", "doe", "Mini Rex", "Otter", 1100, "culled", {"died": 200, "cull": "Missed three breedings in a row.", "tattoo": "HC2208"}),
-    ("Tansy", "doe", "Mini Rex", "Chocolate", 900, "culled", {"died": 150, "cull": "Two litters lost to poor mothering.", "tattoo": "HC2305"}),
-    ("Maple", "doe", "Holland Lop", "Sable Point", 700, "culled", {"died": 110, "cull": "Malocclusion showed up in her kits.", "tattoo": "HC2310"}),
-    ("Rue", "doe", "Mini Rex", "Red", 330, "culled", {"died": 80, "cull": "Coat too long and soft; poor density.", "tattoo": "HC2506"}),
-    ("Delphine", "doe", "Holland Lop", "Tort", 260, "culled", {"died": 45, "cull": "Pinched hindquarters.", "tattoo": "HC2510"}),
-    ("Saffron", "doe", "Mini Rex", "Broken Red", 210, "culled", {"died": 25, "cull": "Off-color undercoat for a red.", "tattoo": "HC2514"}),
-    ("Lark", "doe", "Holland Lop", "Chestnut", 190, "culled", {"died": 12, "cull": "Weight well over senior limit at six months.", "tattoo": "HC2516"}),
-    # Sold to other rabbitries
-    ("Calder", "buck", "Mini Rex", "Castor", 280, "sold", {"buyer": 0, "tattoo": "HC2509"}),
-    ("Odette", "doe", "Mini Rex", "Black", 240, "sold", {"buyer": 1, "tattoo": "HC2511"}),
-    ("Fable", "doe", "Holland Lop", "Broken Tort", 200, "sold", {"buyer": 2, "tattoo": "HC2515"}),
-    ("Quill", "buck", "Holland Lop", "Black Otter", 175, "sold", {"buyer": 3, "tattoo": "HC2517"}),
-    ("Ivy", "doe", "Mini Rex", "Opal", 160, "sold", {"buyer": 0, "tattoo": "HC2518"}),
-]
-
-# Each demo rabbit's genotype (A B C D E En), consistent with its breed and
-# color, with hidden carriers (b, d, c, at, e) so the planner finds goals
-# within the herd and, for ruby-eyed white (c is only carried by sold,
-# culled and deceased rabbits), through rabbits outside the herd.
-GENES = {
-    "Ashford": "Aa Bb CC Dd Ee enen", "Merrick": "Aat BB CC Dd EE Enen",
-    "Juniper": "aa Bb CC Dd Ee enen", "Marigold": "Aa BB CC Dd EE Enen", "Sorrel": "Aa BB CC Dd ee enen",
-    "Willa": "Aa Bb CC dd EE enen", "Thimble": "aa BB CC Dd ee enen", "Pippa": "aa Bb CC DD ee Enen",
-    "Clementine": "Aa BB CC Dd Ee enen", "Hazel": "Aa bb CC dd EE enen", "Briar": "Aa Bb CC Dd Ee enen",
-    "Nettle": "Aa BB CC Dd Ee Enen", "Fennel": "Aat Bb CC Dd EE Enen", "Rosalind": "ata BB CC DD Ee enen",
-    "Barnaby": "aa BB Cc dd EE enen", "Cobalt": "aa Bb cchlcchl Dd EE enen", "Wexley": "Aa Bb CC dd ee enen",
-    "Elsie": "atat Bb CC Dd EE enen", "Tansy": "aa bb Cc DD EE enen", "Maple": "aa BB cchlc DD EE enen",
-    "Rue": "Aa BB CC Dd ee enen", "Delphine": "aa Bb CC Dd ee enen", "Saffron": "Aa BB CC DD ee Enen",
-    "Lark": "Aa Bb CC DD EE enen", "Calder": "Aa bb CC Dd EE enen", "Odette": "aa Bb Cc dd EE enen",
-    "Fable": "aa bb Cc Dd ee Enen", "Quill": "ata Bb CC Dd EE enen", "Ivy": "Aa BB Cc dd Ee enen",
-}
+NZ = "New Zealand"
+CAL = "Californian"
 GENE_LOCI = ["A", "B", "C", "D", "E", "En"]
 
+# Kit growth (grams) at weeks 1..10. Pure NZ from the New Zealand White (NN)
+# means in Abou Khadiga et al. 2015 (J. Adv. Vet. Anim. Res. 2:120–127, Egypt
+# 3×3 diallel; Table of body weight at 4/6/8/10 wk: 590 / 1105 / 1494 / 1810).
+# Weeks 1–3, 5, 7, 9 are linear interpolations between those and a ~60 g birth
+# weight. NZ×Californian (NN×CC in the same table: 607 / 1307 / 1710 / 1977)
+# shows the hybrid vigor reported there (and by Maj et al. 2009, Arch. Anim.
+# Breed. 52:205–210). Adult NZ meat rabbits settle near 4.5–5.5 kg.
+NZ_CURVE = {1: 150, 2: 290, 3: 430, 4: 590, 5: 850, 6: 1105, 7: 1300, 8: 1494, 9: 1650, 10: 1810}
+XC_CURVE = {1: 160, 2: 310, 3: 460, 4: 607, 5: 960, 6: 1307, 7: 1510, 8: 1710, 9: 1840, 10: 1977}
+ADULT = {
+    (NZ, "doe"): 4800, (NZ, "buck"): 5000,
+    (CAL, "doe"): 4300, (CAL, "buck"): 4500,
+}
 
-def set_genes(rabbits):
-    """Replace each demo rabbit's standard-locus Gene rows with GENES. Returns rows written."""
+# name, sex, breed, color, age_days, status, genes "A B C D E En", extras.
+# NZ red here is aa ee (rufus-modified self red, as Frank's herd is recorded).
+# Genes follow each rabbit's recorded parents; carriers are deliberate.
+# "dam"/"sire" name herd rabbits; "dam_out"/"sire_out" name outside ancestors.
+HERD = [
+    # Founders and old stock (bought in ~4 years ago)
+    ("Basalt", "buck", NZ, "Black", 1600, "deceased", "aa BB Cc Dd EE enen",
+     {"tattoo": "NZ2201", "died": 200, "cause": "Old age", "dam_out": "Nightshade", "sire_out": "Old Coal"}),
+    ("Nimbus", "doe", NZ, "Blue", 1450, "deceased", "aa BB Cc dd EE enen",
+     {"tattoo": "NZ2208", "died": 180, "cause": "Heat stress", "dam_out": "Skyline", "sire_out": "Old Coal"}),
+    ("Quill", "buck", NZ, "Black", 1300, "breeding", "aa BB CC Dd EE enen",
+     {"tattoo": "NZ2302", "archived": 40, "dam": "Nimbus", "sire": "Basalt", "loc": "B9"}),
+    ("Obsidian", "buck", NZ, "Black", 1100, "breeding", "aa Bb Cc Dd EE enen",
+     {"tattoo": "NZ2301", "loc": "B1", "dam_out": "Nightshade", "sire_out": "Old Coal"}),
+    ("Ember", "buck", NZ, "Red", 1050, "breeding", "aa BB CC Dd ee enen",
+     {"tattoo": "NZ2309", "loc": "B3", "dam_out": "Cinnabar", "sire_out": "Old Coal"}),
+    ("Ink", "doe", NZ, "Black", 980, "breeding", "aa BB Cc Dd EE enen",
+     {"tattoo": "NZ2314", "loc": "D1", "dam": "Nimbus", "sire": "Basalt"}),
+    ("Frost", "buck", NZ, "REW", 950, "breeding", "aa Bb cc Dd Ee enen",
+     {"tattoo": "NZ2404", "loc": "B4", "eye": "ruby", "dam_out": "Alba", "sire": "Basalt"}),
+    ("Slate", "buck", NZ, "Blue", 900, "breeding", "aa BB Cc dd EE enen",
+     {"tattoo": "NZ2406", "loc": "B2", "dam_out": "Skyline", "sire": "Basalt"}),
+    ("Garnet", "doe", NZ, "Red", 900, "culled", "aa BB CC Dd ee enen",
+     {"tattoo": "NZ2311", "died": 90, "cull": "Poor mothering on two litters.", "dam_out": "Cinnabar", "sire": "Ember"}),
+    ("Patch", "buck", NZ, "Broken Black", 880, "breeding", "aa Bb Cc Dd EE Enen",
+     {"tattoo": "NZ2407", "loc": "B5", "dam_out": "Nightshade", "sire_out": "Checkers"}),
+    ("Indigo", "doe", NZ, "Blue", 850, "breeding", "aa BB Cc dd EE enen",
+     {"tattoo": "NZ2408", "loc": "D5", "dam": "Nimbus", "sire": "Basalt"}),
+    ("Snow", "doe", NZ, "REW", 800, "breeding", "aa BB cc dd EE enen",
+     {"tattoo": "NZ2411", "loc": "D12", "eye": "ruby", "dam_out": "Alba", "sire": "Frost"}),
+    ("Coral", "doe", NZ, "Red", 780, "breeding", "aa BB Cc Dd ee enen",
+     {"tattoo": "NZ2412", "loc": "D8", "dam_out": "Cinnabar", "sire": "Ember"}),
+    ("Shadow", "doe", NZ, "Black", 720, "breeding", "aa Bb CC Dd EE enen",
+     {"tattoo": "NZ2410", "loc": "D2", "dam": "Ink", "sire": "Obsidian"}),
+    ("Sierra", "doe", CAL, "Californian", 700, "breeding", "aa BB chch Dd EE enen",
+     {"tattoo": "CA2403", "loc": "C1", "eye": "ruby", "dam_out": "Sunset", "sire_out": "Pacific"}),
+    ("Magpie", "doe", NZ, "Broken Blue", 650, "breeding", "aa BB Cc dd EE Enen",
+     {"tattoo": "NZ2416", "loc": "D15", "dam": "Indigo", "sire": "Patch"}),
+    ("Azure", "doe", NZ, "Blue", 610, "breeding", "aa BB CC dd EE enen",
+     {"tattoo": "NZ2418", "loc": "D6", "dam": "Indigo", "sire": "Slate"}),
+    ("Pinto", "buck", NZ, "Broken Black", 600, "sold", "aa Bb Cc Dd EE Enen",
+     {"tattoo": "NZ2415", "buyer": 0, "dam": "Ink", "sire": "Patch"}),
+    ("Sienna", "doe", NZ, "Red", 560, "breeding", "aa BB CC DD ee enen",
+     {"tattoo": "NZ2504", "loc": "D9", "dam": "Coral", "sire": "Ember"}),
+    ("Mirage", "doe", CAL, "Californian", 550, "sold", "aa BB chch Dd EE enen",
+     {"tattoo": "CA2410", "buyer": 2, "eye": "ruby", "dam": "Sierra", "sire_out": "Pacific"}),
+    ("Onyx", "doe", NZ, "Black", 540, "breeding", "aa BB Cc DD EE enen",
+     {"tattoo": "NZ2502", "loc": "D3", "dam": "Ink", "sire": "Obsidian"}),
+    ("Mojave", "doe", CAL, "Californian", 520, "breeding", "aa Bb chch DD EE enen",
+     {"tattoo": "CA2501", "loc": "C2", "eye": "ruby", "dam": "Sierra", "sire_out": "Pacific"}),
+    ("Ivory", "doe", NZ, "REW", 500, "breeding", "aa Bb cc Dd Ee enen",
+     {"tattoo": "NZ2506", "loc": "D13", "eye": "ruby", "dam": "Snow", "sire": "Frost"}),
+    # Sold REW: hides chocolate (bb) and otter (at) under cc → Known rabbits goals
+    ("Blizzard", "doe", NZ, "REW", 480, "sold", "ata bb cc Dd EE enen",
+     {"tattoo": "NZ2503", "buyer": 1, "eye": "ruby", "dam_out": "Alba", "sire_out": "Old Coal"}),
+    ("Domino", "doe", NZ, "Broken Red", 470, "breeding", "aa BB CC Dd ee Enen",
+     {"tattoo": "NZ2507", "loc": "D16", "dam_out": "Cinnabar", "sire_out": "Checkers"}),
+    ("Copper", "doe", NZ, "Red", 430, "breeding", "aa BB CC Dd ee enen",
+     {"tattoo": "NZ2509", "loc": "D10", "dam": "Coral", "sire": "Ember"}),
+    ("Raven", "doe", NZ, "Black", 400, "breeding", "aa BB CC Dd EE enen",
+     {"tattoo": "NZ2508", "loc": "D4", "dam": "Ink", "sire": "Slate"}),
+    ("Cobalt", "doe", NZ, "Blue", 380, "breeding", "aa BB Cc dd EE enen",
+     {"tattoo": "NZ2511", "loc": "D7", "dam": "Indigo", "sire": "Slate"}),
+    ("Sonora", "doe", CAL, "Californian", 360, "breeding", "aa BB chch Dd EE enen",
+     {"tattoo": "CA2505", "loc": "C3", "eye": "ruby", "dam": "Sierra", "sire_out": "Pacific"}),
+    ("Pearl", "doe", NZ, "REW", 340, "breeding", "aa BB cc Dd EE enen",
+     {"tattoo": "NZ2512", "loc": "D14", "eye": "ruby", "dam": "Snow", "sire": "Frost"}),
+    ("Harlequin", "doe", NZ, "Broken Black", 320, "breeding", "aa Bb CC Dd EE Enen",
+     {"tattoo": "NZ2515", "loc": "D17", "dam": "Shadow", "sire": "Patch"}),
+    ("Flame", "doe", NZ, "Red", 300, "breeding", "aa BB CC Dd ee enen",
+     {"tattoo": "NZ2514", "loc": "D11", "dam": "Sienna", "sire": "Ember"}),
+    # Juniors converted from Ink × Patch (kindled 95 days ago)
+    ("Jet", "buck", NZ, "Black", 95, "growing", "aa Bb Cc Dd EE enen", {"loc": "G1", "kit_of": "converted"}),
+    ("Soot", "doe", NZ, "Black", 95, "growing", "aa BB CC Dd EE enen", {"loc": "G1", "kit_of": "converted"}),
+    ("Ash", "buck", NZ, "Blue", 95, "growing", "aa Bb Cc dd EE enen", {"loc": "G2", "kit_of": "converted"}),
+    ("Cinder", "buck", NZ, "Broken Black", 95, "growing", "aa BB Cc Dd EE Enen", {"loc": "G2", "kit_of": "converted"}),
+    # Juniors converted from Sierra × Obsidian NZ×Californian (kindled 120 days ago)
+    ("Tank", "buck", "NZ × Californian", "Black", 120, "growing", "aa BB Cch Dd EE enen",
+     {"loc": "G3", "kit_of": "cross", "cross": True}),
+    ("Dottie", "doe", "NZ × Californian", "Himalayan", 120, "growing", "aa Bb chc DD EE enen",
+     {"loc": "G3", "kit_of": "cross", "cross": True, "eye": "ruby"}),
+]
+OUTSIDE = [
+    ("Old Coal", "NZ black foundation buck · Kessler New Zealands"),
+    ("Nightshade", "NZ black foundation doe · Kessler New Zealands"),
+    ("Skyline", "NZ blue doe · Cedar Run"),
+    ("Cinnabar", "NZ red doe · Northwind NZ"),
+    ("Alba", "NZ REW doe · Kessler New Zealands"),
+    ("Checkers", "NZ broken black buck · Northwind NZ"),
+    ("Sunset", "Californian doe · Fairhaven Californians"),
+    ("Pacific", "Californian buck · Fairhaven Californians"),
+]
+OUTSIDE_COLOR = {"Old Coal": "Black", "Nightshade": "Black", "Skyline": "Blue", "Cinnabar": "Red", "Alba": "REW",
+                 "Checkers": "Broken Black", "Sunset": "Californian", "Pacific": "Californian"}
+
+BUYERS = [
+    ("Dana Whitfield", "Whitfield Farm Rabbitry", "(717) 555-0142", "Lancaster, PA"),
+    ("Marcus Ortega", "Cedar Run Meat Rabbits", "(540) 555-0187", "Winchester, VA"),
+    ("Lena Haugen", "Northwind NZ", "(608) 555-0119", "Madison, WI"),
+]
+BREEDERS = [
+    ("Tom Kessler", "Kessler New Zealands", "(330) 555-0124", "Wooster, OH"),
+    ("Ruth Ellison", "Fairhaven Californians", "(410) 555-0158", "Frederick, MD"),
+]
+
+
+def sold_days(extra):
+    return extra["buyer"] * 12 + 18
+
+
+def kit_grams(age_days, curve):
+    """Weekly curve with light day-to-day jitter; adult plateau after 10 weeks."""
+    if age_days <= 0:
+        return 55
+    if age_days >= 70:
+        # Ease toward ~3.2 kg at 6 months on the NZ curve (commercial fryer).
+        adult_ish = curve[10] + int((age_days - 70) * 18)
+        return min(adult_ish, 4500)
+    wk = age_days / 7
+    lo, hi = int(wk), min(10, int(wk) + 1)
+    if lo < 1:
+        return int(55 + (curve[1] - 55) * wk)
+    if lo == hi:
+        return curve[lo]
+    frac = wk - lo
+    return int(curve[lo] + (curve[hi] - curve[lo]) * frac)
+
+
+def set_genes(rabbits_by_name, gene_map):
     count = 0
-    for name, rabbit in rabbits.items():
-        if name not in GENES:
+    for name, rabbit in rabbits_by_name.items():
+        text = gene_map.get(name)
+        if not text:
             continue
         Gene.objects.filter(rabbit=rabbit, locus__in=GENE_LOCI).delete()
-        Gene.objects.bulk_create([Gene(rabbit=rabbit, locus=locus, genotype=text, certainty=Gene.Certainty.PROBABLE)
-                                  for locus, text in zip(GENE_LOCI, GENES[name].split())])
+        Gene.objects.bulk_create([
+            Gene(rabbit=rabbit, locus=locus, genotype=g, certainty=Gene.Certainty.PROBABLE)
+            for locus, g in zip(GENE_LOCI, text.split())
+        ])
         count += len(GENE_LOCI)
     return count
 
 
-BUYERS = [
-    ("Dana Whitfield", "Whitfield Farm Rabbitry", "(717) 555-0142", "Lancaster, PA"),
-    ("Marcus Ortega", "Cedar Run Rex", "(540) 555-0187", "Winchester, VA"),
-    ("Lena Haugen", "Northwind Lops", "(608) 555-0119", "Madison, WI"),
-    ("Priya Raman", "Bluebell Hollow", "(919) 555-0163", "Raleigh, NC"),
-]
-BREEDERS = [
-    ("Tom Kessler", "Kessler Mini Rex", "(330) 555-0124", "Wooster, OH"),
-    ("Ruth Ellison", "Fairhaven Hollands", "(410) 555-0158", "Frederick, MD"),
-]
-
-# Typical adult weight (grams) by breed and sex, and a kit's growth curve.
-ADULT = {("Mini Rex", "doe"): 1900, ("Mini Rex", "buck"): 1750, ("Holland Lop", "doe"): 1700, ("Holland Lop", "buck"): 1600}
-
-
-def sold_days(extra):
-    """Days ago a sold rabbit left (spread out by buyer)."""
-    return extra["buyer"] * 10 + 5 + (len(extra.get("tattoo", "")) % 3)
-
-
-def growth(age_days, adult):
-    """Rough weight for a young rabbit, reaching adult weight around 8 months."""
-    if age_days >= 240:
-        return adult
-    return int(90 + (adult - 90) * min(1, age_days / 240) ** 0.8)
-
-
 class Command(BaseCommand):
-    help = "Create or refresh the demo account (demo@bramble-burrow.app) and its herd. Password from env DEMO_PASSWORD."
+    help = "Create or refresh the NZ demo account (demo@bramble-burrow.app)."
 
     def add_arguments(self, parser):
         parser.add_argument("--no-password", action="store_true",
                             help="Don't set the password: an existing account keeps its own; a new one gets none.")
         parser.add_argument("--genes-only", action="store_true",
-                            help="Only (re)write the genes of the existing demo account's rabbits; nothing else changes.")
+                            help="Only (re)write genes on the existing demo rabbits; nothing else changes.")
 
     def handle(self, no_password=False, genes_only=False, **options):
+        gene_map = {row[0]: row[6] for row in HERD}
         if genes_only:
             user = get_user_model().objects.filter(email__iexact=DEMO_EMAIL).first()
             if user is None:
                 raise CommandError(f"No {DEMO_EMAIL} account; run seed_demo without --genes-only first.")
             with transaction.atomic():
-                rabbits = {r.name: r for r in Rabbit.all_objects.filter(owner=user, name__in=GENES)}
-                rows = set_genes(rabbits)
+                rabbits = {r.name: r for r in Rabbit.all_objects.filter(owner=user, name__in=gene_map)}
+                rows = set_genes(rabbits, gene_map)
             self.stdout.write(f"Genes set on {len(rabbits)} demo rabbits ({rows} rows).")
             return
         password = None if no_password else os.environ.get("DEMO_PASSWORD")
@@ -164,164 +227,451 @@ class Command(BaseCommand):
         if password:
             user.set_password(password)
         elif created:
-            user.set_unusable_password()  # --no-password on a new account; an existing one keeps its password
+            user.set_unusable_password()
         user.email_confirmed = True
         user.email_confirmed_at = user.email_confirmed_at or timezone.now()
         user.is_active = True
         user.save()
-        HerdSettings.objects.update_or_create(user=user, defaults={"rabbitry_name": "Hollow Creek Rabbitry", "prefix": "HC"})
+        HerdSettings.objects.update_or_create(
+            user=user,
+            defaults={"rabbitry_name": "Hollow Creek New Zealands", "prefix": "NZ",
+                      "daily_email": False, "weight_unit": "lb"},
+        )
         return user, created
 
-    def herd(self, user, today):
-        day = lambda n: today - datetime.timedelta(days=n)  # noqa: E731
-        # Rebuild only the demo account's herd, so re-runs update rather than duplicate.
-        old_files = list(RabbitPhoto.objects.filter(rabbit__in=Rabbit.all_objects.filter(owner=user)).values_list("image", flat=True))
-        for model in (Task, WaitlistEntry, Expense, Litter, Pairing, Rabbit, Contact, Location):
+    def wipe(self, user):
+        old_files = list(RabbitPhoto.objects.filter(
+            rabbit__in=Rabbit.all_objects.filter(owner=user)).values_list("image", flat=True))
+        Program.objects.filter(owner=user).delete()
+        for model in (Task, WaitlistEntry, Expense, Litter, Pairing, BreedingSchedule,
+                      Rabbit, Contact, Location, OutsideRabbit):
             getattr(model, "all_objects", model.objects).filter(owner=user).delete()
+        return old_files
 
-        breeds = {b.name: b for b in Breed.objects.filter(name__in={row[2] for row in HERD})}
+    def herd(self, user, today):
+        day = lambda n: today - datetime.timedelta(days=n)  # noqa: E731  (n days ago; negative = ahead)
+        old_files = self.wipe(user)
+        breeds = {b.name: b for b in Breed.objects.filter(name__in={NZ, CAL})}
+        noise = lambda key, n, spread: ((sum(map(ord, key)) * 7 + n * 13) % (2 * spread + 1)) - spread  # noqa: E731
+
+        # Cages and pens
+        loc_codes = sorted({e["loc"] for *_, e in HERD if e.get("loc")})
+        loc_notes = {"B": "Buck row · 30×36 wire", "D": "Doe row · 36×36 with nest box shelf",
+                     "C": "Californian row", "G": "Grow-out pen · forage rack"}
+        locs = {c: Location.objects.create(owner=user, name=f"Cage {c}", notes=loc_notes[c[0]]) for c in loc_codes}
+
         buyers = [Contact.objects.create(owner=user, name=n, rabbitry=r, phone=p, location=loc, is_buyer=True,
-                                         notes="Bought show stock.") for n, r, p, loc in BUYERS]
-        breeders = [Contact.objects.create(owner=user, name=n, rabbitry=r, phone=p, location=loc, is_breeder=True)
-                    for n, r, p, loc in BREEDERS]
+                                         notes="Buys breeding stock and fryers.") for n, r, p, loc in BUYERS]
+        breeders = [Contact.objects.create(owner=user, name=n, rabbitry=r, phone=p, location=loc, is_breeder=True,
+                                           notes="Foundation stock came from here.") for n, r, p, loc in BREEDERS]
+        fast = BreedingSchedule.objects.create(owner=user, name="Fast rebreed (meat)", gestation_days=31,
+                                               palpate_day=12, nest_box_day=27, wean_age=28, process_age=70,
+                                               rebreed_days=35)
 
-        rabbits = {}
-        for name, sex, breed, color, age, status, extra in HERD:
-            death = day(extra["died"]) if "died" in extra else None
-            source = None if extra.get("kit_of") else (breeders[0] if breed == "Mini Rex" else breeders[1]) if age > 500 else None
-            rabbits[name] = Rabbit.objects.create(
-                owner=user, name=name, sex=sex, breed=breed, breed_type="purebred", purebred=breeds.get(breed),
-                color=color, birth_date=day(age), status=status, tattoo=extra.get("tattoo", ""),
-                line=extra.get("line", ""), death_date=death if status in ("culled", "deceased") else None,
-                death_cause=extra.get("cause", "Culled" if status == "culled" else ""), source=source)
+        outs = {name: OutsideRabbit.objects.create(owner=user, name=name, details=details) for name, details in OUTSIDE}
 
-        R = rabbits
-        set_genes(R)
+        R, gene_map = {}, {}
+        for name, sex, breed, color, age, status, genes, extra in HERD:
+            gene_map[name] = genes
+            founder = not any(k in extra for k in ("dam", "kit_of"))
+            cross = extra.get("cross")
+            r = Rabbit.objects.create(
+                owner=user, name=name, sex=sex, breed=breed,
+                breed_type="crossbred" if cross else "purebred", purebred=None if cross else breeds.get(breed),
+                color=color, color_is_standard=None if cross else True,
+                eye_color=extra.get("eye", "ruby" if color == "REW" else "brown"),
+                birth_date=day(age), status=status, tattoo=extra.get("tattoo", ""), line="Hollow Creek",
+                death_date=day(extra["died"]) if status in ("culled", "deceased") else None,
+                death_cause=extra.get("cause", "Culled" if status == "culled" else ""),
+                source=(breeders[1] if breed == CAL else breeders[0]) if founder else None,
+                location=locs.get(extra.get("loc")) if status not in Rabbit.FORMER else None,
+                breeding_schedule=fast if name in ("Ink", "Coral", "Sierra") else None,
+            )
+            if cross:
+                from rabbits.models import BreedShare
+                for b in (NZ, CAL):
+                    BreedShare.objects.create(rabbit=r, breed=breeds[b], percent=Decimal("50"))
+            if extra.get("archived"):
+                r.archived_at = timezone.now() - datetime.timedelta(days=extra["archived"])
+                r.save(update_fields=["archived_at"])
+            R[name] = r
+        set_genes(R, gene_map)
+
+        # Parents: herd rabbits as Relative rows; outside ancestors as pedigree entries
+        # (with genes for a few, so the planner treats them as Known rabbits).
+        parents = {}
+        for name, *_, extra in HERD:
+            if extra.get("kit_of") == "converted":
+                extra = {**extra, "dam": "Ink", "sire": "Patch"}
+            if extra.get("kit_of") == "cross":
+                extra = {**extra, "dam": "Sierra", "sire": "Obsidian"}
+            parents[name] = (extra.get("dam"), extra.get("sire"))
+            child = R[name]
+            for rel, key, pos in (("dam", "dam", "d"), ("sire", "sire", "s")):
+                if extra.get(key):
+                    other = R[extra[key]]
+                    Relative.objects.create(rabbit=child, relationship=rel, herd_rabbit=other)
+                elif extra.get(key + "_out"):
+                    o = outs[extra[key + "_out"]]
+                    row = Relative.objects.create(rabbit=child, relationship=rel, outside=o, breed=NZ if "NZ" in o.details else CAL,
+                                                  color=OUTSIDE_COLOR[o.name])
+                    PedigreeEntry.objects.create(rabbit=child, position=pos, outside=o)
+                    if o.name == "Checkers":
+                        Gene.objects.bulk_create([Gene(relative=row, locus=l, genotype=g) for l, g in
+                                                  zip(GENE_LOCI, "aa BB CC Dd EE Enen".split())])
+
         photos = self.photos(R, old_files)
-        # Litters: weaned (Briar and Nettle came from it), nursing, due soon, just bred.
+
+        def pair(doe, buck):
+            return Pairing.objects.get_or_create(owner=user, doe=R[doe], buck=R[buck])[0]
+
         def litter(doe, buck, bred, **kw):
-            pairing = Pairing.objects.get_or_create(owner=user, doe=R[doe], buck=R[buck])[0]
-            return Litter.objects.create(owner=user, pairing=pairing, bred_on=day(bred), palpated=bred >= 12, **kw)
+            kw.setdefault("palpated", bred >= 12)
+            return Litter.objects.create(owner=user, pairing=pair(doe, buck), bred_on=day(bred), **kw)
 
-        weaned = litter("Juniper", "Ashford", 123, nest_box_in=True, kindled_on=day(92), born_alive=7, died_after=1,
-                        weaned=True, notes="Two castors and a broken held back.")
-        for kit in ("Briar", "Nettle"):
-            R[kit].litter = weaned
-            R[kit].save(update_fields=["litter"])
-        litter("Thimble", "Merrick", 52, nest_box_in=True, kindled_on=day(21), born_alive=5, born_dead=1,
-               notes="Good nest, all kits fat.")
-        litter("Marigold", "Ashford", 27, nest_box_in=False)
-        litter("Pippa", "Merrick", 9)
-        litter("Sorrel", "Ashford", 200, nest_box_in=True, kindled_on=day(169), born_alive=6, weaned=True, processed=True)
+        # --- Birth litters for every in-house rabbit (3–4 years of history) ---
+        birth = {}
+        for name, sex, breed, color, age, status, genes, extra in HERD:
+            dam, sire = parents[name]
+            if not (dam and sire) or extra.get("kit_of"):
+                continue
+            key = (dam, sire, age)
+            if key not in birth:
+                n = 6 + noise(name, age, 2)
+                birth[key] = litter(dam, sire, age + 31, palpated=True, nest_box_in=True, kindled_on=day(age),
+                                    born_alive=n, died_after=1 if n > 7 else 0, weaned=True, rebred=True,
+                                    notes=f"Kept {name}; rest sold as fryers or breeding stock.")
+            R[name].litter = birth[key]
+            R[name].save(update_fields=["litter"])
+        # Fill each long-time doe's record with past litters every ~95 days
+        sires_by_color = {"Black": "Obsidian", "Blue": "Slate", "Red": "Ember", "REW": "Frost",
+                          "Broken Blue": "Patch", "Broken Red": "Ember", "Broken Black": "Patch", "Californian": "Obsidian"}
+        history_litters = 0
+        for name, sex, breed, color, age, status, genes, extra in HERD:
+            if sex != "doe" or status == "sold" or age < 320:
+                continue
+            taken = [l.kindled_on for l in Litter.objects.filter(pairing__doe=R[name], kindled_on__isnull=False)]
+            end = extra.get("died", 0) + 130
+            for kindle_back in range(age - 200, end, -95):
+                kd = day(kindle_back)
+                if any(abs((kd - t).days) < 60 for t in taken):
+                    continue
+                buck = sires_by_color.get(color, "Obsidian")
+                if (R[buck].birth_date - kd).days > -200:  # buck too young then
+                    buck = "Basalt" if (R["Basalt"].death_date or today) > kd else "Obsidian"
+                n = 6 + noise(name, kindle_back, 3)
+                litter(name, buck, kindle_back + 31, palpated=True, nest_box_in=True, kindled_on=kd,
+                       born_alive=max(n, 3), born_dead=noise(name, kindle_back, 1) % 2, died_after=noise(buck, kindle_back, 1) % 2,
+                       weaned=True, rebred=True, processed=True,
+                       notes="Fryer litter; processed at 10–11 weeks." if breed == NZ else "Californian litter; sold as fryers.")
+                history_litters += 1
 
-        # Weights: every two weeks for the last four months, ending today for most.
-        weights = 0
-        for name, sex, breed, color, age, status, extra in HERD:
-            adult = ADULT[(breed, sex)]
-            last = extra.get("died", 0) if status in ("culled", "deceased") else 0
-            if status == "sold":
-                last = sold_days(extra)
-            for back in range(last, last + 120, 14):
-                a = age - back
-                if a < 35:
+        # --- Current litters: every stage ---
+        # 1. Converted (Ink × Patch, broken × black): juniors Jet, Soot, Ash, Cinder
+        conv = litter("Ink", "Patch", 126, nest_box_in=True, kindled_on=day(95), born_alive=6, died_after=1,
+                      weaned=True, rebred=True, processed=True, converted_at=timezone.now() - datetime.timedelta(days=60),
+                      notes="Broken × solid: two broken, three solid. Kept four; converted to rabbit cards.")
+        conv_kits = ["Jet", "Soot", "Ash", "Cinder"]
+        for i, nm in enumerate(conv_kits, 1):
+            R[nm].litter = conv
+            R[nm].save(update_fields=["litter"])
+            LitterKit.objects.create(litter=conv, number=i, sex=R[nm].sex, color=R[nm].color, rabbit=R[nm])
+        LitterKit.objects.create(litter=conv, number=5, sex="doe", color="Broken Black")
+        # 2. Converted NZ×Californian (Sierra × Obsidian): Tank, Dottie
+        xconv = litter("Sierra", "Obsidian", 151, nest_box_in=True, kindled_on=day(120), born_alive=7, weaned=True,
+                       rebred=True, processed=True, converted_at=timezone.now() - datetime.timedelta(days=80),
+                       notes="NZ×Californian hybrid vigor: 1,977 g average at 10 weeks vs ~1,810 g pure NZ.")
+        for i, nm in enumerate(["Tank", "Dottie"], 1):
+            R[nm].litter = xconv
+            R[nm].save(update_fields=["litter"])
+            LitterKit.objects.create(litter=xconv, number=i, sex=R[nm].sex, color=R[nm].color, rabbit=R[nm])
+        for back, (wk, g) in zip(range(113, 49, -7), XC_CURVE.items()):
+            LitterCheck.objects.create(litter=xconv, date=day(back), mode="whole", kit_count=7, grams=g,
+                                       weight_kind="average", status="healthy", note=f"Week {wk} average")
+        for back, (wk, g) in zip(range(88, 24, -7), NZ_CURVE.items()):
+            LitterCheck.objects.create(litter=conv, date=day(back), mode="whole", kit_count=5, grams=g,
+                                       weight_kind="average", status="healthy", note=f"Week {wk} average")
+
+        # 3. Weaned, convert-pending (Magpie × Patch, En × En so one charlie)
+        pending = litter("Magpie", "Patch", 74, nest_box_in=True, kindled_on=day(43), born_alive=6, weaned=True,
+                         notes="Weaned and sexed. Broken × broken: one charlie, three broken, two solid.")
+        for i, (sx, col) in enumerate([("doe", "Broken Blue"), ("buck", "Broken Black"), ("doe", "Charlie Blue"),
+                                       ("buck", "Blue"), ("doe", "Broken Blue"), ("buck", "Black")], 1):
+            LitterKit.objects.create(litter=pending, number=i, sex=sx, color=col)
+        for wk in range(1, 7):
+            LitterCheck.objects.create(litter=pending, date=day(43 - wk * 7), mode="whole", kit_count=6,
+                                       grams=NZ_CURVE[wk] + noise("Magpie", wk, 20), weight_kind="average",
+                                       status="healthy", note=f"Week {wk}")
+
+        # 4. NZ×Californian growing kits, 5 weeks (Mojave × Slate): per-kit weights, faster than pure NZ
+        xgrow = litter("Mojave", "Slate", 66, nest_box_in=True, kindled_on=day(35), born_alive=8, died_after=1, weaned=True,
+                       notes="NZ×Californian: per-kit weights track the hybrid curve (faster than pure NZ).")
+        # Mojave chch × Slate Cc: C ch kits show black, ch c kits the Himalayan (Californian) pattern.
+        xs = [LitterKit.objects.create(litter=xgrow, number=i, sex=sx, color=col)
+              for i, (sx, col) in enumerate([("doe", "Black"), ("buck", "Himalayan"), ("doe", "Black"), ("buck", "Black"),
+                                             ("doe", "Himalayan"), ("buck", "Black"), ("doe", "Himalayan")], 1)]
+        for wk in range(1, 6):
+            chk = LitterCheck.objects.create(litter=xgrow, date=day(35 - wk * 7), mode="each", kit_count=7)
+            for slot in xs:
+                KitCheck.objects.create(litter_check=chk, kit=slot, grams=XC_CURVE[wk] + noise("x", slot.number * wk, 25),
+                                        status="watch" if (slot.number == 4 and wk == 3) else "healthy",
+                                        note="Loose stool; on hay only for a day" if (slot.number == 4 and wk == 3) else "")
+
+        # 5. Pure NZ growing kits, 3 weeks (Indigo × Slate, blue × blue): per-kit weights
+        grow = litter("Indigo", "Slate", 52, nest_box_in=True, kindled_on=day(21), born_alive=7,
+                      notes="All blue (dd × dd). Weighed weekly per kit.")
+        gs = [LitterKit.objects.create(litter=grow, number=i, sex=sx, color="Blue")
+              for i, sx in enumerate(["doe", "buck", "doe", "buck", "doe", "buck", "doe"], 1)]
+        for wk in range(1, 4):
+            chk = LitterCheck.objects.create(litter=grow, date=day(21 - wk * 7), mode="each", kit_count=7)
+            for slot in gs:
+                small = slot.number == 7
+                KitCheck.objects.create(litter_check=chk, kit=slot,
+                                        grams=NZ_CURVE[wk] + noise("g", slot.number * wk, 18) - (40 if small else 0),
+                                        status="watch" if small else "healthy", note="Runt; fostered extra feeds" if small else "")
+
+        # 6. Just kindled (Coral × Ember, red × red), 2 days
+        kindled = litter("Coral", "Ember", 33, nest_box_in=True, kindled_on=day(2), born_alive=8, born_dead=1,
+                      notes="Red × red; eight pink kits, one stillborn. Fur-lined nest.")
+        for i in range(1, 9):
+            LitterKit.objects.create(litter=kindled, number=i, color="Red")
+        Cover.objects.create(litter=kindled, date=day(33), time=datetime.time(7, 30), outcome="covered")
+        Cover.objects.create(litter=kindled, date=day(33), time=datetime.time(18, 0), outcome="covered")
+        # 7. Red × REW kindled 9 days (Ivory × Ember): reds and blacks, all carrying c
+        rew = litter("Ivory", "Ember", 40, nest_box_in=True, kindled_on=day(9), born_alive=7,
+                     notes="REW × red: kits show red or black, every one carries c.")
+        for i, col in enumerate(["Red", "Black", "Red", "Red", "Black", "Black", "Red"], 1):
+            LitterKit.objects.create(litter=rew, number=i, color=col)
+        LitterCheck.objects.create(litter=rew, date=day(2), mode="whole", kit_count=7, grams=NZ_CURVE[1] + 5,
+                                   weight_kind="average", status="healthy", note="All nursing; fat bellies.")
+        # 8. Black × blue cross kindled 15 days (Raven × Slate)
+        bb = litter("Raven", "Slate", 46, nest_box_in=True, kindled_on=day(15), born_alive=6,
+                    notes="Black (Dd) × blue: about half blue, half black.")
+        for i, col in enumerate(["Black", "Blue", "Blue", "Black", "Blue", "Black"], 1):
+            LitterKit.objects.create(litter=bb, number=i, color=col)
+        LitterCheck.objects.create(litter=bb, date=day(8), mode="whole", kit_count=6, grams=NZ_CURVE[1],
+                                   weight_kind="average", status="healthy")
+        # 9. Nest box in, due in 2 days (Shadow × Obsidian)
+        nest = litter("Shadow", "Obsidian", 29, nest_box_in=True, notes="Nest box in; she is pulling fur.")
+        Cover.objects.create(litter=nest, date=day(29), outcome="covered")
+        Cover.objects.create(litter=nest, date=day(28), outcome="no_fall", note="Second try next morning.")
+        # 10. Nest box due today (Snow × Frost: REW × REW, all REW)
+        litter("Snow", "Frost", 28, notes="REW × REW: every kit will be REW.")
+        # 11. Palpate due (Azure × Slate), bred 12 days ago
+        palp = litter("Azure", "Slate", 12, palpated=False, notes="Palpate today.")
+        Cover.objects.create(litter=palp, date=day(12), outcome="covered")
+        # 12. Bred / expecting with covers (Domino × Ember: broken red × red)
+        exp = litter("Domino", "Ember", 5, notes="Broken × solid red: expect about half broken.")
+        Cover.objects.create(litter=exp, date=day(6), outcome="refused", note="Not ready; tried again next day.")
+        Cover.objects.create(litter=exp, date=day(5), time=datetime.time(8, 0), outcome="covered")
+        Cover.objects.create(litter=exp, date=day(5), time=datetime.time(17, 15), outcome="covered")
+        # 13. Harlequin × Frost: broken × REW, bred 8 days ago
+        litter("Harlequin", "Frost", 8, notes="Broken black × REW: half REW, rest broken or solid (c carriers).")
+        # 14. Sonora × Ember (NZ×Cal), just bred
+        litter("Sonora", "Ember", 2, notes="Californian × NZ red for fryers.")
+        Cover.objects.create(litter=Litter.objects.get(pairing__doe=R["Sonora"], bred_on=day(2)), date=day(2), outcome="covered")
+
+        # --- Weights: kit series (weekly to 10 weeks), then monthly adult weights ---
+        rows = []
+        for name, sex, breed, color, age, status, genes, extra in HERD:
+            r = R[name]
+            curve = XC_CURVE if (breed != NZ) else NZ_CURVE
+            adult = ADULT.get((breed, sex), ADULT[(NZ, sex)])
+            stop = extra.get("died", 0) if status in ("culled", "deceased") else (sold_days(extra) if status == "sold" else 0)
+            for wk in range(1, 11):
+                back = age - wk * 7
+                if back < stop:
                     break
-                grams = growth(a, adult) + ((sum(map(ord, name)) + back) % 7 - 3) * 15
-                Weight.objects.create(rabbit=R[name], date=day(back), grams=grams)
-                weights += 1
+                rows.append(Weight(rabbit=r, date=day(back), grams=kit_grams(wk * 7, curve) + noise(name, wk, 25),
+                                   note=f"Week {wk}"))
+            if age < 100:
+                # Juniors: weekly from week 11 up to this week
+                for wk in range(11, age // 7 + 1):
+                    rows.append(Weight(rabbit=r, date=day(age - wk * 7), grams=kit_grams(wk * 7, curve) + noise(name, wk, 30),
+                                       note=f"Week {wk}"))
+                continue
+            for back in range(stop + noise(name, 1, 6) + 6, age - 99, 30):
+                a = age - back
+                grams = int(curve[10] + (adult - curve[10]) * min(1.0, (a - 70) / 170)) if a < 240 else adult
+                rows.append(Weight(rabbit=r, date=day(back), grams=grams + noise(name, back, 120)))
+        Weight.objects.bulk_create(rows)
 
-        # Sales: buyer contacts and the waitlist entries they came from.
-        for name, *_, status, extra in HERD:
+        # --- Photos for juniors' kit days: broken placeholder on Cinder ---
+        folder = Path(__file__).resolve().parents[2] / "demo_photos" / "nz"
+        ph = RabbitPhoto(rabbit=R["Cinder"], notes="Credit: Joel Best Obinna, CC0, Wikimedia Commons (sample of a broken litter).",
+                         taken_at=day(90), taken_from_metadata=False)
+        with open(folder / "broken-newborns-web.jpg", "rb") as h:
+            ph.image.save("photo.jpg", File(h), save=False)
+        ph.save()
+
+        # --- Sales, waitlist ---
+        for name, *_, status, genes, extra in HERD:
             if status != "sold":
                 continue
             rabbit, buyer = R[name], buyers[extra["buyer"]]
             sold_on = day(sold_days(extra))
-            rabbit.sold_on, rabbit.sold_to, rabbit.sale_price = sold_on, buyer, Decimal("65.00" if rabbit.sex == "buck" else "55.00")
+            rabbit.sold_on, rabbit.sold_to = sold_on, buyer
+            rabbit.sale_price = Decimal("85.00" if rabbit.sex == "buck" else "75.00")
             rabbit.save(update_fields=["sold_on", "sold_to", "sale_price"])
             WaitlistEntry.objects.create(owner=user, buyer=f"{buyer.name} ({buyer.rabbitry})", reach=buyer.phone,
-                                         requested_on=sold_on - datetime.timedelta(days=40), breed=rabbit.breed,
+                                         requested_on=sold_on - datetime.timedelta(days=35), breed=rabbit.breed,
                                          sex=rabbit.sex, color=rabbit.color, status="done", deposit=Decimal("25.00"),
-                                         rabbit=rabbit, notes=f"Sold {sold_on:%b} {sold_on.day}; picked up at the farm.")
-        WaitlistEntry.objects.create(owner=user, buyer="Kate Brennan", reach="(814) 555-0176", requested_on=day(18),
-                                     breed="Mini Rex", sex="doe", color="Broken Castor", notes="Wants show quality.")
-        WaitlistEntry.objects.create(owner=user, buyer="Samuel Okafor (Riverbend Rabbitry)", reach="(502) 555-0131",
-                                     requested_on=day(6), breed="Holland Lop", sex="buck", status="offered",
-                                     deposit=Decimal("30.00"))
+                                         rabbit=rabbit, notes=f"Sold {sold_on:%b} {sold_on.day}; farm pickup.")
+        WaitlistEntry.objects.create(owner=user, buyer="Kate Brennan", reach="(814) 555-0176", requested_on=day(12),
+                                     breed=NZ, sex="doe", color="Broken", notes="Broken NZ doe for 4-H.")
+        WaitlistEntry.objects.create(owner=user, buyer="Samuel Okafor (Riverbend)", reach="(502) 555-0131",
+                                     requested_on=day(6), breed=NZ, sex="buck", color="Blue", status="offered",
+                                     deposit=Decimal("30.00"), rabbit=R["Ash"], notes="Offered Ash; visiting Saturday.")
+        WaitlistEntry.objects.create(owner=user, buyer="Greg Lutz", reach="greg@example.com", requested_on=day(70),
+                                     breed=CAL, status="cancelled", notes="Found a closer breeder.")
+        WaitlistEntry.objects.create(owner=user, buyer="Maya Chen (Hilltop Homestead)", reach="(607) 555-0190",
+                                     requested_on=day(20), breed=NZ, sex="", color="Red",
+                                     notes="Wants a trio of red fryers for freezer camp.")
 
-        # Keep-or-cull notes for the culls and two growers still under evaluation.
-        culls = 0
+        # --- Keep/cull ---
         for name, *_, extra in HERD:
             if "cull" in extra:
-                CullNote.objects.create(rabbit=R[name], date=day(extra["died"] + 3), decision="cull", reason=extra["cull"])
-                culls += 1
-        CullNote.objects.create(rabbit=R["Briar"], date=day(6), decision="keep", reason="Dense coat, good depth.")
-        CullNote.objects.create(rabbit=R["Nettle"], date=day(6), decision="undecided", reason="Recheck shoulders at 4 months.")
+                CullNote.objects.create(rabbit=R[name], date=day(extra["died"] + 2), decision="cull", reason=extra["cull"])
+        for nm, dec, why in [("Jet", "keep", "Dense coat, wide shoulders; future herd buck."),
+                             ("Soot", "keep", "Good depth; keep as a replacement doe."),
+                             ("Ash", "undecided", "Offered to a buyer; recheck at 4 months."),
+                             ("Cinder", "undecided", "Nice broken pattern; tight on hindquarters."),
+                             ("Tank", "keep", "Heaviest of the cross litter at 10 weeks."),
+                             ("Dottie", "cull", "Cross doe; sell as pet or freezer.")]:
+            CullNote.objects.create(rabbit=R[nm], date=day(7), decision=dec, reason=why)
 
-        health = [
-            ("Juniper", 40, "checkup", "Nails trimmed, teeth fine, good condition.", None),
-            ("Thimble", 21, "checkup", "Post-kindling check; eating well.", None),
-            ("Merrick", 15, "treatment", "Ivermectin for ear mites, second dose due.", 1),
-            ("Willa", 9, "illness", "Mild weepy eye; flushing with saline.", -3),
-            ("Ashford", 70, "injury", "Small nick on the hock from the cage floor; added a resting mat.", None),
-            ("Fennel", 30, "checkup", "Molting; on track for weight.", None),
-            ("Barnaby", 140, "illness", "Slowing down, softer appetite.", None),
+        # --- Health notes (some with follow-up tasks) ---
+        for nm, back, kind, notes, follow in [
+            ("Ink", 20, "checkup", "Nails trimmed; teeth fine; good condition before rebreeding.", None),
+            ("Obsidian", 45, "treatment", "Ivermectin, whole buck row rotation.", None),
+            ("Coral", 1, "checkup", "Day-after-kindling check; eating and drinking.", -3),
+            ("Mojave", 14, "checkup", "Milk good; cross kits outgrowing pure NZ litters.", None),
+            ("Frost", 30, "injury", "Small scratch on ear from cage wire; cleaned, wire fixed.", None),
+            ("Basalt", 215, "illness", "Slowing down, softer appetite.", None),
+            ("Sierra", 9, "illness", "Mild snuffles; isolated, watching.", 4),
+            ("Jet", 3, "checkup", "Weaned well; on pellets, hay and willow forage.", None),
+        ]:
+            note = HealthNote.objects.create(rabbit=R[nm], date=day(back), kind=kind, notes=notes,
+                                             follow_up_on=day(follow) if follow is not None else None)
+            if follow is not None:
+                t = Task.objects.create(owner=user, title=f"Follow up: {R[nm].name}", due_on=day(follow), rabbit=R[nm])
+                note.task = t
+                note.save(update_fields=["task"])
+
+        # --- Tasks: overdue, due today, upcoming, done, repeating ---
+        for title, back, rabbit, repeat, done in [
+            ("Fix the water line on the doe row", 4, None, "", False),        # overdue
+            ("Pay the feed store invoice", 6, None, "", False),               # overdue
+            ("Tattoo the Magpie keepers", 1, "Magpie", "", False),           # overdue
+            ("Weigh the Mojave cross litter", 0, "Mojave", "weekly", False),  # today
+            ("Scrub and refill water bottles", 0, None, "daily", False),      # today
+            ("Trim nails on the buck row", -5, None, "monthly", False),       # upcoming
+            ("Enter the Keystone meat-pen show", -12, None, "", False),
+            ("Cut fresh forage: willow and plantain", -2, None, "biweekly", False),
+            ("Put the nest box in for Shadow", 3, "Shadow", "", True),         # done
+            ("Order 300 lb grower pellets", 10, None, "", True),
+            ("Deworm the grow-out pen", 21, None, "quarterly", True),
+        ]:
+            Task.objects.create(owner=user, title=title, due_on=day(back), rabbit=R.get(rabbit), repeat=repeat,
+                                done_at=timezone.now() - datetime.timedelta(days=max(back - 1, 0)) if done else None)
+
+        # --- Costs: 3½ years of feed and hay, plus vet, supplies, shows, forage ---
+        ex = []
+        for m in range(0, 42):
+            ex.append(Expense(owner=user, date=day(m * 30 + 3), category="feed", description="100 lb NZ grower pellets (18% protein)",
+                              amount=Decimal("46.50") + Decimal(m % 4), weight_lb=Decimal("100")))
+            if m % 2 == 0:
+                ex.append(Expense(owner=user, date=day(m * 30 + 11), category="hay", description="Timothy hay, 3 square bales",
+                                  amount=Decimal("36.00"), weight_lb=Decimal("150")))
+            if m % 6 == 0:
+                ex.append(Expense(owner=user, date=day(m * 30 + 17), category="supplies",
+                                  description="J-feeders, water bottles and nest box shavings", amount=Decimal("58.25")))
+        ex += [
+            Expense(owner=user, date=day(9), category="other", description="Forage: willow, plantain and dandelion from the paddock (free)", amount=Decimal("0")),
+            Expense(owner=user, date=day(16), category="supplies", description="Nest box pads (12)", amount=Decimal("22.00"), litter=kindled),
+            Expense(owner=user, date=day(9), category="vet", description="Vet visit: Sierra snuffles", amount=Decimal("65.00"), rabbit=R["Sierra"]),
+            Expense(owner=user, date=day(45), category="vet", description="Ivermectin (buck row)", amount=Decimal("18.40")),
+            Expense(owner=user, date=day(40), category="shows", description="Keystone Classic meat-pen entries", amount=Decimal("30.00")),
+            Expense(owner=user, date=day(4), category="feed", description="Calf Manna top-dress for nursing does", amount=Decimal("19.99"), weight_lb=Decimal("10")),
+            Expense(owner=user, date=day(25), category="other", description="Mineral blocks + forage rack for grow-out", amount=Decimal("27.50")),
+            Expense(owner=user, date=day(30), category="feed", description="Black oil sunflower seed (coat conditioning)", amount=Decimal("15.00"), weight_lb=Decimal("20")),
         ]
-        for name, back, kind, notes, follow in health:
-            HealthNote.objects.create(rabbit=R[name], date=day(back), kind=kind, notes=notes,
-                                      follow_up_on=day(-follow) if follow is not None else None)
+        Expense.objects.bulk_create(ex)
 
-        tasks = [
-            ("Clean and disinfect the nest boxes", -2, None, "weekly"),
-            ("Order 50 lb pellets", -4, None, ""),
-            ("Tattoo the Juniper litter keepers", 3, None, ""),
-            ("Recheck Willa's eye", -3, "Willa", ""),
-            ("Trim nails", 5, None, "monthly"),
-            ("Enter the Keystone show", 12, None, ""),
-            ("Replace water bottle in the grow-out pen", 1, None, ""),
-        ]
-        for title, ahead, rabbit, repeat in tasks:
-            Task.objects.create(owner=user, title=title, due_on=day(-ahead), rabbit=R.get(rabbit), repeat=repeat)
+        # --- Shows ---
+        for nm, back, show, cls, place, of, award, leg in [
+            ("Obsidian", 400, "Keystone Classic", "Senior Buck", 1, 9, "Best of Variety", True),
+            ("Obsidian", 220, "Ohio State Fair", "Senior Buck", 1, 12, "Best of Breed", True),
+            ("Ink", 300, "Keystone Classic", "Senior Doe", 2, 11, "", False),
+            ("Slate", 160, "Lancaster Spring Show", "Senior Buck", 1, 6, "Best of Variety", True),
+            ("Azure", 60, "Lancaster Spring Show", "Senior Doe", 3, 8, "", False),
+        ]:
+            ShowEntry.objects.create(rabbit=R[nm], show_name=show, date=day(back), location="PA",
+                                     show_class=cls, placing=place, out_of=of, award=award, judge="J. Miller", leg=leg)
 
-        expenses = [(3, "feed", "50 lb rabbit pellets", "24.99", "50"), (17, "hay", "Timothy hay, 2 bales", "28.00", None),
-                    (25, "supplies", "Water bottles (6)", "18.50", None), (40, "vet", "Ivermectin", "15.75", None),
-                    (60, "shows", "Keystone Classic entries", "24.00", None), (33, "feed", "50 lb rabbit pellets", "24.99", "50")]
-        for back, cat, desc, amount, lb in expenses:
-            Expense.objects.create(owner=user, date=day(back), category=cat, description=desc, amount=Decimal(amount),
-                                   weight_lb=Decimal(lb) if lb else None)
+        # --- Breeding programs (planner) ---
+        def target(key):
+            from rabbits.program_plan import TARGET_KEYS
+            label, _, tgt = TARGET_KEYS[key]
+            return label, tgt
+        for nm, key, step, dam, sire, sex in [
+            ("Black meat line", "black", "plan", "Ink", "Obsidian", "doe"),
+            ("Broken black keepers", "broken-black", "breeders", None, None, "buck"),
+            ("Chocolate from Blizzard", "chocolate", "goal", None, None, "any"),
+            ("Black otter project", "otter", "goal", None, None, "doe"),
+            ("Chestnut agouti someday", "chestnut", "goal", None, None, "doe"),
+        ]:
+            label, tgt = target(key)
+            Program.objects.create(owner=user, name=nm, target_key=key, target_label=label, target=tgt,
+                                   traits=["meat", "width"], keep_count=2, keep_sex=sex, max_coi=Decimal("12.5"),
+                                   step=step, dam=R.get(dam), sire=R.get(sire))
 
-        alive = Rabbit.objects.filter(owner=user).exclude(status__in=Rabbit.FORMER)
+        alive = Rabbit.objects.filter(owner=user, archived_at__isnull=True).exclude(status__in=Rabbit.FORMER)
         return {
-            "bucks alive": alive.filter(sex="buck").count(), "does alive": alive.filter(sex="doe").count(),
-            "bucks culled/deceased": Rabbit.objects.filter(owner=user, sex="buck", status__in=("culled", "deceased")).count(),
-            "does culled": Rabbit.objects.filter(owner=user, sex="doe", status="culled").count(),
-            "sold": Rabbit.objects.filter(owner=user, status="sold").count(),
-            "contacts": Contact.objects.filter(owner=user).count(), "litters": Litter.objects.filter(owner=user).count(),
-            "weights": weights, "health": len(health), "tasks": Task.objects.filter(owner=user).count(),
-            "cull notes": culls + 2, "photos": photos, "waitlist": WaitlistEntry.objects.filter(owner=user).count(),
+            "rabbits": Rabbit.all_objects.filter(owner=user).count(), "in herd": alive.count(),
+            "bucks": alive.filter(sex="buck").count(), "does": alive.filter(sex="doe").count(),
+            "broken": alive.filter(color__startswith="Broken").count(), "californian": alive.filter(breed=CAL).count(),
+            "juniors": alive.filter(status="growing").count(),
+            "former": Rabbit.objects.filter(owner=user, status__in=Rabbit.FORMER).count(),
+            "archived": Rabbit.all_objects.filter(owner=user, archived_at__isnull=False).count(),
+            "litters": Litter.objects.filter(owner=user).count(), "past litters": history_litters,
+            "weights": Weight.objects.filter(rabbit__owner=user).count(), "photos": photos + 1,
+            "tasks": Task.objects.filter(owner=user).count(), "expenses": Expense.objects.filter(owner=user).count(),
+            "programs": Program.objects.filter(owner=user).count(),
+            "waitlist": WaitlistEntry.objects.filter(owner=user).count(),
+            "locations": Location.objects.filter(owner=user).count(),
         }
 
     def photos(self, rabbits, old_files):
-        """Main photo per rabbit, cycling through its breed's licensed photos (color matches first)."""
+        """Main photo per rabbit from rabbits/demo_photos/nz, matched to its color.
+        Frank Dixon's own photos need no credit; web photos carry a "Credit:" note,
+        shown behind the photo's Credit badge."""
         from django.core.files.storage import default_storage
         from django.db import transaction as tx
 
-        for name in old_files:  # the previous run's files, removed once this run commits
+        from rabbits.renditions import delete_renditions
+
+        for name in old_files:
             tx.on_commit(lambda n=name: (default_storage.delete(n), delete_renditions(default_storage, n)))
-        folder = Path(__file__).resolve().parents[2] / "demo_photos"
-        credits = json.loads((folder / "attribution.json").read_text())
-        by_breed, used = {}, {}
-        for c in credits:
-            by_breed.setdefault(c["breed"], []).append(c)
-        count = 0
-        for rabbit in rabbits.values():
-            pool = by_breed.get(rabbit.breed)
-            if not pool:
+        folder = Path(__file__).resolve().parents[2] / "demo_photos" / "nz"
+        pool = {}
+        for c in json.loads((folder / "attribution.json").read_text()):
+            if "newborn" in c["file"]:
                 continue
-            words = set(rabbit.color.lower().split())
-            fresh = [c for c in pool if used.get(c["file"], 0) == min(used.get(p["file"], 0) for p in pool)]
-            pick = next((c for c in fresh if words & set(c["file"].replace("-", " ").split())), fresh[0])
-            used[pick["file"]] = used.get(pick["file"], 0) + 1
-            photo = RabbitPhoto(rabbit=rabbit, is_main=True,
-                                notes=f"Demo photo: {pick['author']}, {pick['license']}, via Wikimedia Commons ({pick['source']}).")
+            pool.setdefault(c["color"], []).append(c)
+        used, count = {}, 0
+        for rabbit in rabbits.values():
+            base = rabbit.color.replace("Broken ", "").replace("Charlie ", "")
+            key = {"Himalayan": "Californian"}.get(base, base)
+            options = pool.get(key) or pool["Black"]
+            pick = options[used.get(key, 0) % len(options)]
+            used[key] = used.get(key, 0) + 1
+            notes = "" if pick["license"] == "Owned" else f"Credit: {pick['author']}, {pick['license']}, {pick['source']}"
+            if rabbit.color.startswith("Broken") and not notes:
+                notes = "Stand-in photo of a solid rabbit of the same color."
+            taken = min(timezone.localdate() - datetime.timedelta(days=20), rabbit.birth_date + datetime.timedelta(days=240))
+            photo = RabbitPhoto(rabbit=rabbit, is_main=True, notes=notes, taken_at=max(taken, rabbit.birth_date),
+                                uploaded_at=timezone.now() - datetime.timedelta(days=(timezone.localdate() - max(taken, rabbit.birth_date)).days))
             with open(folder / pick["file"], "rb") as handle:
                 photo.image.save("photo.jpg", File(handle), save=False)
             photo.save()
