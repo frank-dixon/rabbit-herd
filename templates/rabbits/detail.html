@@ -83,13 +83,13 @@
         <p class="mt-3">{% url 'rabbit_pedigree' rabbit.pk as pedigree_url %}{% include "components/button.html" with label="View pedigree" href=pedigree_url variant="secondary" only %}</p>
       </section>
 
-      {% include "rabbits/_weights_card.html" %}
+      <div data-refresh="card-weights">{% include "rabbits/_weights_card.html" %}</div>
 
-      {% include "rabbits/_health_card.html" %}
+      <div data-refresh="card-health">{% include "rabbits/_health_card.html" %}</div>
 
-      {% include "rabbits/_culling_card.html" %}
+      <div data-refresh="card-culling">{% include "rabbits/_culling_card.html" %}</div>
 
-      {% include "rabbits/_shows_card.html" %}
+      <div data-refresh="card-shows">{% include "rabbits/_shows_card.html" %}</div>
 
       {% include "rabbits/_linked_costs.html" with add_url=cost_add_url heading_id="costs-heading" %}
 

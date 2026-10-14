@@ -71,3 +71,4 @@
 /* Links inside a row (a rabbit name) sit above the row's stretched edit link. */
 .list-row a:not(.list-row-link), .list-row button { position: relative; z-index: 1; }
 .list-panel + .list-panel { margin-top: 24px; }
+.app-modal-body > :first-child { margin-top: 0; padding-top: 0; }

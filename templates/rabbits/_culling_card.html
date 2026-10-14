@@ -8,13 +8,7 @@
             <p><span class="pill" data-decision="{{ note.decision }}">{{ note.get_decision_display }}</span> · {{ note.date|date:"M j, Y" }}{% if forloop.first and cull_notes|length > 1 %} · <span class="text-neutral-600">latest</span>{% endif %}</p>
             {% if note.reason %}<p class="mt-1 whitespace-pre-line break-words text-neutral-800">{{ note.reason }}</p>{% endif %}
           </div>
-          <div class="flex shrink-0 gap-3">
-            <a class="text-neutral-600 underline" href="?cull={{ note.pk }}#culling">Edit<span class="sr-only"> {{ note.get_decision_display }} on {{ note.date|date:"M j, Y" }}</span></a>
-            <form method="post" action="{% url 'rabbit_cull_delete' note.pk %}" data-undo-remove="Evaluation removed.">
-              {% csrf_token %}
-              <button type="submit" class="text-neutral-600 underline">Remove<span class="sr-only"> {{ note.get_decision_display }} on {{ note.date|date:"M j, Y" }}</span></button>
-            </form>
-          </div>
+          {% url 'rabbit_cull_delete' note.pk as remove_action %}{% with pk=note.pk|stringformat:"d" %}{% with edit_href="?cull="|add:pk|add:"#culling" %}{% include "components/row_actions.html" with name=note.get_decision_display edit_href=edit_href modal_key="culling" remove_action=remove_action undo="Evaluation removed." only %}{% endwith %}{% endwith %}
         </li>
       {% endfor %}
     </ul>
@@ -23,7 +17,7 @@
   {% endif %}
   {% include "components/add_fold_start.html" with label="Add an evaluation" open=cull_editing only %}
   {% if cull_editing %}{% url 'rabbit_cull_edit' cull_editing.pk as cull_action %}{% else %}{% url 'rabbit_cull_add' rabbit.pk as cull_action %}{% endif %}
-  <form class="mt-4 border-t border-neutral-200 pt-4" method="post" action="{{ cull_action }}">
+  <div data-modal-content="culling" data-add-sheet-body><form class="mt-4 pt-4" method="post" action="{{ cull_action }}">
     {% csrf_token %}
     <h3 class="font-semibold">{% if cull_editing %}Edit the evaluation from {{ cull_editing.date|date:"M j, Y" }}{% else %}Add an evaluation{% endif %}</h3>
     <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -43,6 +37,6 @@
       {% include "components/button.html" with label=cull_editing|yesno:"Save evaluation,Add evaluation" type="submit" variant="secondary" only %}
       {% if cull_editing %}<a class="text-sm underline" href="?#culling">Cancel</a>{% endif %}
     </div>
-  </form>
+  </form></div>
 
   {% include "components/add_fold_end.html" %}{% include "components/fold_end.html" %}

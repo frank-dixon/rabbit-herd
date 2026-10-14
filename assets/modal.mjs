@@ -19,12 +19,12 @@ export function staysInModal(url, base) {
 }
 
 /** The part of a fetched page to show: [data-modal-content] if marked, else <main> without its header. */
-export function modalContent(page) {
-  const main = page.querySelector("[data-modal-content]") || page.querySelector("main");
+export function modalContent(page, key = "") {
+  const main = (key && page.querySelector(`[data-modal-content="${key}"]`)) || page.querySelector('[data-modal-content=""]') || page.querySelector("main");
   if (!main) return { title: "", nodes: [] };
-  const heading = main.querySelector("h1") || (main.hasAttribute("data-modal-content") ? main.querySelector("h2") : null);
+  const heading = main.querySelector("h1") || (main.hasAttribute("data-modal-content") ? main.querySelector("h2, h3") : null);
   const title = (heading?.textContent || page.title || "").trim();
-  if (heading && heading.tagName === "H2") heading.remove(); // the modal header shows it
+  if (heading && heading.tagName !== "H1") heading.remove(); // the modal header shows it
   main.querySelectorAll("[data-page-header], [data-toasts], [data-connection-status], dialog").forEach((el) => el.remove());
   return { title, nodes: Array.from(main.childNodes) };
 }
@@ -49,6 +49,7 @@ export function bindModal(doc, win = window) {
   const title = dialog.querySelector("[data-modal-title]");
   let opener = null;
   let busy = false;
+  let key = ""; // which [data-modal-content="key"] section of the page to show (data-modal="key")
   const parser = new win.DOMParser();
 
   function close() {
@@ -85,7 +86,7 @@ export function bindModal(doc, win = window) {
         win.location.assign(landed.href);
         return;
       }
-      const { title: heading, nodes } = modalContent(page);
+      const { title: heading, nodes } = modalContent(page, key);
       title.textContent = heading;
       body.replaceChildren(...nodes.map((node) => doc.importNode(node, true)));
       if (body.querySelector("[data-add-sheet-body]")) prefixIds(body);
@@ -117,7 +118,7 @@ export function bindModal(doc, win = window) {
     }
     if (inside && !staysInModal(link.href, win.location.href)) return;
     event.preventDefault();
-    if (!inside) opener = link;
+    if (!inside) { opener = link; key = link.getAttribute("data-modal") || ""; }
     load(link.href);
   });
   body.addEventListener("submit", (event) => {

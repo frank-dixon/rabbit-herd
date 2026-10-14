@@ -12,13 +12,7 @@
             {% if entry.judge %}<p class="text-neutral-600">Judge: {{ entry.judge }}</p>{% endif %}
             {% if entry.notes %}<p class="mt-1 whitespace-pre-line break-words text-neutral-800">{{ entry.notes }}</p>{% endif %}
           </div>
-          <div class="flex shrink-0 gap-3">
-            <a class="text-neutral-600 underline" href="?show={{ entry.pk }}#shows">Edit<span class="sr-only"> {{ entry.show_name }}</span></a>
-            <form method="post" action="{% url 'rabbit_show_delete' entry.pk %}" data-undo-remove="Show result removed.">
-              {% csrf_token %}
-              <button type="submit" class="text-neutral-600 underline">Remove<span class="sr-only"> {{ entry.show_name }}</span></button>
-            </form>
-          </div>
+          {% url 'rabbit_show_delete' entry.pk as remove_action %}{% with pk=entry.pk|stringformat:"d" %}{% with edit_href="?show="|add:pk|add:"#shows" %}{% include "components/row_actions.html" with name=entry.show_name edit_href=edit_href modal_key="shows" remove_action=remove_action undo="Show result removed." only %}{% endwith %}{% endwith %}
         </li>
       {% endfor %}
     </ul>
@@ -27,7 +21,7 @@
   {% endif %}
   {% include "components/add_fold_start.html" with label="Add a show result" open=show_editing only %}
   {% if show_editing %}{% url 'rabbit_show_edit' show_editing.pk as show_action %}{% else %}{% url 'rabbit_show_add' rabbit.pk as show_action %}{% endif %}
-  <form class="mt-4 border-t border-neutral-200 pt-4" method="post" action="{{ show_action }}">
+  <div data-modal-content="shows" data-add-sheet-body><form class="mt-4 pt-4" method="post" action="{{ show_action }}">
     {% csrf_token %}
     <h3 class="font-semibold">{% if show_editing %}Edit {{ show_editing.show_name }}{% else %}Add a show result{% endif %}</h3>
     <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -52,6 +46,6 @@
       {% include "components/button.html" with label=show_editing|yesno:"Save show result,Add show result" type="submit" variant="secondary" only %}
       {% if show_editing %}<a class="text-sm underline" href="?#shows">Cancel</a>{% endif %}
     </div>
-  </form>
+  </form></div>
 
   {% include "components/add_fold_end.html" %}{% include "components/fold_end.html" %}
