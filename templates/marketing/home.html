@@ -1,0 +1,87 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ app_name }} · Rabbitry records and breeding plans</title>
+  <meta name="description" content="Records, pedigrees, litters, weights and breeding plans for every rabbit you keep, on your phone and your computer.">
+  <meta name="theme-color" content="#FAFAF9">
+  <link rel="icon" href="{% static 'icons/favicon-32.png' %}" sizes="32x32">
+  <link rel="apple-touch-icon" href="{% static 'icons/apple-touch-icon.png' %}">
+  <link rel="preload" href="{% static 'fonts/instrument-sans-latin-var.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{% static 'marketing/home.css' %}">
+</head>
+<body>
+{% url 'login' as login_url %}{% url 'signup' as signup_url %}
+<a class="skip" href="#main">Skip to content</a>
+<div class="hero">
+  <div class="ribbon" aria-hidden="true"></div>
+  <div class="wrap">
+    <header class="top">
+      <a class="brand" href="/" aria-label="{{ app_name }} home"><span class="logo" aria-hidden="true"></span>{{ app_name }}</a>
+      <nav aria-label="Site"><a class="hide" href="#records">Features</a><a class="hide" href="#planner">Breeding planner</a><a class="si" href="{{ login_url }}">Sign in</a></nav>
+    </header>
+    <main id="main">
+      <div class="h-in">
+        <h1>Run your rabbitry from one place.</h1>
+        <p class="lede">Records, pedigrees, litters, weights and breeding plans for every rabbit you keep, on your phone and your computer.</p>
+        <div class="cta"><a class="btn pri" href="{{ signup_url }}">Start free</a><a class="btn sec" href="{{ login_url }}">Sign in</a></div>
+      </div>
+      <figure class="shot">
+        <picture>
+          <source media="(max-width: 760px)" srcset="{% static 'marketing/today-390.webp' %}" width="780" height="1300">
+          <img src="{% static 'marketing/today-1280.webp' %}" width="1280" height="1112" alt="The {{ app_name }} Today page: tasks due this week and the herd at a glance." fetchpriority="high">
+        </picture>
+      </figure>
+    </main>
+  </div>
+</div>
+
+<section class="f" id="records" aria-labelledby="records-h"><div class="wrap">
+  <p class="kick">Herd records</p>
+  <h2 id="records-h">Every rabbit, with the history you actually need.</h2>
+  <p class="t">Photos, pedigrees, weights, health checks and sale records stay with each rabbit, including the ones you sold or lost, so the record is complete.</p>
+  <div class="grid3">
+    <div><h3>Pedigrees</h3><p>Four generations, with colors and genotypes where you know them.</p></div>
+    <div><h3>Weights</h3><p>Log one rabbit or a whole litter at once. Growth is charted against age.</p></div>
+    <div><h3>Health</h3><p>Checks, treatments and photos, dated and searchable.</p></div>
+  </div>
+</div></section>
+
+<section class="f" id="litters" aria-labelledby="litters-h"><div class="wrap split">
+  <div>
+    <p class="kick">Litters</p>
+    <h2 id="litters-h">From palpation to tattoo, on schedule.</h2>
+    <p class="t">Each breeding sets its own dates for palpating, the nest box, weaning and tattooing. When kits are ready, turn the litter into individual rabbit records in one step.</p>
+  </div>
+  <ul class="frag" aria-label="Example litter">
+    <li><b>Clover × Thistle</b><span class="mu">Day 12</span></li>
+    <li><span>Weigh litter</span><span class="pill y">Due today</span></li>
+    <li><span>Nest box out</span><span class="mu">Fri, Oct 23</span></li>
+    <li><span>Wean</span><span class="mu">Fri, Nov 27</span></li>
+    <li><span>6 kits · avg 168 g</span><span class="pill g">On track</span></li>
+  </ul>
+</div></section>
+
+<section class="f dark" id="planner" aria-labelledby="planner-h"><div class="wrap split">
+  <div>
+    <p class="kick">Breeding planner</p>
+    <h2 id="planner-h">Know which goals your herd can reach.</h2>
+    <p class="t">Choose a color or pattern. The planner reads the genetics of your rabbits and shows the fewest pairings it takes, or exactly what rabbit to bring in if you need one.</p>
+  </div>
+  <ul class="frag" aria-label="Example goals">
+    <li><span>Broken chocolate</span><span class="pill g">Your herd</span></li>
+    <li><span>Lilac</span><span class="pill g">Your herd</span></li>
+    <li><span>Opal</span><span class="pill n">Known rabbits</span></li>
+    <li><span>Ruby-eyed white</span><span class="pill y">Buy 1</span></li>
+    <li><span class="mu">Clover × Thistle: 25% broken chocolate in 1 generation</span></li>
+  </ul>
+</div></section>
+
+<section class="end" aria-labelledby="end-h"><div class="wrap">
+  <h2 id="end-h">Bring your whole herd over in an afternoon.</h2>
+  <div class="cta"><a class="btn pri" href="{{ signup_url }}">Start free</a><a class="btn sec" href="{{ login_url }}">Sign in</a></div>
+</div></section>
+<footer><div class="wrap"><span>© 2026 {{ app_name }}</span><a href="{{ login_url }}">Sign in</a></div></footer>
+</body>
+</html>
