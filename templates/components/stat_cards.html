@@ -1,4 +1,4 @@
-{# The shared stat cards (same .wt-stat look as Weights and Costs). stats: [{label, value, note, tone}]; tone "r" turns the number red. #}
-<dl class="wt-stats" aria-label="{{ label|default:'Summary' }}" data-stat-cards>
-  {% for s in stats %}<div class="wt-stat"><dt>{{ s.label }}</dt><dd class="num{% if s.tone == 'r' %} text-danger{% endif %}">{{ s.value }}</dd><p>{{ s.note|default:"&nbsp;" }}</p></div>{% endfor %}
+{# A row of shared stat cards (components/stat_card.html). stats: [{label, value, unit, note, tone, hook}]; tone "r" turns the number red. #}
+<dl class="stat-grid" aria-label="{{ label|default:'Summary' }}" data-stat-cards>
+  {% for s in stats %}{% include "components/stat_card.html" with label=s.label value=s.value unit=s.unit sub=s.note tone=s.tone hook=s.hook only %}{% endfor %}
 </dl>
