@@ -307,7 +307,32 @@ def herd_first(user, today, active, rabbits, items):
         delta = w.grams - before.grams if before else None
         weights.append({"weight": w, "rabbit": photos.get(w.rabbit_id, w.rabbit), "delta": delta_text(delta, w.unit) if delta else ""})
     week = [i for i in items if i["date"] <= week_end]
+    from . import minibars as MB
+
+    mo = MB.months(today)
+    everyone = list(Rabbit.objects.filter(owner=user))
+    left = lambda r: r.sold_on or r.death_date or (r.archived_at.date() if r.archived_at else None)
+    herd_by_month = [sum(1 for r in everyone if r.birth_date <= end and not (left(r) and left(r) <= end)
+                         and (r.status in (Rabbit.Status.BREEDING, Rabbit.Status.GROWING) or left(r))) for _, end, _ in mo]
+    lits = list(Litter.objects.filter(owner=user).values_list("bred_on", "kindled_on"))
+    in_m = lambda d, a, b: d is not None and a <= d <= b
+    bars = {
+        "herd": MB.bars(mo, herd_by_month, "rabbits in the herd at month end"),
+        "bred": MB.bars(mo, [sum(1 for b, _ in lits if in_m(b, a, z)) for a, z, _ in mo], "litters bred per month"),
+        "kindled": MB.bars(mo, [sum(1 for _, k in lits if in_m(k, a, z)) for a, z, _ in mo], "litters kindled per month"),
+        "sold": MB.bars(mo, [sum(1 for r in everyone if in_m(r.sold_on, a, z)) for a, z, _ in mo], "rabbits sold per month"),
+    }
+    pl = lambda n, w: f"{n} {w}{'' if n == 1 else 's'}"
+    nk_days = (next_kindling["due"] - today).days if next_kindling else None
+    bars["subs"] = {
+        "herd": f"{pl(sum(1 for r in living if r.sex == Rabbit.Sex.BUCK), 'buck')} · {pl(sum(1 for r in living if r.sex == Rabbit.Sex.DOE), 'doe')}",
+        "kindling": (f"{next_kindling['litter'].pairing.doe.name} · " + (pl(nk_days, "day") if nk_days > 0 else "today" if nk_days == 0 else "overdue"))
+                    if next_kindling else "No does bred",
+        "kindling_value": f"{next_kindling['due']:%a, %b} {next_kindling['due'].day}" if next_kindling else "None",
+        "sold": f"{sum(1 for r in former if r.status == Rabbit.Status.CULLED)} culled · {sum(1 for r in former if r.status == Rabbit.Status.DECEASED)} deceased",
+    }
     return {
+        "tile_bars": bars,
         "herd_cards": cards,
         "herd_more": max(len(living) - HERD_CARDS, 0),
         "former_chips": former_chips,

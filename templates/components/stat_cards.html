@@ -1,4 +1,4 @@
-{# A row of shared stat cards (components/stat_card.html). stats: [{label, value, unit, note, tone, hook}]; tone "r" turns the number red. #}
+{# A row of shared stat cards (components/stat_card.html). stats: [{label, value, unit, note, tone, hook, bars}]; tone "r" turns the number red. #}
 <dl class="stat-grid" aria-label="{{ label|default:'Summary' }}" data-stat-cards>
-  {% for s in stats %}{% include "components/stat_card.html" with label=s.label value=s.value unit=s.unit sub=s.note tone=s.tone hook=s.hook only %}{% endfor %}
+  {% for s in stats %}{% include "components/stat_card.html" with label=s.label value=s.value unit=s.unit sub=s.note tone=s.tone hook=s.hook bars=s.bars only %}{% endfor %}
 </dl>

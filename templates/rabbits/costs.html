@@ -9,7 +9,7 @@
 
   <div data-refresh="costs">
     <dl class="stat-grid" aria-label="Totals" data-cost-totals>
-      {% include "components/stat_card.html" with label=totals.month_label value=totals.month|money only %}
+      {% include "components/stat_card.html" with label=totals.month_label value=totals.month|money bars=totals.month_bars only %}
       {% include "components/stat_card.html" with label=totals.year_label value=totals.year|money only %}
       {% with label="Feed per rabbit, "|add:totals.month_label %}
         {% include "components/stat_card.html" with label=label value=totals.feed_per_rabbit|money sub=totals.active_label hook="feed-per-rabbit" only %}

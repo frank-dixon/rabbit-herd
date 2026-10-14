@@ -7,6 +7,10 @@
 .stat-card dd { margin: 4px 0 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
 .stat-card dd span { font-size: 13px; font-weight: 400; color: var(--muted); }
 .stat-card p { font-size: 12px; line-height: 16px; color: var(--muted); margin-top: 4px; min-height: 16px; }
+/* Mini column chart under a stat: light tonal bars, the current period in the accent. No axes. */
+.mini-bars { display: flex; align-items: flex-end; gap: 4px; height: 32px; margin-top: 12px; }
+.mini-bars span { flex: 1 1 0; min-width: 0; border-radius: 2px; background: color-mix(in oklab, var(--accent) 16%, var(--surface)); }
+.mini-bars span.is-now { background: var(--accent); }
 
 /* Chip strip: components/chip_strip.html, a titled row of label + value chips */
 .chip-strip { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }

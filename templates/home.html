@@ -56,11 +56,11 @@
         </ul>
       {% endif %}
 
-      <dl class="key-numbers md:mt-6" data-tiles>
-        <div class="kn"><dt class="kn-label">In the herd</dt><dd class="kn-value num">{{ tiles.herd }}</dd><dd class="kn-note">{{ tiles.bucks }} buck{{ tiles.bucks|pluralize }} · {{ tiles.does }} doe{{ tiles.does|pluralize }}</dd></div>
-        <div class="kn"><dt class="kn-label">Bred</dt><dd class="kn-value num">{{ tiles.bred }}</dd><dd class="kn-note">{{ tiles.bred_names|default:"None right now" }}</dd></div>
-        <div class="kn"><dt class="kn-label">Next kindling</dt>{% if tiles.next_kindling %}<dd class="kn-value num">{{ tiles.next_kindling.due|date:"D, M j" }}</dd><dd class="kn-note">{{ tiles.next_kindling.litter.pairing.doe.name }} · {% if tiles.next_days > 0 %}{{ tiles.next_days }} day{{ tiles.next_days|pluralize }}{% elif tiles.next_days == 0 %}today{% else %}overdue{% endif %}</dd>{% else %}<dd class="kn-value num">None</dd><dd class="kn-note">No does bred</dd>{% endif %}</div>
-        <div class="kn"><dt class="kn-label">Sold</dt><dd class="kn-value num">{{ tiles.sold }}</dd><dd class="kn-note">{{ tiles.culled }} culled · {{ tiles.deceased }} deceased</dd></div>
+      <dl class="stat-grid md:mt-6" data-tiles>
+        {% include "components/stat_card.html" with label="In the herd" value=tiles.herd sub=tile_bars.subs.herd bars=tile_bars.herd only %}
+        {% include "components/stat_card.html" with label="Bred" value=tiles.bred sub=tiles.bred_names|default:"None right now" bars=tile_bars.bred only %}
+        {% include "components/stat_card.html" with label="Next kindling" value=tile_bars.subs.kindling_value sub=tile_bars.subs.kindling bars=tile_bars.kindled only %}
+        {% include "components/stat_card.html" with label="Sold" value=tiles.sold sub=tile_bars.subs.sold bars=tile_bars.sold only %}
       </dl>
 
       <div class="contents md:mt-6 md:grid md:grid-cols-[1.25fr_1fr] md:gap-5">

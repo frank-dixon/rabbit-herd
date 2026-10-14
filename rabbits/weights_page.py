@@ -314,6 +314,15 @@ def weights_hub(request):
         "overdue": sum(1 for r in all_rows if r["overdue"]),
         "week": sum(1 for r in all_rows if r["since"] is not None and r["since"] <= 7), "herd": len(all_rows),
     }
+    from pages import minibars as MB
+
+    wk = MB.weeks(today)
+    stamps = [(x.date, r["rabbit"].pk) for r in all_rows for x in r["weights"]]
+    stats["week_bars"] = MB.bars(wk, [len({pk for d, pk in stamps if a <= d <= z}) for a, z, _ in wk], "rabbits weighed per week")
+    mo = MB.months(today)
+    adult_ws = [(x.date, x.grams) for r in all_rows if r["group"] == "adult" for x in r["weights"]]
+    avg = lambda a, z: (lambda g: sum(g) // len(g) if g else None)([gr for d, gr in adult_ws if a <= d <= z])
+    stats["avg_bars"] = MB.bars(mo, [avg(a, z) for a, z, _ in mo], "average adult weight by month", lambda v: weight_text(v, unit) if v else "none")
     sel = None
     if view == "chart" and rows:
         pick = g.get("sel", "")

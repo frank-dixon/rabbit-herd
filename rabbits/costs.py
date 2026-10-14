@@ -91,7 +91,12 @@ def totals(user, today=None):
     labels = dict(Expense.Category.choices)
     by_category = [(labels[row["category"]], row["total"]) for row in
                    year.values("category").annotate(total=Sum("amount")).order_by("-total")]
+    from pages import minibars as MB
+
+    mo = MB.months(today)
+    month_bars = MB.bars(mo, [total(mine.filter(date__gte=a, date__lte=z)) for a, z, _ in mo], "spending by month", money)
     return {
+        "month_bars": month_bars,
         "month": total(month), "year": total(year), "all": total(mine),
         "by_category": by_category, "by_category_chips": [(label, money(amount)) for label, amount in by_category], "active": active,
         "active_label": f"{active} active rabbit{'' if active == 1 else 's'}",
