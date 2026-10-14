@@ -31,6 +31,12 @@
         <div class="popover filter-pop" role="group" aria-label="Filters">
           <p class="filter-pop-title">Filters</p>
           <div class="filter-grid">
+            <label class="filter-field col-span-2">Sort
+              <select class="filter-select" name="sort" data-sort-select>
+                <option value="">Default</option>
+                {% for value, label in sort_options %}<option value="{{ value }}"{% if filters.sort == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+            </label>
             <label class="filter-field">Sex
               <select class="filter-select" name="sex">
                 <option value="">Any</option>

@@ -64,6 +64,17 @@ def breed_names(breeds):
     return sorted(name for name in names if name)
 
 
+# Rabbits page sort choices ("" keeps the default order).
+SORTS = {"oldest": "Oldest first", "youngest": "Youngest first"}
+
+
+def sort_by_age(rabbits, sort):
+    """Oldest or youngest first by birth date; unknown birth dates go last."""
+    known = [r for r in rabbits if r.birth_date]
+    known.sort(key=lambda r: (r.birth_date, r.name.lower()), reverse=sort == "youngest")
+    return known + [r for r in rabbits if not r.birth_date]
+
+
 def list_filters(request):
     """Search and filter choices from GET. Unknown values are dropped."""
     get = request.GET
@@ -77,6 +88,7 @@ def list_filters(request):
         "breed": get.get("breed", "").strip()[:80],
         "status": get.get("status") if get.get("status") in statuses else "",
         "pure": get.get("pure") if get.get("pure") in ("yes", "no") else "",
+        "sort": get.get("sort") if get.get("sort") in SORTS else "",
         "location": get.get("location", "") if get.get("location", "").isdigit() or get.get("location") == "none" else "",
     }
 
@@ -137,6 +149,8 @@ def rabbit_list(request):
         want = filters["pure"] == "yes"
         rabbits = [rabbit for rabbit in rabbits if bool(rabbit.purebred_info) == want]
     # Sold rabbits go last; sort is stable, so each group keeps its order.
+    if filters["sort"]:
+        rabbits = sort_by_age(rabbits, filters["sort"])
     rabbits = sorted(rabbits, key=lambda rabbit: rabbit.status == Rabbit.Status.SOLD)
     if view == "list":
         list_row_columns(request.user, rabbits)
@@ -184,6 +198,7 @@ def rabbit_list(request):
             "former_count": former_count,
             "former_qs": query_string({}, tab="former"),
             "sex_options": Rabbit.Sex.choices,
+            "sort_options": list(SORTS.items()),
             "location_options": locations,
             # Each tab offers only the statuses it can hold.
             "status_options": [(v, l) for v, l in Rabbit.Status.choices
