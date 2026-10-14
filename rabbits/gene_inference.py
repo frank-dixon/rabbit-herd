@@ -32,6 +32,15 @@ ALLELE_NAMES = {
 }
 
 
+# Alleles worth tracing: the hidden or notable ones a keeper breeds for or against.
+NOTABLE = {"A": {"at"}, "B": {"b"}, "C": {"cchd", "cchm", "cchl", "ch", "c"}, "D": {"d"},
+           "E": {"ED", "Es", "ej", "e"}, "En": {"En"}, "V": {"v"}, "Si": {"si"}}
+
+
+def notable(locus, allele):
+    return allele in NOTABLE.get(locus, ())
+
+
 def rank(locus, allele):
     return SERIES[locus].index(allele)
 
@@ -369,7 +378,7 @@ def changes(nodes, results, key):
                             "why": rec["why"]})
         for rec in info["pair"]:
             a = rec["allele"]
-            if a and rec["origin"] and a != shown and rank(locus, a) > 0 and rec["level"] in (KNOWN, PROBABLE) and rec["kind"] != "kit":
+            if a and rec["origin"] and a != shown and notable(locus, a) and rec["level"] in (KNOWN, PROBABLE) and rec["kind"] != "kit":
                 who = nodes.get(rec["origin_key"], {}).get("name", "")
                 out.append({"kind": "inherited", "level": rec["level"], "pct": rec["pct"],
                             "text": f"Inherited {ALLELE_NAMES.get(a, a)} ({a}) from {rec['origin']} {who}".strip(),

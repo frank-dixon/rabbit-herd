@@ -75,3 +75,4 @@ class InferenceTests(SimpleTestCase):
         self.assertIn("new", kinds)
         self.assertIn("proven", {c["kind"] for c in gi.changes(FAMILY, self.r, "ash")})
         self.assertIn("inherited", {c["kind"] for c in gi.changes(FAMILY, self.r, "juniper")})
+        self.assertNotIn("Inherited self", " ".join(c["text"] for c in gi.changes(FAMILY, self.r, "juniper")))
