@@ -12,8 +12,6 @@
   --v2-gap: 2rem;
 }
 
-html:not([data-layout="v2"]) .v2-only, html[data-layout="v2"] .v2-hide { display: none !important; }
-
 @layer components {
   .v2-card { margin: 0 auto; max-width: 32rem; display: flex; flex-direction: column; }
   .v2-card-wide { max-width: 42rem; }

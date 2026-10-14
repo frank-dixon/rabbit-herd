@@ -3,7 +3,6 @@
 {% block title %}{{ question }} · {% if editing %}Edit {{ editing.name }}{% else %}Add a rabbit{% endif %} · {{ app_name }}{% endblock %}
 
 {% block content %}
-  {% if ui_layout == "v2" %}
   <div class="v2-card v2-card-wide pb-28 md:pb-0">
     <div class="v2-hero">
       {% if editing %}<div class="flex items-center gap-2.5" data-page-thumb>{% include "rabbits/_page_thumb.html" with rabbit=editing size_class="h-8 w-8 shrink-0 rounded-md text-sm" only %}<p class="v2-eyebrow"><a class="underline-offset-2 hover:underline" href="{{ overview_url }}">{{ editing.name }}</a> · Edit</p></div>{% else %}<p class="v2-eyebrow">Add a rabbit · {{ number }} of {{ count }}</p>{% endif %}
@@ -11,28 +10,13 @@
       {% if not editing %}<div class="v2-track" aria-hidden="true"><span style="width: {{ percent }}%"></span></div>{% endif %}
     </div>
     <div class="v2-sheet">
-  {% else %}
-  <div class="max-w-2xl pb-28 md:pb-0">
-    {% if editing %}
-      <div class="flex items-start gap-3" data-page-thumb>
-        {% include "rabbits/_page_thumb.html" with rabbit=editing size_class="h-10 w-10 shrink-0 rounded text-base" only %}
-        <p class="min-w-0 text-sm text-neutral-600">{% if quick %}<a class="underline" href="{{ overview_url }}">{{ editing.name }}</a> · Change this, then press Save.{% else %}<a class="underline" href="{{ overview_url }}">Editing {{ editing.name }}</a> · Change this card, then press {{ next_label }}.{% endif %}</p>
-      </div>
-    {% else %}
-    <div class="flex items-center gap-3" aria-hidden="true">
-      <div class="h-1.5 flex-1 rounded-full bg-line"><div class="h-1.5 rounded-full bg-accent" style="width: {{ percent }}%"></div></div>
-      <span class="text-xs font-medium text-neutral-600">{{ number }}/{{ count }}</span>
-    </div>
-    {% endif %}
-  {% endif %}
-    <form class="{% if ui_layout != 'v2' %}mt-4 {% endif %}pb-32 md:pb-0" method="post" action="{{ form_action }}"{% if slug == "photos" %} enctype="multipart/form-data"{% endif %} novalidate data-rabbit-flow data-step="{{ slug }}">
+    <form class="pb-32 md:pb-0" method="post" action="{{ form_action }}"{% if slug == "photos" %} enctype="multipart/form-data"{% endif %} novalidate data-rabbit-flow data-step="{{ slug }}">
       {% csrf_token %}
       {# Enter in a text box presses the first submit button. This one is Next, so Enter never means Back or Remove. #}
       <button type="submit" name="action" value="next" class="sr-only" tabindex="-1" aria-hidden="true">{{ next_label }}</button>
-      <section class="space-y-5 {% if ui_layout != 'v2' %}ruled pt-4{% endif %}">
+      <section class="space-y-5">
         {% if not editing %}<p class="sr-only">Question {{ number }} of {{ count }}</p>{% endif %}
-        {% if ui_layout != "v2" %}<h1 class="text-[1.75rem] leading-tight font-semibold md:text-[2.25rem] leading-snug tracking-tight focus:outline-none" tabindex="-1" id="question">{{ question }}</h1>{% endif %}
-        {% if hint %}<p class="{% if ui_layout != 'v2' %}-mt-3 {% endif %} text-neutral-600">{{ hint }}</p>{% endif %}
+        {% if hint %}<p class="text-muted">{{ hint }}</p>{% endif %}
         {% include "components/error_summary.html" with items=summary only %}
         {% include "rabbits/flow/_"|add:slug|add:".html" %}
       </section>
@@ -52,7 +36,7 @@
       <button type="submit" class="underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Start over</button> · Your answers are saved as you go.
     </form>
     {% endif %}
-  {% if ui_layout == "v2" %}</div>{% endif %}
+  </div>
   </div>
 {% endblock %}
 
