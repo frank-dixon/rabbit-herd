@@ -8,10 +8,16 @@
     {% for field in form %}{% include "rabbits/_settings_field.html" with field=field type="number" inputmode="numeric" only %}{% endfor %}
   </div>
 {% elif section == "rabbitry" %}
-  <p class="mt-1 text-sm text-muted">The name prints on pedigrees. The tattoo format fills in a suggestion for each new rabbit: {prefix}, {yy} or {year}, and {n}, {nn} or {nnn} for the next number.</p>
+  {% load tattoos %}{% next_tattoo form.instance.user as upcoming %}
+  <p class="mt-1 text-sm text-muted">The name prints on pedigrees. The tattoo format fills in a suggestion for each new rabbit.</p>
+  <p class="mt-2 text-sm" data-tattoo-preview>{% if upcoming %}Next tattoo: <span class="num font-semibold">{{ upcoming }}</span>{% else %}<span class="text-muted">No tattoo format set, so new rabbits start blank.</span>{% endif %}</p>
   <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-    {% for field in form %}{% include "rabbits/_settings_field.html" with field=field only %}{% endfor %}
+    {% for field in form %}{% if field.name != "tattoo_format" %}{% include "rabbits/_settings_field.html" with field=field only %}{% endif %}{% endfor %}
   </div>
+  <details class="mt-3"{% if form.tattoo_format.errors %} open{% endif %}><summary class="cursor-pointer text-sm text-muted">Advanced: tattoo format</summary>
+    <div class="mt-2 max-w-sm">{% include "rabbits/_settings_field.html" with field=form.tattoo_format only %}</div>
+    <p class="mt-1 text-sm text-muted">Codes: {prefix}; {yy} (26) or {year} (2026); {n}, {nn} (07) or {nnn} (007) for the next number.</p>
+  </details>
 {% elif section == "reminders" %}
   <fieldset class="mt-3">
     <legend class="eyebrow">Remind me about</legend>
