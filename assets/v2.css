@@ -41,12 +41,11 @@ html[data-layout="v2"] main form :is(input[type="email"], input[required]):not([
 :root { --v2-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232E7D4F' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5 10 17 19 7'/%3E%3C/svg%3E"); }
 @media (prefers-reduced-motion: reduce) { html[data-layout="v2"] main form :is(input, select, textarea) { transition: none; } }
 html[data-layout="v2"] [data-action-bar] { border-top-color: transparent; background: var(--v2-sheet); }
-html[data-layout="v2"] .v2-sheet :is(button, a).mo-press { border-radius: 0.875rem; }
 /* Multi-line notes keep a light frame: one hairline under a tall box reads as broken. */
-html[data-layout="v2"] main form:not([data-swap-root] form, [data-filters] form) textarea:not([hidden]) { border-width: 1px; border-radius: 0.75rem; padding: 0.625rem 0.75rem; }
+html[data-layout="v2"] main form:not([data-swap-root] form, [data-filters] form) textarea:not([hidden]) { border-width: 0; border-radius: 6px; background: var(--well); padding: 0.625rem 0.75rem; }
 /* Form pages without the sheet still speak in the brand green. */
 html[data-layout="v2"] main form { accent-color: var(--v2-brand); }
-html[data-layout="v2"] main form button[type="submit"].bg-accent { background-color: var(--v2-brand); color: var(--v2-on-brand); border-radius: 0.875rem; }
+html[data-layout="v2"] main form button[type="submit"].bg-accent { background-color: var(--v2-brand); color: var(--v2-on-brand); border-radius: 6px; }
 html[data-layout="v2"] main form button[type="submit"].bg-accent:hover { background-color: var(--accent-hover); }
 
 /* The sticky top bar: the page color, translucent, blurred. No background motion in the app. */

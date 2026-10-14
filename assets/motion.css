@@ -112,7 +112,7 @@ html { scrollbar-gutter: stable; }
 .settings-section > [id] { scroll-margin-top: 5.5rem; }
 /* Shared modal (components/modal.html). Scale and fade in; reduced motion is instant. */
 .app-modal { margin: auto; padding: 0; border: 0; background: transparent; max-width: min(40rem, calc(100vw - 2rem)); width: 100%; max-height: calc(100dvh - 4rem); overflow: visible; color: var(--ink); }
-.app-modal-panel { display: flex; flex-direction: column; max-height: calc(100dvh - 4rem); border: 1px solid var(--line); border-radius: 0.9rem; background: var(--canvas); box-shadow: 0 24px 60px -12px rgb(0 0 0 / 0.35); overflow: hidden; }
+.app-modal-panel { display: flex; flex-direction: column; max-height: calc(100dvh - 4rem); border: 0; border-radius: 8px; box-shadow: 0 24px 48px -12px rgb(0 0 0 / 0.25), 0 2px 6px rgb(0 0 0 / 0.08); background: var(--canvas); box-shadow: 0 24px 60px -12px rgb(0 0 0 / 0.35); overflow: hidden; }
 .app-modal-body { overflow-y: auto; overscroll-behavior: contain; padding: 1.25rem; }
 .app-modal::backdrop { background: rgb(10 14 14 / 0.45); }
 .app-modal [data-action-bar] { position: sticky; }

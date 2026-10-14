@@ -31,10 +31,7 @@ main span:is(.rounded-full):is(.text-xs, [class*="text-[11px]"], [class*="text-[
    surface with a hairline ring and dark text. Both press down 1px. */
 :is(a, button).bg-accent { box-shadow: 0 1px 1px rgb(0 0 0 / 0.12); transition: background-color 120ms ease-out, transform 80ms ease-out; }
 :is(a, button).bg-accent:hover { background-color: var(--accent-hover); }
-:is(a, button).mo-press.border-line.bg-surface { border-color: transparent; box-shadow: 0 0 0 1px var(--line), 0 1px 1px rgb(0 0 0 / 0.05); }
-:is(a, button).mo-press.border-line.bg-surface:hover { background-color: var(--hover); }
 :is(a, button, label).mo-press:active, button[type="submit"]:active { transform: translateY(1px) !important; }
-:is(a, button):is(.rounded-md) { border-radius: 7px; }
 
 /* Segmented controls read as quiet tabs: a hairline track, the chosen one in the surface. */
 .seg { background-color: var(--well); border-color: transparent; }
@@ -94,3 +91,60 @@ main .empty:not(.empty-compact) { border-color: transparent; background: transpa
 /* Rabbit page without a photo: a short tinted placeholder, not a tall blank. */
 #facts figure > span[aria-hidden="true"] { background: linear-gradient(135deg, var(--photo-1), var(--photo-2)); color: var(--muted); aspect-ratio: 16 / 9; border-radius: 8px; }
 #facts { border-color: transparent; background: transparent; }
+
+
+/* ---- No borders on any box, well, card, tile, alert or panel. Separation comes from
+   spacing, a subtle surface tint (--well) or hairline row dividers only (border-t/-b,
+   divide-y, table rows). Dialogs and popovers lift with a shadow instead. ---- */
+:is(main, dialog, .app-modal-panel, [data-menu-panel]) :is(.border, .border-2, .border-dashed, [class*="border-["]):not(input, select, textarea, hr, .seg-thumb) {
+  border-color: transparent !important; border-style: solid !important;
+}
+:is(dialog, .confirm-dialog) { border: 0 !important; box-shadow: 0 24px 48px -12px rgb(0 0 0 / 0.28), 0 2px 6px rgb(0 0 0 / 0.08); }
+/* Tiles (cards, option tiles, kit and herd cards, diagram nodes, add-photo) sit on a soft tint. */
+:is(main, dialog) :is(a, label, li, div, figure, article, button:not(.mo-press)):is(.border, .border-dashed, .border-2):is(.bg-surface, .bg-white, [class*="bg-surface/"], .bg-canvas, :not([class*="bg-"])):not(.seg, .seg *, [data-segmented], .pill, ul, section, [data-tiles], main > div, [class*="divide-y"]) {
+  background-color: var(--well) !important; box-shadow: none !important;
+}
+:is(main, dialog) :is(a, label, li, div, figure):is(.border, .border-dashed):is([class*="hover:border"]):hover { background-color: var(--hover) !important; }
+/* Chosen option tiles: the accent tint, no ring (a focus ring still shows for the keyboard). */
+:is(main, dialog) label:has(> input:checked):is(.border, [class*="has-checked:"]), :is(main, dialog) label:has(input[type="radio"]:checked, input[type="checkbox"]:checked):is(.border) { background-color: var(--accent-soft) !important; }
+:is(main, dialog) [class*="has-checked:ring"]:has(:checked):not(:has(:focus-visible)) { --tw-ring-shadow: 0 0 #0000 !important; box-shadow: none !important; }
+:is(main, dialog) [class*="ring-1"]:not(:focus-visible, :has(:focus-visible)) { --tw-ring-shadow: 0 0 #0000 !important; }
+/* Alerts and messages: tint only. */
+[role="alert"], [role="status"].border, .toast { border-color: transparent !important; }
+
+/* ---- Inputs: always a label over one underline, never a box. ---- */
+:is(main, dialog, .app-modal-panel) :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"], .sr-only), select) {
+  border-width: 0 0 1px !important; border-style: solid !important; border-color: var(--field) !important; border-radius: 0 !important;
+  background-color: transparent !important; box-shadow: none !important; padding-left: 0.125rem; padding-right: 0.25rem;
+}
+:is(main, dialog, .app-modal-panel) :is(input, select):focus { border-color: var(--accent) !important; box-shadow: 0 1px 0 0 var(--accent) !important; outline: none; }
+:is(main, dialog, .app-modal-panel) :is(input, select)[aria-invalid="true"] { border-color: var(--danger) !important; box-shadow: 0 1px 0 0 var(--danger) !important; }
+:is(main, dialog, .app-modal-panel) :is(input, select)[class*="pl-"] { padding-left: revert-layer; }
+:is(main, dialog, .app-modal-panel) textarea { border: 0 !important; border-radius: 6px !important; background-color: var(--well) !important; box-shadow: none !important; }
+:is(main, dialog, .app-modal-panel) textarea:focus { box-shadow: inset 0 -2px 0 0 var(--accent) !important; outline: none; }
+
+/* ---- Buttons: compact, Stripe-like. 34px tall, 6px radius, 14px medium, ~13px sides.
+   Primary is the one solid accent; secondary and danger are quiet ghost buttons. ---- */
+:is(a, button).mo-press, main button[type="submit"]:not(.sr-only, .underline, [class*="underline"]), dialog button[type="submit"] {
+  min-height: 34px !important; height: auto; padding: 0.375rem 0.8125rem !important; font-size: 0.875rem !important; line-height: 1.25rem; font-weight: 500 !important;
+  border-radius: 6px !important; width: auto; flex-grow: 0;
+}
+:is(a, button).mo-press:is(.min-h-14, .text-lg) { min-height: 38px !important; }
+:is(a, button).mo-press:is([class*="min-w-10"], [class*="w-10"]):not(:has(span:not(.sr-only))) { padding: 0.375rem !important; }
+:is(a, button).mo-press:is(.border-line, .border-field, .border-neutral-300, .border-neutral-400, .border).bg-surface,
+:is(a, button).mo-press:is(.border).text-danger {
+  background-color: transparent !important; box-shadow: none !important; border-color: transparent !important;
+}
+:is(a, button).mo-press:is(.border).bg-surface:hover, :is(a, button).mo-press:is(.border).text-danger:hover { background-color: var(--hover) !important; }
+@media (max-width: 767px) { :is(a, button).mo-press.bg-accent { min-height: 38px !important; } }
+/* The one exception: the phone wizard's sticky Next bar, 44px, 6px radius, full width. */
+[data-action-bar] { border-top-color: var(--line) !important; background-color: color-mix(in oklab, var(--canvas) 94%, transparent) !important; }
+@media (max-width: 767px) {
+  html body [data-action-bar] :is(a, button):is(.mo-press, [type="submit"]).mo-press { min-height: 44px !important; border-radius: 6px !important; }
+  [data-action-bar] :is(a, button).bg-accent { flex-grow: 1; width: 100% !important; }
+}
+
+/* ---- Radii never above 8px in the app (avatars and pills keep theirs). ---- */
+:is(main, dialog, .app-modal-panel, [data-menu-panel]) :is(.rounded-xl, .rounded-2xl, .rounded-3xl, [class*="rounded-[10px]"], [class*="rounded-[12px]"], [class*="rounded-[14px]"], [class*="rounded-[1."], [class*="rounded-[2"]) { border-radius: 8px !important; }
+:is(main, dialog) :is(a, button).rounded-full:not(.pill) { border-radius: 6px !important; }
+.seg { border-radius: 6px; }
