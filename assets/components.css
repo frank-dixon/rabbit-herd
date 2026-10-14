@@ -130,3 +130,6 @@
 
 /* New pairing: same pair already saved. */
 .pair-dup{margin-top:12px;padding:8px 12px;border-radius:6px;background:var(--color-hover);font-size:.875rem}
+
+/* Task rows that cannot swipe keep the same inset as swipe rows (whose classes move inside). */
+li.list-row[data-task-item] { padding-inline: 12px; }

@@ -122,7 +122,7 @@ def task_list(request):
     show = request.GET.get("show", "todo")
     if show not in groups:
         show = "todo"
-    labels = [("todo", "To do"), ("overdue", "Overdue"), ("litters", "Litters"), ("done", "Done")]
+    labels = [("todo", "To do"), ("overdue", "Overdue"), ("done", "Done")]  # litter dates are already in To do
     tabs = [{"key": key, "label": label, "count": len(groups[key]), "selected": key == show,
              "href": "?" if key == "todo" else f"?show={key}"} for key, label in labels]
     return render(request, "rabbits/tasks.html", {
