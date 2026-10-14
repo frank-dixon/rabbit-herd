@@ -111,7 +111,11 @@ class Merger:
             return obj[rest] if obj else ("pending", head, value)
         field = model._meta.get_field(head)
         if field.get_internal_type() == "DateTimeField" and value is not None:
-            return str(value)[:10]
+            # Same calendar day the target's __date lookup uses (the current time zone).
+            if isinstance(value, str):
+                value = field.to_python(value)
+            from django.utils import timezone as tz
+            return (tz.localtime(value) if tz.is_aware(value) else value).date()
         return value
 
     def find_target(self, model, values, key):
@@ -259,6 +263,11 @@ class Merger:
             obj.save()
         else:
             obj = model.objects.create(**create)
+        # auto_now_add stamps "now" on create; keep the source's time so a re-run matches it.
+        stamps = {f.attname: create[f.name] for f in model._meta.concrete_fields
+                  if getattr(f, "auto_now_add", False) and create.get(f.name) is not None}
+        if stamps:
+            model.objects.filter(pk=obj.pk).update(**stamps)
         self.map[label][row["pk"]] = obj.pk
         for field, raw, related in later:
             self.deferred.append((label, obj.pk, field, raw, related))
