@@ -191,6 +191,8 @@ class Command(BaseCommand):
                 continue
             rabbit, buyer = R[name], buyers[extra["buyer"]]
             sold_on = day(sold_days(extra))
+            rabbit.sold_on, rabbit.sold_to, rabbit.sale_price = sold_on, buyer, Decimal("65.00" if rabbit.sex == "buck" else "55.00")
+            rabbit.save(update_fields=["sold_on", "sold_to", "sale_price"])
             WaitlistEntry.objects.create(owner=user, buyer=f"{buyer.name} ({buyer.rabbitry})", reach=buyer.phone,
                                          requested_on=sold_on - datetime.timedelta(days=40), breed=rabbit.breed,
                                          sex=rabbit.sex, color=rabbit.color, status="done", deposit=Decimal("25.00"),

@@ -21,8 +21,9 @@ class QuickEditTests(FlowTestMixin, TestCase):
     def test_detail_rows_link_to_their_card_and_mark_inline_fields(self):
         page = self.client.get(self.detail).content.decode()
         facts = page[page.index("data-facts"):page.index("</dl>", page.index("data-facts"))]
-        for slug in ("sex", "breed", "color", "line", "birth-date", "status"):
+        for slug in ("sex", "breed", "color", "line", "birth-date"):
             self.assertIn(f'href="{self.url(slug)}"', facts, slug)
+        self.assertIn(f'href="{reverse("rabbit_status", args=[self.rabbit.pk])}"', facts)  # the status flow
         for name in ("line", "birth_date", "tattoo"):
             self.assertIn(f'data-inline-name="{name}"', facts)
         self.assertIn('href="#location"', facts)

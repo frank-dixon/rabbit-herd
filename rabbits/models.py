@@ -148,6 +148,10 @@ class Rabbit(models.Model):
     )
     death_date = models.DateField(null=True, blank=True)
     death_cause = models.CharField(max_length=120, blank=True)
+    sold_on = models.DateField("Sold on", null=True, blank=True)
+    sold_to = models.ForeignKey("Contact", related_name="rabbits_bought", null=True, blank=True,
+                                on_delete=models.SET_NULL, verbose_name="Sold to")
+    sale_price = models.DecimalField("Sale price", max_digits=8, decimal_places=2, null=True, blank=True)
     archived_at = models.DateTimeField(null=True, blank=True)
     # Set when deleted: the rabbit sits in Recently deleted until restored or purged
     # (HerdSettings.deleted_retention_days). Rabbit.objects hides it everywhere.

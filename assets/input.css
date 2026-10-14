@@ -321,3 +321,14 @@ html[data-density="compact"] .list-thumb { width: 2.25rem; height: 2.25rem; }
 .auth-spinner[hidden] { display: none; }
 @keyframes auth-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .auth-spinner { animation: none; border-right-color: currentColor; opacity: 0.6; } }
+
+/* Status change: show only the chosen status's follow-up fields (no JS needed). Browsers
+   without :has() show every fieldset with its "Only used when…" hint. */
+@supports selector(:has(*)) {
+  .status-flow [data-for], .status-flow [data-nojs-hint] { display: none; }
+  .status-flow:has(input[name="status"][value="sold"]:checked) [data-for="sold"],
+  .status-flow:has(input[name="status"][value="culled"]:checked) [data-for="culled"],
+  .status-flow:has(input[name="status"][value="deceased"]:checked) [data-for="deceased"] { display: block; animation: mo-enter var(--dur-2) var(--ease-out) both; }
+  .status-flow [data-new-buyer] { display: none; }
+  .status-flow:has(select[name="buyer"] option[value="new"]:checked) [data-new-buyer] { display: grid; }
+}
