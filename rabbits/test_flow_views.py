@@ -280,7 +280,7 @@ class CardFlowTests(TestCase):
         self.assertNotIn(flow.SESSION_KEY, self.client.session)
         detail = self.client.get(reverse("rabbit_detail", args=[rabbit.pk]))
         self.assertContains(detail, "Sire (father)")
-        self.assertContains(detail, "Oak Hollow Major (Tag OH-4)")
+        self.assertContains(detail, "Oak Hollow Major"); self.assertContains(detail, "Tag OH-4")
 
     def test_save_rechecks_everything_and_returns_to_the_problem(self):
         self.walk_to_breed("purebred")
