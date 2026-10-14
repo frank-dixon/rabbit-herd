@@ -247,3 +247,17 @@ main [data-page-header] ~ [data-swap-root] > .tabrow:first-child { margin-top: 8
   .filter-done { height: 44px; padding: 0 20px; }
 }
 @media (prefers-reduced-motion: no-preference) { .filter-pop { animation: mo-enter var(--dur-2, 180ms) var(--ease-out, ease-out) both; } }
+
+/* Parents and relatives: tinted rows, a 44px square thumb, kicker / name (+ Add to my herd on the same
+   baseline) / quiet meta lines. */
+main .rel-list { margin-top: 12px; display: grid; gap: 8px; }
+main .rel-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 8px; background: var(--well); box-shadow: var(--card-shadow); }
+main a.rel-row:hover { background: var(--hover); }
+main .rel-thumb { width: 44px !important; height: 44px !important; aspect-ratio: 1 / 1; object-fit: cover; }
+main .rel-body { min-width: 0; flex: 1; display: block; }
+main .rel-kicker { display: block; font-size: 12px; line-height: 16px; color: var(--muted); }
+main .rel-title { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 2px; }
+main .rel-name { min-width: 0; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+main .rel-add { flex-shrink: 0; font-size: 13px; font-weight: 500; color: var(--accent); cursor: pointer; text-underline-offset: 2px; }
+main .rel-add:hover { text-decoration: underline; }
+main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 18px; color: var(--muted); overflow-wrap: anywhere; }

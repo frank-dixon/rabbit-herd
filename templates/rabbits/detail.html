@@ -61,24 +61,20 @@
         <div class="flex items-center justify-between gap-3"><h2 class="text-base font-semibold" id="relatives-heading">Parents and relatives</h2>{% url 'rabbit_edit_step' rabbit.pk 'relatives' as relatives_url %}{% include "components/button.html" with label="Edit" sr_suffix="relatives" href=relatives_url variant="secondary" modal=True only %}</div>
         {% if kindling_note %}<p class="mt-2 text-sm text-neutral-600" data-kindling-note>{{ kindling_note }}</p>{% endif %}
         {% if relatives %}
-          <ul class="mt-3 grid grid-cols-1 gap-3">
+          <ul class="rel-list">
             {% for relative in relatives %}
               <li>
-                {% if relative.live_herd_rabbit %}<a href="{% url 'rabbit_detail' relative.live_herd_rabbit.pk %}" class="flex h-full items-start gap-3 rounded border border-neutral-200 p-3 hover:border-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">{% else %}<div class="flex h-full items-start gap-3 rounded border border-neutral-200 p-3">{% endif %}
+                {% if relative.live_herd_rabbit %}<a href="{% url 'rabbit_detail' relative.live_herd_rabbit.pk %}" class="rel-row is-link focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">{% else %}<div class="rel-row">{% endif %}
                   {% with main=relative.herd_rabbit.main_photo %}
-                    {% include "rabbits/_rabbit_thumb.html" with rabbit=relative.other main=main size_class="h-12 w-12 shrink-0 rounded text-lg" only %}
+                    {% include "rabbits/_rabbit_thumb.html" with rabbit=relative.other main=main size_class="rel-thumb shrink-0 rounded-md text-base" only %}
                   {% endwith %}
-                  <span class="min-w-0">
-                    <span class="block text-sm text-neutral-600">{{ relative.get_relationship_display }}{% if relative.unavailable %} · Unavailable (deleted){% endif %}{% if relative.herd_rabbit.is_deceased %} · {{ relative.herd_rabbit.died_text|default:"Deceased" }}{% endif %}</span>
-                    <span class="block break-words font-medium">{{ relative.other }}{% if relative.live_herd_rabbit %}<span class="sr-only">, open its page</span>{% endif %}</span>
-                    {% if relative.breed_text %}<span class="block break-words text-sm text-neutral-600">{{ relative.breed_text }}</span>{% endif %}
-                    {% if relative.color or relative.line %}
-                      <span class="block text-sm text-neutral-600">{% if relative.color %}{{ relative.color }}{% endif %}{% if relative.color and relative.line %} · {% endif %}{% if relative.line %}Line {{ relative.line }}{% endif %}</span>
-                    {% endif %}
+                  <span class="rel-body">
+                    <span class="rel-kicker">{{ relative.get_relationship_display }}{% if relative.unavailable %} · Unavailable (deleted){% endif %}{% if relative.herd_rabbit.is_deceased %} · {{ relative.herd_rabbit.died_text|default:"Deceased" }}{% endif %}</span>
+                    <span class="rel-title"><span class="rel-name">{{ relative.other.name }}{% if relative.live_herd_rabbit %}<span class="sr-only">, open its page</span>{% endif %}</span>{% if not relative.live_herd_rabbit %}<a class="rel-add" href="{% url 'relative_add_to_herd' relative.pk %}" data-modal>Add to my herd<span class="sr-only">: {{ relative.other.name }}</span></a>{% endif %}</span>
+                    {% if relative.other.details %}<span class="rel-meta">{{ relative.other.details }}</span>{% endif %}
+                    {% if relative.breed_text or relative.color or relative.line %}<span class="rel-meta">{% if relative.breed_text %}{{ relative.breed_text }}{% endif %}{% if relative.breed_text and relative.color %} · {% endif %}{% if relative.color %}{{ relative.color }}{% endif %}{% if relative.line %}{% if relative.breed_text or relative.color %} · {% endif %}Line {{ relative.line }}{% endif %}</span>{% endif %}
                   </span>
-                {% if relative.live_herd_rabbit %}</a>{% else %}
-                  <a class="ml-auto shrink-0 self-start text-sm underline" href="{% url 'relative_add_to_herd' relative.pk %}" data-modal>Add to my herd<span class="sr-only">: {{ relative.other.name }}</span></a>
-                </div>{% endif %}
+                {% if relative.live_herd_rabbit %}</a>{% else %}</div>{% endif %}
               </li>
             {% endfor %}
           </ul>
