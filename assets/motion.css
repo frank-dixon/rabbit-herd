@@ -147,11 +147,16 @@ body::before {
   background: var(--canvas);
 }
 @supports (color: oklch(from red l c h)) {
-  :root {
-    --ombre-mix: 9%;
-    --ombre-1: color-mix(in oklab, oklch(from var(--accent) l c calc(h - 28)) var(--ombre-mix), var(--canvas));
-    --ombre-2: color-mix(in oklab, var(--accent) calc(var(--ombre-mix) * 0.8), var(--canvas));
-    --ombre-3: color-mix(in oklab, oklch(from var(--accent) l c calc(h + 28)) var(--ombre-mix), var(--canvas));
+  /* Explicit stops: the accent's hue (and its neighbors 28° either side) at a
+     fixed high lightness and real chroma, so dark accents still give a clear,
+     light tint instead of a gray one. */
+  :root { --ombre-l: 0.915; --ombre-c: 0.075; }
+  @media (prefers-color-scheme: dark) { html:not([data-mode="light"]) { --ombre-l: 0.26; --ombre-c: 0.06; } }
+  html[data-mode="dark"] { --ombre-l: 0.26; --ombre-c: 0.06; }
+  html {
+    --ombre-1: oklch(from var(--accent) var(--ombre-l) var(--ombre-c) calc(h - 28));
+    --ombre-2: oklch(from var(--accent) calc(var(--ombre-l) - 0.01) var(--ombre-c) h);
+    --ombre-3: oklch(from var(--accent) var(--ombre-l) var(--ombre-c) calc(h + 28));
   }
   body::before { background: linear-gradient(135deg in oklab, var(--ombre-1), var(--ombre-2) 50%, var(--ombre-3)); }
   body.bg-canvas { background-color: transparent; }

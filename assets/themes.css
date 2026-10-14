@@ -9,7 +9,7 @@ html[data-theme="c1"], :root:not([data-theme]) {
   --side: #ECEFEE;
   --line: #DCE1E0;
   --ink: #17201F;
-  --muted: #566260;
+  --muted-base: #566260;
   --accent: #0F5E63;
   --on-accent: #FFFFFF;
   --accent-soft: #DDEBEB;
@@ -31,7 +31,7 @@ html:not([data-mode="light"])[data-theme="c1"], :root:not([data-theme]):not([dat
   --side: #161C1C;
   --line: #2C3635;
   --ink: #E6ECEB;
-  --muted: #9AA8A6;
+  --muted-base: #9AA8A6;
   --accent: #5EC2BE;
   --on-accent: #06201F;
   --accent-soft: #18393A;
@@ -52,7 +52,7 @@ html[data-mode="dark"][data-theme="c1"], :root[data-mode="dark"]:not([data-theme
   --side: #161C1C;
   --line: #2C3635;
   --ink: #E6ECEB;
-  --muted: #9AA8A6;
+  --muted-base: #9AA8A6;
   --accent: #5EC2BE;
   --on-accent: #06201F;
   --accent-soft: #18393A;
@@ -73,7 +73,7 @@ html[data-theme="c2"] {
   --side: #EDEDEA;
   --line: #DEDDD8;
   --ink: #181A20;
-  --muted: #5A5D66;
+  --muted-base: #5A5D66;
   --accent: #2347B5;
   --on-accent: #FFFFFF;
   --accent-soft: #E2E8F8;
@@ -95,7 +95,7 @@ html:not([data-mode="light"])[data-theme="c2"] {
   --side: #16171D;
   --line: #2D303A;
   --ink: #E7E8EC;
-  --muted: #9EA2AE;
+  --muted-base: #9EA2AE;
   --accent: #8EA8FF;
   --on-accent: #0B1638;
   --accent-soft: #1E2747;
@@ -116,7 +116,7 @@ html[data-mode="dark"][data-theme="c2"] {
   --side: #16171D;
   --line: #2D303A;
   --ink: #E7E8EC;
-  --muted: #9EA2AE;
+  --muted-base: #9EA2AE;
   --accent: #8EA8FF;
   --on-accent: #0B1638;
   --accent-soft: #1E2747;
@@ -137,7 +137,7 @@ html[data-theme="c3"] {
   --side: #ECEBE5;
   --line: #DDDBD2;
   --ink: #1C1F1A;
-  --muted: #5D6158;
+  --muted-base: #5D6158;
   --accent: #22573B;
   --on-accent: #FFFFFF;
   --accent-soft: #DFEAE2;
@@ -159,7 +159,7 @@ html:not([data-mode="light"])[data-theme="c3"] {
   --side: #171A17;
   --line: #2F352F;
   --ink: #E8EBE6;
-  --muted: #A0A79E;
+  --muted-base: #A0A79E;
   --accent: #7CC79C;
   --on-accent: #082012;
   --accent-soft: #1C3526;
@@ -180,7 +180,7 @@ html[data-mode="dark"][data-theme="c3"] {
   --side: #171A17;
   --line: #2F352F;
   --ink: #E8EBE6;
-  --muted: #A0A79E;
+  --muted-base: #A0A79E;
   --accent: #7CC79C;
   --on-accent: #082012;
   --accent-soft: #1C3526;
@@ -201,7 +201,7 @@ html[data-theme="c4"] {
   --side: #EEECEB;
   --line: #DFDBDA;
   --ink: #1F1A20;
-  --muted: #625B63;
+  --muted-base: #625B63;
   --accent: #5E2B62;
   --on-accent: #FFFFFF;
   --accent-soft: #EFE3EF;
@@ -223,7 +223,7 @@ html:not([data-mode="light"])[data-theme="c4"] {
   --side: #1A171B;
   --line: #352F36;
   --ink: #ECE7EC;
-  --muted: #A99FA9;
+  --muted-base: #A99FA9;
   --accent: #D0A3D8;
   --on-accent: #2A0F2E;
   --accent-soft: #3A2A3D;
@@ -244,7 +244,7 @@ html[data-mode="dark"][data-theme="c4"] {
   --side: #1A171B;
   --line: #352F36;
   --ink: #ECE7EC;
-  --muted: #A99FA9;
+  --muted-base: #A99FA9;
   --accent: #D0A3D8;
   --on-accent: #2A0F2E;
   --accent-soft: #3A2A3D;
@@ -265,7 +265,7 @@ html[data-theme="c5"] {
   --side: #EEEDEC;
   --line: #DFDDDB;
   --ink: #1C1B1D;
-  --muted: #5E5D63;
+  --muted-base: #5E5D63;
   --accent: #B3261E;
   --on-accent: #FFFFFF;
   --accent-soft: #F7E1DF;
@@ -287,7 +287,7 @@ html:not([data-mode="light"])[data-theme="c5"] {
   --side: #191919;
   --line: #333335;
   --ink: #ECEBEA;
-  --muted: #A6A5AA;
+  --muted-base: #A6A5AA;
   --accent: #F28B82;
   --on-accent: #3A0906;
   --accent-soft: #3D2120;
@@ -308,7 +308,7 @@ html[data-mode="dark"][data-theme="c5"] {
   --side: #191919;
   --line: #333335;
   --ink: #ECEBEA;
-  --muted: #A6A5AA;
+  --muted-base: #A6A5AA;
   --accent: #F28B82;
   --on-accent: #3A0906;
   --accent-soft: #3D2120;
@@ -330,7 +330,7 @@ html[data-theme="d1"] {
   --side: #E2E2E1;
   --line: #D2D2D0;
   --ink: #2E2E2E;
-  --muted: #595959;
+  --muted-base: #595959;
   --accent: #3A5070;
   --on-accent: #FFFFFF;
   --accent-soft: #DCE0E6;
@@ -352,7 +352,7 @@ html:not([data-mode="light"])[data-theme="d1"] {
   --side: #232323;
   --line: #383838;
   --ink: #E4E4E2;
-  --muted: #A3A3A0;
+  --muted-base: #A3A3A0;
   --accent: #9DB0CC;
   --on-accent: #16202E;
   --accent-soft: #2A313B;
@@ -373,7 +373,7 @@ html[data-mode="dark"][data-theme="d1"] {
   --side: #232323;
   --line: #383838;
   --ink: #E4E4E2;
-  --muted: #A3A3A0;
+  --muted-base: #A3A3A0;
   --accent: #9DB0CC;
   --on-accent: #16202E;
   --accent-soft: #2A313B;
@@ -394,7 +394,7 @@ html[data-theme="d2"] {
   --side: #E2E2E1;
   --line: #D2D2D0;
   --ink: #2E2E2E;
-  --muted: #595959;
+  --muted-base: #595959;
   --accent: #4F5A36;
   --on-accent: #FFFFFF;
   --accent-soft: #DFE2D6;
@@ -416,7 +416,7 @@ html:not([data-mode="light"])[data-theme="d2"] {
   --side: #232323;
   --line: #383838;
   --ink: #E4E4E2;
-  --muted: #A3A3A0;
+  --muted-base: #A3A3A0;
   --accent: #AAB98C;
   --on-accent: #1C2210;
   --accent-soft: #2E3326;
@@ -437,7 +437,7 @@ html[data-mode="dark"][data-theme="d2"] {
   --side: #232323;
   --line: #383838;
   --ink: #E4E4E2;
-  --muted: #A3A3A0;
+  --muted-base: #A3A3A0;
   --accent: #AAB98C;
   --on-accent: #1C2210;
   --accent-soft: #2E3326;
@@ -458,7 +458,7 @@ html[data-theme="d3"] {
   --side: #D6D6D4;
   --line: #C8C8C5;
   --ink: #242424;
-  --muted: #474745;
+  --muted-base: #474745;
   --accent: #2F5B5B;
   --on-accent: #FFFFFF;
   --accent-soft: #C3CFCD;
@@ -480,7 +480,7 @@ html:not([data-mode="light"])[data-theme="d3"] {
   --side: #2A2C2E;
   --line: #3E4143;
   --ink: #E2E3E3;
-  --muted: #A5A8AA;
+  --muted-base: #A5A8AA;
   --accent: #8FBDBA;
   --on-accent: #102423;
   --accent-soft: #2F3E3E;
@@ -501,7 +501,7 @@ html[data-mode="dark"][data-theme="d3"] {
   --side: #2A2C2E;
   --line: #3E4143;
   --ink: #E2E3E3;
-  --muted: #A5A8AA;
+  --muted-base: #A5A8AA;
   --accent: #8FBDBA;
   --on-accent: #102423;
   --accent-soft: #2F3E3E;
@@ -522,7 +522,7 @@ html[data-theme="d4"] {
   --side: #D6D6D4;
   --line: #C8C8C5;
   --ink: #242424;
-  --muted: #474745;
+  --muted-base: #474745;
   --accent: #7A3F2A;
   --on-accent: #FFFFFF;
   --accent-soft: #D6C9C3;
@@ -544,7 +544,7 @@ html:not([data-mode="light"])[data-theme="d4"] {
   --side: #2A2C2E;
   --line: #3E4143;
   --ink: #E2E3E3;
-  --muted: #A5A8AA;
+  --muted-base: #A5A8AA;
   --accent: #D99A80;
   --on-accent: #2E140A;
   --accent-soft: #43332E;
@@ -565,7 +565,7 @@ html[data-mode="dark"][data-theme="d4"] {
   --side: #2A2C2E;
   --line: #3E4143;
   --ink: #E2E3E3;
-  --muted: #A5A8AA;
+  --muted-base: #A5A8AA;
   --accent: #D99A80;
   --on-accent: #2E140A;
   --accent-soft: #43332E;
@@ -586,7 +586,7 @@ html[data-theme="d5"] {
   --side: #E0D3BD;
   --line: #D3C4AB;
   --ink: #2E2A24;
-  --muted: #594F40;
+  --muted-base: #594F40;
   --accent: #5A3E2B;
   --on-accent: #FFFFFF;
   --accent-soft: #DCCDB5;
@@ -608,7 +608,7 @@ html:not([data-mode="light"])[data-theme="d5"] {
   --side: #26211C;
   --line: #3B342C;
   --ink: #EAE2D4;
-  --muted: #ADA290;
+  --muted-base: #ADA290;
   --accent: #CFAE8C;
   --on-accent: #2A1C10;
   --accent-soft: #3A3026;
@@ -629,7 +629,7 @@ html[data-mode="dark"][data-theme="d5"] {
   --side: #26211C;
   --line: #3B342C;
   --ink: #EAE2D4;
-  --muted: #ADA290;
+  --muted-base: #ADA290;
   --accent: #CFAE8C;
   --on-accent: #2A1C10;
   --accent-soft: #3A3026;
@@ -650,7 +650,7 @@ html[data-theme="d6"] {
   --side: #E0D3BD;
   --line: #D3C4AB;
   --ink: #2E2A24;
-  --muted: #594F40;
+  --muted-base: #594F40;
   --accent: #43573D;
   --on-accent: #FFFFFF;
   --accent-soft: #D6D6BE;
@@ -672,7 +672,7 @@ html:not([data-mode="light"])[data-theme="d6"] {
   --side: #26211C;
   --line: #3B342C;
   --ink: #EAE2D4;
-  --muted: #ADA290;
+  --muted-base: #ADA290;
   --accent: #A9BE9E;
   --on-accent: #18220F;
   --accent-soft: #2F3529;
@@ -693,7 +693,7 @@ html[data-mode="dark"][data-theme="d6"] {
   --side: #26211C;
   --line: #3B342C;
   --ink: #EAE2D4;
-  --muted: #ADA290;
+  --muted-base: #ADA290;
   --accent: #A9BE9E;
   --on-accent: #18220F;
   --accent-soft: #2F3529;
@@ -706,3 +706,7 @@ html[data-mode="dark"][data-theme="d6"] {
   --danger: #EF9183;
   --warn: #E9B949;
 }
+
+/* Secondary text, pulled toward the ink so it keeps AA (4.5:1) on every stop
+   of the tinted app background (motion.css), in every theme and mode. */
+html { --muted: color-mix(in oklab, var(--muted-base), var(--ink) var(--muted-pull, 22%)); }
