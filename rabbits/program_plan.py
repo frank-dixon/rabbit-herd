@@ -106,7 +106,7 @@ def unknown_gene_count(user):
 def herd_breeders(user):
     """Rabbits still in the herd; sold, culled and deceased ones are gone."""
     return list(Rabbit.objects.filter(owner=user, archived_at__isnull=True)
-                .exclude(status__in=Rabbit.FORMER).prefetch_related("genes", "photos")
+                .exclude(status__in=Rabbit.FORMER).exclude(sex=Rabbit.Sex.UNKNOWN).prefetch_related("genes", "photos")
                 .select_related("sold_to").order_by("name", "pk"))
 
 
@@ -389,7 +389,7 @@ def known_breeders(user, program=None):
     (sold and culled need access; deceased are evidence only), outside
     relatives named in pedigrees, and the program's outside breeders."""
     out = []
-    for r in Rabbit.all_objects.filter(owner=user).prefetch_related("genes"):
+    for r in Rabbit.all_objects.filter(owner=user).exclude(sex=Rabbit.Sex.UNKNOWN).prefetch_related("genes"):
         genes = planning_genes(r)
         if blank(genes):
             continue

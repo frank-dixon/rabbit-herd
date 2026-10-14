@@ -86,6 +86,7 @@ class Rabbit(models.Model):
     class Sex(models.TextChoices):
         DOE = "doe", "Doe"
         BUCK = "buck", "Buck"
+        UNKNOWN = "unknown", "Unknown"
 
     class Status(models.TextChoices):
         BREEDING = "breeding", "Breeding"

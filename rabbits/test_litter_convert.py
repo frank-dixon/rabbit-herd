@@ -48,15 +48,16 @@ class ConvertTests(TestCase):
         K.convert(self.litter.pk, self.owner, "Hazel × Basil")
         self.assertEqual(Rabbit.objects.filter(litter=self.litter).count(), 3)
 
-    def test_refuses_wrong_name_or_unknown_sex(self):
+    def test_refuses_wrong_name_and_unsexed_kits_become_unknown(self):
         self.slots("doe", "", "buck")
         with self.assertRaises(K.ConvertError):
             K.convert(self.litter.pk, self.owner, "Hazel")
-        with self.assertRaises(K.ConvertError):
-            K.convert(self.litter.pk, self.owner, "Hazel × Basil")
         self.assertFalse(Rabbit.objects.filter(litter=self.litter).exists())
-        self.litter.refresh_from_db()
-        self.assertIsNone(self.litter.converted_at)
+        K.convert(self.litter.pk, self.owner, "Hazel × Basil")
+        self.assertEqual(Rabbit.objects.get(litter_slot__number=2).sex, Rabbit.Sex.UNKNOWN)
+        # Unknown-sex kits are never offered as breeders.
+        from .program_plan import herd_breeders
+        self.assertNotIn("unknown", {r.sex for r in herd_breeders(self.owner)})
 
     def test_existing_herd_kits_are_kept_and_tattoos_prefilled(self):
         settings = prefs(self.owner)

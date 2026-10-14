@@ -103,7 +103,7 @@ def record_each(litter, date, rows):
 def convert(litter_id, user, typed):
     """Make every kit that is still only a number its own rabbit, once.
     Returns the litter's kit rabbits. Raises ConvertError when the typed
-    name doesn't match or a kit has no sex; a second submit is a no-op."""
+    name doesn't match (kits with no sex become Unknown); a second submit is a no-op."""
     from .litter_photos import copy_to_rabbit
     from .litters import kit_breed
     from .tattoo import suggest
@@ -118,9 +118,6 @@ def convert(litter_id, user, typed):
             raise ConvertError("Record the kindling first.")
         slots = ensure_slots(litter)
         todo = [s for s in slots if s.rabbit_id is None]
-        missing = [s.label for s in todo if s.sex not in Rabbit.Sex.values]
-        if missing:
-            raise ConvertError(f"Set the sex of {', '.join(missing)} first.")
         doe, buck = litter.pairing.doe, litter.pairing.buck
         fields, shares = kit_breed(doe, buck)
         unit = prefs(user).weight_unit
@@ -129,7 +126,7 @@ def convert(litter_id, user, typed):
         for slot in todo:
             tattoo = suggest(user) if prefs(user).tattoo_prefill else ""
             kit = Rabbit.objects.create(
-                owner=user, name=f"{doe.name} kit {slot.number}", sex=slot.sex, tattoo=tattoo, birth_date=litter.kindled_on,
+                owner=user, name=f"{doe.name} kit {slot.number}", sex=slot.sex if slot.sex in Rabbit.Sex.values else Rabbit.Sex.UNKNOWN, tattoo=tattoo, birth_date=litter.kindled_on,
                 status=Rabbit.Status.GROWING, color=slot.color or "Not recorded yet", litter=litter, **fields)
             BreedShare.objects.bulk_create(BreedShare(rabbit=kit, breed=breed, percent=pct) for breed, pct in shares)
             Relative.objects.create(rabbit=kit, relationship="dam", herd_rabbit=doe)
