@@ -86,7 +86,8 @@ def past_row(litter, kits, unit):
             "title": f"{litter.pairing.doe.name} × {litter.pairing.buck.name}",
             "born": (litter.born_alive or 0) + (litter.born_dead or 0), "raised": litter.survivors if litter.survivors is not None else len(kits),
             "summary": summary_text(c), "bar": bar(c),
-            "growout": weight_text(sum(proc) // len(proc), unit) if proc else ""}
+            "growout": weight_text(sum(proc) // len(proc), unit) if proc else "",
+            "growout_g": sum(proc) // len(proc) if proc else None}
 
 
 def outcome(litter, kits, unit, today):

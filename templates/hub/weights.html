@@ -20,7 +20,7 @@
   </div>
 
   <form method="get" role="search" aria-label="Search and filter weights" data-filter-form>
-    <span data-swap="hidden">{% if f.tab != 'all' %}<input type="hidden" name="tab" value="{{ f.tab }}">{% endif %}{% if desc != None %}<input type="hidden" name="dir" value="{{ desc|yesno:'desc,asc' }}">{% endif %}</span>
+    <span data-swap="hidden">{% if f.tab != 'all' %}<input type="hidden" name="tab" value="{{ f.tab }}">{% endif %}</span>
     <div class="flex items-center gap-2">
       <label class="relative min-w-0 flex-1 md:max-w-xs">
         <span class="sr-only">Search by name or tattoo</span>
@@ -36,7 +36,7 @@
           <p class="filter-pop-title">Sort and filter</p>
           <div class="filter-grid">
             <label class="filter-field col-span-2 md:hidden">Sort by
-              <select class="filter-select" name="sort" data-sort-select>{% for o in sort_options %}<option value="{{ o.value|cut:':desc'|cut:':asc' }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}</select>
+              <select class="filter-select" name="sort" data-sort-select>{% for o in sort_options %}<option value="{{ o.value }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}</select>
             </label>
             <label class="filter-field">Sex
               <select class="filter-select" name="sex"><option value="">Any</option>{% for v, l in sex_options %}<option value="{{ v }}"{% if f.sex == v %} selected{% endif %}>{{ l }}</option>{% endfor %}</select>

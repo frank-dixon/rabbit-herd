@@ -108,12 +108,19 @@ def litter_list(request):
             kits = list(litter.kits.all())
             (past if O.is_past(litter, kits, today) else current).append((litter, kits))
         litters = [l for l, _ in current]
-    past_rows = sorted((O.past_row(l, k, unit) for l, k in past), key=lambda r: r["litter"].kindled_on, reverse=True)
+    from . import sorting
+    past_cols = [("kindled", "Pair · kindled"), ("born", "Born / raised"), ("growout", "Avg. grow-out")]
+    psort, pdesc = sorting.parse(request.GET.get("sort", ""), dict(past_cols), default="-kindled")
+    past_rows = sorting.apply([O.past_row(l, k, unit) for l, k in past], {
+        "kindled": lambda r: r["litter"].kindled_on, "born": lambda r: (r["born"], r["raised"]),
+        "growout": lambda r: r["growout_g"]}, psort, pdesc)
+    keep = {k: v for k, v in request.GET.items() if k in ("view", "doe") and v}
+    past_headers = {h["key"]: h for h in sorting.headers(past_cols, psort, pdesc, keep, {"kindled", "born", "growout"})}
     cards = [litter_card(litter, today) for litter in litters]
     expecting = sorted((c for c in cards if c["stage"] == "expecting"), key=lambda c: c["litter"].due_on)
     kindled = sorted((c for c in cards if c["stage"] == "kindled"), key=lambda c: c["litter"].kindled_on, reverse=True)
     return render(request, "rabbits/litters.html", {
-        "open": expecting, "kindled": kindled, "today": today, "past": past_rows, "past_after": O.PAST_AFTER_DAYS, "wide": True, "view": view, "archived": archived,
+        "open": expecting, "kindled": kindled, "today": today, "past": past_rows, "past_headers": past_headers, "past_after": O.PAST_AFTER_DAYS, "wide": True, "view": view, "archived": archived,
         "archived_count": Litter.objects.filter(owner=request.user, converted_at__isnull=False).count(),
         "view_options": [{"href": f"?view={k}", "label": l, "icon": k, "selected": view == k} for k, l in (("grid", "Grid"), ("list", "List"))],
     })

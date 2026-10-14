@@ -151,21 +151,18 @@ def keep(row, f, today):
 
 
 def sort_rows(rows, key, desc):
-    none_last = lambda v: (v is None, v)
+    """Header sort via the shared helper; unknown values always go last."""
+    from . import sorting
     keys = {
         "name": lambda r: r["rabbit"].name.casefold(),
         "sex": lambda r: (r["rabbit"].sex, r["rabbit"].name.casefold()),
-        "age": lambda r: r["age_days"] or 0,
-        "weight": lambda r: r["grams"] or 0,
-        "last": lambda r: r["date"] or timezone.datetime.min.date(),
-        "change": lambda r: r["change"] if r["change"] is not None else -10**9,
-        "curve": lambda r: r["vs"] if r["vs"] is not None else -10**9,
+        "age": lambda r: r["age_days"],
+        "weight": lambda r: r["grams"],
+        "last": lambda r: r["date"],
+        "change": lambda r: r["change"],
+        "curve": lambda r: r["vs"],
     }
-    rows.sort(key=keys[key], reverse=desc)
-    if key in ("change", "curve", "weight"):  # unknowns always last
-        field = {"change": "change", "curve": "vs", "weight": "grams"}[key]
-        rows.sort(key=lambda r: r[field] is None)
-    return rows
+    return sorting.apply(rows, keys, key, desc)
 
 
 RANGES = [("3m", "3 mo", 92), ("12m", "12 mo", 365), ("all", "All", None)]
@@ -292,21 +289,17 @@ def weights_hub(request):
          "status": g.get("status") if g.get("status") in IN_HERD else "",
          "breed": g.get("breed", "").strip()[:80], "age": g.get("age") if g.get("age") in dict(AGE_GROUPS) else "",
          "litter": g.get("litter", "") if g.get("litter", "").isdigit() else ""}
-    sort = g.get("sort") if g.get("sort") in SORTS else "last"
-    if sort == "due":
-        sort = "last"
-    desc = g.get("dir") == "desc" if g.get("dir") in ("asc", "desc") else sort in DESC_FIRST
+    from . import sorting
+    raw = g.get("sort", "")
+    if g.get("dir") in ("asc", "desc") and raw and not raw.startswith("-"):  # old ?sort=x&dir=y links
+        raw = sorting.token(raw, g.get("dir") == "desc")
+    sort, desc = sorting.parse(raw if raw.lstrip("-") != "due" else "", SORTS, default="last")
     all_rows = build_rows(request.user, today, unit)
     rows = sort_rows([r for r in all_rows if keep(r, f, today)], sort, desc)
     params = {k: v for k, v in f.items() if v and not (k == "tab" and v == "all")}
-    if sort != "last" or g.get("dir"):
-        params.update(sort=sort, dir="desc" if desc else "asc")
-    headers = []
-    for key, label in SORTS.items():
-        on = key == sort
-        nd = (not desc) if on else key in DESC_FIRST
-        headers.append({"key": key, "label": label, "on": on, "desc": desc if on else None,
-                        "href": "?" + qs(params, sort=key, dir="desc" if nd else "asc")})
+    if raw:
+        params["sort"] = sorting.token(sort, desc)
+    headers = sorting.headers(SORTS.items(), sort, desc, params, DESC_FIRST)
     counts = {}
     for key, _ in TABS:
         counts[key] = sum(1 for r in all_rows if keep(r, {**f, "tab": key, "q": "", "sex": "", "status": "", "breed": "", "age": "", "litter": ""}, today))
@@ -357,7 +350,7 @@ def weights_hub(request):
         "litter_options": [(l.pk, f"{l.pairing.doe.name} × {l.pairing.buck.name} · {l.kindled_on:%b %-d, %Y}" if l.kindled_on else str(l)) for l in litters],
         "filter_count": len(chips), "filtering": bool(chips or f["q"]),
         "clear_qs": qs({"tab": params.get("tab", "")}),
-        "sort_options": [{"value": f"{k}:{'desc' if k in DESC_FIRST else 'asc'}", "label": l, "selected": k == sort} for k, l in SORTS.items()],
+        "sort_options": [{"value": sorting.token(k, k in DESC_FIRST), "label": l, "selected": k == sort} for k, l in SORTS.items()],
         "sort": sort, "desc": desc, "here": request.get_full_path(),
         # Back-compat for callers reading the old sort.
         "sort_hint": "",

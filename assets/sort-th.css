@@ -1,0 +1,8 @@
+/* Shared sortable column headers (components/sort_th.html). */
+.sort-th a { display: inline-flex; align-items: center; gap: 3px; color: inherit; text-decoration: none; white-space: nowrap; }
+.sort-th a:hover { color: var(--color-ink, #1F2421); }
+.sort-th a:focus-visible { outline: 2px solid var(--color-accent, #3F6F52); outline-offset: 2px; border-radius: 3px; }
+.sort-arrow { font-size: 0.85em; opacity: 0.35; font-variant-numeric: tabular-nums; }
+.sort-th.is-on { color: var(--color-ink, #1F2421); }
+.sort-th.is-on .sort-arrow { opacity: 1; }
+@media print { .sort-arrow { display: none; } }

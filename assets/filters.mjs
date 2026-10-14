@@ -32,9 +32,25 @@ export function bindFilters(root) {
     const link = event.target.closest?.("a[href]");
     if (link && !panel.contains(link)) close(false);
   });
+  // A header click sorts the list; keep the panel's Sort select in step with the URL.
+  root.addEventListener("list-swap:done", () => syncSort(form, form.ownerDocument?.defaultView?.location?.href));
   root.addEventListener("list-swap:done", (event) => {
     const fromFilters = event.detail?.source === form;
     close(fromFilters && panel.contains(document.activeElement));
     if (fromFilters && !panel.open && document.activeElement === document.body) panel.querySelector("summary")?.focus();
   });
+}
+
+/** Set a [data-sort-select] to the URL's ?sort=, adding an option if a header chose one it lacks. */
+export function syncSort(form, href) {
+  const select = form?.querySelector("[data-sort-select]");
+  if (!select || !href) return;
+  const value = new URL(href).searchParams.get("sort") || select.options[0]?.value || "";
+  if (![...select.options].some((o) => o.value === value)) {
+    const option = select.ownerDocument.createElement("option");
+    option.value = value;
+    option.textContent = value.replace(/^-/, "") + (value.startsWith("-") ? " ↓" : " ↑");
+    select.append(option);
+  }
+  select.value = value;
 }

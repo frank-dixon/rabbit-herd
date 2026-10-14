@@ -33,7 +33,7 @@
           <div class="filter-grid">
             <label class="filter-field col-span-2">Sort
               <select class="filter-select" name="sort" data-sort-select>
-                <option value="">Default</option>
+                <option value="">Default order</option>
                 {% for value, label in sort_options %}<option value="{{ value }}"{% if filters.sort == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
               </select>
             </label>
@@ -134,8 +134,8 @@
     {% else %}
       {# One bordered list with row dividers. Columns line up across rows: xl shows them all, lg drops location and next, phones keep two lines. #}
       <div class="mt-5 overflow-hidden rounded-lg border border-line bg-surface{% if not feature_locations %} list-cols-noloc{% endif %}" data-view="list">
-        <div class="list-cols hidden border-b border-line px-3 py-2 text-xs font-medium text-muted lg:grid" aria-hidden="true">
-          <span>Rabbit</span><span>Sex and breed</span><span>Age</span><span>Last weight</span>{% if feature_locations %}<span class="hidden xl:block">Location</span>{% endif %}<span class="hidden xl:block">Next</span><span>Status</span>
+        <div class="list-cols hidden border-b border-line px-3 py-2 text-xs font-medium text-muted lg:grid" role="row" aria-label="Sort by column">
+          {% include "components/sort_th.html" with h=sort_headers.name tag="span" only %}{% include "components/sort_th.html" with h=sort_headers.breed tag="span" only %}{% include "components/sort_th.html" with h=sort_headers.age tag="span" only %}{% include "components/sort_th.html" with h=sort_headers.weight tag="span" only %}{% if feature_locations %}{% include "components/sort_th.html" with h=sort_headers.location tag="span" cls="hidden xl:block" only %}{% endif %}{% include "components/sort_th.html" with h=sort_headers.next tag="span" cls="hidden xl:block" only %}{% include "components/sort_th.html" with h=sort_headers.status tag="span" only %}
         </div>
         <ul class="divide-y divide-line">
           {% for rabbit in rabbits %}

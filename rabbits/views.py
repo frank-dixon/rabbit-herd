@@ -64,15 +64,39 @@ def breed_names(breeds):
     return sorted(name for name in names if name)
 
 
-# Rabbits page sort choices ("" keeps the default order).
-SORTS = {"oldest": "Oldest first", "youngest": "Youngest first"}
+# Rabbits page sort: list-view column headers and the Filter panel's Sort
+# select share one ?sort= value (rabbits/sorting.py). "-age" is oldest first.
+LIST_COLUMNS = [("name", "Rabbit"), ("breed", "Sex and breed"), ("age", "Age"), ("weight", "Last weight"),
+                ("location", "Location"), ("next", "Next"), ("status", "Status")]
+SORT_KEYS = dict(LIST_COLUMNS)
+SORT_DESC_FIRST = {"weight"}
+SORT_LEGACY = {"oldest": "-age", "youngest": "age"}
+SORT_CHOICES = [("-age", "Oldest first"), ("age", "Youngest first"), ("name", "Name A–Z"), ("-name", "Name Z–A"),
+                ("-weight", "Heaviest first"), ("weight", "Lightest first"), ("next", "Next date soonest"),
+                ("breed", "Sex and breed"), ("status", "Status")]
+SORT_FUNCS = {
+    "name": lambda r: r.name.casefold(),
+    "breed": lambda r: (r.sex, (r.short_breed or "").casefold(), r.name.casefold()),
+    # Ascending age is youngest first: later birth dates first. Unknown birth dates go last.
+    "age": lambda r: -r.birth_date.toordinal() if r.birth_date else None,
+    "weight": lambda r: r.last_weight.grams if getattr(r, "last_weight", None) else None,
+    "location": lambda r: r.location.name.casefold() if r.location_id else None,
+    "next": lambda r: r.next_item["date"] if getattr(r, "next_item", None) else None,
+    "status": lambda r: (str(r.status_tag), r.name.casefold()),
+}
 
 
 def sort_by_age(rabbits, sort):
     """Oldest or youngest first by birth date; unknown birth dates go last."""
-    known = [r for r in rabbits if r.birth_date]
-    known.sort(key=lambda r: (r.birth_date, r.name.lower()), reverse=sort == "youngest")
-    return known + [r for r in rabbits if not r.birth_date]
+    from . import sorting
+    key, desc = sorting.parse(sort, SORT_KEYS, legacy=SORT_LEGACY)
+    return sorting.apply(rabbits, SORT_FUNCS, key, desc)
+
+
+def sort_token(value):
+    from . import sorting
+    key, desc = sorting.parse(value, SORT_KEYS, legacy=SORT_LEGACY)
+    return sorting.token(key, desc) if key else ""
 
 
 def list_filters(request):
@@ -88,9 +112,24 @@ def list_filters(request):
         "breed": get.get("breed", "").strip()[:80],
         "status": get.get("status") if get.get("status") in statuses else "",
         "pure": get.get("pure") if get.get("pure") in ("yes", "no") else "",
-        "sort": get.get("sort") if get.get("sort") in SORTS else "",
+        "sort": sort_token(get.get("sort", "")),
         "location": get.get("location", "") if get.get("location", "").isdigit() or get.get("location") == "none" else "",
     }
+
+
+def sort_options(current):
+    options = list(SORT_CHOICES)
+    if current and current not in dict(options):
+        key = current.lstrip("-")
+        options.append((current, f"{SORT_KEYS[key]} {'↓' if current.startswith('-') else '↑'}"))
+    return options
+
+
+def sort_headers(filters):
+    from . import sorting
+    key, desc = sorting.parse(filters["sort"], SORT_KEYS)
+    params = {k: v for k, v in filters.items() if k != "sort" and v and not (k == "tab" and v == "active")}
+    return {h["key"]: h for h in sorting.headers(LIST_COLUMNS, key, desc, params, SORT_DESC_FIRST)}
 
 
 def query_string(params, **changes):
@@ -149,11 +188,12 @@ def rabbit_list(request):
         want = filters["pure"] == "yes"
         rabbits = [rabbit for rabbit in rabbits if bool(rabbit.purebred_info) == want]
     # Sold rabbits go last; sort is stable, so each group keeps its order.
+    list_row_columns(request.user, rabbits)
     if filters["sort"]:
         rabbits = sort_by_age(rabbits, filters["sort"])
-    rabbits = sorted(rabbits, key=lambda rabbit: rabbit.status == Rabbit.Status.SOLD)
-    if view == "list":
-        list_row_columns(request.user, rabbits)
+    else:
+        # Default order: sold rabbits go last; sort is stable, so each group keeps its order.
+        rabbits = sorted(rabbits, key=lambda rabbit: rabbit.status == Rabbit.Status.SOLD)
     # One small query gives both tab counts and the breed filter's options.
     herd = list(mine.values_list("breed", "archived_at", "status"))
     archived_count = sum(1 for _, archived_at, _ in herd if archived_at)
@@ -198,7 +238,8 @@ def rabbit_list(request):
             "former_count": former_count,
             "former_qs": query_string({}, tab="former"),
             "sex_options": Rabbit.Sex.choices,
-            "sort_options": list(SORTS.items()),
+            "sort_options": sort_options(filters["sort"]),
+            "sort_headers": sort_headers(filters),
             "location_options": locations,
             # Each tab offers only the statuses it can hold.
             "status_options": [(v, l) for v, l in Rabbit.Status.choices

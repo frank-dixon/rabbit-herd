@@ -4,7 +4,7 @@
   <table class="wt-table">
     <thead><tr>
       <th class="wt-check"><input type="checkbox" aria-label="Select all" data-select-all></th>
-      {% for h in headers %}<th class="{% if h.key in 'weight,change,age' %}r {% endif %}{% if h.key == 'sex' %}wt-hl {% endif %}{% if h.on %}is-on{% endif %}"{% if h.on %} aria-sort="{{ h.desc|yesno:'descending,ascending' }}"{% endif %}><a href="{{ h.href }}">{{ h.label }}{% if h.on %}<span class="wt-arrow" aria-hidden="true">{{ h.desc|yesno:"↓,↑" }}</span>{% endif %}</a></th>{% if h.key == "change" %}<th class="wt-hl">Trend</th>{% endif %}{% endfor %}
+      {% for h in headers %}{% if h.key in 'weight,change,age' %}{% firstof "r" as c %}{% elif h.key == 'sex' %}{% firstof "wt-hl" as c %}{% else %}{% firstof "" as c %}{% endif %}{% include "components/sort_th.html" with h=h cls=c only %}{% if h.key == "change" %}<th class="wt-hl">Trend</th>{% endif %}{% endfor %}
       <th><span class="sr-only">Log weight</span></th>
     </tr></thead>
     <tbody>{% for row in rows %}{% with r=row.rabbit %}
