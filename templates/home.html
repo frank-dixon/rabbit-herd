@@ -68,11 +68,10 @@
           <section class="rounded-[10px] border border-line bg-surface px-4 pt-1 pb-3" aria-labelledby="pairings-heading" data-pairings-progress>
             <h2 class="flex items-center gap-2 pt-3 pb-2 text-[15px] font-semibold" id="pairings-heading">Pairings and litters {% if progress_count %}<span class="num pill">{{ progress_count }}</span>{% endif %}<a class="ml-auto text-[13px] font-normal text-muted underline hover:text-ink" href="{% url 'pairing_list' %}">All pairings</a></h2>
             {% for p in pairings_progress %}
-              <a class="block border-t border-line py-3 hover:bg-side/40" href="{% url 'litter_detail' p.litter.pk %}">
-                <span class="flex items-center gap-2.5"><span class="flex">{% include "components/rabbit_avatar.html" with rabbit=p.doe size="sm" only %}<span class="-ml-3 rounded-md ring-2 ring-surface">{% include "components/rabbit_avatar.html" with rabbit=p.buck size="sm" only %}</span></span><span class="font-semibold">{{ p.doe.name }} × {{ p.buck.name }}</span></span>
-                <ol class="mt-2.5 grid grid-cols-3">
-                  {% for step in p.steps %}<li class="relative pt-3 text-xs text-muted before:absolute before:inset-x-0 before:top-0 before:h-[3px] {% if step.state == 'done' %}before:bg-accent{% elif step.state == 'next' %}before:bg-[linear-gradient(90deg,var(--accent)_40%,var(--line)_40%)]{% else %}before:bg-line{% endif %}"><span class="block text-[13px] font-medium text-ink">{{ step.label }}</span>{{ step.date|date:"D, M j" }}</li>{% endfor %}
-                </ol>
+              <a class="flex items-center gap-2.5 border-t border-line py-3 hover:bg-side/40" href="{% url 'litter_detail' p.litter.pk %}" data-progress-row>
+                <span class="flex shrink-0">{% include "components/rabbit_avatar.html" with rabbit=p.doe size="sm" only %}<span class="-ml-3 rounded-md ring-2 ring-surface">{% include "components/rabbit_avatar.html" with rabbit=p.buck size="sm" only %}</span></span>
+                <span class="min-w-0 flex-1 font-semibold">{{ p.doe.name }} × {{ p.buck.name }}</span>
+                {% for step in p.steps %}{% if step.state == "next" %}<span class="num shrink-0 text-right text-sm leading-tight"><span class="block">{{ step.label }}</span><span class="block text-muted">{{ step.date|day }}</span></span>{% endif %}{% endfor %}
               </a>
             {% endfor %}
             {% if litters %}

@@ -4,10 +4,7 @@
     <form method="post" action="{% if item.kind == 'task' %}{% url 'task_done' item.pk %}{% else %}{% url 'litter_task' item.pk %}{% endif %}" class="shrink-0" data-quick-done>
       {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
       {% if item.kind != "task" %}<input type="hidden" name="task" value="{{ item.key }}"><input type="hidden" name="done" value="1">{% endif %}
-      <button type="submit" class="mo-press group grid h-8 w-8 place-items-center rounded-full border-[1.5px] border-field text-field hover:border-accent hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" title="Mark done">
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5 10 17 19 7"/></svg>
-        <span class="sr-only">Mark done: {{ item.title }}</span>
-      </button>
+      {% include "components/check_button.html" with label=item.title only %}
     </form>
   {% else %}
     <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-second-soft text-second-ink" aria-hidden="true"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"/></svg></span>
