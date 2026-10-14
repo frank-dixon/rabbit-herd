@@ -55,14 +55,20 @@ def state_of(rabbits):
     return max((r["state"] for r in rabbits), key=STATE_RANK.get, default="ready")
 
 
-def routes(target, breeders):
+def routes(target, breeders, ok=None):
     """Every one- and two-generation route among the breeders, as
     {generations, pairings, rabbits, odds, state, steps}. Two-generation routes
-    are only tried for parents with no one-generation route of their own."""
+    are only tried for parents with no one-generation route of their own.
+    ok(doe, buck, mate=None) can veto a pairing (the program's COI limit):
+    mate=None asks about doe x buck, otherwise about a G1 kit of theirs x mate
+    ("kit" for a sibling)."""
+    ok = ok or (lambda d, s, mate=None: True)
     does = [b for b in breeders if b["sex"] == "doe"]
     bucks = [b for b in breeders if b["sex"] == "buck"]
     out = []
     for d, s in product(does, bucks):
+        if not ok(d, s):
+            continue
         p = one_gen(target, d["genes"], s["genes"])
         if p:
             out.append({"generations": 1, "pairings": 1, "rabbits": [d, s], "odds": p, "state": state_of([d, s]),
@@ -70,12 +76,14 @@ def routes(target, breeders):
             continue
         best = None
         for c in breeders:
+            if not ok(d, s, c):
+                continue
             q = two_gen(target, d["genes"], s["genes"], c["genes"])
             used = [d, s] + ([c] if c not in (d, s) else [])
             if q and (best is None or (STATE_RANK[state_of(used)], -q) < (STATE_RANK[best["state"]], -best["odds"])):
                 best = {"generations": 2, "pairings": 2, "rabbits": used, "odds": q, "state": state_of(used),
                         "steps": [(d, s), ("kit", c)]}
-        q = two_gen(target, d["genes"], s["genes"])
+        q = two_gen(target, d["genes"], s["genes"]) if ok(d, s, "kit") else 0
         if q and (best is None or (STATE_RANK[state_of([d, s])], -q) < (STATE_RANK[best["state"]], -best["odds"])):
             best = {"generations": 2, "pairings": 2, "rabbits": [d, s], "odds": q, "state": state_of([d, s]),
                     "steps": [(d, s), ("kit", "kit")]}
@@ -90,10 +98,10 @@ def rank(route):
     return (route["generations"], len(route["rabbits"]), STATE_RANK[route["state"]], -route["odds"])
 
 
-def shortest(target, breeders):
+def shortest(target, breeders, ok=None):
     """The minimum route using only rabbits that can breed now, else the
     minimum overall (so the page can say what access would unlock)."""
-    found = routes(target, breeders)
+    found = routes(target, breeders, ok)
     ready = [r for r in found if r["state"] == "ready"]
     return (ready[0] if ready else None), (found[0] if found else None)
 

@@ -44,3 +44,8 @@ class RouteTests(SimpleTestCase):
         self.assertEqual(spec["generations"], 1)
         self.assertEqual(spec["genes"]["En"], ("en", "en"))  # solid: no charlies risk at 1/2 broken
         self.assertEqual(spec["genes"]["B"], ("b", "b"))
+
+    def test_veto_skips_pairings(self):
+        herd = [rabbit("doe", "doe", B="Bb"), rabbit("sib", "buck", B="Bb"), rabbit("buck", "buck", B="BB")]
+        ready, _ = R.shortest(CHOC, herd, ok=lambda d, s, mate=None: s["key"] != "sib")
+        self.assertEqual((ready["generations"], ready["rabbits"][1]["key"]), (2, "buck"))
