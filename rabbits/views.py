@@ -148,7 +148,9 @@ def list_row_columns(user, rabbits):
     for w in Weight.objects.filter(rabbit_id__in=ids).order_by("rabbit_id", "-date", "-pk"):
         latest.setdefault(w.rabbit_id, w)
     upcoming = {}
-    for item in open_items(user):
+    items = open_items(user)
+    user._open_items = (timezone.localdate(), items)  # the nav's due badge reuses these this request
+    for item in items:
         rabbit = item.get("rabbit")
         if rabbit and rabbit.pk in ids and rabbit.pk not in upcoming:
             upcoming[rabbit.pk] = {**item, "label": item["title"].split(":")[0] if item["kind"] == "litter" else item["title"]}

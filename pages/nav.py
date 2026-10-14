@@ -157,7 +157,10 @@ def due_count(user):
     from django.utils import timezone
 
     today = timezone.localdate()
-    return sum(1 for item in open_items(user, today) if item["date"] <= today)
+    day, items = getattr(user, "_open_items", (None, None))
+    if day != today:
+        items = open_items(user, today)
+    return sum(1 for item in items if item["date"] <= today)
 
 
 def item(key, current, label=None, url=None):
