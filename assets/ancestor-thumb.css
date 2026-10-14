@@ -5,4 +5,6 @@
 .anc-photo summary { cursor: pointer; color: #4C544F; text-decoration: underline; }
 .anc-photo form { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .anc-photo input[type=file] { max-width: 100%; font-size: 11px; }
-@media print { .anc-tag { display: none; } }
+/* Under 48px the word doesn't fit: a corner dot, titled "Placeholder photo". */
+.anc-dot { position: absolute; right: 2px; bottom: 2px; width: 7px; height: 7px; border-radius: 9999px; background: rgb(255 255 255 / 0.95); box-shadow: 0 0 0 1px #4C544F; }
+@media print { .anc-tag, .anc-dot { display: none; } }

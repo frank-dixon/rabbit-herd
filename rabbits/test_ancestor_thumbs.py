@@ -19,6 +19,12 @@ class AncestorThumbTests(PhotoTestCase):
         self.assertContains(page, "placeholders/newborn-dark")
         self.assertContains(page, "data-placeholder-tag")
         self.assertContains(page, f'data-outside-photo="{self.out.pk}"')
+        # Great-grandparent boxes are 32px: a titled dot instead of the clipped word.
+        PedigreeEntry.objects.create(rabbit=self.kit, position="sss", outside=self.out)
+        cell = self.client.get(reverse("rabbit_pedigree", args=[self.kit.pk])).content.decode()
+        cell = cell[cell.index('data-pedigree-cell="sss"'):][:1200]
+        self.assertIn('aria-label="Placeholder photo"', cell)
+        self.assertNotIn(">Placeholder<", cell)
         self.assertContains(self.client.get(reverse("rabbit_detail", args=[self.kit.pk])), "placeholders/newborn-dark")
 
     def test_set_photo_then_it_shows_and_others_cannot_see_it(self):
