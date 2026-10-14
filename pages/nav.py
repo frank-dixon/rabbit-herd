@@ -52,6 +52,7 @@ ICONS = {
     "pairings": "M8 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM16 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
     "litters": "M7 4v3M17 4v3M4 8h16v12H4zM8 12h3v3H8z",
     "weights": "M12 4v16M7 20h10M5 8h14M5 8l-3 6a3 3 0 0 0 6 0zM19 8l-3 6a3 3 0 0 0 6 0zM12 4a1 1 0 1 0 0 .01",
+    "programs": "M6 3v12M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9c0 6-12 3-12 9",
     "tasks": "M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2",
     "health": "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10zM9 11h6M12 8v6",
     "shows": "M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9 17h6v4H9z",
@@ -73,6 +74,7 @@ DESTINATIONS = {
     "weights": ("Weights", "weights_hub", ""),
     "tasks": ("Tasks", "task_list", ""),
     "pairings": ("Pairings", "pairing_list", ""),
+    "programs": ("Programs", "program_list", ""),
     "health": ("Health", "health_list", ""),
     "shows": ("Shows", "show_list", ""),
     "locations": ("Locations", "location_list", ""),
@@ -106,14 +108,14 @@ DEFAULT_TABS = ["today", "rabbits", "litters", "weights", "tasks"]
 MIN_TABS, MAX_TABS = 3, 5
 
 # Side menu (tablet and desktop) and the phone drawer: the everyday sections, then Records.
-RAIL = ["today", "rabbits", "litters", "pairings", "weights", "tasks", "locations"]
+RAIL = ["today", "rabbits", "litters", "pairings", "programs", "weights", "tasks", "locations"]
 RECORDS = ["contacts", "costs", "waitlist", "shows", "health", "export", "glossary"]
 # The account popover from the footer gear.
 PANEL = ["settings", "account"]
 
 PREFIXES = [
     ("/rabbits/new/", "add"), ("/rabbits/", "rabbits"),
-    ("/locations/", "locations"), ("/tasks/", "tasks"), ("/pairings/", "pairings"), ("/litters/", "litters"),
+    ("/locations/", "locations"), ("/tasks/", "tasks"), ("/pairings/", "pairings"), ("/programs/", "programs"), ("/litters/", "litters"),
     ("/weights/", "weights"), ("/health/", "health"), ("/shows/", "shows"), ("/waitlist/", "waitlist"),
     ("/costs/", "costs"), ("/contacts/", "contacts"), ("/settings/", "settings"), ("/account/", "settings"),
     ("/accounts/password", "settings"), ("/glossary/", "glossary"),
