@@ -1,0 +1,22 @@
+{# Goals the known rabbits can reach, shortest first. attainable from program_plan.attainable. #}
+{% if attainable %}
+<details class="group mt-5 rounded-lg border border-line bg-surface" {% if not program %}open{% endif %}>
+  <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 sm:px-5 [&::-webkit-details-marker]:hidden">
+    <span><span class="font-semibold">Attainable goals</span> <span class="ml-1 text-sm text-muted">From the genes on record across your herd, sold rabbits and pedigrees.</span></span>
+    <svg class="h-4 w-4 shrink-0 text-muted transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+  </summary>
+  <ul class="divide-y divide-line border-t border-line">
+    {% for g in attainable %}
+      <li class="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-3 sm:px-5">
+        <span class="min-w-40 font-semibold">{{ g.label }}</span>
+        <span class="text-sm">{{ g.route.generations }} generation{{ g.route.generations|pluralize }} · {{ g.route.steps|join:", then " }}</span>
+        <span class="num text-sm text-muted">{{ g.route.odds }} a kit</span>
+        {% include "programs/_state.html" with state=g.route.state text=g.route.state_text only %}
+        {% if g.better %}<span class="text-xs text-muted">{{ g.better.generations }} generation with access: {{ g.better.steps|join:", " }}</span>{% endif %}
+        {% if g.route.state != "evidence" %}<a class="ml-auto inline-flex min-h-9 items-center rounded-md px-2 text-sm font-medium text-accent hover:underline" href="?target={{ g.key }}">Use<span class="sr-only"> {{ g.label }}</span></a>{% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+  <p class="border-t border-line px-4 py-2.5 text-xs text-muted sm:px-5">Unrecorded genes read as the color shown, so record what you know for better answers. Inbreeding is checked once you pick breeders.</p>
+</details>
+{% endif %}

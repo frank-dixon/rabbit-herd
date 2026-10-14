@@ -91,6 +91,8 @@ def read_goal(post):
 
 def goal_page(request, program):
     values = goal_values(program)
+    if request.GET.get("target") in plan_mod.TARGET_KEYS:
+        values["target_key"] = request.GET["target"]
     errors = {}
     if request.method == "POST":
         values, errors, cleaned = read_goal(request.POST)
@@ -110,6 +112,7 @@ def goal_page(request, program):
         "program": program, "steps": steps("goal", program), "stage": "goal", "values": values, "errors": errors,
         "targets": targets, "custom_rows": custom_rows, "coi_choices": COI_CHOICES,
         "keep_sex_choices": Program.KeepSex.choices, "wide": True,
+        "attainable": plan_mod.attainable(request.user),
     })
 
 
@@ -212,6 +215,7 @@ def program_detail(request, pk):
         "wide_options": [{"href": f"?view={k}", "label": l, "selected": k == (view or "flow")} for k, l in VIEWS],
         "narrow_options": [{"href": f"?view={k}", "label": l, "selected": k == (view or "tree")} for k, l in VIEWS],
         "breeders": breeder_cards(program, plan["breeders"], odds_by, picked), "wide": True,
+        "shortest": plan_mod.shortest_view(program),
     })
 
 

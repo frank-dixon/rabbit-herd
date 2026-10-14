@@ -7,6 +7,7 @@
   {% include "programs/_steps.html" %}
 
   {% if stage == "goal" %}
+  {% include "programs/_attainable.html" %}
   <form class="mt-5 rounded-lg border border-line bg-surface p-4 sm:p-5" method="post" action="{% if program %}{% url 'program_goal' program.pk %}{% else %}{% url 'program_new' %}{% endif %}" novalidate>
     {% csrf_token %}
     <h2 class="font-semibold"><span class="num">1</span> · Goal</h2>

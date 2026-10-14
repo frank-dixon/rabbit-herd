@@ -1,0 +1,26 @@
+{# The minimum path to the goal, and what to buy when the herd can't get there alone. shortest from program_plan.shortest_view. #}
+<section class="mt-4 rounded-lg border border-line bg-surface p-4 sm:p-5" aria-labelledby="shortest-heading">
+  <h2 class="font-semibold" id="shortest-heading">Shortest path</h2>
+  {% with r=shortest.ready %}
+  {% if r %}
+    <p class="mt-2 text-sm"><b>{{ r.generations }} generation{{ r.generations|pluralize }}</b>, {{ r.rabbits|length }} rabbits: {{ r.steps|join:", then " }} <span class="num text-muted">· {{ r.odds }} a kit</span></p>
+  {% else %}
+    <p class="mt-2 text-sm text-muted">No route with rabbits in your herd alone.</p>
+  {% endif %}
+  {% endwith %}
+  {% with o=shortest.overall %}{% if o and o.state != "ready" and o.generations < shortest.ready.generations|default:9 %}
+    <p class="mt-2 text-sm">Faster with {% for x in o.rabbits %}{% if x.state != "ready" %}{{ x.name }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}: {{ o.steps|join:", then " }} ({{ o.generations }} generation{{ o.generations|pluralize }}) {% include "programs/_state.html" with state=o.state text=o.state_text only %}</p>
+  {% endif %}{% endwith %}
+  {% if shortest.shopping %}
+    <h3 class="mt-4 text-sm font-semibold">{% if shortest.ready %}Or buy in to save a generation{% else %}Outside rabbit to look for{% endif %}</h3>
+    <ul class="mt-2 grid gap-2 sm:grid-cols-2">
+      {% for s in shortest.shopping %}
+        <li class="rounded-md border border-line p-3 text-sm">
+          <p><b>A {{ s.looks|lower }} {{ s.want }}</b>{% if s.carries %}, {{ s.carries|join:", " }}{% endif %}</p>
+          <p class="num mt-0.5 text-xs text-muted">{{ s.genes }}</p>
+          <p class="mt-1">Cross with {{ s.partner }}: {% if s.generations == 1 %}target kits in the first litter{% else %}then a kit back to the new {{ s.want }}{% endif %} <span class="num text-muted">· {{ s.odds }} a kit</span></p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</section>
