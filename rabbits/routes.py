@@ -12,6 +12,7 @@ help) or "evidence" (deceased: its genes inform, it cannot breed).
 """
 
 from fractions import Fraction
+from functools import lru_cache
 from itertools import product
 
 from .color_odds import SERIES, UNKNOWN, cross, order, shown
@@ -24,8 +25,11 @@ def full(genes, locus):
     return assumed(genes.get(locus, (UNKNOWN, UNKNOWN))) or WILD[locus]
 
 
+@lru_cache(maxsize=65536)
 def hit(locus, pattern, a, b):
-    """Chance one kit of pairs a x b meets the pattern at this locus."""
+    """Chance one kit of pairs a x b meets the pattern at this locus.
+    Cached: a herd scan asks the same few (locus, pair, pair) questions
+    hundreds of thousands of times."""
     return sum((f for g, f in cross(locus, a, b).items() if matches(locus, pattern, g)), Fraction(0))
 
 
@@ -42,12 +46,19 @@ def two_gen(target, a, b, c=None):
     random: before any are seen) is bred to c, or to a sibling when c is None."""
     p = Fraction(1)
     for locus, pattern in target.items():
-        g1 = cross(locus, full(a, locus), full(b, locus))
-        if c is None:
-            p *= sum((f1 * f2 * hit(locus, pattern, k1, k2) for (k1, f1), (k2, f2) in product(g1.items(), repeat=2)), Fraction(0))
-        else:
-            p *= sum((f * hit(locus, pattern, k, full(c, locus)) for k, f in g1.items()), Fraction(0))
+        p *= g2_hit(locus, pattern, full(a, locus), full(b, locus), None if c is None else full(c, locus))
+        if not p:
+            return p
     return p
+
+
+@lru_cache(maxsize=65536)
+def g2_hit(locus, pattern, a, b, c):
+    """two_gen at one locus; c None means a sibling mate."""
+    g1 = cross(locus, a, b)
+    if c is None:
+        return sum((f1 * f2 * hit(locus, pattern, k1, k2) for (k1, f1), (k2, f2) in product(g1.items(), repeat=2)), Fraction(0))
+    return sum((f * hit(locus, pattern, k, c) for k, f in g1.items()), Fraction(0))
 
 
 def state_of(rabbits):
