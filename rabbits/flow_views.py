@@ -227,8 +227,11 @@ def tattoo_suggestion(slug, data, user, form, exclude):
     tattoo format in Settings when none is entered yet."""
     if slug != "name" or exclude is not None or form is not None or data.get("tattoo") or user is None:
         return {}
+    from .models import prefs
     from .tattoo import suggest
 
+    if not prefs(user).tattoo_prefill:
+        return {}
     value = suggest(user)
     if not value:
         return {}

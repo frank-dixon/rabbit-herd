@@ -1221,6 +1221,9 @@ class HerdSettings(models.Model):
     rabbitry_name = models.CharField(max_length=80, blank=True)
     prefix = models.CharField("Name prefix", max_length=20, blank=True)
     tattoo_format = models.CharField(max_length=40, blank=True, default="{prefix}{yy}{nn}")
+    tattoo_prefill = models.BooleanField(
+        "Fill in the next ear tattoo for new rabbits", default=True,
+        help_text="Uses the tattoo format above; you can still change or clear it on each rabbit.")
 
     remind_palpate = models.BooleanField("Palpate", default=True)
     remind_nest_box = models.BooleanField("Nest box", default=True)

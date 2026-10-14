@@ -159,6 +159,14 @@ class RabbitryAppliedTests(TestCase):
         self.owner._herd_settings_cache = None
         self.assertEqual(suggest(self.owner, day), "")
 
+    def test_prefill_can_be_turned_off(self):
+        from .flow_views import tattoo_suggestion
+
+        self.assertIn("tattoo_value", tattoo_suggestion("name", {}, self.owner, None, None))
+        HerdSettings.objects.create(user=self.owner, tattoo_prefill=False)
+        self.owner._herd_settings_cache = None
+        self.assertEqual(tattoo_suggestion("name", {}, self.owner, None, None), {})
+
     def test_new_rabbit_name_step_is_prefilled(self):
         HerdSettings.objects.create(user=self.owner, prefix="BH", tattoo_format="{prefix}-{nnn}")
         page = self.client.get(reverse("rabbit_flow_step", args=["name"]))

@@ -65,7 +65,7 @@ class BreedingScheduleForm(ScheduleChecks, forms.ModelForm):
 class RabbitryForm(forms.ModelForm):
     class Meta:
         model = HerdSettings
-        fields = ["rabbitry_name", "prefix", "tattoo_format", "deleted_retention_days"]
+        fields = ["rabbitry_name", "prefix", "tattoo_format", "tattoo_prefill", "deleted_retention_days"]
         labels = {"prefix": "Prefix"}
 
     def __init__(self, *args, **kwargs):
