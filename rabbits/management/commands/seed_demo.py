@@ -656,6 +656,9 @@ class Command(BaseCommand):
         # --- Full 3-generation pedigrees (14 ancestors) for every rabbit ---
         pedigree_rows = self.pedigrees(user, R, parents, outs)
 
+        # --- A Mini Rex line with five recorded generations, for the Family tree view ---
+        pedigree_rows += self.family_line(user, today)
+
         # --- Breeding programs (planner) ---
         def target(key):
             from rabbits.program_plan import TARGET_KEYS
@@ -824,6 +827,73 @@ class Command(BaseCommand):
                                           outside=anc if isinstance(anc, OutsideRabbit) else None))
         PedigreeEntry.objects.bulk_create(rows)
         OutsideRabbit.objects.filter(owner=user, name="Unknown", pedigree_appearances__isnull=True).delete()
+        return len(rows)
+
+    # Juniper's line: Mini Rex, five generations. Sleet, her ruby-eyed white
+    # littermate, proves both Alder and Hazel carry c; Rowan (chocolate) proves
+    # Granite and Willow carry b. Gens 3 and 4 are outside rabbits on the
+    # grandparents' pedigrees. (name, sex, color, days old, status)
+    FAMILY_HERD = [
+        ("Juniper", "doe", "Broken chinchilla", 226, "growing"),
+        ("Sleet", "doe", "Ruby-eyed white", 226, "growing"),
+        ("Pepper", "buck", "Broken black", 226, "growing"),
+        ("Alder", "buck", "Broken black", 820, "breeding"),
+        ("Hazel", "doe", "Chinchilla", 790, "breeding"),
+        ("Rowan", "buck", "Chocolate", 820, "breeding"),
+        ("Clover", "doe", "Broken chocolate", 160, "growing"),
+        ("Granite", "buck", "Broken black", 1700, "sold"),
+        ("Willow", "doe", "Black", 1650, "sold"),
+        ("Birch", "buck", "Chestnut agouti", 1600, "deceased"),
+        ("Fern", "doe", "Chinchilla", 1580, "breeding"),
+    ]
+    FAMILY_PARENTS = {"Juniper": ("Hazel", "Alder"), "Sleet": ("Hazel", "Alder"), "Pepper": ("Hazel", "Alder"),
+                      "Alder": ("Willow", "Granite"), "Rowan": ("Willow", "Granite"), "Hazel": ("Fern", "Birch")}
+    # Grandparent: [s, d, ss, sd, ds, dd] as (name, color).
+    FAMILY_OUTSIDE = {
+        "Granite": [("Dapple", "Broken black"), ("Cocoa", "Chocolate"), ("Raven", "Broken black"), ("Ivy", "Black"),
+                    ("Mocha", "Chocolate"), ("Tansy", "Chocolate agouti")],
+        "Willow": [("Rime", "Ruby-eyed white"), ("Mira", "Black"), ("Flint", "Black"), ("Lace", "Ruby-eyed white"),
+                   ("Basalt", "Black"), ("Sable", "Seal")],
+        "Birch": [("Oakley", "Chestnut agouti"), ("Ivory", "Ruby-eyed white"), ("Cedar", "Chestnut agouti"), ("Rue", "Opal"),
+                  ("Moss", "Black"), ("Lily", "Ruby-eyed white")],
+        "Fern": [("Shale", "Chinchilla"), ("Dove", "Chestnut agouti"), ("Smoke", "Chinchilla"), ("Cinder", "Red"),
+                 ("Glen", "Chestnut agouti"), ("Wren", "Chinchilla")],
+    }
+
+    def family_line(self, user, today):
+        breed = Breed.objects.filter(name="Mini Rex").first()
+        day = lambda n: today - datetime.timedelta(days=n)  # noqa: E731
+        F = {}
+        for name, sex, color, age, status in self.FAMILY_HERD:
+            F[name] = Rabbit.objects.create(
+                owner=user, name=name, sex=sex, breed="Mini Rex", breed_type="purebred", purebred=breed, color=color,
+                color_is_standard=True, eye_color="ruby" if color == "Ruby-eyed white" else "brown", birth_date=day(age),
+                status=status, line="Bramble Rex", tattoo=f"BR{age % 97:02d}{name[:2].upper()}",
+                death_date=day(400) if status == "deceased" else None, sold_on=day(300) if status == "sold" else None)
+        litter = Litter.objects.create(owner=user, pairing=Pairing.objects.create(owner=user, doe=F["Hazel"], buck=F["Alder"]),
+                                       bred_on=day(226 + 31), kindled_on=day(226), born_alive=3, weaned=True,
+                                       converted_at=timezone.now())
+        for number, name in enumerate(("Juniper", "Sleet", "Pepper"), 1):
+            F[name].litter = litter
+            F[name].save(update_fields=["litter"])
+            LitterKit.objects.create(litter=litter, number=number, sex=F[name].sex, color=F[name].color, rabbit=F[name])
+        rows = []
+        for kid, (dam, sire) in self.FAMILY_PARENTS.items():
+            Relative.objects.create(rabbit=F[kid], relationship="dam", herd_rabbit=F[dam])
+            Relative.objects.create(rabbit=F[kid], relationship="sire", herd_rabbit=F[sire])
+            rows += [PedigreeEntry(rabbit=F[kid], position="d", herd_rabbit=F[dam]),
+                     PedigreeEntry(rabbit=F[kid], position="s", herd_rabbit=F[sire])]
+        lark = OutsideRabbit.objects.create(owner=user, name="Lark", details="Broken blue doe · Mini Rex · Fox Hollow")
+        Relative.objects.create(rabbit=F["Clover"], relationship="sire", herd_rabbit=F["Rowan"])
+        Relative.objects.create(rabbit=F["Clover"], relationship="dam", outside=lark, color="Broken blue", breed="Mini Rex")
+        rows += [PedigreeEntry(rabbit=F["Clover"], position="s", herd_rabbit=F["Rowan"]),
+                 PedigreeEntry(rabbit=F["Clover"], position="d", outside=lark)]
+        for grand, ancestors in self.FAMILY_OUTSIDE.items():
+            for pos, (name, color) in zip(["s", "d", "ss", "sd", "ds", "dd"], ancestors):
+                sex = "buck" if pos.endswith("s") else "doe"
+                o = OutsideRabbit.objects.create(owner=user, name=name, details=f"{color} {sex} · Mini Rex · Bramble Rex")
+                rows.append(PedigreeEntry(rabbit=F[grand], position=pos, outside=o))
+        PedigreeEntry.objects.bulk_create(rows)
         return len(rows)
 
     def convert_old_litters(self, user, R, gene_map, buyers, breeds, today):
