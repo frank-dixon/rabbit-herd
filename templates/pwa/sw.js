@@ -79,7 +79,7 @@ self.addEventListener("fetch", (event) => {
   }
   if (request.mode === "navigate") {
     event.respondWith(page(request));
-  } else if (/^\/rabbits\/photos\/\d+\/$/.test(url.pathname)) {
+  } else if (/^\/rabbits\/(photos\/\d+|outside\/\d+\/photo)\/$/.test(url.pathname)) {
     event.respondWith(photo(request));
   } else if (url.pathname.startsWith("/static/") || url.pathname === "/manifest.webmanifest") {
     event.respondWith(caches.match(request).then((saved) => saved || fetch(request)));
