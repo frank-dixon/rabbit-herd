@@ -81,7 +81,7 @@ main h1 { letter-spacing: -0.02em; }
 .pill-b { background: var(--b-soft); color: var(--b-ink); }
 .pill-y { background: var(--y-soft); color: var(--y-ink); }
 .pill-r { background: var(--r-soft); color: var(--r-ink); }
-.pill-o { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
+.pill-o { background: var(--pill); color: var(--muted); }
 a.pill { cursor: pointer; transition: filter 120ms ease-out; } a.pill:hover { filter: brightness(0.97); }
 a.pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -102,7 +102,7 @@ main .empty:not(.empty-compact) { border-color: transparent; background: transpa
 :is(dialog, .confirm-dialog) { border: 0 !important; box-shadow: 0 24px 48px -12px rgb(0 0 0 / 0.28), 0 2px 6px rgb(0 0 0 / 0.08); }
 /* Tiles (cards, option tiles, kit and herd cards, diagram nodes, add-photo) sit on a soft tint. */
 :is(main, dialog) :is(a, label, li, div, figure, article, button:not(.mo-press)):is(.border, .border-dashed, .border-2):is(.bg-surface, .bg-white, [class*="bg-surface/"], .bg-canvas, :not([class*="bg-"])):not(.seg, .seg *, [data-segmented], .pill, ul, section, [data-tiles], main > div, [class*="divide-y"]) {
-  background-color: var(--well) !important; box-shadow: none !important;
+  background-color: var(--well) !important; box-shadow: var(--card-shadow) !important;
 }
 :is(main, dialog) :is(a, label, li, div, figure):is(.border, .border-dashed):is([class*="hover:border"]):hover { background-color: var(--hover) !important; }
 /* Chosen option tiles: the accent tint, no ring (a focus ring still shows for the keyboard). */
@@ -171,3 +171,10 @@ main .tabs .seg-thumb { bottom: 0; height: 2px; }
 @media (prefers-reduced-motion: reduce) { .task-check { transition: none; } }
 /* Right under the page header (which keeps 16px below itself), top up to 24px in total, not 40. */
 main [data-page-header] ~ [data-swap-root] > .tabrow:first-child { margin-top: 8px; }
+
+/* Cards lift with one soft shadow, never a border: herd and kit cards, litter cards, option tiles and tinted
+   tiles (via the tile rule above). Hover deepens it slightly. Radius stays at 8px or less. */
+:root { --card-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 1px 3px rgb(0 0 0 / 0.06); --card-shadow-hover: 0 2px 4px rgb(0 0 0 / 0.05), 0 3px 8px rgb(0 0 0 / 0.07); }
+:is(main, dialog) :is(.litter-card, .kit-card, a.bg-well, li.bg-well, article.bg-well, div.bg-well.rounded-lg, div.bg-well.rounded-md, label.bg-well) { box-shadow: var(--card-shadow); }
+:is(main, dialog) :is(.litter-card, .kit-card, a.bg-well, a.border):hover { box-shadow: var(--card-shadow-hover) !important; }
+@media (prefers-reduced-motion: no-preference) { :is(main, dialog) :is(.litter-card, .kit-card, a.bg-well, a.border) { transition: background-color 120ms ease-out, box-shadow 120ms ease-out; } }
