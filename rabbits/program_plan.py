@@ -82,9 +82,9 @@ def rabbit_genes(rabbit):
 
 
 def herd_breeders(user):
-    """Live herd rabbits and sold ones (whose buyer might lend them), not deceased."""
+    """Rabbits still in the herd; sold, culled and deceased ones are gone."""
     return list(Rabbit.objects.filter(owner=user, archived_at__isnull=True)
-                .exclude(status=Rabbit.Status.DECEASED).prefetch_related("genes", "photos")
+                .exclude(status__in=Rabbit.FORMER).prefetch_related("genes", "photos")
                 .select_related("sold_to").order_by("name", "pk"))
 
 
