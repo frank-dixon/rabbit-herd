@@ -1293,3 +1293,65 @@ class HistoryEntry(models.Model):
 
     def __str__(self):
         return self.summary
+
+
+class Program(models.Model):
+    """A breeding program: a target color and traits, a starting pairing (G1),
+    and the mate for a kept G1 kit (G2). The plan itself is worked out by
+    rabbits.planner each time it is shown, so it follows the herd's records."""
+
+    class Step(models.TextChoices):
+        GOAL = "goal", "Goal"
+        BREEDERS = "breeders", "Breeders"
+        PLAN = "plan", "Plan"
+
+    class KeepSex(models.TextChoices):
+        DOE = "doe", "Does"
+        BUCK = "buck", "Bucks"
+        ANY = "any", "Either"
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="programs", on_delete=models.CASCADE)
+    name = models.CharField(max_length=80, blank=True)
+    target_key = models.CharField(max_length=40, blank=True)
+    target_label = models.CharField(max_length=80, blank=True)
+    target = models.JSONField(default=dict, blank=True, help_text="{locus: pattern}, such as {\"A\": \"aa\", \"En\": \"Enen\"}.")
+    traits = models.JSONField(default=list, blank=True)
+    keep_count = models.PositiveSmallIntegerField(default=2)
+    keep_sex = models.CharField(max_length=4, choices=KeepSex.choices, default=KeepSex.DOE)
+    max_coi = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("12.5"))
+    step = models.CharField(max_length=8, choices=Step.choices, default=Step.GOAL)
+    dam = models.ForeignKey(Rabbit, related_name="programs_as_dam", null=True, blank=True, on_delete=models.SET_NULL)
+    sire = models.ForeignKey(Rabbit, related_name="programs_as_sire", null=True, blank=True, on_delete=models.SET_NULL)
+    sire_outside = models.ForeignKey("ProgramBreeder", related_name="+", null=True, blank=True, on_delete=models.SET_NULL)
+    g2_sire = models.ForeignKey(Rabbit, related_name="programs_as_g2_sire", null=True, blank=True, on_delete=models.SET_NULL)
+    g2_outside = models.ForeignKey("ProgramBreeder", related_name="+", null=True, blank=True, on_delete=models.SET_NULL)
+    g2_task = models.ForeignKey("Task", related_name="+", null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+
+    def __str__(self):
+        return self.name or self.target_label or "Breeding program"
+
+    @property
+    def title(self):
+        return self.name or (f"{self.target_label} line" if self.target_label else "New breeding program")
+
+
+class ProgramBreeder(models.Model):
+    """An outside rabbit offered to a program, with the genes its owner gave.
+    Outside bucks never carry fees in the planner."""
+
+    program = models.ForeignKey(Program, related_name="outside", on_delete=models.CASCADE)
+    name = models.CharField(max_length=120)
+    sex = models.CharField(max_length=4, choices=[("doe", "Doe"), ("buck", "Buck")], default="buck")
+    breed = models.CharField(max_length=80, blank=True)
+    rabbitry = models.CharField(max_length=120, blank=True)
+    genes = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ["pk"]
+
+    def __str__(self):
+        return self.name
