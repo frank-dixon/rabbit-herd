@@ -14,7 +14,7 @@ from django.utils.dateparse import parse_time
 from django.views.decorators.http import require_POST
 
 from . import costs, flow
-from .models import Breed, BreedShare, Cover, Litter, Pairing, Rabbit, Relative
+from .models import Breed, BreedShare, Cover, Litter, Pairing, Rabbit, Relative, prefs, weight_text
 
 DATE_REQUIRED = "Enter the date, like {example}."
 DATE_FUTURE = "That date is in the future."
@@ -77,9 +77,13 @@ def litter_list(request):
 @login_required
 def litter_detail(request, pk):
     litter = own_litter(request, pk)
-    kits = list(litter.kits.prefetch_related("cull_notes", "photos"))
+    kits = list(litter.kits.prefetch_related("cull_notes", "photos", "weights"))
+    unit = prefs(request.user).weight_unit
     for kit in kits:
         kit.latest_cull = next(iter(kit.cull_notes.all()), None)
+        latest = max(kit.weights.all(), key=lambda w: (w.date, w.pk), default=None)
+        kit.latest_weight_text = weight_text(latest.grams, unit) if latest else ""
+        kit.latest_weight_on = latest.date if latest else None
     room = (litter.survivors or 0) - len(kits)
     covers = list(litter.covers.all())
     return render(request, "rabbits/litter_detail.html", {
