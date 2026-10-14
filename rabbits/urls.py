@@ -1,6 +1,7 @@
+from django.contrib.auth.decorators import login_required
 from django.urls import path
 
-from . import culling, shows, pedigree, health, contact_views, location_views, weights, adopt_views, edit_views, flow_views, photo_views, views, schedules
+from . import history, culling, shows, pedigree, health, contact_views, location_views, weights, adopt_views, edit_views, flow_views, photo_views, views, schedules
 
 urlpatterns = [
     path("", views.rabbit_list, name="rabbit_list"),
@@ -35,6 +36,7 @@ urlpatterns = [
     path("<int:pk>/edit/<slug:step>/", edit_views.rabbit_edit_step, name="rabbit_edit_step"),
     path("<int:pk>/change/<slug:step>/", edit_views.rabbit_quick_edit, name="rabbit_quick_edit"),
     path("<int:pk>/pedigree/", pedigree.rabbit_pedigree, name="rabbit_pedigree"),
+    path("<int:pk>/history/", login_required(history.rabbit_history), name="rabbit_history"),
     path("<int:pk>/genes/", views.rabbit_genes, name="rabbit_genes"),
     path("<int:pk>/c-carrier/", views.rabbit_c_carrier, name="rabbit_c_carrier"),
     path("<int:pk>/archive/", views.rabbit_archive, name="rabbit_archive"),

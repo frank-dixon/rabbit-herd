@@ -1225,3 +1225,28 @@ def prefs(user):
         cached = HerdSettings.objects.filter(user=user).first() or HerdSettings(user=user)
         user._herd_settings_cache = cached
     return cached
+
+
+class HistoryEntry(models.Model):
+    """One change to a rabbit or its records, Django-admin style: when, what kind of change,
+    a one-line summary, and the field changes (label, old, new) as display text. Written by
+    rabbits.history from model signals, so every edit path (forms, inline edits, the add flow,
+    imports) is logged the same way."""
+
+    class Action(models.TextChoices):
+        ADDED = "added", "Added"
+        CHANGED = "changed", "Changed"
+        DELETED = "deleted", "Deleted"
+
+    rabbit = models.ForeignKey(Rabbit, related_name="history", on_delete=models.CASCADE)
+    action = models.CharField(max_length=8, choices=Action.choices)
+    subject = models.CharField(max_length=40, help_text="What changed: the rabbit itself, or a weight, photo…")
+    summary = models.CharField(max_length=200)
+    changes = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def __str__(self):
+        return self.summary
