@@ -1,15 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Locations · {{ app_name }}{% endblock %}
+{% block title %}Locations · {{ app_name }}  </div>
+{% endblock %}
 
 {% block content %}
   {% url 'rabbit_list' as list_url %}
-  {% include "components/page_header.html" with title="Locations" primary_label="New location" primary_href="?new=1#new-location" subtitle="Cages, hutches and pens. Set a rabbit's location on its page." only %}
+  {% include "components/page_header.html" with title="Locations" primary_label="New location" primary_href="?new=1#new-location" primary_modal=True subtitle="Cages, hutches and pens. Set a rabbit's location on its page." only %}
   <details class="add-sheet" id="new-location" data-add-sheet{% if request.GET.new or errors %} open{% endif %}>
     <summary class="hidden">New location</summary>
-    <section class="mt-6 ruled pt-4" aria-labelledby="add-location-heading">
+    <section class="mt-6 ruled pt-4" aria-labelledby="add-location-heading" data-modal-content data-add-sheet-body>
     <h2 class="text-base font-semibold" id="add-location-heading">Add a location</h2>
-    <form class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] sm:items-end" method="post">
+    <form class="mt-3 grid grid-cols-1 gap-y-5" method="post">
       {% csrf_token %}
       {% include "components/text_input.html" with name="name" label="Name" only %}
       {% include "components/text_input.html" with name="notes" label="Notes (optional)" only %}
@@ -17,6 +18,7 @@
     </form>
   </section>
   </details>
+  <div data-refresh="locations">
   {% if locations %}
     <ul class="mt-4 flex flex-col divide-y divide-neutral-200 overflow-hidden rounded border border-neutral-300 bg-white" data-locations>
       {% for location in locations %}
@@ -45,4 +47,5 @@
   {% else %}
     <p class="mt-4 text-neutral-600">No locations yet. Add your cages or hutches with New location.</p>
   {% endif %}
+  </div>
 {% endblock %}
