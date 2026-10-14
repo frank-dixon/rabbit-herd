@@ -69,7 +69,21 @@ def rabbit_pedigree(request, pk):
             slot["row"] = index * span + 1
     from .models import prefs
 
+    family = request.GET.get("view") == "family"
+    base = request.path
+    views = [{"href": base, "label": "Classic", "selected": not family},
+             {"href": base + "?view=family", "label": "Family tree", "selected": family}]
+    extra = {}
+    if family:
+        from .family_tree import payload
+
+        extra["family"] = payload(rabbit)
+        extra["family_count"] = sum(1 for n in extra["family"]["nodes"].values() if not n["lateral"])
+        extra["family_relatives"] = sum(1 for n in extra["family"]["nodes"].values() if n["lateral"])
     return render(request, "rabbits/pedigree.html", {
+        "view_options": views, "family_view": family, **extra,
+        "classic_subtitle": f"{len(tree)} of 14 ancestors recorded. Built from parents and pedigree entries, following herd rabbits upward.",
+        "family_subtitle": "Tap a rabbit for its genes. Pick a gene to trace where it came from." if family else "",
         "herd_prefs": prefs(request.user),
         "rabbit": rabbit, "generations": gens, "known": len(tree), "wide": True,
         "titles": ["Parents", "Grandparents", "Great-grandparents"],

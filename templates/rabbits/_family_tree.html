@@ -1,0 +1,31 @@
+{# The Family tree view: five generations drawn by family-tree.mjs from the JSON below, with gene threads and a side panel (bottom sheet on phones). Works offline: the page and its data are cached together. #}
+<section class="ft mt-4" data-family-tree aria-label="Family tree">
+  <dl class="ft-facts">
+    <div><dt>Breed</dt><dd>{{ rabbit.short_breed|default:"—" }}</dd></div>
+    <div><dt>Coat</dt><dd>{{ rabbit.color|default:"—" }}</dd></div>
+    <div><dt>Sex</dt><dd>{{ rabbit.get_sex_display }}</dd></div>
+    <div><dt>Born</dt><dd>{{ rabbit.birth_date|date:"M j, Y" }}</dd></div>
+    <div><dt>In tree</dt><dd class="num">{{ family_count }}{% if family_relatives %} <small>+ {{ family_relatives }} relative{{ family_relatives|pluralize }}</small>{% endif %}</dd></div>
+  </dl>
+  <div class="ft-genebar">
+    <div class="ft-chips" data-ft-chips><span class="ft-lbl">Trace a gene</span></div>
+    <div class="ft-legend" aria-hidden="true">
+      <span><svg width="24" height="8"><path d="M1 4h22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>Known</span>
+      <span><svg width="24" height="8"><path d="M1 4h22" stroke="currentColor" stroke-width="2.5" stroke-dasharray="4 4" stroke-linecap="round"/></svg>Probable</span>
+      <span><svg width="12" height="12"><circle cx="6" cy="6" r="5" fill="currentColor"/></svg>Expressed</span>
+      <span><svg width="12" height="12"><circle cx="6" cy="6" r="4" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>Carrier</span>
+    </div>
+  </div>
+  <div class="ft-thread-info" data-ft-info aria-live="polite"></div>
+  <div class="ft-stage" data-ft-stage tabindex="0" aria-label="Family tree. Drag or scroll to pan, pinch or Ctrl+scroll to zoom. On a phone, swipe sideways between generations.">
+    <nav class="ft-gennav" data-ft-gennav aria-label="Generations"></nav>
+    <div class="ft-world" data-ft-world></div>
+    <span class="ft-hint">Drag to pan · Ctrl + scroll or pinch to zoom</span>
+    <button class="ft-btn ft-more" type="button" data-ft-more></button>
+    <div class="ft-zoom"><button type="button" data-ft-zoom="out" aria-label="Zoom out">−</button><button type="button" data-ft-zoom="fit" aria-label="Fit to screen">100%</button><button type="button" data-ft-zoom="in" aria-label="Zoom in">+</button></div>
+  </div>
+  <div class="ft-tip" data-ft-tip role="tooltip"></div>
+  <div class="ft-scrim" data-ft-scrim></div>
+  <aside class="ft-drawer" data-ft-drawer role="dialog" aria-modal="true" aria-labelledby="ft-name" tabindex="-1"></aside>
+  {{ family|json_script:"family-tree-data" }}
+</section>
