@@ -1,5 +1,5 @@
 /*
- * Settings: choosing a mode, theme or density previews it at once and saves it in
+ * Settings: choosing a theme or density previews it at once and saves it in
  * the background. Without JS the form's Save button posts the same fields.
  */
 export function bindSettings(root, win = window) {
@@ -13,8 +13,6 @@ export function bindSettings(root, win = window) {
     const input = event.target;
     if (input.name === "ui_theme") html.dataset.theme = input.value;
     if (input.name === "ui_density") html.dataset.density = input.value;
-    if (input.name === "ui_mode") html.dataset.mode = input.value;
-    if (input.name === "ui_layout") html.dataset.layout = input.value;
     try {
       const response = await win.fetch(form.action, {
         method: "POST",

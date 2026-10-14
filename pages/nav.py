@@ -6,36 +6,22 @@ from django.conf import settings
 from django.urls import reverse
 
 
-# Swatches shown in the Settings theme picker: (accent, secondary, canvas).
-THEME_SWATCHES = {
-    "c1": ("#0F5E63", "#D65A3E", "#F5F6F5"),
-    "c2": ("#2347B5", "#E0A019", "#F5F5F3"),
-    "c3": ("#22573B", "#B9582F", "#F5F4F0"),
-    "c4": ("#5E2B62", "#6E8F68", "#F6F5F4"),
-    "c5": ("#B3261E", "#44576C", "#F6F5F4"),
-    "d1": ("#3A5070", "#8A94A0", "#EAEAEA"),
-    "d2": ("#4F5A36", "#9A8F6E", "#EAEAEA"),
-    "d3": ("#2F5B5B", "#8A7F72", "#DEDEDC"),
-    "d4": ("#7A3F2A", "#5F6E78", "#DEDEDC"),
-    "d5": ("#5A3E2B", "#8B7B5E", "#E8DCC8"),
-    "d6": ("#43573D", "#9A6B4C", "#E8DCC8"),
-}
-# Browser chrome color per theme: (light canvas, dark canvas).
-THEME_COLOR = {'c1': ('#F5F6F5', '#121717'), 'c2': ('#F5F5F3', '#121318'), 'c3': ('#F5F4F0', '#131613'), 'c4': ('#F6F5F4', '#161317'), 'c5': ('#F6F5F4', '#151515'), 'd1': ('#EAEAEA', '#1F1F1F'), 'd2': ('#EAEAEA', '#1F1F1F'), 'd3': ('#DEDEDC', '#26282A'), 'd4': ('#DEDEDC', '#26282A'), 'd5': ('#E8DCC8', '#221E19'), 'd6': ('#E8DCC8', '#221E19')}
+from .theme_data import THEMES as THEME_DATA
+
+# Browser chrome color per theme: its canvas.
+THEME_COLOR = {t[0]: t[4] for t in THEME_DATA}
 
 
 def ui(request):
     """The signed-in user's theme and grid density, rendered onto <html> so
     the page paints in the right colors with no flash and no JS."""
     user = getattr(request, "user", None)
-    if user is not None and user.is_authenticated:
-        theme, density, mode = user.ui_theme or "c1", user.ui_density or "roomy", user.ui_mode or "system"
-        layout = user.ui_layout or "classic"
-    else:
-        theme, density, mode = "c1", "roomy", "system"
-        layout = "v2" if request.COOKIES.get("layout") == "v2" else "classic"
-    return {"ui_layout": layout, "ui_theme": theme, "ui_density": density, "ui_mode": mode, "ui_icons": ICONS, "ui_theme_color": THEME_COLOR.get(theme, THEME_COLOR["c1"])[0],
-            "ui_theme_color_dark": THEME_COLOR.get(theme, THEME_COLOR["c1"])[1]}
+    signed_in = user is not None and user.is_authenticated
+    theme = (user.ui_theme if signed_in else "") or "light"
+    theme = theme if theme in THEME_COLOR else "light"
+    density = (user.ui_density if signed_in else "") or "roomy"
+    # Forms all use the flat sheet now; ui_layout stays as a constant for templates.
+    return {"ui_layout": "v2", "ui_theme": theme, "ui_density": density, "ui_icons": ICONS, "ui_theme_color": THEME_COLOR[theme]}
 
 
 def app_name(request):

@@ -6,6 +6,8 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils import timezone
 
+from pages.theme_data import THEMES as THEME_DATA
+
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -42,28 +44,10 @@ class User(AbstractUser):
     email_confirmed_at = models.DateTimeField(null=True, blank=True)
     confirmation_sent_at = models.DateTimeField(null=True, blank=True)
     # Appearance, chosen in Settings and applied server-side on <html>.
-    THEMES = [
-        ("c1", "Teal & Coral"),
-        ("c2", "Cobalt & Saffron"),
-        ("c3", "Forest & Terracotta"),
-        ("c4", "Plum & Sage"),
-        ("c5", "Red & Slate"),
-        ("d1", "Charcoal & Ink Blue"),
-        ("d2", "Charcoal & Moss"),
-        ("d3", "Soft Gray & Dusty Teal"),
-        ("d4", "Soft Gray & Muted Rust"),
-        ("d5", "Fawn & Umber"),
-        ("d6", "Fawn & Sage"),
-    ]
+    THEMES = [(key, label) for key, label, *_ in THEME_DATA]
     DENSITIES = [("roomy", "Roomy"), ("compact", "Compact")]
-    MODES = [("system", "System"), ("light", "Light"), ("dark", "Dark")]
-    ui_theme = models.CharField(max_length=8, choices=THEMES, default="c1")
+    ui_theme = models.CharField(max_length=8, choices=THEMES, default="light")
     ui_density = models.CharField(max_length=8, choices=DENSITIES, default="roomy")
-    # Light or Dark overrides the device setting for every theme; System follows it.
-    ui_mode = models.CharField(max_length=8, choices=MODES, default="system")
-    # Form pages' layout: the current one, or the flat v2 sheet (opt-in).
-    LAYOUTS = [("classic", "Classic"), ("v2", "Flat (v2)")]
-    ui_layout = models.CharField(max_length=8, choices=LAYOUTS, default="classic")
     # The Rabbits page layout, remembered per account.
     LIST_VIEWS = [("grid", "Grid"), ("list", "List")]
     ui_list_view = models.CharField(max_length=8, choices=LIST_VIEWS, default="grid")

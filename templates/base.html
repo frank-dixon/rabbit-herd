@@ -6,9 +6,7 @@
   <link rel="preload" href="{% static 'fonts/instrument-sans-latin-var.woff2' %}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <link rel="manifest" href="{% url 'pwa_manifest' %}">
-  {% if ui_mode == "light" %}<meta name="theme-color" content="{{ ui_theme_color }}">{% elif ui_mode == "dark" %}<meta name="theme-color" content="{{ ui_theme_color_dark }}">{% else %}
-  <meta name="theme-color" content="{{ ui_theme_color }}" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="{{ ui_theme_color_dark }}" media="(prefers-color-scheme: dark)">{% endif %}
+  <meta name="theme-color" content="{{ ui_theme_color|default:'#FAFAF9' }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Bramble">
   <meta name="description" content="Private records for your rabbitry: herd, pedigrees, litters, weights and breeder contacts.">

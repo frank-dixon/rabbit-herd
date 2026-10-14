@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from .nav import THEME_SWATCHES
+from .theme_data import THEMES as THEME_DATA
 
 from .forms import ComponentExampleForm
 
@@ -18,22 +18,6 @@ def index(request):
     if request.user.is_authenticated:
         return render(request, "home.html", home_context(request.user))
     return render(request, "marketing/home.html")
-
-
-def theme_dark_swatch(key):
-    """(accent, secondary, canvas) of a theme in dark mode, read from themes.css."""
-    import re
-    from pathlib import Path
-
-    css = getattr(theme_dark_swatch, "_css", None)
-    if css is None:
-        css = theme_dark_swatch._css = (Path(settings.BASE_DIR) / "assets" / "themes.css").read_text()
-    match = re.search(r'html\[data-mode="dark"\]\[data-theme="' + key + r'"\][^{]*\{(.*?)\}', css, re.S)
-    if not match:
-        return THEME_SWATCHES[key]
-    values = dict(re.findall(r"--([a-z-]+):\s*([^;]+);", match.group(1)))
-    return (values.get("accent", ""), values.get("second", ""), values.get("canvas", ""))
-
 
 
 # Settings sections in page order: (group, anchor, label, template). The sub-nav and the page
@@ -74,25 +58,18 @@ def account(request):
     if request.method == "POST":
         theme = request.POST.get("ui_theme", user.ui_theme)
         density = request.POST.get("ui_density", user.ui_density)
-        mode = request.POST.get("ui_mode", user.ui_mode)
-        layout = request.POST.get("ui_layout", user.ui_layout)
-        if theme in dict(user.THEMES) and density in dict(user.DENSITIES) and mode in dict(user.MODES) and layout in dict(user.LAYOUTS):
-            user.ui_theme, user.ui_density, user.ui_mode, user.ui_layout = theme, density, mode, layout
-            user.save(update_fields=["ui_theme", "ui_density", "ui_mode", "ui_layout"])
-            # Signed-out pages (sign in, reset) follow the last layout chosen on this device.
+        if theme in dict(user.THEMES) and density in dict(user.DENSITIES):
+            user.ui_theme, user.ui_density = theme, density
+            user.save(update_fields=["ui_theme", "ui_density"])
             response = HttpResponse(status=204) if request.headers.get("X-Requested-With") == "fetch" else None
             if response is None:
                 messages.success(request, "Settings saved.")
                 response = redirect(request.POST.get("next") if url_has_allowed_host_and_scheme(request.POST.get("next", ""), {request.get_host()}) else "account")
-            response.set_cookie("layout", layout, max_age=365 * 86400, samesite="Lax", secure=request.is_secure(), httponly=True)
             return response
         return redirect(request.POST.get("next") if url_has_allowed_host_and_scheme(request.POST.get("next", ""), {request.get_host()}) else "account")
     kinds = [("rabbits", "Rabbits"), ("litters", "Litters"), ("weights", "Weights"), ("shows", "Show results"), ("costs", "Costs")]
-    themes = [
-        {"key": key, "label": label, "swatch": THEME_SWATCHES[key], "dark": theme_dark_swatch(key),
-         "current": key == user.ui_theme}
-        for key, label in user.THEMES
-    ]
+    themes = [{"key": key, "label": label, "group": group, "dark": dark, "canvas": canvas, "surface": surface, "accent": accent,
+               "ink": ink, "current": key == user.ui_theme} for key, label, group, dark, canvas, surface, accent, ink in THEME_DATA]
     from .nav import DESTINATIONS, MAX_TABS, clean_tabs, tab_choices
 
     current = clean_tabs(user.tab_bar)
@@ -101,7 +78,7 @@ def account(request):
     current_theme = dict(user.THEMES).get(user.ui_theme, "")
     sections = settings_sections(current_theme)
     return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes, "settings_sections": sections, "settings_nav": settings_nav(sections), "wide": True,
-                                                  "tab_slots": slots, "mode_options": [{"value": k, "label": l, "selected": user.ui_mode == k} for k, l in user.MODES], "layout_options": [{"value": k, "label": l, "selected": user.ui_layout == k} for k, l in user.LAYOUTS], "density_options": [{"value": k, "label": l, "selected": user.ui_density == k} for k, l in user.DENSITIES], "tab_destinations": destinations, "side_groups": side_groups(user)})
+                                                  "tab_slots": slots, "density_options": [{"value": k, "label": l, "selected": user.ui_density == k} for k, l in user.DENSITIES], "tab_destinations": destinations, "side_groups": side_groups(user)})
 
 
 def side_groups(user):

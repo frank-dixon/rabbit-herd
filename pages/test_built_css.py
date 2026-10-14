@@ -26,7 +26,7 @@ class BuiltCssCheckTests(SimpleTestCase):
         root, _ = self.tree(".flex{display:flex}")
         problems = css_problems(root)
         self.assertIn("the built CSS has no --surface", problems)
-        self.assertIn("the built CSS has no d3 theme", problems)
+        self.assertIn("the built CSS has no warm-b theme", problems)
 
     def test_source_newer_than_build_is_reported(self):
         from accounts.models import User

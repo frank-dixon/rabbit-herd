@@ -182,13 +182,13 @@ class DensityTests(TestCase):
         self.assertRegex(page.content.decode(), r'href="\?density=compact"[^>]*aria-current="true"')
 
     def test_quick_toggle_saves_and_returns_to_the_list(self):
-        response = self.client.post(reverse("account"), {"ui_theme": "c1", "ui_density": "compact", "next": "/rabbits/?sex=doe"})
+        response = self.client.post(reverse("account"), {"ui_theme": "light", "ui_density": "compact", "next": "/rabbits/?sex=doe"})
         self.assertRedirects(response, "/rabbits/?sex=doe")
         self.user.refresh_from_db()
         self.assertEqual(self.user.ui_density, "compact")
 
     def test_toggle_refuses_an_outside_next(self):
-        response = self.client.post(reverse("account"), {"ui_theme": "c1", "ui_density": "compact", "next": "https://example.org/"})
+        response = self.client.post(reverse("account"), {"ui_theme": "light", "ui_density": "compact", "next": "https://example.org/"})
         self.assertRedirects(response, reverse("account"))
 
     def test_density_and_layout_links_persist_per_account(self):
