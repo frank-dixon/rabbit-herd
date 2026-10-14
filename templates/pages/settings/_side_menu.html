@@ -1,0 +1,27 @@
+{# Settings section: side menu order. Listed in pages.views.SETTINGS_SECTIONS. Up/Down are plain form buttons; side-menu.mjs moves rows in place and saves with fetch. #}
+  <form class="ruled pt-4" id="side-menu" method="post" action="{% url 'side_menu' %}" aria-labelledby="side-menu-heading" data-side-menu>
+    {% csrf_token %}
+    <div class="flex items-baseline justify-between gap-3">
+      <h2 class="text-base font-semibold" id="side-menu-heading">Side menu</h2>
+      <p class="text-sm text-muted" role="status" data-side-menu-status></p>
+    </div>
+    <p class="mt-1 text-sm text-muted">The order of pages in the menu on a tablet or computer. Move the ones you use most to the top.</p>
+    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {% for group in side_groups %}
+        <section aria-label="{{ group.label }}">
+          <h3 class="eyebrow">{{ group.label }}</h3>
+          <ol class="mt-2 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface" data-side-group>
+            {% for entry in group.items %}
+              <li class="flex items-center gap-3 px-3 py-1.5" data-side-key="{{ entry.key }}">
+                <span class="text-muted">{% include "components/icon.html" with d=entry.icon only %}</span>
+                <span class="min-w-0 flex-1 text-sm font-medium">{{ entry.label }}</span>
+                <button class="grid h-9 w-9 cursor-pointer place-items-center rounded-md text-muted hover:bg-side hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent" type="submit" name="move" value="{{ entry.key }}" formaction="{% url 'side_menu' %}?way=up" data-way="up"{% if forloop.first %} disabled{% endif %}><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg><span class="sr-only">Move {{ entry.label }} up</span></button>
+                <button class="grid h-9 w-9 cursor-pointer place-items-center rounded-md text-muted hover:bg-side hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent" type="submit" name="move" value="{{ entry.key }}" formaction="{% url 'side_menu' %}?way=down" data-way="down"{% if forloop.last %} disabled{% endif %}><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span class="sr-only">Move {{ entry.label }} down</span></button>
+              </li>
+            {% endfor %}
+          </ol>
+        </section>
+      {% endfor %}
+    </div>
+    <div class="mt-4">{% include "components/button.html" with label="Reset order" type="submit" name="reset" value="1" variant="secondary" only %}</div>
+  </form>

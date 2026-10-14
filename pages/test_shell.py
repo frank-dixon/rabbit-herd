@@ -24,7 +24,7 @@ class AppShellTests(TestCase):
         page = html[html.index('<aside'):html.index('</aside>')] + html[html.index('data-app-tabs'):]
         for missing in ("coming soon", "Coming soon", ">More<"):
             self.assertNotIn(missing, page)
-        for label in ("Today", "Rabbits", "Archived", "Tasks", "Pairings", "Litters", "Weights"):
+        for label in ("Today", "Rabbits", "Tasks", "Pairings", "Litters", "Weights"):
             self.assertIn(label, page)
         self.assertNotIn(">Locations<", page)  # FEATURE_LOCATIONS is off by default
         panel = html[html.index('id="app-menu"'):html.index('data-shell')]
@@ -60,7 +60,7 @@ class AppShellTests(TestCase):
         self.assertIn(">Records<", rail)
         for url in ("/contacts/", "/costs/", "/waitlist/", "/shows/", "/health/"):
             self.assertIn(f'href="{url}"', rail)
-        self.assertLess(rail.index("/archived") if "/archived" in rail else rail.index("tab=archived"), rail.index("/contacts/"))
+        self.assertNotIn("tab=archived", rail)  # Archived is a tab on Rabbits, not a menu item
         self.assertIn("Dixon Rabbitry", rail)
         pop = rail[rail.index("data-account-pop"):]
         self.assertIn("Settings</a>", pop)
@@ -79,7 +79,22 @@ class AppShellTests(TestCase):
         page = self.client.get(reverse("rabbit_detail", args=[self.rabbit.pk])).content.decode()
         self.assertRegex(page, r'href="/rabbits/"[^>]*aria-current="page"')
         archived = self.client.get(reverse("rabbit_list") + "?tab=archived").content.decode()
-        self.assertRegex(archived, r'href="/rabbits/\?tab=archived"[^>]*aria-current="page"')
+        self.assertRegex(archived, r'href="/rabbits/"[^>]*aria-current="page"')
+
+    def test_side_menu_reorders_within_its_group(self):
+        from .nav import side_order
+        self.client.post(reverse("side_menu") + "?way=up", {"move": "tasks"})
+        self.client.post(reverse("side_menu") + "?way=up", {"move": "glossary"})
+        self.user.refresh_from_db()
+        main, records = side_order(self.user.side_menu)
+        self.assertLess(main.index("tasks"), main.index("weights"))
+        self.assertLess(records.index("glossary"), records.index("export"))
+        rail = self.client.get(reverse("index")).content.decode()
+        self.assertLess(rail.index('data-rail-key="tasks"'), rail.index('data-rail-key="weights"'))
+        self.client.post(reverse("side_menu"), {"order": ["contacts", "today"]})  # a group can't take another's item
+        self.user.refresh_from_db()
+        main, records = side_order(self.user.side_menu)
+        self.assertEqual((main[0], records[0]), ("today", "contacts"))
 
     def test_pages_with_their_own_action_bar_drop_the_phone_tabs(self):
         for url in (reverse("rabbit_edit", args=[self.rabbit.pk]),

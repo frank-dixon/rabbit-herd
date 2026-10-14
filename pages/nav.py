@@ -106,13 +106,13 @@ DEFAULT_TABS = ["today", "rabbits", "litters", "weights", "tasks"]
 MIN_TABS, MAX_TABS = 3, 5
 
 # Side menu (tablet and desktop) and the phone drawer: the everyday sections, then Records.
-RAIL = ["today", "rabbits", "litters", "pairings", "weights", "tasks", "locations", "archived"]
+RAIL = ["today", "rabbits", "litters", "pairings", "weights", "tasks", "locations"]
 RECORDS = ["contacts", "costs", "waitlist", "shows", "health", "export", "glossary"]
 # The account popover from the footer gear.
 PANEL = ["settings", "account"]
 
 PREFIXES = [
-    ("/rabbits/new/", "add"), ("/rabbits/archived/", "archived"), ("/rabbits/", "rabbits"),
+    ("/rabbits/new/", "add"), ("/rabbits/", "rabbits"),
     ("/locations/", "locations"), ("/tasks/", "tasks"), ("/pairings/", "pairings"), ("/litters/", "litters"),
     ("/weights/", "weights"), ("/health/", "health"), ("/shows/", "shows"), ("/waitlist/", "waitlist"),
     ("/costs/", "costs"), ("/contacts/", "contacts"), ("/settings/", "settings"), ("/account/", "settings"),
@@ -124,12 +124,22 @@ def active_key(request):
     path = request.path
     if path == "/":
         return "today"
-    if path == "/rabbits/" and request.GET.get("tab") == "archived":
-        return "archived"
     for prefix, key in PREFIXES:
         if path.startswith(prefix):
             return key
     return ""
+
+
+def side_order(keys):
+    """(main, records): the side menu in the keeper's order. Each group keeps
+    its own items; unknown keys drop out and new ones join at the end."""
+    keys = [k for k in (keys or []) if isinstance(k, str)]
+
+    def ordered(group):
+        mine = [k for k in keys if k in group]
+        return list(dict.fromkeys(mine + [k for k in group if k not in mine]))
+
+    return ordered(RAIL), ordered(RECORDS)
 
 
 def clean_tabs(keys):
@@ -178,7 +188,8 @@ def app_nav(request):
         return {}
     current = active_key(request)
     tabs = clean_tabs(getattr(user, "tab_bar", None))
-    nav_items = [item(key, current) for key in RAIL if not feature_off(key)]
+    main, records = side_order(getattr(user, "side_menu", None))
+    nav_items = [item(key, current) for key in main if not feature_off(key)]
     tab_items = [item(key, current) for key in tabs]
     if "tasks" in tabs:
         due = due_count(user)
@@ -188,7 +199,7 @@ def app_nav(request):
     return {
         "app_nav": nav_items,
         "app_tabs": tab_items,
-        "app_records": [item(key, current) for key in RECORDS],
+        "app_records": [item(key, current) for key in records],
         "app_panel": [item(key, current) for key in PANEL],
         "app_destinations": [item(key, current) for key in tab_choices()],
         "app_settings_icon": ICONS["settings"],

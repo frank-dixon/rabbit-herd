@@ -691,6 +691,8 @@ class RabbitPhoto(models.Model):
     # is stripped. taken_from_metadata is False once the keeper sets it.
     taken_at = models.DateField(null=True, blank=True)
     taken_from_metadata = models.BooleanField(default=False)
+    # Set when the photo was added with a health note, which shows it too.
+    health_note = models.ForeignKey("HealthNote", related_name="photos", null=True, blank=True, on_delete=models.CASCADE)
 
     class Meta:
         ordering = ["-is_main", "uploaded_at", "pk"]

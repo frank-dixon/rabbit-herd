@@ -40,6 +40,7 @@ import { bindListSwap } from "./list-swap.mjs";
 import { bindAuthForms } from "./auth-form.mjs";
 import { bindAddSheets, bindMoreMenus } from "./add-sheet.mjs";
 import { bindModal } from "./modal.mjs";
+import { bindSideMenu } from "./side-menu.mjs";
 import { focusSmooth, reducedMotion } from "./motion.mjs";
 
 /**
@@ -361,6 +362,7 @@ function start() {
   bindRabbitInline(document, window);
   bindSegmented(document);
   bindListSwap(document, window);
+  bindSideMenu(document, window);
   bindAuthForms(document, window);
   bindAddSheets(document);
   bindMoreMenus(document);

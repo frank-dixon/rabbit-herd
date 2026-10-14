@@ -255,7 +255,7 @@ def rabbit_detail(request, pk):
             "photos": photos,
             "relatives": relatives,
             **weight_context(request, rabbit),
-            "health_notes": list(rabbit.health_notes.select_related("task")),
+            "health_notes": list(rabbit.health_notes.select_related("task").prefetch_related("photos")),
             "health_kinds": HealthNote.Kind.choices,
             **culling.form_context(request, rabbit),
             **shows.form_context(request, rabbit),

@@ -116,7 +116,8 @@ export function bindOffline(doc, win) {
         return;
       }
       event.preventDefault();
-      const fields = Array.from(new FormData(form).entries()).map(([name, value]) => [name, String(value)]);
+      // Photos can't wait on the device; the note itself is queued without them.
+      const fields = Array.from(new FormData(form).entries()).filter(([, value]) => typeof value === "string").map(([name, value]) => [name, value]);
       queueEntry(storage, form.action, fields, form.getAttribute("data-offline-queue"));
       const note = form.querySelector("[data-offline-note]");
       if (note) {

@@ -66,6 +66,8 @@ class User(AbstractUser):
     ui_list_view = models.CharField(max_length=8, choices=LIST_VIEWS, default="grid")
     # Phone bottom bar: destination keys in order (pages.nav.DESTINATIONS). Empty means the default.
     tab_bar = models.JSONField(default=list, blank=True)
+    # The side menu's order: destination keys, main section then Records. Empty = default.
+    side_menu = models.JSONField(default=list, blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

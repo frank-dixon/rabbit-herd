@@ -44,6 +44,7 @@ SETTINGS_SECTIONS = [
     ("Rabbitry", "schedule", "Breeding schedules", "pages/settings/_herd.html"),
     ("Rabbitry", "reminders", "Reminders", "pages/settings/_herd.html"),
     ("Preferences", "appearance", "Appearance", "pages/settings/_appearance.html"),
+    ("Preferences", "side-menu", "Side menu", "pages/settings/_side_menu.html"),
     ("Preferences", "tabs", "Bottom bar", "pages/settings/_tabs.html"),
     ("Preferences", "export", "Data and export", "pages/settings/_export.html"),
     ("Account", "account", "Sign-in and passkeys", "pages/settings/_account.html"),
@@ -95,7 +96,42 @@ def account(request):
     current_theme = dict(user.THEMES).get(user.ui_theme, "")
     sections = settings_sections(current_theme)
     return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes, "settings_sections": sections, "settings_nav": settings_nav(sections), "wide": True,
-                                                  "tab_slots": slots, "mode_options": [{"value": k, "label": l, "selected": user.ui_mode == k} for k, l in user.MODES], "density_options": [{"value": k, "label": l, "selected": user.ui_density == k} for k, l in user.DENSITIES], "tab_destinations": destinations})
+                                                  "tab_slots": slots, "mode_options": [{"value": k, "label": l, "selected": user.ui_mode == k} for k, l in user.MODES], "density_options": [{"value": k, "label": l, "selected": user.ui_density == k} for k, l in user.DENSITIES], "tab_destinations": destinations, "side_groups": side_groups(user)})
+
+
+def side_groups(user):
+    from .nav import ICONS, RECORDS, feature_off, item, side_order
+
+    main, records = side_order(user.side_menu)
+    return [{"label": label, "items": [item(key, "") for key in keys if not feature_off(key)]}
+            for label, keys in (("Main", main), ("Records", records))]
+
+
+@login_required
+def side_menu(request):
+    """Reorder the side menu: move one item up or down within its group (plain
+    form buttons), or save a whole order (the drag handle's fetch)."""
+    from .nav import RAIL, RECORDS, side_order
+
+    if request.method == "POST":
+        main, records = side_order(request.user.side_menu)
+        if request.POST.get("reset"):
+            main, records = list(RAIL), list(RECORDS)
+        elif request.POST.getlist("order"):
+            main, records = side_order(request.POST.getlist("order"))
+        else:
+            key, way = request.POST.get("move", ""), request.POST.get("way") or request.GET.get("way")
+            for group in (main, records):
+                if key in group:
+                    i = group.index(key)
+                    j = i - 1 if way == "up" else i + 1
+                    if 0 <= j < len(group):
+                        group[i], group[j] = group[j], group[i]
+        request.user.side_menu = main + records
+        request.user.save(update_fields=["side_menu"])
+        if request.headers.get("X-Requested-With") == "fetch":
+            return JsonResponse({"ok": True})
+    return redirect(reverse("account") + "#side-menu")
 
 
 @login_required
