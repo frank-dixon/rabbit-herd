@@ -93,3 +93,11 @@
 .pill-b { --pill-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M4 0a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 1.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z'/%3E%3C/svg%3E"); }
 .pill-g { --pill-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Ccircle cx='4' cy='4' r='4'/%3E%3C/svg%3E"); }
 .panel-row.is-flex { display: flex; }
+
+/* Litter cards: one compact row on phones (pair, pill, next step). */
+@media (max-width:767px){
+  .litter-card{padding:8px 12px}
+  .litter-card .lc-detail{display:none}
+  .litter-card .lc-next{margin-top:4px;padding-top:0;border:0}
+  .litter-card [data-avatar]{width:32px;height:32px}
+}

@@ -71,6 +71,8 @@ def litter_card(litter, today):
     doe, buck = litter.pairing.doe, litter.pairing.buck
     kits = list(litter.kits.all())
     task = litter.next_task()
+    if task and task.get("key") == "due":
+        task = {**task, "label": "Kindling"}
     card = {"litter": litter, "doe": doe, "buck": buck, "title": f"{doe.name} × {buck.name}", "task": task,
             "task_days": (task["date"] - today).days if task else None,
             "photos": [m for m in (k.main_photo for k in kits) if m][:4]}

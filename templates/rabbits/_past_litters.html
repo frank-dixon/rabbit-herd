@@ -1,6 +1,6 @@
 {# Past litters (Option 1): a collapsible table under the active litters. past: litter_outcomes.past_row() list. #}
 <section class="mt-8" id="past" aria-labelledby="past-heading" data-past-litters data-swap-root><div data-swap="past">
-  <details open>
+  <details{% if request.GET.sort %} open{% endif %}>
     <summary class="oc-head" style="margin-bottom:0">
       <span class="oc-tog" id="past-heading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>Past litters <span class="num font-normal text-muted">{{ past|length }}</span></span>
       {% include "rabbits/_outcome_legend.html" %}
