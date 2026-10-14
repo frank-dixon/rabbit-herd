@@ -6,6 +6,7 @@
 @import "./litter-card.css";
 @import "./outcomes.css";
 @import "./weights.css";
+@import "./items.css";
 
 /* Self-hosted fonts (SIL OFL, licences in static/fonts) so the installed app
    renders the same offline. Instrument Sans for text, DM Mono for numbers. */

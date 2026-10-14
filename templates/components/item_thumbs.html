@@ -1,0 +1,1 @@
+{# Overlapping square rabbit thumbs, or the swatch, or nothing. #}{% if swatch %}<span class="it-swatch" style="background:{{ swatch }}" aria-hidden="true"></span>{% elif thumbs %}<span class="it-thumbs">{% for r in thumbs %}{% include "components/rabbit_avatar.html" with rabbit=r size=size|default:"sm" only %}{% endfor %}</span>{% endif %}

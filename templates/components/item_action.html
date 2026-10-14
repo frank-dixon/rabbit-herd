@@ -1,0 +1,2 @@
+{# A small POST button that updates the list in place (list-swap.mjs, data-swap-post); a plain post without JS. #}
+<form method="post" action="{{ a.url }}" data-swap-post>{% csrf_token %}<button type="submit" class="wt-btn wt-btn-sm">{{ a.label }}</button></form>

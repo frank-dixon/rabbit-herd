@@ -1,0 +1,2 @@
+{# Segmented progress: p.segs is a list of fractions 0..1; p.dots draws round dots (legs). #}
+<span class="it-prog{% if p.dots %} is-dots{% endif %}" role="img" aria-label="{{ p.label }}">{% for f in p.segs %}<i style="--f:{{ f }}"></i>{% endfor %}</span>

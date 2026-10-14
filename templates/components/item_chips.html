@@ -1,0 +1,2 @@
+{# Small swatch + label + note chips, such as predicted colors. #}
+<span class="it-chips">{% for c in chips %}<span>{% if c.swatch %}<i style="background:{{ c.swatch }}" aria-hidden="true"></i>{% endif %}{{ c.label }}{% if c.note %} <span class="text-muted num">{{ c.note }}</span>{% endif %}</span>{% empty %}<span class="text-muted">{{ empty|default:"—" }}</span>{% endfor %}</span>

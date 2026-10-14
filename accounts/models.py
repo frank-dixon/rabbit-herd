@@ -54,6 +54,8 @@ class User(AbstractUser):
     # The Weights page: Table or Chart (split list + growth chart), remembered per account.
     WEIGHTS_VIEWS = [("table", "Table"), ("chart", "Chart")]
     ui_weights_view = models.CharField(max_length=8, choices=WEIGHTS_VIEWS, default="table")
+    # Grid or List on the other index pages (programs, pairings, shows, health): {page: view}.
+    ui_views = models.JSONField(default=dict, blank=True)
     # Phone bottom bar: destination keys in order (pages.nav.DESTINATIONS). Empty means the default.
     tab_bar = models.JSONField(default=list, blank=True)
     # The side menu's order: destination keys, main section then Records. Empty = default.

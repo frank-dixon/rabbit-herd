@@ -1,0 +1,4 @@
+{# The shared card grid for index pages; items as described in rabbits/index_items.py. #}
+<ul class="it-grid mo-stagger" data-item-grid>
+  {% for it in items %}<li>{% include "components/item_card.html" with it=it csrf_token=csrf_token only %}</li>{% endfor %}
+</ul>

@@ -4,7 +4,8 @@
  * the page and swap only the parts marked [data-swap="key"]; the URL follows with
  * history.pushState and Back/Forward swap again. The server saves the view preference
  * on that same GET, so a fetched Grid/List click persists it. Without JS every control is
- * a plain link or form. Any fetch failure falls back to a normal navigation.
+ * a plain link or form. Any fetch failure falls back to a normal navigation. POST forms
+ * marked [data-swap-post] post in the background, then the list swaps from the same URL.
  */
 import { bindSegmented, place } from "./segmented.mjs";
 import { reducedMotion } from "./motion.mjs";
@@ -95,6 +96,15 @@ export function bindListSwap(doc, win) {
   });
   root.addEventListener("submit", (event) => {
     const form = event.target;
+    if (form.matches?.("[data-swap-post]") && !event.defaultPrevented) {
+      // A small in-list action (such as Resolve): post it, then swap the list from the current URL.
+      event.preventDefault();
+      form.querySelector("button")?.setAttribute("disabled", "");
+      win.fetch(form.action, { method: "POST", body: new FormData(form), credentials: "same-origin", headers: { Accept: "text/html" } })
+        .then((res) => { if (!res.ok) throw new Error(String(res.status)); return go(win.location.href, false, form); })
+        .catch(() => form.submit());
+      return;
+    }
     if ((form.method || "get").toLowerCase() !== "get" || event.defaultPrevented) return;
     event.preventDefault();
     go(formUrl(form.action || win.location.href, new FormData(form, event.submitter)).href, true, form);

@@ -1,0 +1,12 @@
+<article class="it-card{% if it.dim %} is-dim{% endif %}">
+  <a class="it-head" href="{{ it.href }}">
+    {% include "components/item_thumbs.html" with thumbs=it.thumbs swatch=it.swatch size=it.thumb_size only %}
+    <span class="min-w-0 flex-1"><span class="it-title">{{ it.title }}</span>{% if it.sub %}<span class="it-sub">{{ it.sub }}</span>{% endif %}</span>
+    {% if it.badge %}<span class="it-badge"><span class="pill{% if it.badge.tone %} pill-{{ it.badge.tone }}{% endif %}">{{ it.badge.label }}</span>{% if it.badge.note %}<span class="it-sub">{{ it.badge.note }}</span>{% endif %}</span>{% elif it.pill %}<span class="pill{% if it.pill.tone %} pill-{{ it.pill.tone }}{% endif %}">{{ it.pill.label }}</span>{% endif %}
+  </a>
+  {% if it.progress %}<div><div class="it-meta"><span>{{ it.progress.label }}</span><span>{{ it.progress.right }}</span></div>{% include "components/item_progress.html" with p=it.progress only %}</div>{% endif %}
+  {% if it.text %}<p class="it-text">{{ it.text }}</p>{% endif %}
+  {% if it.kv %}<dl class="it-kv">{% for k in it.kv %}<div><dt>{{ k.label }}</dt><dd{% if k.big %} class="is-big num"{% endif %}>{% if k.thumbs %}{% include "components/item_thumbs.html" with thumbs=k.thumbs only %}{% else %}{{ k.value }}{% endif %}</dd>{% if k.note %}<p class="it-sub">{{ k.note }}</p>{% endif %}</div>{% endfor %}</dl>{% endif %}
+  {% if it.chips is not None %}<div><p class="it-sub">{{ it.chips_label }}</p>{% include "components/item_chips.html" with chips=it.chips only %}</div>{% endif %}
+  {% if it.foot %}<div class="it-foot">{% if it.foot.pill %}<span class="pill{% if it.foot.pill.tone %} pill-{{ it.foot.pill.tone }}{% endif %}">{{ it.foot.pill.label }}</span>{% endif %}{% if it.foot.label %}<span class="it-sub">{{ it.foot.label }}</span>{% endif %}<span class="it-foot-text{% if it.foot.tone == 'r' %} text-danger{% endif %}">{% if it.foot.strong %}<b>{{ it.foot.strong }}</b>{% endif %}{% if it.foot.text %}<span class="it-sub">{{ it.foot.text }}</span>{% endif %}</span>{% if it.foot.progress %}{% include "components/item_progress.html" with p=it.foot.progress only %}<span class="it-sub">{{ it.foot.progress.label }}</span>{% endif %}{% if it.foot.end %}<span class="pill{% if it.foot.end.tone %} pill-{{ it.foot.end.tone }}{% endif %}">{{ it.foot.end.label }}</span>{% endif %}{% if it.action %}{% include "components/item_action.html" with a=it.action %}{% endif %}</div>{% endif %}
+</article>

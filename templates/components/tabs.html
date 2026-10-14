@@ -1,0 +1,5 @@
+{# Shared underline tabs that swap the list without a reload. tabs: [{href, label, count, on}]. #}
+<nav class="seg seg-underline tabs relative mt-6 flex min-w-0 overflow-x-auto" aria-label="{{ label|default:'Show' }}" data-segmented data-swap-sync>
+  <span class="seg-thumb" aria-hidden="true" data-seg-thumb></span>
+  {% for t in tabs %}<a href="{{ t.href }}" class="tab shrink-0" data-seg-option{% if t.on %} data-selected aria-current="page"{% endif %}>{{ t.label }}{% if t.count is not None %} <span class="num text-muted">{{ t.count }}</span>{% endif %}</a>{% endfor %}
+</nav>
