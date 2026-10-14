@@ -60,7 +60,7 @@ class PairingTests(TestCase):
         pairing = Pairing.objects.get()
         self.assertRedirects(saved, reverse("pairing_detail", args=[pairing.pk]))
         detail = self.client.get(reverse("pairing_detail", args=[pairing.pk]))
-        self.assertContains(detail, "No shared ancestors found")
+        self.assertContains(detail, "No shared ancestors in the parents")
         self.assertContains(self.client.get(url), "Hazel × Rowan")
         self.client.force_login(stranger.owner)
         self.assertEqual(self.client.get(reverse("pairing_detail", args=[pairing.pk])).status_code, 404)
@@ -94,3 +94,14 @@ class RelatednessTableTests(TestCase):
         self.assertContains(page, "pill pill-r")
         self.assertContains(page, "COI ")
         self.assertNotContains(page, "<li class=\"break-words\">")
+
+    def test_detail_page_uses_the_same_summary(self):
+        owner = user("reldetail@example.com")
+        self.client.force_login(owner)
+        sire, doe = make(owner, "Obsidian", "buck"), make(owner, "Shadow", "doe")
+        Relative.objects.create(rabbit=doe, relationship="sire", herd_rabbit=sire)
+        pairing = Pairing.objects.create(owner=owner, doe=doe, buck=sire)
+        page = self.client.get(reverse("pairing_detail", args=[pairing.pk]))
+        self.assertContains(page, "data-inbreeding")
+        self.assertContains(page, "Obsidian is Shadow&#x27;s sire")
+        self.assertNotContains(page, "Inbreeding warning:")

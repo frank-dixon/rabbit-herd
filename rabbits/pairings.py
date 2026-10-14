@@ -209,7 +209,7 @@ def pairing_detail(request, pk):
     from django.utils import timezone
 
     doe_pairs, buck_pairs = color_odds.recorded(pairing.doe), color_odds.recorded(pairing.buck)
-    context = {"pairing": pairing, "warnings": inbreeding_warnings(pairing.doe, pairing.buck),
+    context = {"pairing": pairing, "rel": relatedness(request.user, pairing.doe, pairing.buck, {}, request.GET.get("asort", "")),
                "age_warnings": age_warnings(pairing.doe, pairing.buck), "wide": True,
                "litters": pairing.litters.all(), "today": timezone.localdate(),
                "odds": color_odds.predict(pairing.doe, pairing.buck),
