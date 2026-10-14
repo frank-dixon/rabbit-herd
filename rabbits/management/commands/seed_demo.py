@@ -737,11 +737,11 @@ class Command(BaseCommand):
                                description="Goliath, Flemish Giant junior buck (Big Timber Flemish)")
         HealthNote.objects.bulk_create([
             HealthNote(rabbit=g, date=bought + datetime.timedelta(days=1), kind="checkup",
-                       notes="Arrived bright; quarantined 30 days away from the NZ row. Moved to a 36×48 floor pen."),
+                       notes="Arrived bright; quarantined 30 days away from the NZ row. Moved to a 36×48 floor pen.", resolved=True),
             HealthNote(rabbit=g, date=born + datetime.timedelta(days=240), kind="checkup",
-                       notes="Hocks checked: no sore hocks. Added a resting mat; he's 19½ lb at 8 months."),
+                       notes="Hocks checked: no sore hocks. Added a resting mat; he's 19½ lb at 8 months.", resolved=True),
             HealthNote(rabbit=g, date=today - datetime.timedelta(days=20), kind="checkup",
-                       notes="Growth flattening as expected past a year. Considering him as a terminal sire on NZ does.")])
+                       notes="Growth flattening as expected past a year. Considering him as a terminal sire on NZ does.", resolved=True)])
         with open(Path(__file__).resolve().parents[2] / "demo_photos" / "nz" / "flemish-fawn-adult.jpg", "rb") as fh:
             RabbitPhoto.objects.create(rabbit=g, is_main=True, notes="Frank's fawn Flemish Giant.",
                                        taken_at=today - datetime.timedelta(days=30), image=File(fh, name="goliath.jpg"))

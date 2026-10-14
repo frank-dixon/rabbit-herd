@@ -61,7 +61,7 @@ def copy_whole(check, rabbit, unit):
     text = status_text(check.status, check.note)
     if text:
         HealthNote.objects.create(rabbit=rabbit, date=check.date, kind=HealthNote.Kind.CHECKUP,
-                                  notes=f"Whole-litter check: {text}")
+                                  notes=f"Whole-litter check: {text}", resolved=True)
 
 
 def copy_row(row, rabbit, unit):
@@ -71,7 +71,7 @@ def copy_row(row, rabbit, unit):
     if text:
         HealthNote.objects.create(rabbit=rabbit, date=row.litter_check.date,
                                   kind=HealthNote.Kind.ILLNESS if row.status == LitterCheck.Status.SICK else HealthNote.Kind.CHECKUP,
-                                  notes=f"Litter check: {text}")
+                                  notes=f"Litter check: {text}", resolved=row.status != LitterCheck.Status.SICK)
 
 
 @transaction.atomic
