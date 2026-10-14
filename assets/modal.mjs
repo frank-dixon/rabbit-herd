@@ -22,9 +22,24 @@ export function staysInModal(url, base) {
 export function modalContent(page) {
   const main = page.querySelector("[data-modal-content]") || page.querySelector("main");
   if (!main) return { title: "", nodes: [] };
-  const title = (main.querySelector("h1")?.textContent || page.title || "").trim();
+  const heading = main.querySelector("h1") || (main.hasAttribute("data-modal-content") ? main.querySelector("h2") : null);
+  const title = (heading?.textContent || page.title || "").trim();
+  if (heading && heading.tagName === "H2") heading.remove(); // the modal header shows it
   main.querySelectorAll("[data-page-header], [data-toasts], [data-connection-status], dialog").forEach((el) => el.remove());
   return { title, nodes: Array.from(main.childNodes) };
+}
+
+/** Prefix ids (and the for/aria refs that point at them) so a form copied from the page underneath doesn't clash with it. */
+export function prefixIds(root, prefix = "m-") {
+  const ids = new Set(Array.from(root.querySelectorAll("[id]"), (el) => el.id));
+  if (!ids.size) return;
+  root.querySelectorAll("[id]").forEach((el) => { el.id = prefix + el.id; });
+  root.querySelectorAll("[for], [aria-describedby], [aria-labelledby], [aria-controls]").forEach((el) => {
+    for (const attr of ["for", "aria-describedby", "aria-labelledby", "aria-controls"]) {
+      const value = el.getAttribute(attr);
+      if (value) el.setAttribute(attr, value.split(/\s+/).map((id) => (ids.has(id) ? prefix + id : id)).join(" "));
+    }
+  });
 }
 
 export function bindModal(doc, win = window) {
@@ -59,7 +74,7 @@ export function bindModal(doc, win = window) {
       const response = await win.fetch(url, { credentials: "same-origin", headers: { "X-Modal": "1" }, ...init });
       const page = parser.parseFromString(await response.text(), "text/html");
       const landed = new URL(response.url || url, win.location.href);
-      if (landed.pathname === win.location.pathname && init && init.method === "POST") {
+      if (landed.pathname === win.location.pathname && init && init.method === "POST" && response.ok && response.redirected !== false) {
         refresh(page);
         const message = page.querySelector("[data-toasts] [data-toast] span, [data-toasts] [data-toast]")?.textContent?.trim();
         close();
@@ -73,6 +88,7 @@ export function bindModal(doc, win = window) {
       const { title: heading, nodes } = modalContent(page);
       title.textContent = heading;
       body.replaceChildren(...nodes.map((node) => doc.importNode(node, true)));
+      if (body.querySelector("[data-add-sheet-body]")) prefixIds(body);
       body.dataset.url = landed.href;
       bindRabbitFlow(body);
       if (!dialog.open) dialog.showModal();

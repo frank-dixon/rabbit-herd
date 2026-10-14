@@ -18,7 +18,7 @@ export function bindAddSheets(doc) {
   doc.addEventListener("click", (event) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey) return;
     const link = event.target.closest && event.target.closest("a[href]");
-    if (!link) return;
+    if (!link || link.hasAttribute("data-modal") || link.closest("dialog[data-modal]")) return; // the shared modal handles these
     if (link.hasAttribute("data-sheet-close")) {
       const sheet = link.closest("[data-add-sheet]");
       if (sheet && !sheet.querySelector("[aria-invalid=true]") && link.getAttribute("href") === doc.location.pathname) {
