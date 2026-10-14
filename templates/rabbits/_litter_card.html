@@ -1,0 +1,30 @@
+{# One litter as a card (grid) or a row (list). c: litters.litter_card(). view: grid or list. #}
+{% load photos %}
+{% with litter=c.litter %}
+<li class="min-w-0">
+  <a href="{% url 'litter_detail' litter.pk %}" class="litter-card group block h-full rounded-lg bg-well p-3.5 transition-colors duration-150 hover:bg-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent{% if view == 'list' %} sm:flex sm:items-center sm:gap-4{% endif %}" data-litter-card data-stage="{{ c.stage }}">
+    <span class="flex items-start gap-3{% if view == 'list' %} sm:min-w-0 sm:flex-1{% endif %}">
+      <span class="flex shrink-0 items-center" aria-hidden="true">{% include "components/rabbit_avatar.html" with rabbit=c.doe only %}<span class="-ml-3 rounded-lg ring-2 ring-[var(--well)]">{% include "components/rabbit_avatar.html" with rabbit=c.buck only %}</span></span>
+      <span class="min-w-0 flex-1">
+        <span class="flex items-start justify-between gap-2"><span class="min-w-0 font-semibold [overflow-wrap:anywhere]">{{ c.title }}</span><span class="pill pill-{{ c.tone }} shrink-0">{{ c.pill }}</span></span>
+        {% if c.stage == "expecting" %}
+          <span class="mt-0.5 block text-sm text-muted">Bred {{ litter.bred_on|date:"D, M j" }} · due {{ litter.due_on|date:"D, M j" }}</span>
+          <span class="num mt-0.5 block text-sm">{% if c.due_days > 1 %}{{ c.due_days }} days to go{% elif c.due_days == 1 %}Due tomorrow{% elif c.due_days == 0 %}Due today{% else %}{{ c.due_days|stringformat:"d"|slice:"1:" }} day{{ c.due_days|stringformat:"d"|slice:"1:"|pluralize }} past due{% endif %}</span>
+        {% else %}
+          <span class="mt-0.5 block text-sm text-muted">Kindled {{ litter.kindled_on|date:"D, M j" }} · <span class="num">{{ c.age }}</span> day{{ c.age|pluralize }} old</span>
+          <span class="num mt-0.5 block text-sm">{% if c.alive is None %}<span class="text-muted">Kits not counted yet</span>{% else %}{{ c.alive }} alive{% if c.total %} of {{ c.total }}{% endif %}{% endif %}{% if c.does or c.bucks %} <span class="text-muted">· {{ c.does }} doe{{ c.does|pluralize }}, {{ c.bucks }} buck{{ c.bucks|pluralize }}</span>{% endif %}</span>
+        {% endif %}
+      </span>
+    </span>
+    {% if c.task and not litter.converted_at %}
+      <span class="mt-2.5 flex items-center justify-between gap-2 border-t border-line pt-2.5 text-sm{% if view == 'list' %} sm:mt-0 sm:w-64 sm:shrink-0 sm:border-0 sm:pt-0{% endif %}">
+        <span class="min-w-0 truncate"><span class="text-muted">Next:</span> {{ c.task.label }}</span>
+        <span class="num shrink-0 {% if c.task_days < 0 %}text-danger{% elif c.task_days == 0 %}font-medium{% else %}text-muted{% endif %}">{% if c.task_days < 0 %}overdue{% elif c.task_days == 0 %}today{% else %}{{ c.task.date|date:"D, M j" }}{% endif %}</span>
+      </span>
+    {% endif %}
+    {% if c.photos and view != 'list' %}
+      <span class="mt-2.5 flex gap-1.5" aria-hidden="true">{% for p in c.photos %}<img class="h-10 w-10 rounded-md object-cover" {% photo_src p "40px" 120 %} alt="" loading="lazy" decoding="async">{% endfor %}</span>
+    {% endif %}
+  </a>
+</li>
+{% endwith %}

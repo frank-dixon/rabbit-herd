@@ -64,13 +64,43 @@ def litter_create(request, pk):
     return redirect("litter_detail", litter.pk)
 
 
+def litter_card(litter, today):
+    """What a litter card shows: the stage pill, key dates, kit counts with the
+    sex split when known, the next step and a strip of kit photos."""
+    doe, buck = litter.pairing.doe, litter.pairing.buck
+    kits = list(litter.kits.all())
+    task = litter.next_task()
+    card = {"litter": litter, "doe": doe, "buck": buck, "title": f"{doe.name} × {buck.name}", "task": task,
+            "task_days": (task["date"] - today).days if task else None,
+            "photos": [m for m in (k.main_photo for k in kits) if m][:4]}
+    if litter.kindled_on is None:
+        days = (litter.due_on - today).days
+        card.update(stage="expecting", pill=("Overdue" if days < 0 else "Due today" if days == 0 else "Expecting"),
+                    tone=("r" if days < 0 else "y" if days <= 3 else "b"), due_days=days)
+    else:
+        age = (today - litter.kindled_on).days
+        weaned = litter.converted_at or not task
+        card.update(stage="kindled", age=age, pill=("Converted" if litter.converted_at else "Weaned" if weaned and age >= 28 else "Nursing"),
+                    tone=("o" if litter.converted_at else "g"), alive=litter.survivors, total=(litter.born_alive or 0) + (litter.born_dead or 0),
+                    does=sum(k.sex == "doe" for k in kits), bucks=sum(k.sex == "buck" for k in kits))
+    return card
+
+
 @login_required
 def litter_list(request):
-    litters = list(Litter.objects.filter(owner=request.user).select_related("pairing__doe", "pairing__buck"))
+    from .views import list_view_choice
+
+    view = list_view_choice(request)
+    today = timezone.localdate()
+    litters = list(Litter.objects.filter(owner=request.user)
+                   .select_related("pairing__doe", "pairing__buck", "breeding_schedule")
+                   .prefetch_related("pairing__doe__photos", "pairing__buck__photos", "kits__photos"))
+    cards = [litter_card(litter, today) for litter in litters]
+    expecting = sorted((c for c in cards if c["stage"] == "expecting"), key=lambda c: c["litter"].due_on)
+    kindled = sorted((c for c in cards if c["stage"] == "kindled"), key=lambda c: c["litter"].kindled_on, reverse=True)
     return render(request, "rabbits/litters.html", {
-        "open": [litter for litter in litters if litter.kindled_on is None],
-        "kindled": [litter for litter in litters if litter.kindled_on is not None],
-        "today": timezone.localdate(), "wide": True,
+        "open": expecting, "kindled": kindled, "today": today, "wide": True, "view": view,
+        "view_options": [{"href": f"?view={k}", "label": l, "icon": k, "selected": view == k} for k, l in (("grid", "Grid"), ("list", "List"))],
     })
 
 

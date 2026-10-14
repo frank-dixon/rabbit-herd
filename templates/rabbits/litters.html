@@ -5,32 +5,22 @@
 {% block content %}<span data-refreshable hidden></span>
   {% url 'pairing_list' as pairings_url %}
   {% include "components/page_header.html" with title="Litters" subtitle="Start a litter from a pairing. Dates for palpating, the nest box and kindling are set for you." primary_label="Pairings" primary_href=pairings_url only %}
-  <section class="mt-6" aria-labelledby="open-heading">
-    <h2 class="text-base font-semibold" id="open-heading">Expecting</h2>
+  <div class="mt-4 flex justify-end">{% include "components/segmented.html" with label="Layout" options=view_options icon_only=True only %}</div>
+  <section class="mt-2" aria-labelledby="open-heading">
+    <h2 class="text-base font-semibold" id="open-heading">Expecting <span class="num font-normal text-muted">{{ open|length }}</span></h2>
     {% if open %}
-      <ul class="mt-2 flex flex-col divide-y divide-neutral-200 overflow-hidden rounded border border-neutral-300 bg-white" data-open-litters>
-        {% for litter in open %}{% with task=litter.next_task %}
-          <li><a class="block p-3 hover:bg-neutral-50" href="{% url 'litter_detail' litter.pk %}">
-            <span class="block break-words font-semibold">{{ litter.pairing }}</span>
-            <span class="block text-sm text-neutral-600">Bred {{ litter.bred_on|date:"M j" }} · Due {{ litter.due_on|date:"M j, Y" }}</span>
-            {% if task %}<span class="mt-1 block text-sm{% if task.date <= today %} font-semibold{% endif %}">Next: {{ task.label }}, {{ task.date|date:"M j" }}{% if task.date < today %} (overdue){% elif task.date == today %} (today){% endif %}</span>{% endif %}
-          </a></li>
-        {% endwith %}{% endfor %}
+      <ul class="mt-3 grid gap-3 {% if view == 'list' %}grid-cols-1{% else %}grid-cols-1 sm:grid-cols-2 xl:grid-cols-3{% endif %}" data-open-litters data-view="{{ view }}">
+        {% for c in open %}{% include "rabbits/_litter_card.html" %}{% endfor %}
       </ul>
     {% else %}
 {% include "components/empty.html" with title="No litters on the way." text="Open Pairings and record a breeding. The due date, nest box and palpation days are scheduled for you." kind="litters" icon=ui_icons.litters compact=True only %}
     {% endif %}
   </section>
   {% if kindled %}
-    <section class="mt-6" aria-labelledby="kindled-heading">
-      <h2 class="text-base font-semibold" id="kindled-heading">Kindled</h2>
-      <ul class="mt-2 flex flex-col divide-y divide-neutral-200 overflow-hidden rounded border border-neutral-300 bg-white">
-        {% for litter in kindled %}
-          <li><a class="block p-3 hover:bg-neutral-50" href="{% url 'litter_detail' litter.pk %}">
-            <span class="block break-words font-semibold">{{ litter.pairing }}</span>
-            <span class="block text-sm text-neutral-600">Kindled {{ litter.kindled_on|date:"M j, Y" }} · {{ litter.born_alive }} born alive · {{ litter.survivors }} surviving</span>
-          </a></li>
-        {% endfor %}
+    <section class="mt-8" aria-labelledby="kindled-heading">
+      <h2 class="text-base font-semibold" id="kindled-heading">Kindled <span class="num font-normal text-muted">{{ kindled|length }}</span></h2>
+      <ul class="mt-3 grid gap-3 {% if view == 'list' %}grid-cols-1{% else %}grid-cols-1 sm:grid-cols-2 xl:grid-cols-3{% endif %}" data-kindled-litters data-view="{{ view }}">
+        {% for c in kindled %}{% include "rabbits/_litter_card.html" %}{% endfor %}
       </ul>
     </section>
   {% endif %}

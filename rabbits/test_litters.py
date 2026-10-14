@@ -33,7 +33,7 @@ class LitterTests(TestCase):
         litter.refresh_from_db()
         self.assertTrue(litter.palpated)
         self.assertEqual(litter.next_task()["key"], "nest_box")
-        self.assertContains(self.client.get(reverse("litter_list")), "Next: Put the nest box in")
+        self.assertContains(self.client.get(reverse("litter_list")), "<span class=\"text-muted\">Next:</span> Put the nest box in")
 
     def test_future_or_missing_breed_date_is_refused(self):
         self.client.post(reverse("litter_create", args=[self.pairing.pk]), {"bred_on": ""})
