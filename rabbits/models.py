@@ -865,6 +865,8 @@ class Litter(models.Model):
     born_dead = models.PositiveSmallIntegerField(default=0)
     died_after = models.PositiveSmallIntegerField(default=0, help_text="Kits lost after birth.")
     notes = models.CharField(max_length=200, blank=True)
+    # Set once when every kit became its own rabbit; the litter is read-only after.
+    converted_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1002,6 +1004,78 @@ def add_interval(day, n, unit):
     months = day.month - 1 + n
     year, month = day.year + months // 12, months % 12 + 1
     return day.replace(year=year, month=month, day=min(day.day, calendar.monthrange(year, month)[1]))
+
+
+class LitterKit(models.Model):
+    """One surviving kit of a litter, before or after it is its own rabbit.
+    Numbered 1..n so checks can be logged per kit while the litter is still
+    one group; rabbit is set once the kit is in the herd."""
+
+    litter = models.ForeignKey(Litter, related_name="slots", on_delete=models.CASCADE)
+    number = models.PositiveSmallIntegerField()
+    sex = models.CharField(max_length=8, choices=Rabbit.Sex.choices, blank=True)
+    color = models.CharField(max_length=80, blank=True)
+    rabbit = models.OneToOneField(Rabbit, related_name="litter_slot", null=True, blank=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ["number"]
+        constraints = [models.UniqueConstraint(fields=["litter", "number"], name="one_kit_number_per_litter")]
+
+    @property
+    def label(self):
+        return self.rabbit.name if self.rabbit_id else f"Kit {self.number}"
+
+
+class LitterCheck(models.Model):
+    """A dated weigh-in and health check, for the whole litter at once or for each kit."""
+
+    class Mode(models.TextChoices):
+        WHOLE = "whole", "Whole litter"
+        EACH = "each", "Each kit"
+
+    class Status(models.TextChoices):
+        HEALTHY = "healthy", "Healthy"
+        WATCH = "watch", "Watch"
+        SICK = "sick", "Sick"
+
+    class WeightKind(models.TextChoices):
+        TOTAL = "total", "Total"
+        AVERAGE = "average", "Average"
+
+    litter = models.ForeignKey(Litter, related_name="checks", on_delete=models.CASCADE)
+    date = models.DateField()
+    mode = models.CharField(max_length=6, choices=Mode.choices)
+    kit_count = models.PositiveSmallIntegerField(null=True, blank=True)
+    grams = models.PositiveIntegerField(null=True, blank=True)
+    weight_kind = models.CharField(max_length=8, choices=WeightKind.choices, default=WeightKind.AVERAGE)
+    status = models.CharField(max_length=8, choices=Status.choices, blank=True)
+    note = models.CharField(max_length=300, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date", "-pk"]
+
+    @property
+    def average_grams(self):
+        if not self.grams:
+            return None
+        if self.weight_kind == self.WeightKind.AVERAGE:
+            return self.grams
+        return round(self.grams / self.kit_count) if self.kit_count else None
+
+
+class KitCheck(models.Model):
+    """One kit's row in an Each-kit check."""
+
+    litter_check = models.ForeignKey(LitterCheck, related_name="rows", on_delete=models.CASCADE)
+    kit = models.ForeignKey(LitterKit, related_name="checks", on_delete=models.CASCADE)
+    grams = models.PositiveIntegerField(null=True, blank=True)
+    status = models.CharField(max_length=8, choices=LitterCheck.Status.choices, blank=True)
+    note = models.CharField(max_length=300, blank=True)
+
+    class Meta:
+        ordering = ["kit__number"]
+        constraints = [models.UniqueConstraint(fields=["litter_check", "kit"], name="one_row_per_kit_per_check")]
 
 
 class HealthNote(models.Model):
