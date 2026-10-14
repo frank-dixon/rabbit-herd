@@ -9,6 +9,10 @@
       <div class="min-w-0"><legend class="float-left font-medium">Mode</legend><p class="clear-left text-sm text-muted">System follows your device's light or dark setting.</p></div>
       {% include "components/segmented.html" with label="Mode" name="ui_mode" options=mode_options only %}
     </fieldset>
+    <fieldset class="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-lg border border-line bg-surface px-4 py-3">
+      <div class="min-w-0"><legend class="float-left font-medium">Spacing</legend><p class="clear-left text-sm text-muted">Compact fits more on screen: tighter rows, cards and grids everywhere.</p></div>
+      {% include "components/segmented.html" with label="Spacing" name="ui_density" options=density_options only %}
+    </fieldset>
     <fieldset class="mt-4 rounded-lg border border-line bg-surface px-4 py-3">
       <legend class="float-left font-medium">Theme</legend>
       <div class="clear-left grid grid-cols-2 gap-2 pt-3 sm:grid-cols-3 xl:grid-cols-4" data-theme-grid>

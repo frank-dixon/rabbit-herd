@@ -14,6 +14,7 @@ export function bindSettings(root, win = window) {
     if (input.name === "ui_theme") html.dataset.theme = input.value;
     if (input.name === "ui_density") html.dataset.density = input.value;
     if (input.name === "ui_mode") html.dataset.mode = input.value;
+    if (input.name === "ui_density") html.dataset.density = input.value;
     try {
       const response = await win.fetch(form.action, {
         method: "POST",

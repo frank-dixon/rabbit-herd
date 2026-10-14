@@ -337,3 +337,11 @@ html[data-density="compact"] .list-thumb { width: 2.25rem; height: 2.25rem; }
 .relative-herd-note { display: none; }
 [data-relative-row]:has(select[data-role="ref"] option[value^="h:"]:checked) [data-relative-traits] { display: none; }
 [data-relative-row]:has(select[data-role="ref"] option[value^="h:"]:checked) .relative-herd-note { display: block; }
+
+/* Compact spacing, app-wide: Tailwind sizes padding, gaps and margins from
+   --spacing, so tightening it in the content area tightens every page alike.
+   Type sizes are untouched. */
+@media (pointer: fine) {
+  /* Touch screens keep full-size tap targets. */
+  html[data-density="compact"] main { --spacing: 0.2rem; }
+}
