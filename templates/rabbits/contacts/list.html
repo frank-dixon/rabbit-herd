@@ -3,7 +3,7 @@
 {% block title %}Contacts · {{ app_name }}{% endblock %}
 
 {% block content %}<span data-refreshable hidden></span>
-  {% include "components/page_header.html" with title="Contacts" subtitle="Buyers and breeders you deal with." actions_template="rabbits/contacts/_list_add.html" %}
+  {% if contacts or role %}{% include "components/page_header.html" with title="Contacts" subtitle="Buyers and breeders you deal with." actions_template="rabbits/contacts/_list_add.html" %}{% else %}{% include "components/page_header.html" with title="Contacts" subtitle="Buyers and breeders you deal with." only %}{% endif %}
   <nav class="mt-5 flex gap-4 border-b border-line text-sm" aria-label="Filter contacts">
     {% for value, label in roles %}
       <a href="{% if value %}?role={{ value }}{% else %}?{% endif %}" class="-mb-px border-b-2 py-2 {% if role == value %}border-accent font-semibold text-ink{% else %}border-transparent text-muted hover:text-ink{% endif %}"{% if role == value %} aria-current="page"{% endif %}>{{ label }}</a>
