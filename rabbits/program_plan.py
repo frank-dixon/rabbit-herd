@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from . import planner as P
 from .color_odds import UNKNOWN
+from . import routes as routes_mod
 from .models import Gene, Litter, Pairing, Rabbit, Relative, prefs
 from .pedigree import known_parents
 
@@ -352,3 +353,98 @@ def progress(program, dam, sire, g2):
                           for pair in [rabbit_genes(k)[locus]] if UNKNOWN not in pair))
     return {"kept": min(kept, program.keep_count), "of": program.keep_count, "pct": min(100, round(100 * kept / max(program.keep_count, 1))),
             "generation": 2 if g1_kits else 1, "g1_kits": len(g1_kits)}
+
+
+# Routes and reachable goals --------------------------------------------------
+
+STATE_WORDS = {"ready": "In herd", "access": "Needs access", "evidence": "Deceased: genetic evidence only"}
+ALLELE_WORDS = {"b": "chocolate", "d": "dilute", "a": "self", "at": "tan pattern", "e": "non-extension (orange/fawn)",
+                "ej": "Japanese harlequin", "c": "ruby-eyed white", "ch": "Himalayan", "cchd": "dark chinchilla",
+                "cchm": "sable", "cchl": "sable point", "en": "solid"}
+
+
+def known_breeders(user, program=None):
+    """Every rabbit with genes on record, for route finding: herd rabbits
+    (sold and culled need access; deceased are evidence only), outside
+    relatives named in pedigrees, and the program's outside breeders."""
+    out = []
+    for r in Rabbit.all_objects.filter(owner=user).prefetch_related("genes"):
+        genes = rabbit_genes(r)
+        if all(set(p) == {UNKNOWN} for p in genes.values()):
+            continue
+        state = "evidence" if r.status == Rabbit.Status.DECEASED else ("access" if r.status in Rabbit.FORMER or r.archived_at else "ready")
+        out.append({"key": f"h:{r.pk}", "name": r.name, "sex": r.sex, "genes": genes, "state": state, "rabbit": r})
+    seen = set()
+    for rel in Relative.objects.filter(rabbit__owner=user, outside__isnull=False, relationship__in=["dam", "sire"]) \
+            .select_related("outside").prefetch_related("genes"):
+        texts = {g.locus: g.genotype for g in rel.genes.all() if g.locus != Gene.Locus.OTHER}
+        if not texts or rel.outside_id in seen:
+            continue
+        seen.add(rel.outside_id)
+        out.append({"key": f"o:{rel.outside_id}", "name": rel.outside.name, "sex": "doe" if rel.relationship == "dam" else "buck",
+                    "genes": P.read_genes(texts), "state": "access", "rabbit": None})
+    if program is not None:
+        for b in program.outside.all():
+            out.append({"key": f"x:{b.pk}", "name": b.name, "sex": b.sex, "genes": P.read_genes(b.genes), "state": "access", "rabbit": None})
+    return out
+
+
+def route_view(route, target):
+    """A route as words for the page."""
+    if route is None:
+        return None
+    steps = []
+    for a, b in route["steps"]:
+        if a == "kit":
+            steps.append("Breed a G1 kit to " + ("a G1 sibling" if b == "kit" else b["name"]))
+        else:
+            steps.append(f"{a['name']} × {b['name']}")
+    return {"generations": route["generations"], "steps": steps, "odds": P.percent_text(route["odds"], 0),
+            "state": route["state"], "state_text": STATE_WORDS[route["state"]],
+            "rabbits": [{"name": r["name"], "state": r["state"], "state_text": STATE_WORDS[r["state"]]} for r in route["rabbits"]]}
+
+
+def spec_view(target, spec):
+    """An outside rabbit to look for, in plain words."""
+    looks = phenotype_of(spec["genes"])
+    carries = [f"carries {ALLELE_WORDS.get(allele, allele)} ({allele})" for _, allele in routes_mod.carries(spec["genes"])]
+    return {"looks": looks, "carries": carries, "genes": pairs_text(spec["genes"], target), "generations": spec["generations"],
+            "odds": P.percent_text(spec["odds"], 0)}
+
+
+def phenotype_of(genes):
+    full = tuple(genes.get(locus) or P.WILD[locus] for locus in P.PLAN_LOCI)
+    return P.phenotype(full)
+
+
+def shortest_view(program, breeders=None):
+    """The program's minimum path, and outside-rabbit specs when no herd route exists."""
+    breeders = breeders if breeders is not None else known_breeders(program.owner, program)
+    ready, overall = routes_mod.shortest(program.target, breeders)
+    view = {"ready": route_view(ready, program.target), "overall": route_view(overall, program.target), "shopping": []}
+    if ready is None or ready["generations"] > 1:
+        partners = [b for b in breeders if b["state"] == "ready"]
+        specs = []
+        for h in partners:
+            spec = routes_mod.shopping(program.target, h)
+            if spec and (ready is None or spec["generations"] < ready["generations"]):
+                specs.append((spec["generations"], -spec["odds"], h["name"], h, spec))
+        specs.sort(key=lambda t: t[:3])
+        view["shopping"] = [{"partner": h["name"], "partner_sex": h["sex"], "want": "buck" if h["sex"] == "doe" else "doe",
+                             **spec_view(program.target, spec)} for *_, h, spec in specs[:4]]
+    return view
+
+
+def attainable(user):
+    """Which preset goals the known rabbits can reach: [{key, label, route}],
+    herd-only routes first, then those needing access, then evidence-only."""
+    breeders = known_breeders(user)
+    out = []
+    for key, label, _text, target in TARGETS:
+        ready, overall = routes_mod.shortest(target, breeders)
+        best = ready or overall
+        if best:
+            out.append({"key": key, "label": label, "route": route_view(best, target),
+                        "better": route_view(overall, target) if ready and overall and overall["generations"] < ready["generations"] else None})
+    out.sort(key=lambda g: (routes_mod.STATE_RANK[g["route"]["state"]], g["route"]["generations"], g["label"]))
+    return out
