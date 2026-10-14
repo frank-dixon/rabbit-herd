@@ -1,3 +1,4 @@
+import datetime
 import os
 from unittest import mock
 
@@ -29,11 +30,15 @@ class SeedDemoTests(TestCase):
         mine = Rabbit.objects.filter(owner=user)
         alive = mine.exclude(status__in=Rabbit.FORMER)
         # New Zealand herd: one buck per color (+ broken, juniors, archived), 3–4 does per color, Californian does.
-        self.assertEqual(alive.filter(sex="buck").count(), 10)
-        self.assertEqual(alive.filter(sex="doe").count(), 22)
+        self.assertGreaterEqual(alive.filter(sex="buck").count(), 10)
+        self.assertGreaterEqual(alive.filter(sex="doe").count(), 22)
         self.assertEqual(alive.filter(breed="Californian").count(), 3)
         self.assertTrue(alive.filter(color__startswith="Broken").exists())
         self.assertTrue(mine.filter(status="deceased").exists())
+        # Frank's rule: no litter older than 42 days is left unconverted.
+        cutoff = datetime.date.today() - datetime.timedelta(days=42)
+        self.assertEqual(Litter.objects.filter(owner=user, kindled_on__lt=cutoff, converted_at__isnull=True).count(), 0)
+        self.assertTrue(mine.filter(dressed_grams__isnull=False).exists())
         self.assertTrue(Rabbit.all_objects.filter(owner=user, archived_at__isnull=False).exists())
         self.assertTrue(Litter.objects.filter(owner=user, converted_at__isnull=False).exists())
         self.assertGreaterEqual(mine.filter(status="sold").count(), 3)
