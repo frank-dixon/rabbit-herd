@@ -14,11 +14,13 @@ export function bindFilters(root) {
     select.addEventListener("change", () => form.requestSubmit());
   });
   if (!panel) return;
+  const done = panel.querySelector("[data-filter-done]");
   const close = (focus) => {
     if (!panel.open) return;
     panel.open = false;
     if (focus) panel.querySelector("summary")?.focus();
   };
+  if (done) { done.hidden = false; done.addEventListener("click", () => close(true)); }
   root.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && panel.open) close(true);
   });

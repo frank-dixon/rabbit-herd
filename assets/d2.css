@@ -8,7 +8,7 @@ body { font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; 
 
 /* Wells: bordered boxes of content become open sections on the page. Interactive
    tiles (labels, links, list cards) and dialogs keep their own frame. */
-main :is(section, div, ul, ol, dl, fieldset, form, table):is(.border):is(.border-line, .border-neutral-200, .border-neutral-300, [class*="border-line/"]):is([class*="rounded"], .bg-surface, .bg-white):not(.kit-card, .seg, [data-segmented], [data-keep-frame], .border-dashed, [class*="bg-danger"], [class*="bg-accent-soft"], [class*="hover:"], dialog *, [role="menu"], [role="listbox"]) {
+main :is(section, div, ul, ol, dl, fieldset, form, table):is(.border):is(.border-line, .border-neutral-200, .border-neutral-300, [class*="border-line/"]):is([class*="rounded"], .bg-surface, .bg-white):not(.kit-card, .seg, [data-segmented], [data-keep-frame], .border-dashed, [class*="bg-danger"], [class*="bg-accent-soft"], [class*="hover:"], dialog *, [role="menu"], [role="listbox"], .popover) {
   background-color: transparent; border-color: transparent; border-radius: 0; box-shadow: none;
   padding-left: 0; padding-right: 0;
 }
@@ -215,3 +215,35 @@ main [data-page-header] ~ [data-swap-root] > .tabrow:first-child { margin-top: 8
 .photo-credit-pop > p { overflow-wrap: anywhere; word-break: break-word; max-width: 22rem; }
 #facts .photo-credit { overflow-wrap: anywhere; }
 :is(main, dialog) .photo-add .photo-tile-media { display: grid; place-items: center; font-size: 1.5rem; }
+
+/* ---- Popovers (Filter panel, "…" menu). Root cause of the broken Filter panel: the flattening rule at the top
+   (bordered + rounded boxes lose background, radius, shadow and side padding) matched it; .popover opts out. ---- */
+.popover, main [role="menu"] { background: var(--surface) !important; border: 0 !important; border-radius: 8px !important;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.04), 0 12px 32px -8px rgb(0 0 0 / 0.22), 0 4px 10px -4px rgb(0 0 0 / 0.10) !important; z-index: 40; }
+.filter-pop { position: absolute; right: 0; top: calc(100% + 8px); width: 22rem; padding: 18px 20px 16px !important; }
+.filter-pop-title { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 12px; }
+.filter-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.filter-field { display: block; font-size: 13px; font-weight: 500; color: var(--muted); }
+.filter-field .filter-select { margin-top: 4px; display: block; width: 100%; height: 36px; font-size: 14px; color: var(--ink); cursor: pointer; }
+.filter-foot { margin-top: 18px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.filter-reset { font-size: 14px; font-weight: 500; color: var(--muted); cursor: pointer; } a.filter-reset:hover { color: var(--ink); }
+.filter-reset.is-off { visibility: hidden; }
+.filter-done { display: inline-flex; align-items: center; height: 34px; padding: 0 14px; border-radius: 6px; font-size: 14px; font-weight: 500; background: var(--accent); color: var(--on-accent); cursor: pointer; }
+.filter-done:hover { background: var(--accent-hover); }
+.filter-done[hidden] { display: none; }
+/* Filter button: compact tinted ghost, no outline; active shows a count badge. */
+.filter-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; min-width: 34px; padding: 0 12px; border: 0 !important;
+  border-radius: 6px; background: var(--well); color: var(--ink); font-size: 14px; font-weight: 500; cursor: pointer; list-style: none; user-select: none; outline: none; box-shadow: none !important; }
+.filter-btn::-webkit-details-marker { display: none; }
+.filter-btn:hover, [data-filter-panel][open] > .filter-btn { background: var(--hover); }
+.filter-btn.is-active { background: var(--accent-soft); color: var(--accent); }
+.filter-btn:focus-visible { box-shadow: 0 0 0 2px var(--canvas), 0 0 0 4px var(--accent) !important; }
+.filter-count { min-width: 18px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: var(--on-accent); font-size: 11px; line-height: 18px; text-align: center; }
+/* Phones: the panel is a bottom sheet over a dim backdrop. */
+@media (max-width: 639px) {
+  .filter-pop { position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: auto; border-radius: 12px 12px 0 0 !important; max-height: 80dvh; overflow-y: auto;
+    padding: 20px 20px calc(16px + env(safe-area-inset-bottom)) !important; z-index: 60; }
+  [data-filter-panel][open]::before { content: ""; position: fixed; inset: 0; background: rgb(0 0 0 / 0.32); z-index: 55; }
+  .filter-done { height: 44px; padding: 0 20px; }
+}
+@media (prefers-reduced-motion: no-preference) { .filter-pop { animation: mo-enter var(--dur-2, 180ms) var(--ease-out, ease-out) both; } }

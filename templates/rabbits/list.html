@@ -24,49 +24,51 @@
         <input class="block h-11 w-full rounded-md border border-field/70 bg-surface pl-9 md:h-10 pr-3 text-ink placeholder:text-muted focus:border-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40" id="id_q" name="q" type="search" value="{{ filters.q }}" placeholder="Name or tattoo" autocomplete="off" enterkeyhint="search">
       </label>
       <details class="group/f static sm:relative" data-filter-panel{% if filters_open %} open{% endif %}>
-        <summary data-swap="filter-button" class="mo-press flex h-11 min-w-11 cursor-pointer justify-center md:h-10 list-none items-center gap-1.5 rounded-md border px-3 text-sm font-medium select-none [&::-webkit-details-marker]:hidden {% if filter_chips %}border-accent bg-accent-soft text-accent{% else %}border-field/70 bg-surface text-ink hover:border-field{% endif %} focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+        <summary data-swap="filter-button" class="filter-btn mo-press{% if filter_chips %} is-active{% endif %}">
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
-          <span class="sr-only sm:not-sr-only">Filter</span>{% if filter_chips %} <span class="num rounded-full bg-accent px-1.5 text-[0.7rem] leading-[1.15rem] text-on-accent"><span class="sr-only">(</span>{{ filter_chips|length }}<span class="sr-only"> active)</span></span>{% endif %}
+          <span class="sr-only sm:not-sr-only">Filter</span>{% if filter_chips %} <span class="filter-count num"><span class="sr-only">(</span>{{ filter_chips|length }}<span class="sr-only"> active)</span></span>{% endif %}
         </summary>
-        <div class="absolute inset-x-4 z-30 mt-2 rounded-lg border border-line bg-surface p-4 shadow-[0_12px_32px_-12px_rgb(0_0_0/0.25)] sm:inset-x-auto sm:right-0 sm:w-80">
-          <div class="grid grid-cols-2 gap-3">
-            <label class="block text-sm font-medium">Sex
-              <select class="mt-1 block h-10 w-full rounded-md border border-field/70 bg-surface px-2" name="sex">
+        <div class="popover filter-pop" role="group" aria-label="Filters">
+          <p class="filter-pop-title">Filters</p>
+          <div class="filter-grid">
+            <label class="filter-field">Sex
+              <select class="filter-select" name="sex">
                 <option value="">Any</option>
                 {% for value, label in sex_options %}<option value="{{ value }}"{% if filters.sex == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
               </select>
             </label>
-            <label class="block text-sm font-medium">Status
-              <select class="mt-1 block h-10 w-full rounded-md border border-field/70 bg-surface px-2" name="status">
+            <label class="filter-field">Status
+              <select class="filter-select" name="status">
                 <option value="">Any</option>
                 {% for value, label in status_options %}<option value="{{ value }}"{% if filters.status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
               </select>
             </label>
-            <label class="col-span-2 block text-sm font-medium">Breed
-              <select class="mt-1 block h-10 w-full rounded-md border border-field/70 bg-surface px-2" name="breed">
+            <label class="filter-field col-span-2">Breed
+              <select class="filter-select" name="breed">
                 <option value="">Any</option>
                 {% for name in breed_options %}<option value="{{ name }}"{% if filters.breed == name %} selected{% endif %}>{{ name }}</option>{% endfor %}
               </select>
             </label>
             {% if location_options %}
-            <label class="block text-sm font-medium">Location
-              <select class="mt-1 block h-10 w-full rounded-md border border-field/70 bg-surface px-2" name="location">
+            <label class="filter-field">Location
+              <select class="filter-select" name="location">
                 <option value="">Any</option>
                 {% for value, label in location_options %}<option value="{{ value }}"{% if filters.location == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
               </select>
             </label>
             {% endif %}
-            <label class="block text-sm font-medium">Purebred
-              <select class="mt-1 block h-10 w-full rounded-md border border-field/70 bg-surface px-2" name="pure">
+            <label class="filter-field">Purebred
+              <select class="filter-select" name="pure">
                 <option value="">Any</option>
                 <option value="yes"{% if filters.pure == "yes" %} selected{% endif %}>Purebred</option>
                 <option value="no"{% if filters.pure == "no" %} selected{% endif %}>Not purebred</option>
               </select>
             </label>
           </div>
-          <div class="mt-4 flex items-center justify-between gap-2">
-            {% if filtering %}<a class="text-sm font-medium text-accent underline-offset-2 hover:underline" href="?{{ clear_qs }}">Clear all</a>{% else %}<span></span>{% endif %}
-            <button type="submit" class="mo-press inline-flex min-h-9 items-center rounded-md bg-accent px-4 text-sm font-semibold text-on-accent hover:bg-accent/90" data-filter-apply>Apply</button>
+          <div class="filter-foot">
+            {% if filtering %}<a class="filter-reset" href="?{{ clear_qs }}">Reset</a>{% else %}<span class="filter-reset is-off" aria-hidden="true">Reset</span>{% endif %}
+            <button type="submit" class="filter-done mo-press" data-filter-apply>Apply</button>
+            <button type="button" class="filter-done mo-press" data-filter-done hidden>Done</button>
           </div>
         </div>
       </details>
