@@ -40,8 +40,73 @@ def steps(current, program=None):
 
 @login_required
 def program_list(request):
-    programs = list(Program.objects.filter(owner=request.user))
-    return render(request, "programs/list.html", {"programs": programs, "wide": True})
+    from .index_items import index_view, stat, view_options
+
+    programs = list(Program.objects.filter(owner=request.user).select_related("dam", "sire").prefetch_related("dam__photos", "sire__photos"))
+    view = index_view(request, "programs", "grid")
+    items = sorted((program_item(p) for p in programs), key=lambda it: -it["rank"])
+    best = max((float(it["best"]) for it in items if it["best"] is not None), default=None)
+    active = sum(1 for p in programs if p.step == Program.Step.PLAN)
+    stats = [stat("Active", active, "with a plan"), stat("In setup", len(programs) - active, "goal or breeders"),
+             stat("Best odds", f"{best:.0%}" if best is not None else "—", "next litter on target")]
+    return render(request, "programs/list.html", {
+        "programs": programs, "items": items, "view": view, "view_options": view_options(request, view), "stats": stats,
+        "columns": [{"label": "Program"}, {"label": "Progress", "wide_only": True}, {"label": "Odds", "align": "r", "wide_only": True},
+                    {"label": "Next step", "wide_only": True}, {"label": "Rabbits", "wide_only": True}, {"label": "Status", "align": "r"}],
+        "wide": True})
+
+
+def program_href(program):
+    name = {"plan": "program_detail", "breeders": "program_breeders"}.get(program.step, "program_goal")
+    return reverse(name, args=[program.pk])
+
+
+def program_item(program):
+    """One program for the shared card/row: goal swatch, generation progress, odds, next step, rabbits."""
+    from .swatches import swatch
+
+    keep = {"doe": "does", "buck": "bucks"}.get(program.keep_sex, "kits")
+    item = {"href": program_href(program), "title": program.title, "sub": f"Goal: {program.target_label or 'not set'}",
+            "swatch": swatch(program.target_label), "rank": 0, "best": None}
+    plan = plan_mod.build(program) if program.step == Program.Step.PLAN else {"missing": True}
+    if plan.get("missing"):
+        setup = program.step == Program.Step.BREEDERS
+        pill = {"label": "Set up" if setup else "Draft", "tone": ""}
+        nxt, nxt_sub = ("Pick starting breeders" if setup else "Finish the goal"), f"Keep {program.keep_count} {keep}"
+        progress = {"label": "Not started", "right": "", "segs": [0, 0]}
+        odds, odds_note, thumbs = "—", "Pick breeders to see odds", []
+    else:
+        g1, g2, litter = plan["g1"], plan.get("g2"), plan.get("litter")
+        kindled = bool(litter and litter.kindled_on)
+        f1 = 1 if kindled else 0.5 if litter else 0
+        gens = 2 if g2 else 1
+        progress = {"label": f"Gen 1 of {gens}", "right": f"Goal {g2['goal_date']}" if g2 else f"Due {g1['due']}",
+                    "segs": [f1] + [0] * (gens - 1)}
+        if kindled and g2:
+            nxt, nxt_sub = f"Keep {program.keep_count} {keep}, then breed to {g2['mate']['name']}", f"Gen 2 {g2['date']}"
+        elif litter:
+            nxt, nxt_sub = f"{plan['dam']['name']} due {g1['due']}", f"Bred {g1['bred']}"
+        else:
+            nxt = f"Breed {plan['dam']['name']} × {plan['sire']['name']}"
+            nxt_sub = f"Gen 2: {g2['pair_label']}, {g2['date']}" if g2 else f"Due {g1['due']} if bred today"
+        odds = g1["odds"]
+        odds_note = f"of kits {program.target_label.lower()} · COI {g1['coi']}"
+        thumbs = [b["rabbit"] for b in (plan["dam"], plan["sire"], g2["mate"] if g2 else None) if b and b.get("rabbit")]
+        pill = {"label": "Kits on ground" if kindled else "Breeding" if litter else "Planned", "tone": "g" if litter else "b"}
+        item["rank"], item["best"] = 1 + f1, g1["high"]
+    item.update({
+        "pill": pill, "progress": progress,
+        "kv": [{"label": "Current odds", "value": odds, "big": True, "note": odds_note},
+               {"label": "Rabbits", "thumbs": thumbs, "value": "None yet"}],
+        "foot": {"label": "Next", "strong": nxt, "text": nxt_sub},
+        "mobile": f"{progress['label']} · {odds} · {nxt}",
+        "cells": [{"kind": "lead"}, {"kind": "progress", "wide_only": True, **progress},
+                  {"kind": "text", "main": odds, "big": True, "align": "r", "wide_only": True},
+                  {"kind": "text", "main": nxt, "sub": nxt_sub, "wide_only": True, "wrap": True},
+                  {"kind": "thumbs", "thumbs": thumbs, "wide_only": True, "empty": "None yet"},
+                  {"kind": "pill", "align": "r", **pill}],
+    })
+    return item
 
 
 def goal_values(program):
