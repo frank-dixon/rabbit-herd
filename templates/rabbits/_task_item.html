@@ -15,11 +15,11 @@
   {% if item.kind == "task" %}
     <a class="hidden rounded-md px-2 py-1.5 text-sm text-muted hover:bg-side hover:text-ink sm:inline-block" href="{% url 'task_edit' item.pk %}">Edit<span class="sr-only"> {{ item.title }}</span></a>
     <form method="post" action="{% url 'task_done' item.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
-      {% include "components/button.html" with label="Mark done" sr_suffix=item.title type="submit" variant="secondary" size="small" only %}
+      <button type="submit" class="task-check mo-press" title="Mark done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span class="sr-only">Mark done: {{ item.title }}</span></button>
     </form>
   {% elif item.key != "due" %}
     <form method="post" action="{% url 'litter_task' item.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}"><input type="hidden" name="task" value="{{ item.key }}"><input type="hidden" name="done" value="1">
-      {% include "components/button.html" with label="Mark done" sr_suffix=item.title type="submit" variant="secondary" size="small" only %}
+      <button type="submit" class="task-check mo-press" title="Mark done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span class="sr-only">Mark done: {{ item.title }}</span></button>
     </form>
   {% else %}
     {% include "components/button.html" with label="Record kindling" href=item.url|add:"#kindling" variant="secondary" size="small" only %}

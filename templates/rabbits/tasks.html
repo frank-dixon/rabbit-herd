@@ -19,10 +19,10 @@
   </section>
   </details>
   <div data-swap-root>
-  <div class="mt-5 flex items-end justify-between gap-2 border-b border-line">
-    <nav class="seg seg-underline relative -mb-px flex min-w-0 gap-4 overflow-x-auto text-sm" aria-label="Which tasks" data-segmented data-swap-sync>
+  <div class="tabrow flex items-end justify-between gap-2">
+    <nav class="seg seg-underline tabs relative flex min-w-0 overflow-x-auto" aria-label="Which tasks" data-segmented data-swap-sync>
       <span class="seg-thumb" aria-hidden="true" data-seg-thumb></span>
-      {% for tab in tabs %}<a href="{{ tab.href }}" class="shrink-0 py-2 {% if tab.selected %}font-semibold{% endif %}" data-seg-option{% if tab.selected %} data-selected aria-current="page"{% endif %}>{{ tab.label }} <span class="num {% if tab.key == 'overdue' and tab.count %}text-danger{% else %}text-muted{% endif %}">{{ tab.count }}</span></a>{% endfor %}
+      {% for tab in tabs %}<a href="{{ tab.href }}" class="tab shrink-0" data-seg-option{% if tab.selected %} data-selected aria-current="page"{% endif %}>{{ tab.label }} <span class="tab-n num{% if tab.key == 'overdue' and tab.count %} tab-n-alert{% endif %}">{{ tab.count }}</span></a>{% endfor %}
     </nav>
   </div>
   <div data-swap="results">

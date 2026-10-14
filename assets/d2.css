@@ -148,3 +148,24 @@ main .empty:not(.empty-compact) { border-color: transparent; background: transpa
 :is(main, dialog, .app-modal-panel, [data-menu-panel]) :is(.rounded-xl, .rounded-2xl, .rounded-3xl, [class*="rounded-[10px]"], [class*="rounded-[12px]"], [class*="rounded-[14px]"], [class*="rounded-[1."], [class*="rounded-[2"]) { border-radius: 8px !important; }
 :is(main, dialog) :is(a, button).rounded-full:not(.pill) { border-radius: 6px !important; }
 .seg { border-radius: 6px; }
+
+/* Page tab row (Tasks, Rabbits): Stripe-style text tabs, one hairline under the row, 2px accent underline on
+   the active tab, horizontal scroll with a right-edge fade so a cut tab reads as "more". */
+main .tabrow { margin-top: 24px; margin-bottom: 16px; background: none; box-shadow: inset 0 -1px 0 var(--line); }
+main .tabs { gap: 20px; font-size: 14px; scroll-padding-inline: 16px; scrollbar-width: none; overscroll-behavior-x: contain;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  padding-right: 28px; background: none; border: 0; border-radius: 0; }
+main .tabs::-webkit-scrollbar { display: none; }
+main .tabs .tab { display: inline-flex; align-items: baseline; gap: 6px; min-height: 40px; align-items: center; padding: 0; font-weight: 500; white-space: nowrap; cursor: pointer; background: none; border-radius: 0; }
+main .tabs .tab[data-selected] { color: var(--ink); }
+main .tabs .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+main .tabs .tab-n { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 500; }
+main .tabs .tab-n-alert { color: var(--danger); }
+main .tabs .seg-thumb { bottom: 0; height: 2px; }
+
+/* Mark done on task rows: a quiet 32px ghost check, accent on hover. */
+.task-check { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 6px; color: var(--muted); background: none; border: 0; cursor: pointer; transition: background-color 120ms ease-out, color 120ms ease-out; }
+.task-check svg { width: 18px; height: 18px; }
+.task-check:hover { background: var(--accent-soft); color: var(--accent); }
+.task-check:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { .task-check { transition: none; } }

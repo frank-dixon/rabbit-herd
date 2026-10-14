@@ -27,7 +27,7 @@
             {% if litter.converted_at %}{% elif task.age or task.key != "due" and not litter.kindled_on %}
               <form method="post" action="{% url 'litter_task' litter.pk %}">
                 {% csrf_token %}<input type="hidden" name="task" value="{{ task.key }}"><input type="hidden" name="done" value="{{ task.done|yesno:'0,1' }}">
-                {% include "components/button.html" with label=task.done|yesno:"Undo,Mark done" sr_suffix=task.label type="submit" variant="secondary" only %}
+                {% include "components/button.html" with label=task.done|yesno:"Undo,Mark done" sr_suffix=task.label type="submit" variant="secondary" size="small" only %}
               </form>
             {% endif %}
           </li>
