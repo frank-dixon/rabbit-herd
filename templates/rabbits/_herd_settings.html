@@ -4,7 +4,7 @@
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     <h2 class="text-base font-semibold" id="{{ section }}-heading">{% if section == "units" %}Units{% elif section == "schedule" %}Breeding schedules{% elif section == "rabbitry" %}Rabbitry{% else %}Reminders{% endif %}</h2>
     {% include "rabbits/_settings_form.html" with section=section form=form only %}
-    <div class="mt-4">{% include "components/button.html" with label="Save" type="submit" variant="secondary" only %}</div>
+    <div class="mt-4" data-section-save>{% include "components/button.html" with label="Save" type="submit" variant="primary" only %}</div>
   </form>
   {% if section == "schedule" %}
     <div class="mt-6" id="schedules" data-schedule-list>
