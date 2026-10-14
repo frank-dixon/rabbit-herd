@@ -686,8 +686,11 @@ class Command(BaseCommand):
         Local / Flemish Giant / Rex, birth–63 d; Flemish Giant had the highest
         asymptotic mature weight). Those flocks are low-input;
         this buck sits at the top end of US show/meat Giants: asymptote A = 9.6 kg
-        (~21 lb), above the ARBA senior buck minimum of 13 lb (Standard of
-        Perfection), so he gains ~0.4 kg/wk early and plateaus after a year."""
+        (~21 lb), so he gains ~0.4 kg/wk early and plateaus after a year.
+        ARBA senior buck minimum is 13 lb (5.9 kg), senior doe 14 lb, no maximum:
+        ARBA Flemish Giant standard as reprinted in the ANRCI Breed Standards
+        booklet (2019, "American Flemish Giant (ARBA Standard)"); ARBA's breed page
+        (arba.net/flemish-giant) notes they "often tip the scales at over 20 lbs"."""
         import math
         from django.core.files import File
         A, birth, k = 9600, 80, 0.0173
