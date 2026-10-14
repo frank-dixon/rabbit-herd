@@ -69,3 +69,18 @@ class WrightTests(SimpleTestCase):
         ped = p.Pedigree({"S": ("G1", "G2"), "D": ("G1", "G2"), "x": ("S", "D"), "y": ("S", "D")})
         self.assertEqual(ped.coi("S", "D"), F(1, 4))
         self.assertEqual(ped.coi("x", "y"), F(3, 8))
+
+
+class PlanRowsTests(SimpleTestCase):
+    def test_grouped_keeps_target_and_merges_tail_and_charlies(self):
+        from fractions import Fraction as Fr
+
+        from .program_plan import grouped
+        rows = [{"name": "Broken blue", "target": True, "chance": Fr(1, 8)},
+                {"name": "Charlie blue", "target": False, "chance": Fr(1, 16)},
+                {"name": "Charlie black", "target": False, "chance": Fr(3, 16)}]
+        rows += [{"name": f"C{i}", "target": False, "chance": Fr(1, 10) - Fr(i, 100)} for i in range(6)]
+        out = grouped(rows)
+        self.assertEqual([r["name"] for r in out], ["Broken blue", "C0", "C1", "C2", "C3", "Other colors", "Charlies"])
+        self.assertEqual(out[-1]["chance"], Fr(1, 4))
+        self.assertEqual(sum(r["chance"] for r in out), sum(r["chance"] for r in rows))
