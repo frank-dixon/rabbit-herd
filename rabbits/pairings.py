@@ -109,10 +109,51 @@ def pick(user, raw, sex):
         status=Rabbit.Status.DECEASED).first()
 
 
-def pair_check(user, doe, buck):
+def short_generation(gen):
+    """Compact table label: Parent, Grandparent, Great-gp, 2× great-gp."""
+    return {1: "Parent", 2: "Grandparent", 3: "Great-gp"}.get(gen, f"{gen - 2}× great-gp")
+
+
+def relatedness(user, doe, buck, params=None, sort=""):
+    """The New pairing summary: severity, the closest relationship, COI, and the shared-ancestor table."""
+    from . import program_plan, sorting
+
+    doe_up, buck_up = ancestors(doe), ancestors(buck)
+    closest = ""
+    for child, parent, up in ((doe, buck, doe_up), (buck, doe, buck_up)):
+        hit = up.get(("herd", parent.pk))
+        if hit and not closest:
+            word = ("sire" if parent.sex == Rabbit.Sex.BUCK else "dam") if hit[1] == 1 else generation_word(hit[1])
+            closest = f"{parent.name} is {child.name}'s {word}"
+    siblings = Relative.objects.filter(rabbit__in=[doe, buck], herd_rabbit__in=[doe, buck],
+                                       relationship__in=["sibling", "half_sibling"]).first()
+    if siblings and not closest:
+        closest = f"{doe.name} and {buck.name} are {siblings.get_relationship_display().split(' (')[0].lower()}s"
+    shared = [k for k in set(doe_up) & set(buck_up)]
+    rows = [{"name": doe_up[k][0], "doe": short_generation(doe_up[k][1]), "buck": short_generation(buck_up[k][1]),
+             "sort": {"closest": (doe_up[k][1] + buck_up[k][1], doe_up[k][1]), "name": doe_up[k][0].lower(),
+                      "doe": doe_up[k][1], "buck": buck_up[k][1]}} for k in shared]
+    if shared and not closest:
+        first = min(rows, key=lambda r: r["sort"]["closest"])
+        closest = f"Both descend from {first['name']}"
+    coi = float(program_plan.pedigree(user).coi(("h", buck.pk), ("h", doe.pk))) * 100
+    columns = [("name", "Ancestor"), ("doe", "Doe side"), ("buck", "Buck side")]
+    key, desc = sorting.parse(sort, [c[0] for c in columns]) if sort else ("closest", False)
+    rows.sort(key=lambda r: r["sort"]["name"])
+    rows.sort(key=lambda r: (r["sort"][key], r["sort"]["closest"]), reverse=desc)
+    heads = sorting.headers(columns, key, desc, {k: v for k, v in (params or {}).items() if k != "asort"}, param="asort")
+    related = bool(closest or rows)
+    tone = "r" if coi >= 25 else "y" if related else ""
+    return {"related": related, "tone": tone, "label": "Closely related" if tone == "r" else "Related" if related else "Not related",
+            "closest": closest, "coi": f"{coi:.1f}".rstrip("0").rstrip("."), "count": len(rows), "rows": rows,
+            "heads": heads, "sorted": bool(sort)}
+
+
+def pair_check(user, doe, buck, params=None, sort=""):
     """What the New pairing form shows once both are chosen: relatedness, ages, and an existing same pair."""
     same = Pairing.objects.filter(owner=user, doe=doe, buck=buck).order_by("-pk").first()
-    return {"doe": doe, "buck": buck, "warnings": inbreeding_warnings(doe, buck), "age": age_warnings(doe, buck), "duplicate": same}
+    return {"doe": doe, "buck": buck, "warnings": inbreeding_warnings(doe, buck), "age": age_warnings(doe, buck), "duplicate": same,
+            "rel": relatedness(user, doe, buck, params, sort)}
 
 
 @login_required
@@ -134,12 +175,12 @@ def pairing_list(request):
             messages.success(request, f"{pairing} was saved.")
             return redirect("pairing_detail", pairing.pk)
         if not errors:
-            check = pair_check(request.user, doe, buck)
+            check = pair_check(request.user, doe, buck, {"doe": values["doe"], "buck": values["buck"]}, request.GET.get("asort", ""))
     elif values["doe"] and values["buck"]:
         doe = pick(request.user, values["doe"], Rabbit.Sex.DOE)
         buck = pick(request.user, values["buck"], Rabbit.Sex.BUCK)
         if doe and buck:
-            check = pair_check(request.user, doe, buck)
+            check = pair_check(request.user, doe, buck, {"doe": values["doe"], "buck": values["buck"]}, request.GET.get("asort", ""))
     from .index_items import index_view, sorted_items, stat, view_options
 
     pairings = list(Pairing.objects.filter(owner=request.user).select_related("doe", "buck")

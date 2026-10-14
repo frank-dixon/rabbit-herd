@@ -47,8 +47,8 @@ class PairingTests(TestCase):
         Relative.objects.create(rabbit=self.doe, relationship="sibling", herd_rabbit=self.buck)
         url = reverse("pairing_list")
         checked = self.client.post(url, {"doe": self.doe.pk, "buck": self.buck.pk, "action": "check"})
-        self.assertContains(checked, "Inbreeding warning: Hazel and Basil are related.")
-        self.assertContains(checked, "recorded as full siblings")
+        self.assertContains(checked, "data-inbreeding")
+        self.assertContains(checked, "Hazel and Basil are full siblings")
         self.assertFalse(Pairing.objects.exists())
         wrong = self.client.post(url, {"doe": self.buck.pk, "buck": "", "action": "save"})
         self.assertContains(wrong, "Choose a doe from your herd.")
@@ -78,5 +78,19 @@ class PairingCheckTests(TestCase):
         self.assertNotContains(self.client.get(url, {"doe": doe.pk, "buck": buck.pk}), "data-pair-duplicate")
         Pairing.objects.create(owner=owner, doe=doe, buck=buck)
         page = self.client.get(url, {"doe": doe.pk, "buck": buck.pk})
-        self.assertContains(page, "You already saved Clover × Basil.")
+        self.assertContains(page, "Clover × Basil is already saved.")
         self.assertContains(page, "data-pair-check-btn")
+
+
+class RelatednessTableTests(TestCase):
+    def test_summary_line_and_sorted_ancestor_table(self):
+        owner = user("rel@example.com")
+        self.client.force_login(owner)
+        sire = make(owner, "Obsidian", "buck")
+        doe = make(owner, "Shadow", "doe")
+        Relative.objects.create(rabbit=doe, relationship="sire", herd_rabbit=sire)
+        page = self.client.get(reverse("pairing_list"), {"doe": doe.pk, "buck": sire.pk})
+        self.assertContains(page, "Obsidian is Shadow&#x27;s sire")
+        self.assertContains(page, "pill pill-r")
+        self.assertContains(page, "COI ")
+        self.assertNotContains(page, "<li class=\"break-words\">")

@@ -11,11 +11,12 @@ export function bindPairingCheck(doc, win = window) {
   doc.addEventListener("change", async (event) => {
     const target = event.composedPath?.()[0] || event.target;
     const form = target.closest?.("form");
-    const out = form?.querySelector("[data-pairing-check]");
+    const outs = [...(form?.querySelectorAll("[data-pairing-check]") || [])];
+    const out = outs[0];
     if (!out || !["doe", "buck"].includes(target.name)) return;
     const doe = form.elements.doe?.value;
     const buck = form.elements.buck?.value;
-    if (!doe || !buck) { out.replaceChildren(); return; }
+    if (!doe || !buck) { outs.forEach((o) => o.replaceChildren()); return; }
     const mine = ++seq;
     try {
       const url = new URL(form.getAttribute("action") || "/pairings/", win.location.href);
@@ -23,8 +24,11 @@ export function bindPairingCheck(doc, win = window) {
       const response = await win.fetch(url, { credentials: "same-origin" });
       if (!response.ok) throw new Error(String(response.status));
       const page = new win.DOMParser().parseFromString(await response.text(), "text/html");
-      const fresh = page.querySelector("[data-pairing-check]");
-      if (mine === seq && fresh) out.innerHTML = fresh.innerHTML;
+      if (mine !== seq) return;
+      outs.forEach((o) => {
+        const fresh = page.querySelector(`[data-pairing-check="${o.dataset.pairingCheck}"]`);
+        if (fresh) o.innerHTML = fresh.innerHTML;
+      });
     } catch (error) {
       console.error(error);
     }

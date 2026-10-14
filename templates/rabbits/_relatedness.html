@@ -1,0 +1,18 @@
+{# New pairing check: one status line, then a closed toggle with the shared-ancestor table. rel: pairings.relatedness(); age_warnings. #}
+{% for w in age_warnings %}<p class="rel-note" data-age-warnings>{{ w }}</p>{% endfor %}
+{% if rel.related %}
+  <div class="rel" role="status" data-inbreeding>
+    <p class="rel-line"><span class="pill pill-{{ rel.tone }}">{{ rel.label }}</span><span class="rel-what">{{ rel.closest }}</span><span class="rel-meta num">COI {{ rel.coi }}%{% if rel.count %} · {{ rel.count }} shared ancestor{{ rel.count|pluralize }}{% endif %}</span></p>
+    {% if rel.rows %}
+      <details class="rel-more"{% if rel.sorted %} open{% endif %}>
+        <summary>Show {{ rel.count }} shared ancestor{{ rel.count|pluralize }}</summary>
+        <div class="rel-table"><table>
+          <thead><tr>{% for h in rel.heads %}{% include "components/sort_th.html" with h=h only %}{% endfor %}</tr></thead>
+          <tbody>{% for r in rel.rows %}<tr><td>{{ r.name }}</td><td>{{ r.doe }}</td><td>{{ r.buck }}</td></tr>{% endfor %}</tbody>
+        </table></div>
+      </details>
+    {% endif %}
+  </div>
+{% else %}
+  <p class="rel-line" role="status" data-no-shared><span class="pill pill-g">Not related</span><span class="rel-meta">No shared ancestors in the parents, grandparents and pedigrees you've recorded.</span></p>
+{% endif %}
