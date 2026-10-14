@@ -76,7 +76,7 @@ def open_items(user, today=None):
     # open; older litters are history and stay off the list.
     recent = today - datetime.timedelta(days=prefs(user).process_age + 30)
     litters = Litter.objects.filter(owner=user).filter(
-        Q(kindled_on__isnull=True) | Q(kindled_on__gte=recent)).select_related("pairing__doe", "pairing__buck")
+        Q(kindled_on__isnull=True) | Q(kindled_on__gte=recent)).select_related("pairing__doe", "pairing__buck").prefetch_related("pairing__doe__photos")
     for litter in litters:
         litter.owner = user  # Shares the user's cached settings; no query per litter.
         for task in litter.tasks():
@@ -110,9 +110,20 @@ def task_list(request):
             Task.objects.create(owner=request.user, **fields)
             messages.success(request, f"Added: {fields['title']}.")
             return redirect("task_list")
-    done = Task.objects.filter(owner=request.user, done_at__isnull=False).select_related("rabbit").order_by("-done_at")[:10]
+    done = list(Task.objects.filter(owner=request.user, done_at__isnull=False).select_related("rabbit")
+                .prefetch_related("rabbit__photos").order_by("-done_at")[:20])
+    items = open_items(request.user, today)
+    groups = {"todo": items, "overdue": [i for i in items if i["overdue"]],
+              "litters": [i for i in items if i["kind"] == "litter"], "done": done}
+    show = request.GET.get("show", "todo")
+    if show not in groups:
+        show = "todo"
+    labels = [("todo", "To do"), ("overdue", "Overdue"), ("litters", "Litters"), ("done", "Done")]
+    tabs = [{"key": key, "label": label, "count": len(groups[key]), "selected": key == show,
+             "href": "?" if key == "todo" else f"?show={key}"} for key, label in labels]
     return render(request, "rabbits/tasks.html", {
-        "items": open_items(request.user, today), "done": done, **form_context(values, errors),
+        "items": groups[show] if show != "done" else [], "done": done if show == "done" else [], "show": show,
+        "tabs": tabs, **form_context(values, errors),
         "rabbit_options": rabbit_options(request.user), "wide": True,
     })
 

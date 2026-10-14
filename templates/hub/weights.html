@@ -2,9 +2,15 @@
 {% load herd_settings %}
 {% block title %}Weights · {{ app_name }}{% endblock %}
 {% block content %}<span data-refreshable hidden></span>
-  {% include "components/page_header.html" with title="Weights" subtitle="Longest since a weigh-in comes first." only %}
+  {% include "components/page_header.html" with title="Weights" only %}
+  <div data-swap-root>
   {% if rows %}
-    <ul class="mo-stagger mt-5 divide-y divide-line overflow-hidden rounded-md border border-line bg-surface" data-weights-hub>
+    <div class="mt-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <p class="text-sm text-muted" data-swap="hint">{{ sort_hint }}</p>
+      <div data-swap="sort">{% include "components/segmented.html" with label="Sort by" options=sort_options only %}</div>
+    </div>
+    <div data-swap="results">
+    <ul class="mo-stagger mt-3 divide-y divide-line overflow-hidden rounded-md border border-line bg-surface" data-weights-hub>
       {% for row in rows %}
         <li>
           <a class="flex items-center gap-3 px-4 py-3 hover:bg-side focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent" href="{% url 'rabbit_detail' row.rabbit.pk %}#weights">
@@ -14,22 +20,24 @@
               <span class="block truncate text-sm text-muted">{{ row.rabbit.get_sex_display }} · <span title="{{ row.rabbit.age_title }}">{{ row.rabbit.age_text }}</span></span>
             </span>
             <span class="shrink-0 text-right">
-              {% if row.text %}<span class="num block text-ink">{{ row.text }}</span><span class="num block text-xs text-muted">{{ row.date|date:"M j" }}</span>{% else %}<span class="text-sm text-muted">Not weighed</span>{% endif %}
+              {% if row.text %}<span class="num block text-ink">{{ row.text }}{% if row.change_text %} <span class="text-xs {% if row.change > 0 %}text-accent{% else %}text-muted{% endif %}">{{ row.change_text }}</span>{% endif %}</span><span class="num block text-xs text-muted">{{ row.date|date:"D, M j" }}</span>{% else %}<span class="text-sm text-muted">Not weighed</span>{% endif %}
             </span>
             <svg class="h-4 w-4 shrink-0 text-field" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
           </a>
         </li>
       {% endfor %}
     </ul>
+    </div>
   {% else %}
 {% url "rabbit_create" as a_url %}{% include "components/empty.html" with title="No rabbits to weigh yet." text="Add a rabbit, then log its weight from here or its page." href=a_url action="Add a rabbit" icon=ui_icons.weights only %}
   {% endif %}
+  </div>
   {% if recent %}
     <section class="ruled mt-10 pt-4" aria-labelledby="recent-weights">
       <h2 class="eyebrow" id="recent-weights">Recent weigh-ins</h2>
       <ul class="mt-2 divide-y divide-line">
         {% for w in recent %}
-          <li class="flex items-baseline justify-between gap-3 py-2"><a class="min-w-0 truncate hover:underline" href="{% url 'rabbit_detail' w.rabbit_id %}#weights">{{ w.rabbit.name }}</a><span class="num shrink-0">{{ w.grams|weigh:request.user }} <span class="text-muted">· {{ w.date|date:"M j" }}</span></span></li>
+          <li class="flex items-baseline justify-between gap-3 py-2"><a class="min-w-0 truncate hover:underline" href="{% url 'rabbit_detail' w.rabbit_id %}#weights">{{ w.rabbit.name }}</a><span class="num shrink-0">{{ w.grams|weigh:request.user }} <span class="text-muted">· {{ w.date|date:"D, M j" }}</span></span></li>
         {% endfor %}
       </ul>
     </section>

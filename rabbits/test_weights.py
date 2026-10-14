@@ -126,3 +126,25 @@ class WeightErrorFeedbackTests(TestCase):
         self.assertContains(response, "was added.")
         self.assertNotContains(response, "No weights yet")
         self.assertEqual(rabbit.weights.count(), 1)
+
+
+class WeightsSortTests(TestCase):
+    def test_sorts_and_change(self):
+        import datetime
+        from django.contrib.auth import get_user_model
+        from .models import Rabbit, Weight
+        user = get_user_model().objects.create_user("s@example.com")
+        self.client.force_login(user)
+        day = datetime.date(2026, 10, 1)
+        mk = lambda name: Rabbit.objects.create(owner=user, name=name, sex="doe", breed="Rex", birth_date=day)
+        a, b = mk("Alder"), mk("Birch")
+        Weight.objects.create(rabbit=a, date=day, grams=2000)
+        Weight.objects.create(rabbit=a, date=day + datetime.timedelta(days=7), grams=2100)
+        Weight.objects.create(rabbit=b, date=day, grams=3000)
+        Weight.objects.create(rabbit=b, date=day + datetime.timedelta(days=7), grams=2900)
+        names = lambda sort: [row["rabbit"].name for row in self.client.get(reverse("weights_hub"), {"sort": sort}).context["rows"]]
+        self.assertEqual(names("weight"), ["Birch", "Alder"])
+        self.assertEqual(names("change"), ["Alder", "Birch"])
+        rows = self.client.get(reverse("weights_hub"), {"sort": "change"}).context["rows"]
+        self.assertTrue(rows[0]["change_text"].startswith("+"))
+        self.assertTrue(rows[1]["change_text"].startswith("−"))

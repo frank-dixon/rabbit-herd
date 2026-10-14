@@ -1,23 +1,28 @@
-{# One open item from rabbits.tasks.open_items. item, next (where to come back to). #}
-<li class="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200 py-3 last:border-b-0" data-task-item{% if item.kind == "task" or item.key != "due" %} data-swipe="form" data-swipe-label="Done"{% endif %}{% if item.overdue %} data-overdue{% endif %}>
-  <div class="flex min-w-0 items-center gap-3">{% if item.kind == "task" and item.rabbit %}{% include "components/rabbit_avatar.html" with rabbit=item.rabbit size="sm" only %}{% endif %}<div class="min-w-0">
-    <p class="break-words font-semibold">{% if item.url %}<a class="underline" href="{{ item.url }}">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</p>
-    <p class="text-sm {% if item.overdue %}font-semibold text-red-800{% else %}text-neutral-600{% endif %}">
-      {% if item.overdue %}Overdue · {% elif item.today %}Today · {% endif %}{{ item.date|date:"D, M j" }}{% if item.kind == "task" and item.rabbit %} · {{ item.rabbit.name }}{% endif %}{% if item.repeat %} · <span class="whitespace-nowrap" data-repeat-badge><span aria-hidden="true">↻</span> {{ item.repeat }}</span>{% endif %}
-    </p>
-  </div></div>
+{# One open item from rabbits.tasks.open_items, styled like the Rabbits list rows. item, next (where to come back to). #}
+<li class="list-row flex items-center gap-3 px-3" data-task-item{% if item.kind == "task" or item.key != "due" %} data-swipe="form" data-swipe-label="Done"{% endif %}{% if item.overdue %} data-overdue{% endif %}>
+  {% if item.rabbit %}{% include "rabbits/_rabbit_thumb.html" with rabbit=item.rabbit main=item.rabbit.main_photo size_class="list-thumb shrink-0 rounded-md text-base" only %}{% else %}<span class="list-thumb grid shrink-0 place-items-center rounded-md bg-side text-muted" aria-hidden="true">{% include "components/icon.html" with d="M8 3v3M16 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" only %}</span>{% endif %}
+  <span class="min-w-0 flex-1">
+    <span class="block break-words font-semibold">{% if item.url %}<a class="hover:underline focus:outline-none focus-visible:underline" href="{{ item.url }}">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</span>
+    <span class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
+      {% if item.overdue %}<span class="inline-block whitespace-nowrap rounded-full border border-danger/40 px-2 py-0.5 text-xs font-medium text-danger">Overdue</span>{% elif item.today %}<span class="inline-block whitespace-nowrap rounded-full border border-accent/40 px-2 py-0.5 text-xs font-medium text-accent">Today</span>{% endif %}
+      <span class="num whitespace-nowrap">{{ item.date|date:"D, M j" }}</span>
+      {% if item.kind == "task" and item.rabbit %}<span>· {{ item.rabbit.name }}</span>{% endif %}
+      {% if item.kind == "litter" %}<span class="inline-block whitespace-nowrap rounded-full border border-line px-2 py-0.5 text-xs">Litter</span>{% endif %}
+      {% if item.repeat %}<span class="inline-block whitespace-nowrap rounded-full border border-line px-2 py-0.5 text-xs" data-repeat-badge><span aria-hidden="true">↻</span> {{ item.repeat }}</span>{% endif %}
+    </span>
+  </span>
+  <span class="flex shrink-0 items-center gap-1">
   {% if item.kind == "task" %}
-    <div class="flex gap-2">
-    <a class="self-center text-sm underline" href="{% url 'task_edit' item.pk %}">Edit<span class="sr-only"> {{ item.title }}</span></a>
+    <a class="hidden rounded-md px-2 py-1.5 text-sm text-muted hover:bg-side hover:text-ink sm:inline-block" href="{% url 'task_edit' item.pk %}">Edit<span class="sr-only"> {{ item.title }}</span></a>
     <form method="post" action="{% url 'task_done' item.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
-      {% include "components/button.html" with label="Mark done" sr_suffix=item.title type="submit" variant="secondary" only %}
+      {% include "components/button.html" with label="Mark done" sr_suffix=item.title type="submit" variant="secondary" size="small" only %}
     </form>
-    </div>
   {% elif item.key != "due" %}
     <form method="post" action="{% url 'litter_task' item.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}"><input type="hidden" name="task" value="{{ item.key }}"><input type="hidden" name="done" value="1">
-      {% include "components/button.html" with label="Mark done" sr_suffix=item.title type="submit" variant="secondary" only %}
+      {% include "components/button.html" with label="Mark done" sr_suffix=item.title type="submit" variant="secondary" size="small" only %}
     </form>
   {% else %}
-    {% include "components/button.html" with label="Record kindling" href=item.url|add:"#kindling" variant="secondary" only %}
+    {% include "components/button.html" with label="Record kindling" href=item.url|add:"#kindling" variant="secondary" size="small" only %}
   {% endif %}
+  </span>
 </li>

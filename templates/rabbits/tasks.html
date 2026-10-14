@@ -18,33 +18,49 @@
     </form>
   </section>
   </details>
-  <section class="mt-6" aria-labelledby="open-heading">
-    <h2 class="text-base font-semibold" id="open-heading">To do</h2>
-    {% if items %}
-      <ul class="mt-2 rounded border border-neutral-300 bg-white px-4" data-open-tasks>
-        {% for item in items %}{% include "rabbits/_task_item.html" with item=item next="/tasks/" csrf_token=csrf_token only %}{% endfor %}
-      </ul>
-    {% else %}
+  <div data-swap-root>
+  <div class="mt-5 flex items-end justify-between gap-2 border-b border-line">
+    <nav class="seg seg-underline relative -mb-px flex min-w-0 gap-4 overflow-x-auto text-sm" aria-label="Which tasks" data-segmented data-swap-sync>
+      <span class="seg-thumb" aria-hidden="true" data-seg-thumb></span>
+      {% for tab in tabs %}<a href="{{ tab.href }}" class="shrink-0 py-2 {% if tab.selected %}font-semibold{% endif %}" data-seg-option{% if tab.selected %} data-selected aria-current="page"{% endif %}>{{ tab.label }} <span class="num {% if tab.key == 'overdue' and tab.count %}text-danger{% else %}text-muted{% endif %}">{{ tab.count }}</span></a>{% endfor %}
+    </nav>
+  </div>
+  <div data-swap="results">
+    {% if show == "done" %}
+      {% if done %}
+        <section class="mt-4 overflow-hidden rounded-lg border border-line bg-surface" aria-label="Recently done">
+          <h2 class="sr-only">Recently done</h2>
+          <ul class="divide-y divide-line" data-done-tasks>
+            {% for task in done %}
+              <li class="list-row flex items-center gap-3 px-3">
+                {% if task.rabbit %}{% include "rabbits/_rabbit_thumb.html" with rabbit=task.rabbit main=task.rabbit.main_photo size_class="list-thumb shrink-0 rounded-md text-base opacity-70" only %}{% else %}<span class="list-thumb grid shrink-0 place-items-center rounded-md bg-side text-muted" aria-hidden="true">{% include "components/icon.html" with d="M5 12.5 10 17 19 7" only %}</span>{% endif %}
+                <span class="min-w-0 flex-1">
+                  <span class="block break-words text-muted line-through">{{ task.title }}</span>
+                  <span class="block text-sm text-muted">Due {{ task.due_on|date:"D, M j" }}{% if task.rabbit %} · {{ task.rabbit.name }}{% endif %}</span>
+                </span>
+                <span class="flex shrink-0 items-center gap-1">
+                  <form method="post" action="{% url 'task_done' task.pk %}">{% csrf_token %}{% include "components/button.html" with label="Undo" sr_suffix=task.title type="submit" variant="secondary" size="small" only %}</form>
+                  <form method="post" action="{% url 'task_delete' task.pk %}" data-undo-remove="Task removed.">{% csrf_token %}{% include "components/button.html" with label="Remove" sr_suffix=task.title type="submit" variant="secondary" size="small" only %}</form>
+                </span>
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% else %}
+        <p class="mt-6 text-sm text-muted">Nothing marked done yet.</p>
+      {% endif %}
+    {% elif items %}
+      <section class="mt-4 overflow-hidden rounded-lg border border-line bg-surface" aria-labelledby="open-heading">
+        <h2 class="sr-only" id="open-heading">To do</h2>
+        <ul class="divide-y divide-line" data-open-tasks>
+          {% for item in items %}{% include "rabbits/_task_item.html" with item=item next=request.get_full_path csrf_token=csrf_token only %}{% endfor %}
+        </ul>
+      </section>
+    {% elif show == "todo" %}
 {% include "components/empty.html" with title="No tasks due." text="Litter dates and follow-ups show up here on their own. Add your own with New task." kind="tasks" icon=ui_icons.tasks compact=True only %}
+    {% else %}
+      <p class="mt-6 text-sm text-muted">{% if show == "overdue" %}Nothing overdue. You're caught up.{% else %}No litter dates coming up.{% endif %}</p>
     {% endif %}
-  </section>
-  {% if done %}
-    <section class="mt-6" aria-labelledby="done-heading">
-      <h2 class="text-base font-semibold" id="done-heading">Recently done</h2>
-      <ul class="mt-2 rounded border border-neutral-300 bg-white px-4" data-done-tasks>
-        {% for task in done %}
-          <li class="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200 py-3 last:border-b-0">
-            <div class="min-w-0">
-              <p class="break-words text-neutral-600 line-through">{{ task.title }}</p>
-              <p class="text-sm text-neutral-600">Due {{ task.due_on|date:"M j" }}{% if task.rabbit %} · {{ task.rabbit.name }}{% endif %}</p>
-            </div>
-            <div class="flex gap-2">
-              <form method="post" action="{% url 'task_done' task.pk %}">{% csrf_token %}{% include "components/button.html" with label="Undo" sr_suffix=task.title type="submit" variant="secondary" only %}</form>
-              <form method="post" action="{% url 'task_delete' task.pk %}" data-undo-remove="Task removed.">{% csrf_token %}{% include "components/button.html" with label="Remove" sr_suffix=task.title type="submit" variant="secondary" only %}</form>
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
-    </section>
-  {% endif %}
+  </div>
+  </div>
 {% endblock %}
