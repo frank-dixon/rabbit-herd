@@ -8,12 +8,6 @@
 .wt-btn:hover { background: var(--hover); }
 .wt-btn-pri { background: var(--accent); color: var(--on-accent); } .wt-btn-pri:hover { background: var(--accent-hover); }
 .wt-btn-sm { height: 24px; padding: 0 8px; font-size: 12px; border-radius: 4px; }
-.wt-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 24px 0 0; }
-.wt-stat { background: var(--surface); border-radius: 8px; box-shadow: var(--card-shadow); padding: 16px; min-width: 0; }
-.wt-stat dt { font-size: 12px; line-height: 16px; color: var(--muted); }
-.wt-stat dd { margin: 4px 0 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; }
-.wt-stat dd span { font-size: 13px; font-weight: 400; color: var(--muted); }
-.wt-stat p { font-size: 12px; line-height: 16px; color: var(--muted); margin-top: 4px; }
 [data-weights-page] .tabrow { margin-top: 24px; margin-bottom: 16px; }
 .wt-search { display: block; width: 100%; height: 34px; padding-right: 12px; border: 0 !important; border-radius: 6px; background: var(--well) !important; color: var(--ink); font-size: 14px; }
 .wt-table-card, .wt-rows { margin-top: 16px; }
@@ -84,8 +78,6 @@
 .wt-group-in { display: inline-flex; gap: 8px; } .wt-group-in input { width: 64px; }
 .wt-group { padding: 8px 16px; }
 @media (max-width: 767px) {
-  .wt-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
-  .wt-stat { padding: 12px; }
   .wt-split { grid-template-columns: 1fr; }
   .wt-list ul { max-height: 320px; }
   .wt-detail { padding: 16px; }
@@ -99,8 +91,6 @@
   .wt-chart text { font-size: 20px; }
   .wt-chart .wt-dot { r: 5; }
 }
-/* Shared: .wt-stats/.wt-stat are the app's stat cards (Weights, Costs). The note line under them. */
-.stat-note { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; line-height: 20px; color: var(--ink-2); }
 .wt-range { margin-bottom: 16px; }
 .wt-log-table[data-collapsed] tbody tr:nth-child(n+13) { display: none; }
 @media (max-width: 767px) { .wt-chart .wt-tick-odd { display: none; } }

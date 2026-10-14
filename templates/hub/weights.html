@@ -5,11 +5,11 @@
   {% include "components/page_header.html" with title="Weights" actions_template="hub/_weights_actions.html" compact_actions=True %}
   <div data-swap-root data-weights-page>
   {% if all_count %}
-  <div data-swap="stats"><dl class="wt-stats" data-weight-stats>
-    <div class="wt-stat"><dt>Herd avg, adults</dt><dd class="num">{{ stats.avg }}</dd><p>{% if stats.avg_change %}{{ stats.avg_change }} over 30 days{% else %}&nbsp;{% endif %}</p></div>
-    <div class="wt-stat"><dt>Juniors behind curve</dt><dd class="num">{{ stats.behind }} <span>of {{ stats.juniors }}</span></dd><p>vs NZ growth curve</p></div>
-    <div class="wt-stat"><dt>Overdue weigh-ins</dt><dd class="num">{{ stats.overdue }}</dd><p>adults 30 days · juniors 7</p></div>
-    <div class="wt-stat"><dt>Weighed this week</dt><dd class="num">{{ stats.week }}</dd><p>of {{ stats.herd }} in the herd</p></div>
+  <div data-swap="stats"><dl class="stat-grid" data-weight-stats>
+    {% with avg_sub=stats.avg_change|default:"" %}{% if avg_sub %}{% with s=avg_sub|add:" over 30 days" %}{% include "components/stat_card.html" with label="Herd avg, adults" value=stats.avg sub=s only %}{% endwith %}{% else %}{% include "components/stat_card.html" with label="Herd avg, adults" value=stats.avg only %}{% endif %}{% endwith %}
+    {% with j=stats.juniors|stringformat:"s" %}{% with u="of "|add:j %}{% include "components/stat_card.html" with label="Juniors behind curve" value=stats.behind unit=u sub="vs NZ growth curve" only %}{% endwith %}{% endwith %}
+    {% include "components/stat_card.html" with label="Overdue weigh-ins" value=stats.overdue sub="adults 30 days · juniors 7" only %}
+    {% with h=stats.herd|stringformat:"s" %}{% with s="of "|add:h|add:" in the herd" %}{% include "components/stat_card.html" with label="Weighed this week" value=stats.week sub=s only %}{% endwith %}{% endwith %}
   </dl></div>
 
   <div class="tabrow flex items-end justify-between gap-2">
