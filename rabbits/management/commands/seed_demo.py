@@ -575,7 +575,8 @@ class Command(BaseCommand):
             ("Jet", 3, "checkup", "Weaned well; on pellets, hay and willow forage.", None),
         ]:
             note = HealthNote.objects.create(rabbit=R[nm], date=day(back), kind=kind, notes=notes,
-                                             follow_up_on=day(follow) if follow is not None else None)
+                                             follow_up_on=day(follow) if follow is not None else None,
+                                             resolved=follow is None and nm != "Basalt")
             if follow is not None:
                 t = Task.objects.create(owner=user, title=f"Follow up: {R[nm].name}", due_on=day(follow), rabbit=R[nm])
                 note.task = t
@@ -622,12 +623,26 @@ class Command(BaseCommand):
         Expense.objects.bulk_create(ex)
 
         # --- Shows ---
+        # Obsidian sits at 2 of 3 legs; Slate and Azure are building; Ink and Harlequin have one each.
         for nm, back, show, cls, place, of, award, leg in [
             ("Obsidian", 400, "Keystone Classic", "Senior Buck", 1, 9, "Best of Variety", True),
+            ("Obsidian", 330, "Mid-Atlantic Winter Show", "Senior Buck", 2, 10, "", False),
             ("Obsidian", 220, "Ohio State Fair", "Senior Buck", 1, 12, "Best of Breed", True),
+            ("Obsidian", 95, "Harrisburg Fall Classic", "Senior Buck", 3, 11, "", False),
             ("Ink", 300, "Keystone Classic", "Senior Doe", 2, 11, "", False),
+            ("Ink", 250, "Mid-Atlantic Winter Show", "Senior Doe", 1, 8, "Best Opposite Sex of Variety", True),
+            ("Ink", 130, "York County Open", "Senior Doe", 4, 9, "", False),
+            ("Slate", 290, "York County Open", "Intermediate Buck", 2, 7, "", False),
             ("Slate", 160, "Lancaster Spring Show", "Senior Buck", 1, 6, "Best of Variety", True),
+            ("Slate", 95, "Harrisburg Fall Classic", "Senior Buck", 1, 8, "Best of Variety", True),
+            ("Slate", 25, "Chester County Open", "Senior Buck", 2, 9, "", False),
+            ("Azure", 200, "Lancaster Spring Show", "Junior Doe", 1, 5, "", True),
             ("Azure", 60, "Lancaster Spring Show", "Senior Doe", 3, 8, "", False),
+            ("Azure", 25, "Chester County Open", "Senior Doe", 2, 10, "", False),
+            ("Harlequin", 180, "York County Open", "Senior Doe", 1, 6, "Best of Variety", True),
+            ("Harlequin", 95, "Harrisburg Fall Classic", "Senior Doe", 5, 12, "", False),
+            ("Cobalt", 60, "Lancaster Spring Show", "Senior Doe", 2, 8, "", False),
+            ("Cobalt", 25, "Chester County Open", "Senior Doe", 1, 10, "Best Opposite Sex of Variety", True),
         ]:
             ShowEntry.objects.create(rabbit=R[nm], show_name=show, date=day(back), location="PA",
                                      show_class=cls, placing=place, out_of=of, award=award, judge="J. Miller", leg=leg)
@@ -648,10 +663,10 @@ class Command(BaseCommand):
             return label, tgt
         for nm, key, step, dam, sire, sex in [
             ("Black meat line", "black", "plan", "Ink", "Obsidian", "doe"),
-            ("Broken black keepers", "broken-black", "breeders", None, None, "buck"),
-            ("Chocolate from Blizzard", "chocolate", "goal", None, None, "any"),
-            ("Black otter project", "otter", "goal", None, None, "doe"),
-            ("Chestnut agouti someday", "chestnut", "goal", None, None, "doe"),
+            ("Broken black keepers", "broken-black", "plan", "Harlequin", "Obsidian", "buck"),
+            ("Chocolate from Harlequin", "chocolate", "plan", "Harlequin", "Frost", "any"),
+            ("Chestnut agouti line", "chestnut", "plan", "Sonora", "Ember", "doe"),
+            ("Black otter project", "otter", "breeders", None, None, "doe"),
         ]:
             label, tgt = target(key)
             Program.objects.create(owner=user, name=nm, target_key=key, target_label=label, target=tgt,
