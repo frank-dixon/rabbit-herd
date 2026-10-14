@@ -10,6 +10,7 @@
     {% include "accounts/_auth_field.html" with field=form.password type="password" autocomplete="current-password" toggle=True invalid=form.non_field_errors aside_url=reset_url aside_label="Forgot password?" only %}
     {% include "accounts/_auth_submit.html" with label="Sign in" busy="Signing in…" only %}
   </form>
+  <p class="v2-or v2-only mt-8" aria-hidden="true">OR</p>
   <div class="mt-3 text-center">
     <button type="button" id="passkey-login" data-next="{{ next }}" class="inline-flex min-h-11 cursor-pointer items-center rounded-sm text-sm font-medium text-accent underline underline-offset-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Sign in with a passkey</button>
     <p class="mt-2 text-sm font-medium text-danger" role="alert" data-passkey-error hidden></p>

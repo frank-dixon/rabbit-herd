@@ -1,0 +1,64 @@
+/* Flat (v2) layout: opt-in from Settings > Appearance > Form layout
+   (html[data-layout="v2"]). A solid brand-green block holds a small eyebrow
+   and the title; a white sheet with rounded top corners overlaps it; fields
+   are a label over one hairline. The tokens and classes are meant to grow
+   into the rest of the UI. */
+:root {
+  --v2-brand: #22573B;          /* Bramble Burrow green (Forest) */
+  --v2-on-brand: #FFFFFF;
+  --v2-eyebrow: rgb(255 255 255 / 0.72);
+  --v2-track: rgb(255 255 255 / 0.22);
+  --v2-sheet: var(--surface);
+  --v2-sheet-radius: 1.75rem;
+  --v2-hairline: var(--line);
+  --v2-field-ink: var(--ink);
+  --v2-ok: #2E7D4F;
+  --v2-gap: 2rem;               /* between fields: lots of air */
+}
+@media (prefers-color-scheme: dark) { html:not([data-mode="light"]) { --v2-brand: #1E4630; --v2-ok: #7CC79C; } }
+html[data-mode="dark"] { --v2-brand: #1E4630; --v2-ok: #7CC79C; }
+
+html:not([data-layout="v2"]) .v2-only, html[data-layout="v2"] .v2-hide { display: none !important; }
+
+@layer components {
+  /* Full-bleed on phones, a centered card from md up. */
+  .v2-card { margin: -1.5rem -1rem 0; display: flex; flex-direction: column; min-height: calc(100dvh - 3.5rem); }
+  .v2-card > .v2-sheet { flex: 1; }
+  @media (min-width: 768px) {
+    .v2-card { margin: 0 auto; max-width: 32rem; border-radius: var(--v2-sheet-radius); overflow: hidden; border: 1px solid var(--v2-hairline); min-height: 0; }
+    .v2-card-wide { max-width: 42rem; }
+  }
+  .v2-hero { background: var(--v2-brand); color: var(--v2-on-brand); padding: 2.5rem 1.5rem calc(var(--v2-sheet-radius) + 1.75rem); }
+  .v2-eyebrow { color: var(--v2-eyebrow); font-size: 0.875rem; font-weight: 500; }
+  .v2-title { margin-top: 0.25rem; font-size: 1.75rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+  .v2-track { height: 3px; border-radius: 9999px; background: var(--v2-track); margin-top: 1.25rem; }
+  .v2-track > span { display: block; height: 100%; border-radius: inherit; background: var(--v2-on-brand); }
+  .v2-sheet {
+    position: relative; margin-top: calc(var(--v2-sheet-radius) * -1); background: var(--v2-sheet);
+    border-radius: var(--v2-sheet-radius) var(--v2-sheet-radius) 0 0; padding: 2.25rem 1.5rem 2rem;
+    /* Buttons and links on the sheet speak in the brand green. */
+    --accent: var(--v2-brand); --on-accent: var(--v2-on-brand); --accent-soft: color-mix(in oklab, var(--v2-brand) 12%, var(--surface));
+  }
+  @media (prefers-color-scheme: dark) { html:not([data-mode="light"]) .v2-sheet { --accent: #7CC79C; --on-accent: #0B2416; } }
+  html[data-mode="dark"] .v2-sheet { --accent: #7CC79C; --on-accent: #0B2416; }
+  .v2-or { display: flex; align-items: center; gap: 1rem; color: var(--muted); font-size: 0.75rem; letter-spacing: 0.08em; opacity: 0.8; }
+  .v2-or::before, .v2-or::after { content: ""; flex: 1; border-top: 1px solid var(--v2-hairline); }
+}
+
+/* Fields: label over a single hairline. Applies to form pages under v2. */
+html[data-layout="v2"] main form:not([data-swap-root] form, [data-filters] form) :is(input:is([type="text"], [type="email"], [type="password"], [type="number"], [type="date"], [type="tel"], [type="url"], :not([type])), select, textarea) {
+  border-width: 0 0 1px; border-style: solid; border-color: var(--v2-hairline); border-radius: 0;
+  background-color: transparent; padding-inline: 0; color: var(--v2-field-ink); box-shadow: none;
+  transition: border-color var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out);
+}
+html[data-layout="v2"] main form:not([data-swap-root] form, [data-filters] form) select { padding-right: 1.5rem; }
+html[data-layout="v2"] main form :is(input, select, textarea):focus { outline: none; border-color: var(--accent); box-shadow: 0 1px 0 0 var(--accent) !important; }
+html[data-layout="v2"] main form :is(input, select, textarea)[aria-invalid="true"] { border-color: var(--danger); box-shadow: 0 1px 0 0 var(--danger) !important; }
+html[data-layout="v2"] main form :is(input[type="email"], input[required]):not([type="password"], [type="checkbox"], [type="radio"], [aria-invalid="true"]):user-valid {
+  padding-right: 1.75rem;
+  background: var(--v2-check) no-repeat right 0.125rem center / 1rem;
+}
+:root { --v2-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232E7D4F' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5 10 17 19 7'/%3E%3C/svg%3E"); }
+@media (prefers-reduced-motion: reduce) { html[data-layout="v2"] main form :is(input, select, textarea) { transition: none; } }
+html[data-layout="v2"] [data-action-bar] { border-top-color: transparent; background: var(--v2-sheet); }
+html[data-layout="v2"] .v2-sheet :is(button, a).mo-press { border-radius: 0.875rem; }

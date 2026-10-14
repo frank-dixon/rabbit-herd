@@ -1,0 +1,9 @@
+{% if form.non_field_errors %}
+  <div role="alert" id="form-errors" class="mt-6 rounded-lg border border-danger/40 bg-danger-soft px-3 py-2.5 text-sm text-danger">
+    {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+  </div>
+{% elif form.errors %}
+  <div role="alert" id="form-errors" class="mt-6 rounded-lg border border-danger/40 bg-danger-soft px-3 py-2.5 text-sm text-danger">
+    <p>Check the highlighted field{{ form.errors|length|pluralize }} below.</p>
+  </div>
+{% endif %}

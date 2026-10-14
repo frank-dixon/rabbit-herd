@@ -5,22 +5,17 @@ Works without JS; auth-form.mjs adds the password Show/Hide toggle and the submi
 {% block page_header %}{% endblock %}
 {% block page_footer %}{% endblock %}
 {% block content %}
-<div class="flex min-h-[calc(100dvh-3rem)] flex-col md:min-h-0">
-  <p class="pt-4 text-sm font-semibold tracking-tight"><a href="{% url 'index' %}" class="rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">{{ app_name }}</a></p>
-  <h1 class="mt-8 text-2xl font-semibold tracking-tight">{% block auth_title %}{% endblock %}</h1>
-  <p class="mt-1 text-base leading-relaxed text-muted">{% block auth_lede %}Breeding records, litters and pedigrees in one place.{% endblock %}</p>
-  {% if form.non_field_errors %}
-    <div role="alert" id="form-errors" class="mt-6 rounded-lg border border-danger/40 bg-danger-soft px-3 py-2.5 text-sm text-danger">
-      {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
-    </div>
-  {% elif form.errors %}
-    <div role="alert" id="form-errors" class="mt-6 rounded-lg border border-danger/40 bg-danger-soft px-3 py-2.5 text-sm text-danger">
-      <p>Check the highlighted field{{ form.errors|length|pluralize }} below.</p>
-    </div>
-  {% endif %}
+{% with v2=ui_layout|default:""|slice:":2" %}
+<div class="{% if v2 == 'v2' %}v2-card{% else %}flex min-h-[calc(100dvh-3rem)] flex-col md:min-h-0{% endif %}">
+  {% if v2 == 'v2' %}<div class="v2-hero"><p class="v2-eyebrow">{% else %}<p class="pt-4 text-sm font-semibold tracking-tight">{% endif %}<a href="{% url 'index' %}" class="rounded-sm focus:outline-none focus-visible:ring-2 {% if v2 == 'v2' %}focus-visible:ring-white{% else %}focus-visible:ring-accent{% endif %}">{{ app_name }}</a></p>
+  <h1 class="{% if v2 == 'v2' %}v2-title{% else %}mt-8 text-2xl font-semibold tracking-tight{% endif %}">{% block auth_title %}{% endblock %}</h1>
+  {% if v2 == 'v2' %}</div><div class="v2-sheet">{% else %}<p class="mt-1 text-base leading-relaxed text-muted">{% block auth_lede %}Breeding records, litters and pedigrees in one place.{% endblock %}</p>{% endif %}
+  {% include "accounts/_auth_errors.html" %}
   {% block auth_form %}{% endblock %}
-  <div class="mt-auto space-y-3 pt-10 pb-[max(0.5rem,env(safe-area-inset-bottom))] text-center md:mt-10">
+  <div class="{% if v2 == 'v2' %}mt-10{% else %}mt-auto pt-10 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:mt-10{% endif %} space-y-3 text-center">
     {% block auth_footer %}{% endblock %}
   </div>
+  {% if v2 == 'v2' %}</div>{% endif %}
 </div>
+{% endwith %}
 {% endblock %}
