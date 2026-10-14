@@ -89,7 +89,7 @@ export function bindListSwap(doc, win) {
 
   root.addEventListener("click", (event) => {
     const link = event.target.closest?.("a[href]");
-    if (!link || event.defaultPrevented || link.hasAttribute("download")) return;
+    if (!link || event.defaultPrevented || link.hasAttribute("download") || link.hasAttribute("data-modal")) return;
     if (!swappable(link.href, win.location.href, event, link.target)) return;
     event.preventDefault();
     go(link.href, true, link);

@@ -96,6 +96,7 @@ export function bindModal(doc, win = window) {
       if (target) target.focus({ preventScroll: true });
       body.scrollTop = 0;
     } catch (error) {
+      win.console?.error?.(error);
       win.location.assign(url);
     } finally {
       busy = false;
