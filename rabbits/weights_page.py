@@ -112,6 +112,7 @@ def build_rows(user, today, unit):
             "text": weight_text(last.grams, unit) if last else "", "date": last.date if last else None,
             "since": since, "overdue": since is None or since > limit,
             "change": ch, "change_text": signed(ch, unit), "spark": spark(ws, today),
+            "spark_title": f"Trend over the last {span_text([x for x in ws if (today - x.date).days <= 365]) or '12 months'}" if len(ws) > 1 else "",
             "vs": vs, "curve_label": curve_label, "has_curve": bool(points),
             "vs_text": "" if vs is None else ("On track" if abs(vs) <= G.ON_TRACK else f"{'+' if vs > 0 else '−'}{round(abs(vs) * 100)}% vs curve")
                        + (f" · wk {ref_age // 7}" if vs is not None and ref is not last else ""),
@@ -167,7 +168,49 @@ def sort_rows(rows, key, desc):
     return rows
 
 
-def chart(row, unit, w=640, h=280):
+RANGES = [("3m", "3 mo", 92), ("12m", "12 mo", 365), ("all", "All", None)]
+
+
+def in_range(ws, key):
+    """Weigh-ins in the chosen range, counted back from the latest one. All starts at the first
+    weight on record, kit weights from birth included."""
+    days = dict((k, d) for k, _, d in RANGES).get(key)
+    return [x for x in ws if days is None or (ws[-1].date - x.date).days <= days] if ws else []
+
+
+def date_ticks(first, xmax):
+    """X labels that suit the span: months up to about a year, quarters to three years, then years."""
+    last = first + timedelta(days=xmax)
+    if xmax <= 120:
+        months, fmt = 1, "%b"
+    elif xmax <= 400:
+        months, fmt = 2, "%b"
+    elif xmax <= 1100:
+        months, fmt = 3, "%b ’%y"
+    else:
+        months, fmt = 12, "%Y"
+    y, m = first.year, first.month
+    out = []
+    while True:
+        m += 1
+        if m > 12:
+            y, m = y + 1, 1
+        day = first.replace(year=y, month=m, day=1)
+        if day > last:
+            break
+        if (m - 1) % months == 0:
+            out.append(((day - first).days, day.strftime(fmt)))
+    return out
+
+
+def span_text(ws):
+    if len(ws) < 2:
+        return ""
+    days = (ws[-1].date - ws[0].date).days
+    return f"{days} days" if days < 60 else f"{round(days / 30.4)} months" if days < 700 else f"{days / 365.25:.1f} years"
+
+
+def chart(row, unit, w=640, h=280, rng="12m"):
     """The growth chart for one rabbit. Juniors with a sourced curve: by age in weeks
     (0-12) against the curve with a +/-10% band. Everyone else: the last year by date."""
     r, ws = row["rabbit"], row["weights"]
@@ -184,13 +227,12 @@ def chart(row, unit, w=640, h=280):
         xs = lambda d: round(left + pw * d / xmax, 1)
         ticks_x = [(d, f"{d // 7} wk") for d in range(0, xmax + 1, 14)]
     else:
-        recent = [x for x in ws if (ws[-1].date - x.date).days <= 365]
+        recent = in_range(ws, rng)
         mine = [((x.date - recent[0].date).days, x.grams) for x in recent]
         xmax = max(mine[-1][0], 1)
         gmax = max(g for _, g in mine)
         xs = lambda d: round(left + pw * d / xmax, 1)
-        first = recent[0].date
-        ticks_x = [(d, (first + timedelta(days=d)).strftime("%b")) for d in range(0, xmax + 1, max(xmax // 4, 1))]
+        ticks_x = date_ticks(recent[0].date, xmax)
     # Round ticks in the keeper's unit: whole pounds (2 lb steps for adults) or half kilos.
     if unit == "kg":
         step_u, per = (1 if gmax > 4000 else 0.5), 1000
@@ -213,6 +255,16 @@ def chart(row, unit, w=640, h=280):
         out["band"] = " ".join([f"{xs(d)},{ys(points[d] * (1 + G.ON_TRACK))}" for d in days] +
                                [f"{xs(d)},{ys(points[d] * (1 - G.ON_TRACK))}" for d in reversed(days)])
     return out
+
+
+def range_choice(request):
+    """3 mo / 12 mo / All for the Chart view, remembered per account like Table/Chart."""
+    user = request.user
+    asked = request.GET.get("range")
+    if asked in dict(user.WEIGHTS_RANGES) and asked != user.ui_weights_range:
+        user.ui_weights_range = asked
+        user.save(update_fields=["ui_weights_range"])
+    return user.ui_weights_range if user.ui_weights_range in dict(user.WEIGHTS_RANGES) else "12m"
 
 
 def view_choice(request):
@@ -273,10 +325,14 @@ def weights_hub(request):
     if view == "chart" and rows:
         pick = g.get("sel", "")
         sel = next((r for r in rows if str(r["rabbit"].pk) == pick), rows[0])
-        sel["chart"] = chart(sel, unit)
+        rng = range_choice(request)
+        sel["chart"] = chart(sel, unit, rng=rng)
+        shown = in_range(sel["weights"], rng)
+        prev = {w.pk: p for p, w in zip([None] + sel["weights"][:-1], sel["weights"])}
         sel["log"] = [{"date": w.date, "text": weight_text(w.grams, unit),
-                       "gain": signed(w.grams - p.grams, unit) if p else ""}
-                      for p, w in reversed(list(zip([None] + sel["weights"][:-1], sel["weights"])))][:6]
+                       "gain": signed(w.grams - prev[w.pk].grams, unit) if prev[w.pk] else ""} for w in reversed(shown)]
+        sel["range_options"] = [{"href": "?" + qs(params, sel=sel["rabbit"].pk, range=k), "label": l, "selected": k == rng} for k, l, _ in RANGES]
+        sel["range_label"] = dict((k, l) for k, l, _ in RANGES)[rng]
         ref_days = sel["ref_age"]
         points, _ = G.curve_for(sel["rabbit"])
         ref = G.expected(points, ref_days) if points and sel["group"] != "adult" and ref_days is not None else None

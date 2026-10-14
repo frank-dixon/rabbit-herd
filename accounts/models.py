@@ -54,6 +54,8 @@ class User(AbstractUser):
     # The Weights page: Table or Chart (split list + growth chart), remembered per account.
     WEIGHTS_VIEWS = [("table", "Table"), ("chart", "Chart")]
     ui_weights_view = models.CharField(max_length=8, choices=WEIGHTS_VIEWS, default="table")
+    WEIGHTS_RANGES = [("3m", "3 mo"), ("12m", "12 mo"), ("all", "All")]
+    ui_weights_range = models.CharField(max_length=4, choices=WEIGHTS_RANGES, default="12m")
     # Grid or List on the other index pages (programs, pairings, shows, health): {page: view}.
     ui_views = models.JSONField(default=dict, blank=True)
     # Phone bottom bar: destination keys in order (pages.nav.DESTINATIONS). Empty means the default.

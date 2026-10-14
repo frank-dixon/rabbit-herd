@@ -25,16 +25,17 @@
       <div><dt>Daily gain, 30 days</dt><dd class="num">{{ sel.daily|default:"—" }}</dd></div>
     </dl>
     {% if sel.chart %}{% with c=sel.chart %}
-      <div class="wt-chart-head"><p class="font-semibold">{% if c.by_age %}Growth vs breed curve{% else %}Weight, last 12 months{% endif %}</p>{% if c.by_age %}<p class="oc-legend"><span><b style="background:var(--accent)"></b>{{ r.name }}</span><span><b style="background:var(--wt-curve)"></b>{{ c.label }} ±10%</span></p>{% endif %}</div>
+      <div class="wt-range" data-swap-keep>{% include "components/segmented.html" with label="Range" options=sel.range_options only %}</div>
+      <div class="wt-chart-head"><p class="font-semibold">{% if c.by_age %}Growth vs breed curve{% elif sel.range_label == "All" %}Weight, all readings{% else %}Weight, last {{ sel.range_label }}{% endif %}</p>{% if c.by_age %}<p class="oc-legend"><span><b style="background:var(--accent)"></b>{{ r.name }}</span><span><b style="background:var(--wt-curve)"></b>{{ c.label }} ±10%</span></p>{% endif %}</div>
       <svg class="wt-chart" viewBox="0 0 {{ c.w }} {{ c.h }}" role="img" aria-label="Weight chart for {{ r.name }}">
         {% for t in c.ticks_y %}<line x1="{{ c.left }}" x2="{{ c.right }}" y1="{{ t.y }}" y2="{{ t.y }}" class="wt-grid"/><text x="{{ c.left|add:'-8' }}" y="{{ t.y }}" dy="4" text-anchor="end">{{ t.label }}</text>{% endfor %}
-        {% for t in c.ticks_x %}<text x="{{ t.x }}" y="{{ c.bottom|add:'20' }}" text-anchor="middle">{{ t.label }}</text>{% endfor %}
+        {% for t in c.ticks_x %}<text{% if forloop.counter|divisibleby:2 %} class="wt-tick-odd"{% endif %} x="{{ t.x }}" y="{{ c.bottom|add:'20' }}" text-anchor="middle">{{ t.label }}</text>{% endfor %}
         {% if c.band %}<polygon points="{{ c.band }}" class="wt-bandpoly"/><polyline points="{{ c.curve }}" class="wt-curve"/>{% endif %}
         <polyline points="{{ c.line }}" class="wt-line"/>
         {% for d in c.dots %}<circle cx="{{ d.x }}" cy="{{ d.y }}" r="3" class="wt-dot"/>{% endfor %}
       </svg>
     {% endwith %}{% else %}<p class="py-8 text-sm text-muted">No weigh-ins yet.</p>{% endif %}
-    {% if sel.log %}<table class="wt-log-table"><thead><tr><th>Date</th><th class="r">Weight</th><th class="r">Gain</th></tr></thead><tbody>{% for w in sel.log %}<tr><td class="text-muted">{{ w.date|date:"M j, Y" }}</td><td class="r num">{{ w.text }}</td><td class="r num {% if w.gain|first == '+' %}wt-up{% elif w.gain|first == '−' %}wt-down{% else %}text-muted{% endif %}">{{ w.gain|default:"—" }}</td></tr>{% endfor %}</tbody></table>{% endif %}
+    {% if sel.log %}<table class="wt-log-table" data-weight-history{% if sel.log|length > 12 %} data-long{% endif %}><thead><tr><th>Date</th><th class="r">Weight</th><th class="r">Gain</th></tr></thead><tbody>{% for w in sel.log %}<tr><td class="text-muted">{{ w.date|date:"M j, Y" }}</td><td class="r num">{{ w.text }}</td><td class="r num {% if w.gain|first == '+' %}wt-up{% elif w.gain|first == '−' %}wt-down{% else %}text-muted{% endif %}">{{ w.gain|default:"—" }}</td></tr>{% endfor %}</tbody></table>{% if sel.log|length > 12 %}<button type="button" class="wt-btn mt-2" data-history-more hidden>Show all {{ sel.log|length }} readings</button>{% endif %}{% endif %}
   </section>
   {% endwith %}{% endif %}
 </div>

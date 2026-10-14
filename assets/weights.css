@@ -101,3 +101,6 @@
 }
 /* Shared: .wt-stats/.wt-stat are the app's stat cards (Weights, Costs). The note line under them. */
 .stat-note { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; line-height: 20px; color: var(--ink-2); }
+.wt-range { margin-bottom: 16px; }
+.wt-log-table[data-collapsed] tbody tr:nth-child(n+13) { display: none; }
+@media (max-width: 767px) { .wt-chart .wt-tick-odd { display: none; } }

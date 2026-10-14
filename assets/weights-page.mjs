@@ -18,7 +18,19 @@ export async function refresh(doc, win) {
 export function bindWeightsPage(doc, win = window) {
   const root = doc.querySelector("[data-weights-page]");
   if (!root) return;
-  const showSel = () => root.querySelector(".wt-li.is-sel")?.scrollIntoView?.({ block: "nearest" });
+  // Long weigh-in history: the newest 12 rows, then Show all (without JS every row shows).
+  const collapse = () => root.querySelectorAll("[data-weight-history][data-long]").forEach((t) => {
+    t.setAttribute("data-collapsed", "");
+    const more = t.parentElement.querySelector("[data-history-more]");
+    if (more) more.hidden = false;
+  });
+  root.addEventListener("click", (event) => {
+    const more = event.target.closest("[data-history-more]");
+    if (!more) return;
+    more.parentElement.querySelector("[data-weight-history]")?.removeAttribute("data-collapsed");
+    more.hidden = true;
+  });
+  const showSel = () => { root.querySelector(".wt-li.is-sel")?.scrollIntoView?.({ block: "nearest" }); collapse(); };
   showSel();
   root.addEventListener("list-swap:done", showSel);
   root.addEventListener("submit", async (event) => {

@@ -16,7 +16,7 @@
         <td class="r num font-semibold">{{ row.text|default:"—" }}</td>
         <td class="num {% if row.overdue %}text-danger{% else %}text-muted{% endif %}">{% if row.date %}{{ row.date|date:"M j" }}{% else %}Never{% endif %}</td>
         <td class="r num {% if row.change > 0 %}wt-up{% elif row.change < 0 %}wt-down{% else %}text-muted{% endif %}">{{ row.change_text|default:"—" }}</td>
-        <td class="wt-hl">{% if row.spark %}<svg class="wt-spark" viewBox="0 0 64 20" aria-hidden="true"><path d="{{ row.spark }}"/></svg>{% endif %}</td>
+        <td class="wt-hl">{% if row.spark %}<svg class="wt-spark" viewBox="0 0 64 20" role="img" aria-label="{{ row.spark_title }}"><title>{{ row.spark_title }}</title><path d="{{ row.spark }}"/></svg>{% endif %}</td>
         <td>{% if row.vs_text %}<span class="pill pill-{{ row.vs_tone }}" title="{{ row.curve_label }}">{{ row.vs_text }}</span>{% elif row.overdue and row.date %}<span class="pill pill-y">Weigh-in overdue</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
         <td class="r">{% include "hub/_weight_log.html" %}</td>
       </tr>
