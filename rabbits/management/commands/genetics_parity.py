@@ -1,6 +1,7 @@
 """Compare every genetics output before and after the genes cleanup.
 
-Reads everything with GENETICS_READ="old" on the database as it is, then,
+Reads everything with GENETICS_READ="old" on the database as it is ("new" if
+it was already cleaned), then,
 inside a transaction that is always rolled back, applies the cleanup plan,
 reads everything again with GENETICS_READ="new", and compares. Nothing is
 written. Exit status 1 when anything differs.
@@ -118,6 +119,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--owner", action="append", default=[], help="Only this account's email (repeatable).")
         parser.add_argument("--show", type=int, default=10, help="Mismatches to print in full.")
+        parser.add_argument("--dump", help="Also save the baseline outputs as JSON (to compare two databases).")
 
     def handle(self, *args, **opts):
         from rabbits import genes_cleanup
@@ -130,8 +132,15 @@ class Command(BaseCommand):
                 raise CommandError("No such account.")
         owner_ids = sorted(set(Rabbit.all_objects.filter(owner__in=users).values_list("owner_id", flat=True)))
 
-        with override_settings(GENETICS_READ="old"):
+        # Before any cleanup nothing is flagged and "old" (stored rows only) is the
+        # baseline. A database already cleaned (or seeded by the new seed_demo)
+        # has flagged rabbits, so its baseline is "new" as it is served today.
+        baseline = "new" if Rabbit.all_objects.filter(genes_implied=True).exists() else "old"
+        with override_settings(GENETICS_READ=baseline):
             before = snapshot(owner_ids)
+        if opts.get("dump"):
+            with open(opts["dump"], "w") as fh:
+                json.dump(before, fh, sort_keys=True, default=str)
         p = genes_cleanup.plan()
         result = {}
         try:
@@ -146,7 +155,7 @@ class Command(BaseCommand):
 
         checked = {area: len(items) for area, items in before.items()}
         diffs = compare(before, after, opts["show"])
-        self.stdout.write(f"Accounts: {len(owner_ids)}. Checked: " + ", ".join(f"{k} {v}" for k, v in checked.items()))
+        self.stdout.write(f"Baseline reads: {baseline}. Accounts: {len(owner_ids)}. Checked: " + ", ".join(f"{k} {v}" for k, v in checked.items()))
         self.stdout.write(f"Cleanup plan (rolled back): {result.get('genes', 0)} gene rows, "
                           f"{result.get('pedigree', 0)} pedigree rows, {result.get('flagged', 0)} rabbits flagged.")
         by_area = {}
