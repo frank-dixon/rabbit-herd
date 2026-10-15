@@ -24,7 +24,7 @@ def _date(value):
 
 
 def rabbits(user):
-    rows = purebred.mark(list(Rabbit.objects.filter(owner=user).select_related("location", "source").prefetch_related(*purebred.PREFETCH)))
+    rows = purebred.mark(list(Rabbit.objects.filter(owner=user).real().select_related("location", "source").prefetch_related(*purebred.PREFETCH)))
     from django.conf import settings
 
     loc = settings.FEATURE_LOCATIONS
@@ -38,7 +38,7 @@ def rabbits(user):
 
 def litters(user):
     yield ["Doe", "Buck", "Bred", "Due", "Kindled", "Born alive", "Born dead", "Lost since", "Surviving", "Kits in herd", "Notes"]
-    for l in Litter.objects.filter(owner=user).select_related("pairing__doe", "pairing__buck").prefetch_related("kits"):
+    for l in Litter.objects.filter(owner=user).real().select_related("pairing__doe", "pairing__buck").prefetch_related("kits"):
         yield [l.pairing.doe.name, l.pairing.buck.name, _date(l.bred_on), _date(l.due_on), _date(l.kindled_on),
                "" if l.born_alive is None else l.born_alive, l.born_dead, l.died_after,
                "" if l.survivors is None else l.survivors, ", ".join(k.name for k in l.kits.all()), l.notes]
@@ -47,21 +47,21 @@ def litters(user):
 def weights(user):
     yield ["Rabbit", "Ear tattoo", "Date", "Weight", "Grams", "Pounds", "Kilograms", "Note"]
     unit = prefs(user).weight_unit
-    for w in Weight.objects.filter(rabbit__owner=user).select_related("rabbit").order_by("rabbit__name", "date", "pk"):
+    for w in Weight.objects.filter(rabbit__owner=user, is_sample=False).select_related("rabbit").order_by("rabbit__name", "date", "pk"):
         yield [w.rabbit.name, w.rabbit.tattoo, _date(w.date), weight_text(w.grams, unit), w.grams, f"{w.grams / 453.59237:.2f}",
                f"{w.grams / 1000:.3f}", w.note]
 
 
 def shows(user):
     yield ["Rabbit", "Show", "Date", "Location", "Class", "Placed", "Class size", "Award", "Judge", "Leg", "Notes"]
-    for s in ShowEntry.objects.filter(rabbit__owner=user).select_related("rabbit").order_by("date", "pk"):
+    for s in ShowEntry.objects.filter(rabbit__owner=user, is_sample=False).select_related("rabbit").order_by("date", "pk"):
         yield [s.rabbit.name, s.show_name, _date(s.date), s.location, s.show_class, s.placing or "", s.out_of or "",
                s.award, s.judge, "Yes" if s.leg else "No", s.notes]
 
 
 def costs(user):
     yield ["Date", "Category", "What", "Amount", "Pounds", "Per lb", "Rabbit", "Litter"]
-    for e in Expense.objects.filter(owner=user).select_related("rabbit", "litter__pairing__doe", "litter__pairing__buck").order_by("date", "pk"):
+    for e in Expense.objects.filter(owner=user).real().select_related("rabbit", "litter__pairing__doe", "litter__pairing__buck").order_by("date", "pk"):
         yield [_date(e.date), e.get_category_display(), e.description, e.amount, e.weight_lb or "", e.per_lb or "",
                e.rabbit.name if e.rabbit else "", str(e.litter) if e.litter else ""]
 

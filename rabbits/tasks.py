@@ -72,7 +72,7 @@ def open_items(user, today=None):
     """Every open task and litter date, soonest first, as plain dicts."""
     today = today or timezone.localdate()
     items = []
-    for task in Task.objects.filter(owner=user, done_at__isnull=True).select_related("rabbit").prefetch_related("rabbit__photos"):
+    for task in Task.objects.filter(owner=user, done_at__isnull=True).real().select_related("rabbit").prefetch_related("rabbit__photos"):
         items.append({"kind": "task", "pk": task.pk, "title": task.title, "date": task.due_on, "repeat": task.repeat_label(),
                       "rabbit": task.rabbit, "url": reverse("rabbit_detail", args=[task.rabbit_id]) if task.rabbit_id else ""})
     # Litters still to kindle, plus recent ones with wean or process dates
@@ -114,7 +114,7 @@ def task_list(request):
             Task.objects.create(owner=request.user, **fields)
             messages.success(request, f"Added: {fields['title']}.")
             return redirect("task_list")
-    done = list(Task.objects.filter(owner=request.user, done_at__isnull=False).select_related("rabbit")
+    done = list(Task.objects.filter(owner=request.user, done_at__isnull=False).for_view(request.user).select_related("rabbit")
                 .prefetch_related("rabbit__photos").order_by("-done_at")[:20])
     items = open_items(request.user, today)
     groups = {"todo": items, "overdue": [i for i in items if i["overdue"]],

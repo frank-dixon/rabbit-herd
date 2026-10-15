@@ -99,7 +99,7 @@ def litter_list(request):
 
     view = index_view(request, "litters", "grid")
     today = timezone.localdate()
-    litters = list(Litter.objects.filter(owner=request.user)
+    litters = list(Litter.objects.filter(owner=request.user).for_view(request.user)
                    .select_related("pairing__doe", "pairing__buck", "breeding_schedule")
                    .prefetch_related("pairing__doe__photos", "pairing__buck__photos", "kits__photos", "kits__weights"))
     doe = request.GET.get("doe", "")
@@ -132,7 +132,7 @@ def litter_list(request):
     kindled = sorted((c for c in cards if c["stage"] == "kindled"), key=lambda c: c["litter"].kindled_on, reverse=True)
     return render(request, "rabbits/litters.html", {
         "open": expecting, "kindled": kindled, "today": today, "past": past_rows, "past_headers": past_headers, "past_after": O.PAST_AFTER_DAYS, "wide": True, "view": view, "archived": archived,
-        "archived_count": Litter.objects.filter(owner=request.user, converted_at__isnull=False).count(),
+        "archived_count": Litter.objects.filter(owner=request.user, converted_at__isnull=False).real().count(),
         "view_options": view_options(request, view),
     })
 

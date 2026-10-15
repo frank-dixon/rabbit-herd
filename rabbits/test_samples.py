@@ -59,3 +59,29 @@ class SampleServiceTests(TestCase):
     def test_sample_models_have_the_flag(self):
         for model in sample_models():
             self.assertTrue(hasattr(model, "is_sample"))
+
+
+class SamplePairingAndExportTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(email="p@example.com", password="x")
+        self.today = date(2026, 10, 15)
+        add_samples(self.user, "rabbits", today=self.today)
+        self.client.force_login(self.user)
+
+    def test_real_and_sample_pairing_is_rejected(self):
+        from django.urls import reverse
+        real = Rabbit.objects.create(
+            owner=self.user, name="Clover", sex=Rabbit.Sex.DOE, breed="Californian",
+            color="White", birth_date=self.today, status=Rabbit.Status.BREEDING)
+        buck = Rabbit.objects.get(owner=self.user, sample_key="rabbits.buck")
+        r = self.client.post(reverse("pairing_list"), {
+            "doe": real.pk, "buck": buck.pk, "action": "save", "notes": ""})
+        self.assertEqual(Pairing.objects.filter(owner=self.user).count(), 0)
+        self.assertContains(r, "Sample rabbits can only be paired with other samples")
+
+    def test_export_skips_samples(self):
+        from rabbits.export import rabbits as export_rabbits
+        rows = list(export_rabbits(self.user))
+        names = [row[0] for row in rows[1:]]
+        self.assertNotIn("Maple", names)
+        self.assertNotIn("Cedar", names)

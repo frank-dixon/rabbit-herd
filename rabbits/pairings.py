@@ -97,7 +97,7 @@ def age_warnings(doe, buck):
 
 
 def herd_choices(user, sex):
-    rabbits = Rabbit.objects.filter(owner=user, sex=sex, archived_at__isnull=True).exclude(status=Rabbit.Status.DECEASED)
+    rabbits = Rabbit.objects.filter(owner=user, sex=sex, archived_at__isnull=True).for_view(user).exclude(status=Rabbit.Status.DECEASED)
     return [(str(r.pk), f"{r.name}{f' · {r.tattoo}' if r.tattoo else ''} · {r.short_breed}") for r in rabbits]
 
 
@@ -169,9 +169,12 @@ def pairing_list(request):
             errors["doe"] = [CHOOSE_DOE]
         if buck is None:
             errors["buck"] = [CHOOSE_BUCK]
+        if not errors and doe.is_sample != buck.is_sample:
+            errors["doe"] = ["Sample rabbits can only be paired with other samples. Add your own rabbit to plan this pairing."]
         if not errors and request.POST.get("action") == "save":
             pairing = Pairing.objects.create(owner=request.user, doe=doe, buck=buck,
-                                             notes=" ".join(values["notes"].split())[:200])
+                                             notes=" ".join(values["notes"].split())[:200],
+                                             is_sample=doe.is_sample)
             messages.success(request, f"{pairing} was saved.")
             return redirect("pairing_detail", pairing.pk)
         if not errors:
@@ -183,7 +186,7 @@ def pairing_list(request):
             check = pair_check(request.user, doe, buck, {"doe": values["doe"], "buck": values["buck"]}, request.GET.get("asort", ""))
     from .index_items import index_view, sorted_items, stat, view_options
 
-    pairings = list(Pairing.objects.filter(owner=request.user).select_related("doe", "buck")
+    pairings = list(Pairing.objects.filter(owner=request.user).for_view(request.user).select_related("doe", "buck")
                     .prefetch_related("doe__photos", "buck__photos", "doe__genes", "buck__genes", "litters"))
     view = index_view(request, "pairings", "grid")
     items = pairing_items(request.user, pairings)

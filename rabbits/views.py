@@ -17,7 +17,7 @@ from .forms import GenesForm, PhotoUploadForm
 from .models import Contact, Gene, HealthNote, Litter, Location, Rabbit, Weight, prefs
 
 def owned_rabbits(user):
-    return Rabbit.objects.filter(owner=user)
+    return Rabbit.objects.filter(owner=user).for_view(user)
 
 
 def owned_rabbit(user, pk):

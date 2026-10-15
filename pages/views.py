@@ -204,7 +204,7 @@ def home_context(user, limit=8):
     from rabbits.tasks import open_items
 
     today = timezone.localdate()
-    rabbits = list(Rabbit.objects.filter(owner=user))
+    rabbits = list(Rabbit.objects.filter(owner=user).real())
     live = [r for r in rabbits if r.archived_at is None]
     # The same "active" as the Rabbits list: living rabbits still in the herd.
     active = [r for r in live if r.status not in Rabbit.FORMER]
@@ -273,7 +273,7 @@ def herd_first(user, today, active, rabbits, items):
         latest_weight.setdefault(w.rabbit_id, w)
     living = [r for r in active if r.status in (Rabbit.Status.BREEDING, Rabbit.Status.GROWING)]
     living.sort(key=lambda r: (next_for[r.pk]["date"] if r.pk in next_for else datetime.date.max, r.name))
-    open_litters = list(Litter.objects.filter(owner=user, kindled_on__isnull=True).select_related("pairing__doe", "pairing__buck")
+    open_litters = list(Litter.objects.filter(owner=user, kindled_on__isnull=True).real().select_related("pairing__doe", "pairing__buck")
                         .prefetch_related("pairing__doe__photos", "pairing__buck__photos").order_by("bred_on"))
     bred_status = {lit.pairing.doe_id for lit in open_litters}
     cards = []
@@ -322,11 +322,11 @@ def herd_first(user, today, active, rabbits, items):
     from . import minibars as MB
 
     mo = MB.months(today)
-    everyone = list(Rabbit.objects.filter(owner=user))
+    everyone = list(Rabbit.objects.filter(owner=user).real())
     left = lambda r: r.sold_on or r.death_date or (r.archived_at.date() if r.archived_at else None)
     herd_by_month = [sum(1 for r in everyone if r.birth_date <= end and not (left(r) and left(r) <= end)
                          and (r.status in (Rabbit.Status.BREEDING, Rabbit.Status.GROWING) or left(r))) for _, end, _ in mo]
-    lits = list(Litter.objects.filter(owner=user).values_list("bred_on", "kindled_on"))
+    lits = list(Litter.objects.filter(owner=user).real().values_list("bred_on", "kindled_on"))
     in_m = lambda d, a, b: d is not None and a <= d <= b
     bars = {
         "herd": MB.bars(mo, herd_by_month, "rabbits in the herd at month end"),
