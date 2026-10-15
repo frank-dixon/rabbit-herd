@@ -18,6 +18,7 @@ from decimal import Decimal
 
 from django.db import transaction
 
+from . import derived
 from . import flow_photos, flow_forms, gene_fill
 from .models import Breed, BreedShare, Gene, OutsideRabbit, Rabbit, Relative, color_text, parse_share, share_text
 
@@ -568,7 +569,7 @@ def draft_from_rabbit(rabbit):
             "step": EDIT_SLUGS[0],
         }
     )
-    for gene in rabbit.genes.all():
+    for gene in derived.genes_of(rabbit):
         key = "gene_other" if gene.locus == Gene.Locus.OTHER else f"gene_{gene.locus}"
         if key in draft:
             value = gene.genotype if gene.locus == Gene.Locus.OTHER else gene_fill.canonical(gene.locus, gene.genotype)
@@ -753,7 +754,7 @@ def parent_genes(draft, user):
         genes = {locus: row.get(gene_key(locus), "") for locus in gene_fill.LOCI if row.get(gene_key(locus))}
         target = flow_forms.resolve_ref(user, row["ref"]) if row["ref"].startswith("h:") else None
         if isinstance(target, Rabbit):
-            for gene in target.genes.all():
+            for gene in derived.genes_of(target):
                 genes.setdefault(gene.locus, gene.genotype)
         out.append(genes)
     return out
@@ -803,6 +804,7 @@ def save_genes(rabbit, genes, auto):
     """Write the genes card to the rabbit. A blank clears that locus. A
     filled value proven by the color is saved as known; anything else
     keeps its certainty, or starts as probable."""
+    derived.materialize(rabbit)
     for locus in gene_fill.LOCI + [Gene.Locus.OTHER]:
         value = genes.get(locus, "").strip()
         existing = rabbit.genes.filter(locus=locus).first()

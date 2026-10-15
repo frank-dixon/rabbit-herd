@@ -6,6 +6,7 @@ ruby-eyed white) passes a c to every kit, so a non-albino kit of that
 parent carries c.
 """
 
+from . import derived
 from .models import Gene, Relative
 
 LOCI = [value for value in Gene.Locus.values if value != Gene.Locus.OTHER]
@@ -43,7 +44,7 @@ def albino_parent(rabbit):
         if is_albino(row.color, list(row.genes.all())):
             return row.relationship, str(row.other.name)
         herd = row.herd_rabbit
-        if herd is not None and is_albino(herd.color, list(herd.genes.all())):
+        if herd is not None and is_albino(herd.color, derived.genes_of(herd)):
             return row.relationship, herd.name
     return None
 
@@ -53,7 +54,7 @@ def c_carrier_suggestion(rabbit):
 
     Nothing shows when the rabbit already has a C gene recorded, when the
     keeper removed the note, or when the rabbit is itself albino."""
-    if rabbit.c_carrier_dismissed or rabbit.genes.filter(locus=Gene.Locus.C).exists():
+    if rabbit.c_carrier_dismissed or derived.has_gene(rabbit, Gene.Locus.C):
         return ""
     if is_albino_color(rabbit.color):
         return ""
@@ -137,7 +138,7 @@ def parent_pairs(rabbit):
         pairs = _pairs_from_genes(row.genes.all())
         name = str(row.other.name)
         if row.herd_rabbit is not None:
-            pairs = {**pairs, **_pairs_from_genes(row.herd_rabbit.genes.all())}
+            pairs = {**pairs, **_pairs_from_genes(derived.genes_of(row.herd_rabbit))}
             name = row.herd_rabbit.name
         out[row.relationship] = (name, pairs)
     return out
@@ -159,7 +160,7 @@ def carrier_odds(rabbit):
     if "dam" not in parents or "sire" not in parents:
         return []
     (dam_name, dam), (sire_name, sire) = parents["dam"], parents["sire"]
-    own = {gene.locus: parse(gene.locus, gene.genotype) for gene in rabbit.genes.all() if gene.locus in SERIES}
+    own = {gene.locus: parse(gene.locus, gene.genotype) for gene in derived.genes_of(rabbit) if gene.locus in SERIES}
     lines = []
     for locus in SERIES:
         mine = own.get(locus)
@@ -199,7 +200,7 @@ def test_mates(rabbit):
                 .exclude(status__in=[Rabbit.Status.DECEASED, Rabbit.Status.SOLD, Rabbit.Status.CULLED])
                 .prefetch_related("genes").order_by("name"))
     out = []
-    for gene in rabbit.genes.all():
+    for gene in derived.genes_of(rabbit):
         if gene.locus not in SERIES:
             continue
         pair = parse(gene.locus, gene.genotype)
@@ -214,7 +215,7 @@ def test_mates(rabbit):
             continue
         mates = [mate.name for mate in herd if any(
             g.locus == gene.locus and g.certainty == Gene.Certainty.KNOWN
-            and parse(g.locus, g.genotype) == (recessive, recessive) for g in mate.genes.all())]
+            and parse(g.locus, g.genotype) == (recessive, recessive) for g in derived.genes_of(mate))]
         test = genotype_text((recessive, recessive))
         if mates:
             note = (f"Pair with {' or '.join(mates[:3])} ({test}). Any {test} kit shows {rabbit.name} carries "

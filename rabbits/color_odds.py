@@ -13,6 +13,7 @@ from collections import defaultdict
 from fractions import Fraction
 from itertools import product
 
+from . import derived
 from .models import Gene
 
 UNKNOWN = "_"
@@ -220,7 +221,7 @@ def differing(doe_pairs, buck_pairs):
 
 
 def _genes(rabbit):
-    return {gene.locus: gene for gene in rabbit.genes.all() if gene.locus != Gene.Locus.OTHER}
+    return {gene.locus: gene for gene in derived.genes_of(rabbit) if gene.locus != Gene.Locus.OTHER}
 
 
 def predict(doe, buck):

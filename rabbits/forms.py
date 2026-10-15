@@ -1,5 +1,6 @@
 from django import forms
 
+from . import derived
 from . import photo_processing
 from .models import Gene
 
@@ -61,7 +62,7 @@ class GenesForm(forms.Form):
 
     def __init__(self, *args, rabbit, **kwargs):
         self.rabbit = rabbit
-        current = {gene.locus: gene for gene in rabbit.genes.all()}
+        current = {gene.locus: gene for gene in derived.genes_of(rabbit)}
         initial = {}
         for locus, label in Gene.Locus.choices:
             gene = current.get(locus)
@@ -81,6 +82,7 @@ class GenesForm(forms.Form):
             )
 
     def save(self):
+        derived.materialize(self.rabbit)
         for locus, _ in Gene.Locus.choices:
             genotype = self.cleaned_data[f"gene_{locus}"].strip()
             certainty = self.cleaned_data[f"cert_{locus}"] or Gene.Certainty.PROBABLE

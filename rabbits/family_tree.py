@@ -10,6 +10,7 @@ from django.core.cache import cache
 from django.db.models import Q
 from django.urls import reverse
 
+from . import derived
 from . import gene_inference
 from .litter_photos import coat_placeholder_url, outside_photo_url
 from .models import Gene, LitterKit, OutsideRabbit, PedigreeEntry, Rabbit, Relative
@@ -106,7 +107,7 @@ def collect(rabbit):
         m["breed"] = m["breed"] or breed or (obj.breed if isinstance(obj, Rabbit) else "")
         if isinstance(obj, Rabbit) and "own" not in m:
             m["own"] = True
-            m["genes"].update(gene_inputs(obj.genes.all()))
+            m["genes"].update(gene_inputs(derived.genes_of(obj)))
         if row is not None:
             for locus, value in gene_inputs(row.genes.all()).items():
                 m["genes"].setdefault(locus, value)

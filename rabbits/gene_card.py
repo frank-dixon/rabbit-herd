@@ -3,6 +3,7 @@ we are. Known and Probable come from what was recorded; Possible is what the
 breed, color and eye color point to but nobody has recorded; Unknown is
 everything else, so the gaps are visible instead of silent."""
 
+from . import derived
 from . import gene_fill
 
 LEVELS = [
@@ -16,7 +17,7 @@ LEVEL_LABELS = {key: label for key, label, _ in LEVELS}
 
 def rows(rabbit, genes=None):
     """[{locus, name, genotype, level, label, note}] for every standard locus."""
-    genes = list(rabbit.genes.all()) if genes is None else list(genes)
+    genes = derived.genes_of(rabbit) if genes is None else list(genes)
     recorded = {gene.locus: gene for gene in genes}
     implied = gene_fill.from_breed_and_color(rabbit.breed or "", rabbit.color or "", rabbit.eye_color or "")
     out = []

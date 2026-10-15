@@ -32,7 +32,9 @@ def build_tree(rabbit, generations=PEDIGREE_GENERATIONS):
             tree[position] = cell(position, other, row)
             if isinstance(other, Rabbit) and len(position) < generations:
                 queue.append((position, other))
-    return tree
+    # Generation by generation, so the result is the same whether a position
+    # was stored on the rabbit or found on a herd ancestor.
+    return dict(sorted(tree.items(), key=lambda item: (len(item[0]), item[0])))
 
 
 def cell(position, other, row):

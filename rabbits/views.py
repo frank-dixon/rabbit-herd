@@ -12,6 +12,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from . import derived
 from . import color_odds, costs, culling, genetics, purebred, shows
 from .forms import GenesForm, PhotoUploadForm
 from .models import Contact, Gene, HealthNote, Litter, Location, Rabbit, Weight, prefs
@@ -396,7 +397,7 @@ def rabbit_detail(request, pk):
             "hidden_notes": genetics.hidden_notes(color_odds.recorded(rabbit)),
             "carrier_odds": genetics.carrier_odds(rabbit),
             "test_mates": genetics.test_mates(rabbit),
-            "genes": rabbit.genes.all(),
+            "genes": derived.genes_of(rabbit),
             **smart_gene_context(rabbit),
             "relatives_with_genes": [
                 (relative, list(relative.genes.all()))
@@ -416,6 +417,7 @@ def rabbit_c_carrier(request, pk):
     rabbit = owned_rabbit(request.user, pk)
     if genetics.c_carrier_suggestion(rabbit):
         if request.POST.get("action") == "confirm":
+            derived.materialize(rabbit)
             Gene.objects.create(
                 rabbit=rabbit,
                 locus=Gene.Locus.C,
@@ -434,7 +436,7 @@ def rabbit_c_carrier(request, pk):
 def smart_gene_context(rabbit):
     from . import gene_card
 
-    genes = list(rabbit.genes.all())
+    genes = derived.genes_of(rabbit)
     card = gene_card.rows(rabbit, genes)
     return {
         "gene_card": card, "gene_card_summary": gene_card.summary(card), "gene_levels": gene_card.LEVELS,

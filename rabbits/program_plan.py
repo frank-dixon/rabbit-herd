@@ -7,6 +7,7 @@ from fractions import Fraction
 
 from django.utils import timezone
 
+from . import derived
 from . import planner as P
 from .color_odds import UNKNOWN
 from . import routes as routes_mod
@@ -79,7 +80,7 @@ def month_text(day):
 # Breeders ---------------------------------------------------------------------
 
 def rabbit_genes(rabbit):
-    texts = {g.locus: g.genotype for g in rabbit.genes.all() if g.locus != Gene.Locus.OTHER}
+    texts = {g.locus: g.genotype for g in derived.genes_of(rabbit) if g.locus != Gene.Locus.OTHER}
     return P.read_genes(texts)
 
 
