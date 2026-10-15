@@ -10,7 +10,14 @@ from .models import PEDIGREE_GENERATIONS, PedigreeEntry, Rabbit, Relative, posit
 
 
 def known_parents(rabbit_id):
-    """{"s"/"d": (herd rabbit or outside rabbit, relative row or None)} from one rabbit's records."""
+    """{"s"/"d": (herd rabbit or outside rabbit, relative row or None)} from one rabbit's records.
+    Cached for the rest of the request; any pedigree or relative write clears it."""
+    from . import derived
+
+    return dict(derived.memo(("parents", rabbit_id), lambda: _known_parents(rabbit_id)))
+
+
+def _known_parents(rabbit_id):
     found = {}
     for entry in PedigreeEntry.objects.filter(rabbit_id=rabbit_id).select_related("herd_rabbit", "outside"):
         found[entry.position] = (entry.ancestor, None)

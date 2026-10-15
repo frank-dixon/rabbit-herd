@@ -95,6 +95,7 @@ def backup(p):
 
 def apply(p):
     """Remove the rows and set the flags. History is not logged: nothing the keeper sees changes."""
+    from . import derived
     from .history import quiet
     from .models import Gene, PedigreeEntry, Rabbit
 
@@ -102,11 +103,13 @@ def apply(p):
         genes = Gene.objects.filter(pk__in=p["genes"]).delete()[0]
         pedigree = PedigreeEntry.objects.filter(pk__in=p["pedigree"]).delete()[0]
         flagged = Rabbit.all_objects.filter(pk__in=p["flag"]).update(genes_implied=True)
+    derived.forget()
     return {"genes": genes, "pedigree": pedigree, "flagged": flagged}
 
 
 def restore(data):
     """Put a backup back exactly (same ids) and clear the flags it set."""
+    from . import derived
     from .history import quiet
     from .models import Gene, PedigreeEntry, Rabbit
 
@@ -114,6 +117,7 @@ def restore(data):
         Rabbit.all_objects.filter(pk__in=data["flag"]).update(genes_implied=False)
         Gene.objects.bulk_create([Gene(**row) for row in data["genes"]], ignore_conflicts=True)
         PedigreeEntry.objects.bulk_create([PedigreeEntry(**row) for row in data["pedigree"]], ignore_conflicts=True)
+    derived.forget()
     return {"genes": len(data["genes"]), "pedigree": len(data["pedigree"]), "unflagged": len(data["flag"])}
 
 

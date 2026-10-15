@@ -22,18 +22,17 @@ import logging
 
 from django.conf import settings
 
-from . import gene_fill
-
 log = logging.getLogger("rabbits.genetics_parity")
 
 _cache = contextvars.ContextVar("rabbits_derived_cache", default=None)
 
 
 def middleware(get_response):
-    """Give each request its own read cache, dropped when it ends."""
+    """Give each GET/HEAD request its own read cache, dropped when it ends.
+    Requests that write (POST and the rest) read uncached."""
 
     def handle(request):
-        token = _cache.set({})
+        token = _cache.set({} if request.method in ("GET", "HEAD") else None)
         try:
             return get_response(request)
         finally:
@@ -52,7 +51,8 @@ def memo(key, compute):
 
 
 def forget(rabbit_id=None):
-    """Drop cached reads after a write in the same request."""
+    """Drop cached reads after a write in the same request (wired to model signals;
+    queryset update() and delete() callers must call it themselves)."""
     store = _cache.get()
     if store:
         store.clear()
@@ -64,6 +64,7 @@ def mode():
 
 def implied_genes(rabbit):
     """Unsaved probable Gene rows for what the coat proves, in locus order."""
+    from . import gene_fill
     from .models import Gene
 
     fill = gene_fill.from_breed_and_color(rabbit.breed or "", rabbit.color or "", rabbit.eye_color or "")
@@ -78,6 +79,8 @@ def _stored(rabbit):
 def _new(rabbit, stored):
     if not rabbit.genes_implied:
         return stored
+    from . import gene_fill
+
     have = {g.locus for g in stored}
     extra = [g for g in implied_genes(rabbit) if g.locus not in have]
     if not extra:
@@ -94,6 +97,12 @@ def genes_of(rabbit):
     """A herd rabbit's genes as a list of Gene objects (some may be unsaved)."""
     if rabbit is None:
         return []
+    if rabbit.pk is None:
+        return _genes_of(rabbit)
+    return list(memo(("genes", rabbit.pk, mode(), rabbit.genes_implied), lambda: _genes_of(rabbit)))
+
+
+def _genes_of(rabbit):
     stored = _stored(rabbit)
     how = mode()
     if how == "old":
@@ -143,9 +152,17 @@ def _coat_changing(sender, instance, raw=False, **kwargs):
         materialize(instance)
 
 
-def connect():
-    from django.db.models.signals import pre_save
+def _changed(sender, **kwargs):
+    forget()
 
-    from .models import Rabbit
+
+def connect():
+    from django.db.models.signals import post_delete, post_save, pre_save
+
+    from .models import Gene, PedigreeEntry, Rabbit, Relative
 
     pre_save.connect(_coat_changing, sender=Rabbit, dispatch_uid="derived-coat-changing")
+    for model in (Gene, PedigreeEntry, Relative, Rabbit):
+        key = model._meta.label_lower
+        post_save.connect(_changed, sender=model, dispatch_uid=f"derived-saved-{key}")
+        post_delete.connect(_changed, sender=model, dispatch_uid=f"derived-deleted-{key}")
