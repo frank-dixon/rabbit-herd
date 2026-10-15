@@ -9,3 +9,7 @@ class RabbitsConfig(AppConfig):
         from . import history
 
         history.connect()
+
+        from . import derived
+
+        derived.connect()

@@ -95,6 +95,10 @@ class Rabbit(models.Model):
 
     is_sample = models.BooleanField(default=False, db_index=True)
     sample_key = models.CharField(max_length=40, blank=True, default="")
+    # True once the genes cleanup removed this rabbit's stored copies of what its
+    # breed, color and eye color prove: those loci then read as probable genes
+    # computed on the fly (rabbits.derived.genes_of) instead of Gene rows.
+    genes_implied = models.BooleanField(default=False)
 
     class Sex(models.TextChoices):
         DOE = "doe", "Doe"

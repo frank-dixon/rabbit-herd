@@ -103,6 +103,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "rabbits.derived.middleware",
     "accounts.ratelimit.middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "pages.middleware.prefetch_keeps_messages",
@@ -276,6 +277,10 @@ CSRF_COOKIE_SAMESITE = "Lax"
 
 # Default cache stays per process. Attempt limits need one shared count across
 # serverless instances, so they use a database table (created by a migration).
+# Genetics reads (rabbits.derived): "old" stored Gene rows only, "new" rows plus
+# genes computed from the coat, "both" serves old and logs any difference.
+GENETICS_READ = os.environ.get("GENETICS_READ", "old")
+
 CACHES = {
     "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
     "ratelimit": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "rate_limit_cache"},

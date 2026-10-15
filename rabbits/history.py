@@ -8,7 +8,7 @@ import threading
 from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 
 _state = threading.local()
-SKIP = {"deleted_at", "id", "owner", "created_at", "updated_at", "c_carrier_dismissed", "image", "uploaded_at", "relative", "next_occurrence"}
+SKIP = {"deleted_at", "id", "owner", "created_at", "updated_at", "c_carrier_dismissed", "image", "uploaded_at", "relative", "next_occurrence", "genes_implied"}
 
 
 @contextlib.contextmanager

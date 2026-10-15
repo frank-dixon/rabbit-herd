@@ -1,0 +1,151 @@
+"""Computed genetics reads (genes design B, specs/genes-rethink.md).
+
+Gene rows hold what a person recorded. A rabbit with genes_implied=True also
+has probable genes at every locus its breed, color and eye color prove, read
+from gene_fill instead of stored rows. genes_of() is the one read every
+genetics view uses; settings.GENETICS_READ picks the path:
+
+- "old": the stored rows only, exactly as before.
+- "new": stored rows plus the computed ones.
+- "both": serve "old", compute "new" too and log any difference.
+
+Herd pedigrees already come from walking dam and sire up the herd
+(pedigree.build_tree, pairings.ancestors); the cleanup only drops stored
+ancestor rows that walk gives back unchanged.
+
+Reads are cached per request (see middleware) so a page that asks for the
+same rabbit's genes or parents many times does the work once.
+"""
+
+import contextvars
+import logging
+
+from django.conf import settings
+
+from . import gene_fill
+
+log = logging.getLogger("rabbits.genetics_parity")
+
+_cache = contextvars.ContextVar("rabbits_derived_cache", default=None)
+
+
+def middleware(get_response):
+    """Give each request its own read cache, dropped when it ends."""
+
+    def handle(request):
+        token = _cache.set({})
+        try:
+            return get_response(request)
+        finally:
+            _cache.reset(token)
+
+    return handle
+
+
+def memo(key, compute):
+    store = _cache.get()
+    if store is None:
+        return compute()
+    if key not in store:
+        store[key] = compute()
+    return store[key]
+
+
+def forget(rabbit_id=None):
+    """Drop cached reads after a write in the same request."""
+    store = _cache.get()
+    if store:
+        store.clear()
+
+
+def mode():
+    return getattr(settings, "GENETICS_READ", "old")
+
+
+def implied_genes(rabbit):
+    """Unsaved probable Gene rows for what the coat proves, in locus order."""
+    from .models import Gene
+
+    fill = gene_fill.from_breed_and_color(rabbit.breed or "", rabbit.color or "", rabbit.eye_color or "")
+    return [Gene(rabbit_id=rabbit.pk, locus=locus, genotype=fill[locus], certainty=Gene.Certainty.PROBABLE, note="")
+            for locus in gene_fill.LOCI if fill.get(locus)]
+
+
+def _stored(rabbit):
+    return list(rabbit.genes.all())  # honors prefetch_related("genes")
+
+
+def _new(rabbit, stored):
+    if not rabbit.genes_implied:
+        return stored
+    have = {g.locus for g in stored}
+    extra = [g for g in implied_genes(rabbit) if g.locus not in have]
+    if not extra:
+        return stored
+    order = {locus: i for i, locus in enumerate(gene_fill.LOCI)}
+    return sorted(stored + extra, key=lambda g: order.get(g.locus, len(order)))
+
+
+def gene_key(genes):
+    return [(g.locus, g.genotype, g.certainty, g.note) for g in genes]
+
+
+def genes_of(rabbit):
+    """A herd rabbit's genes as a list of Gene objects (some may be unsaved)."""
+    if rabbit is None:
+        return []
+    stored = _stored(rabbit)
+    how = mode()
+    if how == "old":
+        return stored
+    new = _new(rabbit, stored)
+    if how == "both":
+        if gene_key(new) != gene_key(stored):
+            log.warning("genes mismatch rabbit=%s old=%s new=%s", rabbit.pk, gene_key(stored), gene_key(new))
+        return stored
+    return new
+
+
+def has_gene(rabbit, locus):
+    return any(g.locus == locus for g in genes_of(rabbit))
+
+
+def materialize(rabbit):
+    """Before a write to a rabbit's genes or coat: store its computed genes as
+    rows and clear genes_implied, so edits behave as they always have.
+    History is not logged for these rows; nothing the keeper sees changes."""
+    from .history import quiet
+    from .models import Gene, Rabbit
+
+    if not rabbit or not rabbit.pk:
+        return
+    flagged = Rabbit.all_objects.filter(pk=rabbit.pk, genes_implied=True).values("breed", "color", "eye_color").first()
+    if not flagged:
+        return
+    snapshot = Rabbit(pk=rabbit.pk, **flagged)
+    have = set(Gene.objects.filter(rabbit_id=rabbit.pk).values_list("locus", flat=True))
+    with quiet():
+        Gene.objects.bulk_create([g for g in implied_genes(snapshot) if g.locus not in have])
+        Rabbit.all_objects.filter(pk=rabbit.pk).update(genes_implied=False)
+    rabbit.genes_implied = False
+    if hasattr(rabbit, "_prefetched_objects_cache"):
+        rabbit._prefetched_objects_cache.pop("genes", None)
+    forget()
+
+
+def _coat_changing(sender, instance, raw=False, **kwargs):
+    """A flagged rabbit's computed genes follow its coat, so store them before
+    the breed, color or eye color changes."""
+    if raw or not instance.pk or not instance.genes_implied:
+        return
+    old = sender._base_manager.filter(pk=instance.pk).values("breed", "color", "eye_color", "genes_implied").first()
+    if old and old["genes_implied"] and any(old[f] != getattr(instance, f) for f in ("breed", "color", "eye_color")):
+        materialize(instance)
+
+
+def connect():
+    from django.db.models.signals import pre_save
+
+    from .models import Rabbit
+
+    pre_save.connect(_coat_changing, sender=Rabbit, dispatch_uid="derived-coat-changing")
