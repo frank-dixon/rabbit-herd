@@ -1,6 +1,6 @@
 /* Weights page: Table (default) and Chart views. Cards are white with the soft card shadow only; hairline
    rows; 4/8px spacing; compact 6px-radius buttons; square thumbs. */
-:root { --wt-curve: #8FAE9A; --wt-band: color-mix(in oklab, var(--accent) 12%, transparent); }
+:root { --wt-curve: color-mix(in oklab, var(--accent) 40%, var(--muted)); --wt-band: color-mix(in oklab, var(--accent) 12%, transparent); }
 .wt-card { background: var(--surface); border-radius: 12px; box-shadow: var(--card-shadow); }
 .wt-btn { display: inline-flex; align-items: center; justify-content: center; height: 32px; padding: 0 12px; border: 0; border-radius: 6px;
   background: var(--well); color: var(--ink); font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; list-style: none; }

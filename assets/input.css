@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./themes.css";
+@import "./heritage.css";
 @import "./motion.css";
 @import "./v2.css";
 @import "./d2.css";
@@ -14,7 +15,8 @@
 @import "./family-tree.css";
 
 /* Self-hosted fonts (SIL OFL, licences in static/fonts) so the installed app
-   renders the same offline. Instrument Sans for text, DM Mono for numbers. */
+   renders the same offline. Instrument Sans for text, DM Mono for numbers,
+   Zilla Slab for Heritage Show headings. */
 @font-face {
   font-family: "Instrument Sans";
   src: url("../fonts/instrument-sans-latin-var.woff2") format("woff2");
@@ -32,6 +34,28 @@
   font-family: "DM Mono";
   src: url("../fonts/dm-mono-latin-500-normal.woff2") format("woff2");
   font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Zilla Slab";
+  src: url("../fonts/zilla-slab-latin-500-normal.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Zilla Slab";
+  src: url("../fonts/zilla-slab-latin-600-normal.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Zilla Slab";
+  src: url("../fonts/zilla-slab-latin-700-normal.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
   font-display: swap;
 }
 

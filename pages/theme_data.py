@@ -2,6 +2,7 @@
 
 THEMES = [
     ('light', 'Light', 'Light', False, '#FAFAF9', '#FFFFFF', '#22573B', '#1A1F1C'),
+    ('heritage', 'Heritage Show', 'Heritage', False, '#F6F3EC', '#FFFEFA', '#1B2A4A', '#1B2A4A'),
     ('dark-a', 'Evergreen night', 'Dark', True, '#0F1512', '#18201C', '#5CC48A', '#E8EEEA'),
     ('dark-b', 'Midnight and mint', 'Dark', True, '#0E1117', '#171C25', '#4FD1A1', '#E6EAF0'),
     ('dark-c', 'Deep moss and amber', 'Dark', True, '#12140F', '#1C1F18', '#E2A85A', '#ECEDE6'),

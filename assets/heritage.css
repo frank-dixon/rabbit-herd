@@ -1,0 +1,109 @@
+/* Heritage Show (data-theme="heritage"): square corners, Zilla Slab titles,
+   ribbon-style tags. Colors live in themes.css; this file is shape and type. */
+html[data-theme="heritage"] {
+  --radius: 0px;
+  --card-shadow: 0 1px 0 rgb(27 42 74 / 0.08);
+  --font-display: "Zilla Slab", Georgia, "Times New Roman", serif;
+}
+
+html[data-theme="heritage"] :is(h1, h2, h3, .it-title, .lt-title) {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Brand wordmark next to the mark */
+html[data-theme="heritage"] :is(
+  [data-shell] a.text-base.font-semibold,
+  [data-shell] span.text-base.font-semibold,
+  .app-rail a.text-base.font-semibold
+) {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+/* Square everything that Direction 2 softens. Keep full circles for check rings and avatars that are intentionally round. */
+html[data-theme="heritage"] :is(
+  main, dialog, .app-modal-panel, [data-menu-panel], .app-confirm, .save-bar, .list-panel, .stat-card,
+  .litter-card, .kit-card, .rel-table, .sample-bar, .toast, [data-toast]
+) :is(
+  .rounded, .rounded-sm, .rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl,
+  [class*="rounded-["], [class*="rounded-md"], [class*="rounded-lg"]
+) {
+  border-radius: 0 !important;
+}
+
+html[data-theme="heritage"] :is(
+  .stat-card, .list-panel, .app-confirm, .confirm-del-page, .save-bar, .rel-table,
+  .sample-bar, .litter-card, .kit-card, .seg, .chip, .icon-btn, .task-check,
+  .btn, .pill, .sample-badge, [data-status-chip], .photo-more, .photo-more .photo-tile-media,
+  .confirm-del-btn, .confirm-del-link, .save-bar-btn, .wt-btn, .wt-btn-pri
+) {
+  border-radius: 0 !important;
+}
+
+html[data-theme="heritage"] :is(main, dialog, .app-modal-panel) :is(a, button).rounded-full:not(.pill):not(.check-btn-ring) {
+  border-radius: 0 !important;
+}
+
+html[data-theme="heritage"] :is(main, dialog, .app-modal-panel) :is(input, select, textarea):not([type="checkbox"]):not([type="radio"]) {
+  border-radius: 0 !important;
+}
+
+/* Ribbon tags: uppercase, hairline, square */
+html[data-theme="heritage"] :is(.pill, [data-status-chip], .sample-badge) {
+  border-radius: 0 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+html[data-theme="heritage"] .pill.pill-pos,
+html[data-theme="heritage"] .pill.g,
+html[data-theme="heritage"] [data-status="bred"],
+html[data-theme="heritage"] [data-status="breeding"] {
+  box-shadow: inset 0 0 0 1px var(--g-ink);
+}
+html[data-theme="heritage"] :is(.pill.pill-neg, .pill.r, [data-status="retired"], .sample-badge) {
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+html[data-theme="heritage"] .sample-badge {
+  background: var(--well);
+  color: var(--muted);
+}
+
+/* Active tab underline in gold (show-ribbon accent) */
+html[data-theme="heritage"] main .tabs .tab[aria-current="page"]::after,
+html[data-theme="heritage"] main .tabs .tab.on::after,
+html[data-theme="heritage"] main .tabs a[aria-current="page"] {
+  /* hairline handled by existing tab styles; tint via accent already navy */
+}
+
+html[data-theme="heritage"] main .tabs .tab[aria-current="page"],
+html[data-theme="heritage"] main .tabs .tab.on {
+  box-shadow: inset 0 -2px 0 var(--warn);
+}
+
+/* Chart curve follows accent (navy) instead of the hardcoded sage */
+html[data-theme="heritage"] {
+  --wt-curve: color-mix(in oklab, var(--accent) 55%, var(--muted));
+}
+
+/* Marks stay currentColor — navy ink / on-accent on the active rail */
+html[data-theme="heritage"] .app-mark {
+  color: currentColor;
+}
+
+/* Account chip and rail avatars: square in Heritage */
+html[data-theme="heritage"] :is([data-account-menu] span.rounded-lg, .account-chip, [data-shell] span.grid.h-9.w-9) {
+  border-radius: 0 !important;
+}
+
+/* Phone bottom tabs: square active chip */
+html[data-theme="heritage"] :is([data-tab-list] a, [data-tab-list] button, nav[data-tab-bar] a) {
+  border-radius: 0 !important;
+}
+html[data-theme="heritage"] :is([data-tab-list] a[aria-current="page"], [data-tab-list] a.on) {
+  border-radius: 0 !important;
+}

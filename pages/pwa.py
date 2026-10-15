@@ -27,6 +27,9 @@ def shell_assets():
         static("fonts/instrument-sans-latin-var.woff2"),
         static("fonts/dm-mono-latin-400-normal.woff2"),
         static("fonts/dm-mono-latin-500-normal.woff2"),
+        static("fonts/zilla-slab-latin-500-normal.woff2"),
+        static("fonts/zilla-slab-latin-600-normal.woff2"),
+        static("fonts/zilla-slab-latin-700-normal.woff2"),
         # Adult coat placeholders: pedigree and family-tree thumbnails offline.
         *sorted({static(path) for path in ADULT_PLACEHOLDERS.values()}),
     ]
