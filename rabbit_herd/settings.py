@@ -81,6 +81,8 @@ for hostname in PUBLIC_HOSTNAMES:
         CSRF_TRUSTED_ORIGINS.append(origin)
 
 INSTALLED_APPS = [
+    "unfold",
+    "unfold.contrib.filters",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -291,3 +293,64 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31_536_000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+
+
+# Django admin theme (django-unfold).
+from django.templatetags.static import static as _static  # noqa: E402
+from django.urls import reverse_lazy  # noqa: E402
+
+UNFOLD = {
+    "SITE_TITLE": "Bramble Burrow admin",
+    "SITE_HEADER": "Bramble Burrow",
+    "SITE_SUBHEADER": "Herd records admin",
+    "SITE_URL": "/",
+    "SITE_SYMBOL": "pets",
+    "SITE_ICON": lambda request: _static("icons/icon.svg"),
+    "SITE_LOGO": lambda request: _static("icons/icon.svg"),
+    "SITE_FAVICONS": [
+        {"rel": "icon", "type": "image/svg+xml", "href": lambda request: _static("icons/icon.svg")},
+    ],
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "BORDER_RADIUS": "4px",
+    # Forest green scale (OKLCH), 600 is the main brand shade.
+    "COLORS": {
+        "primary": {
+            "50": "oklch(97.5% .018 150)",
+            "100": "oklch(94.5% .035 150)",
+            "200": "oklch(89% .065 150)",
+            "300": "oklch(81% .095 150)",
+            "400": "oklch(70% .115 150)",
+            "500": "oklch(59% .12 150)",
+            "600": "oklch(49% .105 150)",
+            "700": "oklch(42% .09 150)",
+            "800": "oklch(35% .075 150)",
+            "900": "oklch(29% .06 150)",
+            "950": "oklch(21% .045 150)",
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "title": "Herd",
+                "separator": True,
+                "items": [
+                    {"title": "Rabbits", "icon": "pets", "link": reverse_lazy("admin:rabbits_rabbit_changelist")},
+                    {"title": "Outside rabbits", "icon": "diversity_3", "link": reverse_lazy("admin:rabbits_outsiderabbit_changelist")},
+                    {"title": "Breeds", "icon": "category", "link": reverse_lazy("admin:rabbits_breed_changelist")},
+                ],
+            },
+            {
+                "title": "Accounts",
+                "separator": True,
+                "items": [
+                    {"title": "Users", "icon": "person", "link": reverse_lazy("admin:accounts_user_changelist")},
+                    {"title": "Passkeys", "icon": "key", "link": reverse_lazy("admin:accounts_passkeycredential_changelist")},
+                    {"title": "Groups", "icon": "group", "link": reverse_lazy("admin:auth_group_changelist")},
+                ],
+            },
+        ],
+    },
+}

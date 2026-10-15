@@ -1,6 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.contrib.auth.models import Group
+from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
+from unfold.admin import ModelAdmin
+from unfold.forms import AdminPasswordChangeForm
 
 from .models import PasskeyCredential, User
 
@@ -18,7 +22,8 @@ class AccountUserChangeForm(UserChangeForm):
 
 
 @admin.register(User)
-class UserAdmin(BaseUserAdmin):
+class UserAdmin(BaseUserAdmin, ModelAdmin):
+    change_password_form = AdminPasswordChangeForm
     form = AccountUserChangeForm
     add_form = AccountUserCreationForm
     ordering = ("email",)
@@ -43,6 +48,14 @@ class UserAdmin(BaseUserAdmin):
 
 
 @admin.register(PasskeyCredential)
-class PasskeyCredentialAdmin(admin.ModelAdmin):
+class PasskeyCredentialAdmin(ModelAdmin):
     list_display = ("user", "created_at", "sign_count")
     search_fields = ("user__email",)
+
+
+admin.site.unregister(Group)
+
+
+@admin.register(Group)
+class GroupAdmin(BaseGroupAdmin, ModelAdmin):
+    pass
