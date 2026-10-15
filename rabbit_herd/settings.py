@@ -296,39 +296,11 @@ if not DEBUG:
 
 
 # Django admin theme (django-unfold).
-from django.templatetags.static import static as _static  # noqa: E402
 from django.urls import reverse_lazy  # noqa: E402
 
 UNFOLD = {
-    "SITE_TITLE": "Bramble Burrow admin",
+    "SITE_TITLE": "Bramble Burrow",
     "SITE_HEADER": "Bramble Burrow",
-    "SITE_SUBHEADER": "Herd records admin",
-    "SITE_URL": "/",
-    "SITE_SYMBOL": "pets",
-    "SITE_ICON": lambda request: _static("icons/icon.svg"),
-    "SITE_LOGO": lambda request: _static("icons/icon.svg"),
-    "SITE_FAVICONS": [
-        {"rel": "icon", "type": "image/svg+xml", "href": lambda request: _static("icons/icon.svg")},
-    ],
-    "SHOW_HISTORY": True,
-    "SHOW_VIEW_ON_SITE": True,
-    "BORDER_RADIUS": "4px",
-    # Forest green scale (OKLCH), 600 is the main brand shade.
-    "COLORS": {
-        "primary": {
-            "50": "oklch(97.5% .018 150)",
-            "100": "oklch(94.5% .035 150)",
-            "200": "oklch(89% .065 150)",
-            "300": "oklch(81% .095 150)",
-            "400": "oklch(70% .115 150)",
-            "500": "oklch(59% .12 150)",
-            "600": "oklch(49% .105 150)",
-            "700": "oklch(42% .09 150)",
-            "800": "oklch(35% .075 150)",
-            "900": "oklch(29% .06 150)",
-            "950": "oklch(21% .045 150)",
-        },
-    },
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": True,
