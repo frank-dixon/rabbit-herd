@@ -18,7 +18,7 @@
   <div class="ribbon" aria-hidden="true"></div>
   <div class="wrap">
     <header class="top">
-      <a class="brand" href="/" aria-label="{{ app_name }} home"><span class="logo" aria-hidden="true"></span>{{ app_name }}</a>
+      <a class="brand" href="/" aria-label="{{ app_name }} home">{% include "components/app_mark.html" with size=24 %}{{ app_name }}</a>
       <nav aria-label="Site"><a class="hide" href="#records">Features</a><a class="hide" href="#planner">Breeding planner</a><a class="si" href="{{ login_url }}">Sign in</a></nav>
     </header>
     <main id="main">
