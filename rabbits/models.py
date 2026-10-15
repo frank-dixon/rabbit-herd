@@ -5,6 +5,7 @@ import uuid
 from pathlib import Path
 
 from django.conf import settings
+from rabbits.query import SampleQuerySetMixin
 from django.db import models
 from django.utils import timezone
 
@@ -73,7 +74,16 @@ def color_text(color, is_standard):
     return f"{color} {OFF_STANDARD_NOTE}" if is_standard is False else color
 
 
-class LiveRabbitManager(models.Manager):
+class SampleQuerySet(SampleQuerySetMixin, models.QuerySet):
+    pass
+
+
+class LiveRabbitQuerySet(SampleQuerySetMixin, models.QuerySet):
+    def live(self):
+        return self.filter(deleted_at__isnull=True)
+
+
+class LiveRabbitManager(models.Manager.from_queryset(LiveRabbitQuerySet)):
     """Rabbits that are not in Recently deleted."""
 
     def get_queryset(self):
@@ -82,6 +92,9 @@ class LiveRabbitManager(models.Manager):
 
 class Rabbit(models.Model):
     """One rabbit owned by one account. Archiving keeps the row."""
+
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
 
     class Sex(models.TextChoices):
         DOE = "doe", "Doe"
@@ -356,12 +369,19 @@ class BreedShare(models.Model):
 
 
 class Location(models.Model):
+    """A cage, hutch, pen or other place a rabbit lives."""
+
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
     """A cage, hutch, pen or barn row where rabbits live."""
 
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="locations", on_delete=models.CASCADE)
     name = models.CharField(max_length=80)
     notes = models.CharField(max_length=200, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["name", "pk"]
@@ -374,6 +394,9 @@ class Location(models.Model):
 class Contact(models.Model):
     """A person or rabbitry the keeper deals with: buyers and breeders."""
 
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
+
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="contacts", on_delete=models.CASCADE)
     name = models.CharField(max_length=120)
     rabbitry = models.CharField(max_length=120, blank=True)
@@ -384,6 +407,9 @@ class Contact(models.Model):
     is_buyer = models.BooleanField(default=False)
     is_breeder = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["name", "pk"]
@@ -409,6 +435,9 @@ GRAMS_PER_OUNCE = Decimal("28.349523125")
 class Weight(models.Model):
     """One weighing. Stored in grams; shown in the unit it was entered in."""
 
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
+
     class Unit(models.TextChoices):
         LB_OZ = "lb", "lb and oz"
         KG = "kg", "kg"
@@ -419,6 +448,9 @@ class Weight(models.Model):
     unit = models.CharField(max_length=2, choices=Unit.choices, default=Unit.LB_OZ)
     note = models.CharField(max_length=200, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["date", "pk"]
@@ -493,6 +525,9 @@ class OutsideRabbit(models.Model):
     """A rabbit that is not in the herd, kept so relatives and pedigrees can
     name it. Entries are reusable across the owner's rabbits."""
 
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
+
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="outside_rabbits",
@@ -507,6 +542,9 @@ class OutsideRabbit(models.Model):
     photo = models.ImageField(upload_to="outside/", blank=True, null=True,
                               help_text="Optional. Shown as its thumbnail in pedigrees and relatives.")
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["name", "pk"]
@@ -527,6 +565,9 @@ def one_reference():
 
 class Relative(models.Model):
     """A known relative, either a herd rabbit or an outside entry."""
+
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
 
     class Relationship(models.TextChoices):
         DAM = "dam", "Dam (mother)"
@@ -566,6 +607,9 @@ class Relative(models.Model):
     breed = models.CharField(
         max_length=80, blank=True, help_text="An outside relative's breed. Herd rabbits use their own breed."
     )
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["relationship", "pk"]
@@ -626,6 +670,9 @@ def position_label(position):
 class PedigreeEntry(models.Model):
     """One ancestor in a rabbit's pedigree, at a sire/dam path position."""
 
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
+
     rabbit = models.ForeignKey(Rabbit, related_name="pedigree_entries", on_delete=models.CASCADE)
     position = models.CharField(
         max_length=PEDIGREE_GENERATIONS,
@@ -645,6 +692,9 @@ class PedigreeEntry(models.Model):
         blank=True,
         on_delete=models.CASCADE,
     )
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["position"]
@@ -697,6 +747,9 @@ class RabbitPhoto(models.Model):
     """A photo of a rabbit, with notes. At most one per rabbit is the main
     photo, the one shown on the list and at the top of the detail page."""
 
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
+
     rabbit = models.ForeignKey(Rabbit, related_name="photos", on_delete=models.CASCADE)
     image = models.ImageField(upload_to=photo_file_path)
     notes = models.TextField(blank=True, max_length=500)
@@ -708,6 +761,9 @@ class RabbitPhoto(models.Model):
     taken_from_metadata = models.BooleanField(default=False)
     # Set when the photo was added with a health note, which shows it too.
     health_note = models.ForeignKey("HealthNote", related_name="photos", null=True, blank=True, on_delete=models.CASCADE)
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["-is_main", "uploaded_at", "pk"]
@@ -832,6 +888,9 @@ class BreedingSchedule(models.Model):
 class Pairing(models.Model):
     """A planned or done doe x buck pairing from the keeper's own herd."""
 
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
+
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="pairings", on_delete=models.CASCADE)
     doe = models.ForeignKey(Rabbit, related_name="pairings_as_doe", on_delete=models.CASCADE)
     buck = models.ForeignKey(Rabbit, related_name="pairings_as_buck", on_delete=models.CASCADE)
@@ -841,6 +900,9 @@ class Pairing(models.Model):
                                           on_delete=models.SET_NULL)
     standard_schedule = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["-created_at", "-pk"]
@@ -866,6 +928,9 @@ class Pairing(models.Model):
 class Litter(models.Model):
     """A breeding from a pairing: the breed date gives the palpate, nest box
     and due dates; after kindling it records kits born, losses and survivors."""
+
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
 
     # Defaults; each keeper's own come from Settings (HerdSettings).
     PALPATE_DAY = 12
@@ -898,6 +963,9 @@ class Litter(models.Model):
     # none, a stock newborn photo chosen by the parents' coats stands in.
     photo = models.ImageField(upload_to=litter_photo_path, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["-bred_on", "-pk"]
@@ -967,6 +1035,9 @@ class Task(models.Model):
     """A to-do with a due date, added by hand or by a health note's follow-up.
     Litter dates are not stored here; they come from Litter.tasks()."""
 
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
+
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="tasks", on_delete=models.CASCADE)
     title = models.CharField(max_length=120)
     due_on = models.DateField()
@@ -994,6 +1065,9 @@ class Task(models.Model):
     repeat_unit = models.CharField(max_length=6, choices=Unit.choices, blank=True, default="")
     # The occurrence made when this one was marked done; undo removes it.
     next_occurrence = models.OneToOneField("self", related_name="previous", null=True, blank=True, on_delete=models.SET_NULL)
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["due_on", "pk"]
@@ -1041,12 +1115,18 @@ class LitterKit(models.Model):
     Numbered 1..n so checks can be logged per kit while the litter is still
     one group; rabbit is set once the kit is in the herd."""
 
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
+
     litter = models.ForeignKey(Litter, related_name="slots", on_delete=models.CASCADE)
     number = models.PositiveSmallIntegerField()
     sex = models.CharField(max_length=8, choices=Rabbit.Sex.choices, blank=True)
     color = models.CharField(max_length=80, blank=True)
     rabbit = models.OneToOneField(Rabbit, related_name="litter_slot", null=True, blank=True, on_delete=models.SET_NULL)
     photo = models.ImageField(upload_to=litter_photo_path, blank=True)
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["number"]
@@ -1124,6 +1204,9 @@ class KitCheck(models.Model):
 class HealthNote(models.Model):
     """A dated health record for one rabbit. A follow-up date adds a task."""
 
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
+
     class Kind(models.TextChoices):
         TREATMENT = "treatment", "Treatment"
         ILLNESS = "illness", "Illness"
@@ -1139,6 +1222,9 @@ class HealthNote(models.Model):
     task = models.OneToOneField(Task, related_name="health_note", null=True, blank=True, on_delete=models.SET_NULL)
     resolved = models.BooleanField(default=False, help_text="Closed out: nothing left to watch or follow up.")
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["-date", "-pk"]
@@ -1196,6 +1282,9 @@ class ShowEntry(models.Model):
     """One rabbit's result at one show. A leg is an ARBA grand champion leg;
     three make a grand champion."""
 
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
+
     LEGS_FOR_GRAND = 3
 
     rabbit = models.ForeignKey(Rabbit, related_name="show_entries", on_delete=models.CASCADE)
@@ -1210,6 +1299,9 @@ class ShowEntry(models.Model):
     leg = models.BooleanField(default=False)
     notes = models.TextField(max_length=1000, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["-date", "-pk"]
@@ -1230,6 +1322,9 @@ class Expense(models.Model):
     """Money spent on the herd: a feed purchase or another cost. Linking a
     rabbit or a litter counts it toward that rabbit's or litter's cost."""
 
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
+
     class Category(models.TextChoices):
         FEED = "feed", "Feed"
         HAY = "hay", "Hay"
@@ -1249,6 +1344,9 @@ class Expense(models.Model):
     litter = models.ForeignKey(Litter, related_name="expenses", null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
 
+
+    objects = SampleQuerySet.as_manager()
+
     class Meta:
         ordering = ["-date", "-pk"]
         constraints = [
@@ -1267,6 +1365,9 @@ class Expense(models.Model):
 
 class WaitlistEntry(models.Model):
     """A buyer waiting for a rabbit of a given breed, sex and color."""
+
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
 
     class Sex(models.TextChoices):
         ANY = "", "Either"
@@ -1294,6 +1395,9 @@ class WaitlistEntry(models.Model):
                                help_text="The rabbit offered or sold to them.")
     notes = models.TextField(max_length=1000, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["requested_on", "pk"]
@@ -1418,6 +1522,9 @@ class Program(models.Model):
     and the mate for a kept G1 kit (G2). The plan itself is worked out by
     rabbits.planner each time it is shown, so it follows the herd's records."""
 
+    is_sample = models.BooleanField(default=False, db_index=True)
+    sample_key = models.CharField(max_length=40, blank=True, default="")
+
     class Step(models.TextChoices):
         GOAL = "goal", "Goal"
         BREEDERS = "breeders", "Breeders"
@@ -1445,6 +1552,9 @@ class Program(models.Model):
     g2_outside = models.ForeignKey("ProgramBreeder", related_name="+", null=True, blank=True, on_delete=models.SET_NULL)
     g2_task = models.ForeignKey("Task", related_name="+", null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(default=timezone.now)
+
+
+    objects = SampleQuerySet.as_manager()
 
     class Meta:
         ordering = ["-created_at", "-pk"]

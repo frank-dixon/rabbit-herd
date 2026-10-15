@@ -65,6 +65,10 @@ class User(AbstractUser):
     tab_bar = models.JSONField(default=list, blank=True)
     # The side menu's order: destination keys, main section then Records. Empty = default.
     side_menu = models.JSONField(default=list, blank=True)
+    # Sample content and welcome guide (rabbits/samples.py, specs/onboarding-samples.md).
+    show_samples = models.BooleanField(default=True)
+    guide_step = models.CharField(max_length=40, blank=True, default="")
+    guide_dismissed_at = models.DateTimeField(null=True, blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
