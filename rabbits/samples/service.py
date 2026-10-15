@@ -147,6 +147,7 @@ def _rabbits(user, today):
             owner=user, name="Cedar", sex=Rabbit.Sex.BUCK, breed="New Zealand", color="Black",
             birth_date=today - timedelta(days=730), status=Rabbit.Status.BREEDING, tattoo="S-CED",
             location=loc, source=breeder, is_sample=True, sample_key="rabbits.buck")
+    _photos(user)
 
 
 def _doe(user):
