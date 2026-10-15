@@ -223,6 +223,7 @@ def card_stats(user, rabbits, today):
 
 @login_required
 def rabbit_list(request):
+    from rabbits.samples.context import sample_ctx
     view = list_view_choice(request)
     filters = list_filters(request)
     mine = owned_rabbits(request.user)
@@ -318,6 +319,7 @@ def rabbit_list(request):
             "active_qs": query_string({"view": ""}, tab="active"),
             "archived_qs": query_string({}, tab="archived"),
             "clear_qs": query_string({}, tab=filters["tab"]),
+            **sample_ctx(request.user, "rabbits"),
         },
     )
 

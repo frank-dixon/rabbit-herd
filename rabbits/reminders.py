@@ -23,7 +23,7 @@ def wanted(item, prefs):
 
 def summary(user, prefs, today):
     """(subject, body) for one keeper, or None when nothing is due."""
-    items = [item for item in open_items(user, today) if item["date"] <= today and wanted(item, prefs)]
+    items = [item for item in open_items(user, today, samples=False) if item["date"] <= today and wanted(item, prefs)]
     if not items:
         return None
     overdue = [item for item in items if item["date"] < today]

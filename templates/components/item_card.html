@@ -1,7 +1,7 @@
 <article class="it-card{% if it.dim %} is-dim{% endif %}">
   <a class="it-head" href="{{ it.href }}">
     {% include "components/item_thumbs.html" with thumbs=it.thumbs swatch=it.swatch size=it.thumb_size only %}
-    <span class="min-w-0 flex-1"><span class="it-title">{{ it.title }}</span>{% if it.sub %}<span class="it-sub">{{ it.sub }}</span>{% endif %}</span>
+    <span class="min-w-0 flex-1"><span class="it-title">{{ it.title }}</span>{% if it.is_sample %}{% include "components/sample_badge.html" with sample=True only %}{% endif %}{% if it.sub %}<span class="it-sub">{{ it.sub }}</span>{% endif %}</span>
     {% if it.badge %}<span class="it-badge"><span class="pill{% if it.badge.tone %} pill-{{ it.badge.tone }}{% endif %}">{{ it.badge.label }}</span>{% if it.badge.note %}<span class="it-sub">{{ it.badge.note }}</span>{% endif %}</span>{% elif it.pill %}<span class="pill{% if it.pill.tone %} pill-{{ it.pill.tone }}{% endif %}">{{ it.pill.label }}</span>{% endif %}
   </a>
   {% if it.progress %}<div><div class="it-meta"><span>{{ it.progress.label }}</span><span>{{ it.progress.right }}</span></div>{% include "components/item_progress.html" with p=it.progress only %}</div>{% endif %}

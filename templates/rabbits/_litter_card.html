@@ -7,7 +7,7 @@
     <span class="flex items-start gap-3 sm:min-w-0 sm:flex-1">
       <span class="flex shrink-0 items-center" aria-hidden="true">{% include "components/rabbit_avatar.html" with rabbit=c.doe only %}<span class="-ml-3 rounded-lg ring-2 ring-[var(--well)]">{% include "components/rabbit_avatar.html" with rabbit=c.buck only %}</span></span>
       <span class="min-w-0 flex-1">
-        <span class="flex items-start justify-between gap-2"><span class="min-w-0 font-semibold [overflow-wrap:anywhere]">{{ c.title }}</span><span class="pill pill-{{ c.tone }} shrink-0">{{ c.pill }}</span></span>
+        <span class="flex items-start justify-between gap-2"><span class="min-w-0 font-semibold [overflow-wrap:anywhere]">{{ c.title }}{% if c.litter.is_sample %}{% include "components/sample_badge.html" with sample=True only %}{% endif %}</span><span class="pill pill-{{ c.tone }} shrink-0">{{ c.pill }}</span></span>
         {% include "rabbits/_litter_card_lines.html" %}
       </span>
     </span>
@@ -22,7 +22,7 @@
   <a href="{% url 'litter_detail' litter.pk %}" class="litter-card lt-card group focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" data-litter-card data-stage="{{ c.stage }}">
     <span class="lt-cover" aria-hidden="true">{% if c.cover %}<img {% photo_src c.cover "(max-width: 639px) 50vw, 320px" 640 %} alt="" loading="lazy" decoding="async">{% else %}{% coat_swatch c.doe "lt-swatch" %}{% endif %}<span class="lt-pill pill pill-{{ c.tone }}">{{ c.pill }}</span></span>
     <span class="lt-body">
-      <span class="lt-title">{{ c.title }}</span>
+      <span class="lt-title">{{ c.title }}{% if c.litter.is_sample %}{% include "components/sample_badge.html" with sample=True only %}{% endif %}</span>
       {% include "rabbits/_litter_card_lines.html" %}
       {% if c.task and not litter.converted_at %}<span class="lt-next"><span class="min-w-0 truncate text-ink"><span class="text-muted">Next:</span> {{ c.task.label }}</span><span class="num shrink-0 {% if c.task_days < 0 %}text-danger{% elif c.task_days == 0 %}font-medium text-ink{% endif %}">{% if c.task_days < 0 %}overdue{% elif c.task_days == 0 %}today{% else %}{{ c.task.date|date:"M j" }}{% endif %}</span></span>{% endif %}
     </span>

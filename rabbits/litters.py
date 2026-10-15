@@ -130,10 +130,12 @@ def litter_list(request):
     cards = [litter_card(litter, today) for litter in litters]
     expecting = sorted((c for c in cards if c["stage"] == "expecting"), key=lambda c: c["litter"].due_on)
     kindled = sorted((c for c in cards if c["stage"] == "kindled"), key=lambda c: c["litter"].kindled_on, reverse=True)
+    from rabbits.samples.context import sample_ctx
     return render(request, "rabbits/litters.html", {
         "open": expecting, "kindled": kindled, "today": today, "past": past_rows, "past_headers": past_headers, "past_after": O.PAST_AFTER_DAYS, "wide": True, "view": view, "archived": archived,
         "archived_count": Litter.objects.filter(owner=request.user, converted_at__isnull=False).real().count(),
         "view_options": view_options(request, view),
+        **sample_ctx(request.user, "litters"),
     })
 
 

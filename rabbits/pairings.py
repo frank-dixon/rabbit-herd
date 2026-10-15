@@ -196,11 +196,13 @@ def pairing_list(request):
     columns = [{"label": "Pair", "sort": "pair"}, {"label": "Inbreeding", "wide_only": True, "sort": "coi"}, {"label": "Predicted colors", "wide_only": True},
                {"label": "Last litter", "wide_only": True, "sort": "bred"}, {"label": "Status", "align": "r", "sort": "status"}]
     items = sorted_items(request, items, columns, desc_first=("coi", "bred"))
+    from rabbits.samples.context import sample_ctx
     return render(request, "rabbits/pairings.html", {
         "pairings": pairings, "items": items, "view": view, "view_options": view_options(request, view), "stats": stats,
         "columns": columns, "errors": errors, "values": values, "check": check, "wide": True,
         "doe_options": herd_choices(request.user, Rabbit.Sex.DOE),
         "buck_options": herd_choices(request.user, Rabbit.Sex.BUCK),
+        **sample_ctx(request.user, "pairings"),
     })
 
 
@@ -281,7 +283,7 @@ def pairing_items(user, pairings):
         coi_pill = {"label": f"COI {coi:.1f}%".replace(".0%", "%"), "tone": tone}
         relation = warnings[0] if warnings else "No shared ancestors on record"
         items.append({
-            "href": reverse("pairing_detail", args=[p.pk]), "title": f"{p.doe.name} × {p.buck.name}",
+            "href": reverse("pairing_detail", args=[p.pk]), "is_sample": p.is_sample, "title": f"{p.doe.name} × {p.buck.name}",
             "sub": f"{p.doe.color or 'Color not set'} × {p.buck.color or 'Color not set'}", "thumbs": [p.doe, p.buck],
             "pill": pill, "coi": coi, "chips_label": "Predicted colors", "chips": chips,
             "kv": [{"label": when, "value": result}, {"label": "Litters", "value": p.litters.count()}],

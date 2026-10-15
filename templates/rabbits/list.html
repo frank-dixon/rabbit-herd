@@ -106,7 +106,7 @@
                 <span class="absolute left-1.5 top-1.5 shrink-0 whitespace-nowrap rounded bg-surface/90 px-1.5 py-px text-[0.68rem] font-medium text-ink backdrop-blur-sm" data-status-chip data-status="{{ rabbit.status }}">{{ rabbit.status_tag }}</span>
               </span>
               <span class="block px-2.5 pb-2.5 pt-2">
-                <span class="block min-w-0 text-[0.95rem] font-semibold leading-tight [overflow-wrap:normal] [word-break:normal]"><span class="sr-only">Open </span>{{ rabbit.name }}</span>
+                <span class="block min-w-0 text-[0.95rem] font-semibold leading-tight [overflow-wrap:normal] [word-break:normal]"><span class="sr-only">Open </span>{{ rabbit.name }}{% if rabbit.is_sample %}{% include "components/sample_badge.html" with sample=True only %}{% endif %}</span>
                 <span class="mt-0.5 block line-clamp-2 text-xs text-muted">{% if rabbit.died_text %}{{ rabbit.died_text }} · {% else %}<span aria-hidden="true">{% if rabbit.sex == "doe" %}♀{% elif rabbit.sex == "buck" %}♂{% endif %}</span><span class="sr-only">{{ rabbit.get_sex_display }}</span> {% endif %}{{ rabbit.short_breed }}</span>
                 {% include "rabbits/_rabbit_meta.html" with r=rabbit mode="compact" only %}
               </span>
@@ -123,7 +123,7 @@
             <a href="{% url 'rabbit_detail' rabbit.pk %}" class="block h-full overflow-hidden rounded border border-neutral-300 bg-white hover:border-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
               {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="aspect-square w-full text-4xl" sizes="(min-width: 1024px) 300px, (min-width: 640px) 50vw, 100vw" only %}
               <span class="block p-3">
-                <span class="block min-w-0 text-lg font-semibold [overflow-wrap:normal]"><span class="sr-only">Open </span>{{ rabbit.name }}</span>
+                <span class="block min-w-0 text-lg font-semibold [overflow-wrap:normal]"><span class="sr-only">Open </span>{{ rabbit.name }}{% if rabbit.is_sample %}{% include "components/sample_badge.html" with sample=True only %}{% endif %}</span>
                 <span class="mt-1 pill" data-status-chip data-status="{{ rabbit.status }}">{{ rabbit.status_tag }}</span>
                 <span class="mt-1 block text-sm text-neutral-600">{% if rabbit.died_text %}{{ rabbit.died_text }} · {% endif %}{{ rabbit.get_sex_display }}{% if rabbit.short_breed %} · {{ rabbit.short_breed }}{% endif %}{% if rabbit.purebred_info and rabbit.purebred_info.source != "entered" %} · purebred{% endif %}{% if rabbit.tattoo %} · {{ rabbit.tattoo }}{% endif %}</span>
                 {% include "rabbits/_rabbit_meta.html" with r=rabbit mode="roomy" only %}
@@ -147,7 +147,7 @@
                   <span role="cell" class="flex min-w-0 items-center gap-3">
                     {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="list-thumb shrink-0 rounded-md text-base" only %}
                     <span class="min-w-0">
-                      <span class="block break-words font-semibold"><a href="{% url 'rabbit_detail' rabbit.pk %}" class="list-row-link focus:outline-none">{{ rabbit.name }}</a>{% if rabbit.tattoo %} <span class="num text-xs font-normal text-muted">{{ rabbit.tattoo }}</span>{% endif %}</span>
+                      <span class="block break-words font-semibold"><a href="{% url 'rabbit_detail' rabbit.pk %}" class="list-row-link focus:outline-none">{{ rabbit.name }}</a>{% if rabbit.is_sample %}{% include "components/sample_badge.html" with sample=True only %}{% endif %}{% if rabbit.tattoo %} <span class="num text-xs font-normal text-muted">{{ rabbit.tattoo }}</span>{% endif %}</span>
                       <span class="block truncate text-sm text-muted lg:hidden">{{ rabbit.get_sex_display }}{% if rabbit.short_breed %} · {{ rabbit.short_breed }}{% endif %}{% if rabbit.died_text %} · {{ rabbit.died_text }}{% endif %}{% if rabbit.next_item.overdue %} · <span class="text-danger">{{ rabbit.next_item.label }} overdue</span>{% endif %}</span>
                       {% include "rabbits/_rabbit_meta.html" with r=rabbit mode="row" only %}
                     </span>
