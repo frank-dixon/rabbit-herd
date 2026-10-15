@@ -1,0 +1,7 @@
+{% with litter=c.litter %}{% if c.stage == "expecting" %}
+          <span class="lc-detail mt-0.5 block text-sm text-muted">Bred {{ litter.bred_on|date:"D, M j" }} · due {{ litter.due_on|date:"D, M j" }}</span>
+          <span class="lc-detail num mt-0.5 block text-sm">{% if c.due_days > 1 %}{{ c.due_days }} days to go{% elif c.due_days == 1 %}Due tomorrow{% elif c.due_days == 0 %}Due today{% else %}{{ c.due_days|stringformat:"d"|slice:"1:" }} day{{ c.due_days|stringformat:"d"|slice:"1:"|pluralize }} past due{% endif %}</span>
+        {% else %}
+          <span class="lc-detail mt-0.5 block text-sm text-muted">Kindled {{ litter.kindled_on|date:"D, M j" }} · <span class="num">{{ c.age }}</span> day{{ c.age|pluralize }} old</span>
+          <span class="lc-detail num mt-0.5 block text-sm">{% if c.alive is None and c.recorded %}{{ c.recorded }} kit{{ c.recorded|pluralize }}{% elif c.alive is None %}<span class="text-muted">Kits not counted yet</span>{% else %}{{ c.alive }} alive{% if c.total %} of {{ c.total }}{% endif %}{% endif %}{% if c.does or c.bucks %} <span class="text-muted">· {{ c.does }} doe{{ c.does|pluralize }}, {{ c.bucks }} buck{{ c.bucks|pluralize }}</span>{% endif %}</span>
+        {% endif %}{% endwith %}

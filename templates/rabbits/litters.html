@@ -3,16 +3,18 @@
 {% block title %}Litters · {{ app_name }}{% endblock %}
 
 {% block content %}<span data-refreshable hidden></span>
+  <div data-swap-root>
   {% url 'pairing_list' as pairings_url %}
   {% include "components/page_header.html" with title="Litters" subtitle="New litter starts from a pairing: pick one, then Start a litter. Dates for palpating, the nest box and kindling are set for you." primary_label="New litter" primary_href=pairings_url only %}
   <div class="mt-4 flex items-center justify-between gap-4">
     {% if past %}<a class="text-sm text-accent underline-offset-4 hover:underline" href="#past" data-archived-link>Past litters <span class="num text-muted">{{ past|length }}</span></a>{% else %}<span></span>{% endif %}
-    {% include "components/segmented.html" with label="Layout" options=view_options icon_only=True only %}
+    {% include "components/segmented.html" with label="Layout" options=view_options icon_only=True swap_sync=True only %}
   </div>
+  <div data-swap="results">
   <section class="mt-2" aria-labelledby="open-heading">
     <h2 class="text-base font-semibold" id="open-heading">Expecting <span class="num font-normal text-muted">{{ open|length }}</span></h2>
     {% if open %}
-      <ul class="mt-3 grid gap-3 {% if view == 'list' %}grid-cols-1{% else %}grid-cols-1 sm:grid-cols-2 xl:grid-cols-3{% endif %}" data-open-litters data-view="{{ view }}">
+      <ul class="mt-3 {% if view == 'list' %}grid grid-cols-1 gap-3{% else %}lt-grid{% endif %}" data-open-litters data-view="{{ view }}">
         {% for c in open %}{% include "rabbits/_litter_card.html" %}{% endfor %}
       </ul>
     {% else %}
@@ -22,10 +24,12 @@
   {% if kindled %}
     <section class="mt-8" aria-labelledby="kindled-heading">
       <h2 class="text-base font-semibold" id="kindled-heading">Kindled <span class="num font-normal text-muted">{{ kindled|length }}</span></h2>
-      <ul class="mt-3 grid gap-3 {% if view == 'list' %}grid-cols-1{% else %}grid-cols-1 sm:grid-cols-2 xl:grid-cols-3{% endif %}" data-kindled-litters data-view="{{ view }}">
+      <ul class="mt-3 {% if view == 'list' %}grid grid-cols-1 gap-3{% else %}lt-grid{% endif %}" data-kindled-litters data-view="{{ view }}">
         {% for c in kindled %}{% include "rabbits/_litter_card.html" %}{% endfor %}
       </ul>
     </section>
   {% endif %}
   {% if past %}{% include "rabbits/_past_litters.html" %}{% endif %}
+  </div>
+  </div>
 {% endblock %}

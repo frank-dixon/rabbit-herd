@@ -76,6 +76,7 @@ def litter_card(litter, today):
     card = {"litter": litter, "doe": doe, "buck": buck, "title": f"{doe.name} × {buck.name}", "task": task,
             "task_days": (task["date"] - today).days if task else None,
             "photos": [m for m in (k.main_photo for k in kits) if m][:4]}
+    card["cover"] = card["photos"][0] if card["photos"] else doe.main_photo  # grid card photo: a kit, else the doe
     if litter.kindled_on is None:
         days = (litter.due_on - today).days
         card.update(stage="expecting", pill=("Overdue" if days < 0 else "Due today" if days == 0 else "Expecting"),
@@ -94,9 +95,9 @@ def litter_card(litter, today):
 
 @login_required
 def litter_list(request):
-    from .views import list_view_choice
+    from .index_items import index_view, view_options
 
-    view = list_view_choice(request)
+    view = index_view(request, "litters", "grid")
     today = timezone.localdate()
     litters = list(Litter.objects.filter(owner=request.user)
                    .select_related("pairing__doe", "pairing__buck", "breeding_schedule")
@@ -132,7 +133,7 @@ def litter_list(request):
     return render(request, "rabbits/litters.html", {
         "open": expecting, "kindled": kindled, "today": today, "past": past_rows, "past_headers": past_headers, "past_after": O.PAST_AFTER_DAYS, "wide": True, "view": view, "archived": archived,
         "archived_count": Litter.objects.filter(owner=request.user, converted_at__isnull=False).count(),
-        "view_options": [{"href": f"?view={k}", "label": l, "icon": k, "selected": view == k} for k, l in (("grid", "Grid"), ("list", "List"))],
+        "view_options": view_options(request, view),
     })
 
 

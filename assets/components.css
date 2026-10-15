@@ -96,10 +96,10 @@
 
 /* Litter cards: one compact row on phones (pair, pill, next step). */
 @media (max-width:767px){
-  .litter-card{padding:8px 12px}
-  .litter-card .lc-detail{display:none}
-  .litter-card .lc-next{margin-top:4px;padding-top:0;border:0}
-  .litter-card [data-avatar]{width:32px;height:32px}
+  .litter-card.is-row{padding:8px 12px}
+  .litter-card.is-row .lc-detail{display:none}
+  .litter-card.is-row .lc-next{margin-top:4px;padding-top:0;border:0}
+  .litter-card.is-row [data-avatar]{width:32px;height:32px}
 }
 
 /* Settings: one sticky save bar that appears when something changes. */
