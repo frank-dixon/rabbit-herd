@@ -201,6 +201,15 @@ def set_genes(rabbits_by_name, gene_map):
     return count
 
 
+def compact(user):
+    """Keep only what the demo can't compute: genes its coats prove and pedigree
+    ancestors its herd parents already name are read on the fly (genes design B)."""
+    from rabbits import genes_cleanup
+
+    done = genes_cleanup.apply(genes_cleanup.plan(owner_ids=[user.pk]))
+    return {"computed genes": done["genes"], "computed pedigree entries": done["pedigree"]}
+
+
 class Command(BaseCommand):
     help = "Create or refresh the NZ demo account (demo@bramble-burrow.app)."
 
@@ -219,6 +228,7 @@ class Command(BaseCommand):
             with transaction.atomic():
                 rabbits = {r.name: r for r in Rabbit.all_objects.filter(owner=user, name__in=gene_map)}
                 rows = set_genes(rabbits, gene_map)
+                compact(user)
             self.stdout.write(f"Genes set on {len(rabbits)} demo rabbits ({rows} rows).")
             return
         password = None if no_password else os.environ.get("DEMO_PASSWORD")
@@ -227,6 +237,7 @@ class Command(BaseCommand):
         with transaction.atomic():
             user, created = self.account(password)
             counts = self.herd(user, timezone.localdate())
+            counts.update(compact(user))
         self.stdout.write(("Created" if created else "Updated") + f" {DEMO_EMAIL}.")
         self.stdout.write(", ".join(f"{k}: {v}" for k, v in counts.items()))
 

@@ -279,7 +279,7 @@ CSRF_COOKIE_SAMESITE = "Lax"
 # serverless instances, so they use a database table (created by a migration).
 # Genetics reads (rabbits.derived): "old" stored Gene rows only, "new" rows plus
 # genes computed from the coat, "both" serves old and logs any difference.
-GENETICS_READ = os.environ.get("GENETICS_READ", "old")
+GENETICS_READ = os.environ.get("GENETICS_READ", "new")
 
 CACHES = {
     "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
