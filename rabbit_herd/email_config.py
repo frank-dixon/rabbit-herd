@@ -14,6 +14,20 @@ def _flag(environ, name, default):
     return str(raw).strip().lower() in {"1", "true", "yes", "on"}
 
 
+RESEND_TEST_SENDER = "onboarding@resend.dev"  # Resend's shared sender; delivers only to the account owner's address
+
+
+def default_from_email(environ, app_name):
+    """DEFAULT_FROM_EMAIL if set; with Resend and no own domain yet, Resend's
+    onboarding sender (test only); otherwise a harmless localhost address."""
+    configured = environ.get("DEFAULT_FROM_EMAIL", "").strip()
+    if configured:
+        return configured
+    if email_settings(environ)["EMAIL_BACKEND"] == RESEND_BACKEND:
+        return f"{app_name} <{RESEND_TEST_SENDER}>"
+    return f"{app_name} <noreply@localhost>"
+
+
 def email_settings(environ):
     """Return the Django email settings for this environment.
 
@@ -24,15 +38,13 @@ def email_settings(environ):
     """
     provider = environ.get("EMAIL_PROVIDER", "").strip().lower()
     host = environ.get("EMAIL_HOST", "").strip()
+    if not provider and environ.get("RESEND_API_KEY", "").strip():
+        provider = "resend"  # a Resend key alone is enough to send through Resend
     if provider == "resend":
         api_key = environ.get("RESEND_API_KEY", "").strip()
         if not api_key:
             raise ImproperlyConfigured(
                 "Set RESEND_API_KEY when EMAIL_PROVIDER is resend."
-            )
-        if not environ.get("DEFAULT_FROM_EMAIL", "").strip():
-            raise ImproperlyConfigured(
-                "Set DEFAULT_FROM_EMAIL when EMAIL_PROVIDER is resend."
             )
         return {
             "EMAIL_BACKEND": RESEND_BACKEND,

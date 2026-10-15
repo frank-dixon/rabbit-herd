@@ -7,7 +7,7 @@ import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
-from .email_config import email_settings
+from .email_config import default_from_email, email_settings
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -249,9 +249,7 @@ if not DEBUG and (not WEBAUTHN_RP_ID or not WEBAUTHN_ORIGIN):
     )
 
 APP_HOSTNAME = hostname_from_env("APP_HOSTNAME")
-DEFAULT_FROM_EMAIL = (
-    os.environ.get("DEFAULT_FROM_EMAIL", "").strip() or f"{APP_NAME} <noreply@localhost>"
-)
+DEFAULT_FROM_EMAIL = default_from_email(os.environ, APP_NAME)
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 # EMAIL_BACKEND stays in charge. Defining MAILERS would make Django ignore it,
 # including the locmem backend the tests swap in.

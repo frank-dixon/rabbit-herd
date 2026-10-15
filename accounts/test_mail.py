@@ -5,6 +5,7 @@ from rabbit_herd.email_config import (
     CONSOLE_BACKEND,
     RESEND_BACKEND,
     SMTP_BACKEND,
+    default_from_email,
     email_settings,
 )
 
@@ -60,7 +61,7 @@ class EmailConfigTests(SimpleTestCase):
         self.assertEqual(chosen["ANYMAIL"], {"RESEND_API_KEY": "test-key"})
         self.assertNotIn("EMAIL_HOST", chosen)
 
-    def test_resend_requires_a_key_and_a_from_address(self):
+    def test_resend_requires_a_key(self):
         with self.assertRaisesMessage(ImproperlyConfigured, "RESEND_API_KEY"):
             email_settings(
                 {
@@ -68,8 +69,27 @@ class EmailConfigTests(SimpleTestCase):
                     "DEFAULT_FROM_EMAIL": "Bramble Burrow <onboarding@resend.dev>",
                 }
             )
-        with self.assertRaisesMessage(ImproperlyConfigured, "DEFAULT_FROM_EMAIL"):
-            email_settings({"EMAIL_PROVIDER": "resend", "RESEND_API_KEY": "test-key"})
+
+    def test_a_resend_key_alone_picks_resend(self):
+        self.assertEqual(email_settings({"RESEND_API_KEY": "test-key"})["EMAIL_BACKEND"], RESEND_BACKEND)
+
+    def test_from_address(self):
+        self.assertEqual(default_from_email({"RESEND_API_KEY": "k"}, "BB"), "BB <onboarding@resend.dev>")
+        self.assertEqual(default_from_email({"RESEND_API_KEY": "k", "DEFAULT_FROM_EMAIL": "BB <hi@x.app>"}, "BB"), "BB <hi@x.app>")
+        self.assertEqual(default_from_email({}, "BB"), "BB <noreply@localhost>")
+        self.assertEqual(email_settings({})["EMAIL_BACKEND"], CONSOLE_BACKEND)
+
+
+class SendTestEmailCommandTests(SimpleTestCase):
+    def test_sends_one_mail(self):
+        from io import StringIO
+        from django.core import mail
+        from django.core.management import call_command
+        out = StringIO()
+        call_command("send_test_email", "frank@example.com", stdout=out)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["frank@example.com"])
+        self.assertIn("Sent", out.getvalue())
 
     def test_an_unknown_provider_is_rejected(self):
         with self.assertRaisesMessage(ImproperlyConfigured, "EMAIL_PROVIDER"):
