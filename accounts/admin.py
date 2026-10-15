@@ -59,3 +59,26 @@ admin.site.unregister(Group)
 @admin.register(Group)
 class GroupAdmin(BaseGroupAdmin, ModelAdmin):
     pass
+
+
+from django.contrib.admin.models import LogEntry  # noqa: E402
+
+
+@admin.register(LogEntry)
+class LogEntryAdmin(ModelAdmin):
+    """The admin's own change log, read-only."""
+
+    list_display = ("action_time", "user", "content_type", "object_repr", "action_flag")
+    list_filter = ("action_flag", "action_time")
+    search_fields = ("object_repr", "user__email")
+    list_select_related = ("user", "content_type")
+    date_hierarchy = "action_time"
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
