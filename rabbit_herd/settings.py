@@ -301,28 +301,84 @@ from django.urls import reverse_lazy  # noqa: E402
 UNFOLD = {
     "SITE_TITLE": "Bramble Burrow",
     "SITE_HEADER": "Bramble Burrow",
+    # Always dark; Unfold has no "dark by default, switchable" option.
+    "THEME": "dark",
+    # Forest green scale (OKLCH), 600 is the main brand shade.
+    "COLORS": {
+        "primary": {
+            "50": "oklch(97.5% .018 150)",
+            "100": "oklch(94.5% .035 150)",
+            "200": "oklch(89% .065 150)",
+            "300": "oklch(81% .095 150)",
+            "400": "oklch(70% .115 150)",
+            "500": "oklch(59% .12 150)",
+            "600": "oklch(49% .105 150)",
+            "700": "oklch(42% .09 150)",
+            "800": "oklch(35% .075 150)",
+            "900": "oklch(29% .06 150)",
+            "950": "oklch(21% .045 150)",
+        },
+    },
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": True,
         "navigation": [
             {
-                "title": "Herd",
+                "title": group,
                 "separator": True,
                 "items": [
-                    {"title": "Rabbits", "icon": "pets", "link": reverse_lazy("admin:rabbits_rabbit_changelist")},
-                    {"title": "Outside rabbits", "icon": "diversity_3", "link": reverse_lazy("admin:rabbits_outsiderabbit_changelist")},
-                    {"title": "Breeds", "icon": "category", "link": reverse_lazy("admin:rabbits_breed_changelist")},
+                    {"title": title, "icon": icon, "link": reverse_lazy(f"admin:{model}_changelist")}
+                    for title, icon, model in items
                 ],
-            },
-            {
-                "title": "Accounts",
-                "separator": True,
-                "items": [
-                    {"title": "Users", "icon": "person", "link": reverse_lazy("admin:accounts_user_changelist")},
-                    {"title": "Passkeys", "icon": "key", "link": reverse_lazy("admin:accounts_passkeycredential_changelist")},
-                    {"title": "Groups", "icon": "group", "link": reverse_lazy("admin:auth_group_changelist")},
-                ],
-            },
+            }
+            for group, items in [
+                ("Herd", [
+                    ("Rabbits", "pets", "rabbits_rabbit"),
+                    ("Outside rabbits", "diversity_3", "rabbits_outsiderabbit"),
+                    ("Breeds", "category", "rabbits_breed"),
+                    ("Breed shares", "pie_chart", "rabbits_breedshare"),
+                    ("Relatives", "family_history", "rabbits_relative"),
+                    ("Genes", "genetics", "rabbits_gene"),
+                    ("Locations", "location_on", "rabbits_location"),
+                ]),
+                ("Breeding", [
+                    ("Pairings", "favorite", "rabbits_pairing"),
+                    ("Litters", "nest_eco_leaf", "rabbits_litter"),
+                    ("Litter kits", "cruelty_free", "rabbits_litterkit"),
+                    ("Litter checks", "checklist", "rabbits_littercheck"),
+                    ("Kit checks", "fact_check", "rabbits_kitcheck"),
+                    ("Litter notes", "note", "rabbits_litternote"),
+                    ("Covers", "event", "rabbits_cover"),
+                    ("Breeding schedules", "calendar_month", "rabbits_breedingschedule"),
+                    ("Programs", "science", "rabbits_program"),
+                    ("Program breeders", "group_work", "rabbits_programbreeder"),
+                    ("Pedigree entries", "account_tree", "rabbits_pedigreeentry"),
+                ]),
+                ("Care", [
+                    ("Weights", "monitor_weight", "rabbits_weight"),
+                    ("Health notes", "medical_services", "rabbits_healthnote"),
+                    ("Cull notes", "content_cut", "rabbits_cullnote"),
+                    ("Tasks", "task_alt", "rabbits_task"),
+                ]),
+                ("Records", [
+                    ("Contacts", "contacts", "rabbits_contact"),
+                    ("Costs", "payments", "rabbits_expense"),
+                    ("Waitlist", "hourglass_top", "rabbits_waitlistentry"),
+                    ("Shows", "emoji_events", "rabbits_showentry"),
+                    ("Photos", "photo_library", "rabbits_rabbitphoto"),
+                ]),
+                ("Accounts", [
+                    ("Users", "person", "accounts_user"),
+                    ("Passkeys", "key", "accounts_passkeycredential"),
+                    ("Groups", "group", "auth_group"),
+                    ("Herd settings", "tune", "rabbits_herdsettings"),
+                ]),
+                ("System", [
+                    ("History", "history", "rabbits_historyentry"),
+                    ("Sync ops", "sync", "rabbits_syncop"),
+                    ("Admin log", "receipt_long", "admin_logentry"),
+                ]),
+            ]
         ],
     },
 }
