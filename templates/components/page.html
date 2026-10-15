@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="{{ ui_theme|default:'light' }}" data-density="{{ ui_density|default:'roomy' }}" data-layout="v2">
+<html lang="en" data-theme="{{ ui_theme|default:'light' }}" data-density="{{ ui_density|default:'roomy' }}" data-layout="v2"{% if request.user.is_authenticated and request.user.is_guest %} data-guest="1"{% endif %}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  {# Guests keep appearance in localStorage so it survives offline and guest cleanup. Apply before paint. #}
+  <script>(function(){var h=document.documentElement;if(h.getAttribute("data-guest")!=="1")return;try{var t=localStorage.getItem("bb-ui-theme");if(t)h.setAttribute("data-theme",t);var d=localStorage.getItem("bb-ui-density");if(d)h.setAttribute("data-density",d);}catch(e){}})();</script>
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
   {% block head %}{% endblock %}
 </head>

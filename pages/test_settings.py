@@ -12,12 +12,13 @@ class SettingsTests(TestCase):
         page = self.client.get(reverse("index"))
         self.assertContains(page, '<html lang="en" data-theme="light" data-density="roomy" data-layout="v2">')
 
-    def test_settings_lists_all_thirteen_themes_with_swatches(self):
+    def test_settings_lists_all_themes_with_swatches(self):
         page = self.client.get(reverse("account"))
-        for label in ("Light", "Evergreen night", "Slate", "Cream and forest", "Fog and teal"):
+        for label in ("Light", "Heritage Show", "Evergreen night", "Slate", "Cream and forest", "Fog and teal"):
             self.assertContains(page, label)
-        self.assertEqual(page.content.decode().count('name="ui_theme"'), 13)
+        self.assertEqual(page.content.decode().count('name="ui_theme"'), 14)
         self.assertContains(page, "#22573B")
+        self.assertContains(page, "#1B2A4A")
         self.assertContains(page, 'value="light" checked')
 
     def test_app_icon_defaults_to_s1_and_switches_to_g2(self):
@@ -48,6 +49,15 @@ class SettingsTests(TestCase):
         self.assertEqual(response.status_code, 204)
         self.user.refresh_from_db()
         self.assertEqual(self.user.ui_theme, "dark-a")
+
+    def test_heritage_theme_applies_tokens_and_theme_color(self):
+        response = self.client.post(reverse("account"), {"ui_theme": "heritage", "ui_density": "roomy"}, HTTP_X_REQUESTED_WITH="fetch")
+        self.assertEqual(response.status_code, 204)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ui_theme, "heritage")
+        page = self.client.get(reverse("rabbit_list"))
+        self.assertContains(page, 'data-theme="heritage"')
+        self.assertContains(page, '<meta name="theme-color" content="#F6F3EC">')
 
     def test_unknown_values_are_ignored(self):
         self.client.post(reverse("account"), {"ui_theme": "c1", "ui_density": "roomy"})

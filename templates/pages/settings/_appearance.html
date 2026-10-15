@@ -28,7 +28,7 @@
         {% for theme in themes %}
           <label class="group relative flex cursor-pointer flex-col gap-2.5 rounded-lg border border-line bg-surface p-2.5 transition-colors duration-150 hover:border-field has-checked:border-accent has-checked:ring-1 has-checked:ring-accent has-focus-visible:ring-2 has-focus-visible:ring-accent">
             <input class="sr-only" type="radio" name="ui_theme" value="{{ theme.key }}"{% if theme.current %} checked{% endif %}>
-            <span class="flex h-14 overflow-hidden rounded-[5px] ring-1 ring-black/10" style="background: {{ theme.canvas }}" aria-hidden="true">
+            <span class="flex h-14 overflow-hidden rounded-[5px] ring-1 ring-black/10" style="background: {{ theme.canvas }}" data-theme-canvas="{{ theme.canvas }}" aria-hidden="true">
               <span class="m-2 mr-0 flex w-1/2 flex-col justify-center gap-1.5 rounded-[3px] px-2" style="background: {{ theme.surface }}"><span class="h-1.5 w-3/4 rounded-full" style="background: {{ theme.ink }}"></span><span class="h-1.5 w-1/2 rounded-full opacity-50" style="background: {{ theme.ink }}"></span></span>
               <span class="ml-auto flex items-end p-2"><span class="h-5 w-9 rounded-[4px]" style="background: {{ theme.accent }}"></span></span>
             </span>
