@@ -85,3 +85,36 @@ class SamplePairingAndExportTests(TestCase):
         names = [row[0] for row in rows[1:]]
         self.assertNotIn("Maple", names)
         self.assertNotIn("Cedar", names)
+
+
+class SampleViewsTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(email="v@example.com", password="x")
+        self.client.force_login(self.user)
+
+    def test_add_toggle_clear_and_settings(self):
+        from django.urls import reverse
+        r = self.client.post(reverse("samples_add", args=["rabbits"]), follow=True)
+        self.assertEqual(Rabbit.objects.filter(owner=self.user, is_sample=True).count(), 2)
+        self.assertContains(self.client.get(reverse("rabbit_list")), "Sample")
+        self.assertContains(self.client.get(reverse("rabbit_list")), "Add samples")
+        self.client.post(reverse("samples_toggle"))
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.show_samples)
+        self.assertNotContains(self.client.get(reverse("rabbit_list")), "Add samples")
+        self.client.post(reverse("samples_toggle"))  # back on
+        self.client.post(reverse("samples_clear"), follow=True)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.show_samples)
+        self.assertEqual(Rabbit.objects.filter(owner=self.user, is_sample=True).count(), 0)
+        self.assertContains(self.client.get(reverse("account")), "Welcome guide and samples")
+
+    def test_new_signup_gets_samples_and_guide(self):
+        from django.urls import reverse
+        self.client.logout()
+        r = self.client.post(reverse("signup"), {
+            "email": "new@example.com", "password1": "Longpassword1!", "password2": "Longpassword1!"})
+        u = User.objects.get(email="new@example.com")
+        self.assertEqual(u.guide_step, "today")
+        self.assertTrue(u.show_samples)
+        self.assertGreater(sample_count(u), 0)

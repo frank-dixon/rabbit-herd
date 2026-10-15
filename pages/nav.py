@@ -216,3 +216,24 @@ def account_detail(user):
     if herd_name(user) and full:
         return full
     return user.email if (herd_name(user) or full) else ""
+
+
+def guide(request):
+    """Welcome guide steps for the current page, when the user is mid-guide."""
+    user = getattr(request, "user", None)
+    if not user or not user.is_authenticated:
+        return {}
+    if user.guide_dismissed_at or not user.guide_step or user.guide_step == "done":
+        return {}
+    from django.urls import reverse
+    steps = [
+        {"id": "today", "anchor": "page-header", "title": "Today", "body": "What needs doing today, from your litters and tasks.", "href": reverse("index")},
+        {"id": "add-samples", "anchor": "add-samples", "title": "Sample records", "body": "Records marked Sample show how each screen works. They never count toward your herd.", "href": reverse("index")},
+        {"id": "rabbits", "anchor": "page-header", "title": "Rabbits", "body": "Your herd. Open a rabbit for weights, health, photos and its family tree.", "href": reverse("rabbit_list")},
+        {"id": "litters", "anchor": "page-header", "title": "Litters", "body": "Each litter shows its stage and the next step.", "href": reverse("litter_list")},
+        {"id": "pairings", "anchor": "page-header", "title": "Pairings", "body": "Planned breedings, with inbreeding and predicted colors.", "href": reverse("pairing_list")},
+        {"id": "settings", "anchor": "settings-samples", "title": "Samples and this guide", "body": "Hide samples, clear them, or restart this guide here.", "href": reverse("account") + "#samples"},
+        {"id": "finish", "anchor": "settings-samples", "title": "You're set", "body": "Keep the samples while you add your own rabbits, or clear them now. Your own records are never touched.", "href": reverse("account") + "#samples", "finish": True},
+    ]
+    import json
+    return {"guide_steps": steps, "guide_steps_json": json.dumps(steps), "guide_step": user.guide_step}

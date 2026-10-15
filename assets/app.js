@@ -38,6 +38,7 @@ import { bindAccountMenu } from "./account-menu.mjs";
 import { bindPrefetch } from "./prefetch.mjs";
 import { bindScrollSpy } from "./scrollspy.mjs";
 import { bindRabbitInline } from "./rabbit-inline.mjs";
+import { bindGuide } from "./guide.mjs";
 import { bindSegmented } from "./segmented.mjs";
 import { bindFamilyTree } from "./family-tree.mjs";
 import { bindListSwap } from "./list-swap.mjs";
@@ -368,6 +369,7 @@ function start() {
   window.addEventListener("hashchange", openFold);
   bindPrefetch(document, window);
   bindScrollSpy(document, window);
+  bindGuide();
   bindRabbitInline(document, window);
   bindSegmented(document);
   bindFamilyTree(document);

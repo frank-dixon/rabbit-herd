@@ -130,6 +130,7 @@ TEMPLATES = [
                 "pages.nav.app_name",
                 "pages.nav.ui",
                 "pages.nav.features",
+                "pages.nav.guide",
             ],
         },
     },

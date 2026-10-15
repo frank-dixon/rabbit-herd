@@ -80,6 +80,11 @@ class SignupView(FormView):
         existing = form.existing_user
         if existing is None:
             user = form.save()
+            user.guide_step = "today"
+            user.show_samples = True
+            user.save(update_fields=["guide_step", "show_samples"])
+            from rabbits.samples import add_samples
+            add_samples(user, "today")  # rabbits + pairings + litters + tasks
             send_confirmation_email(self.request, user)
         elif not existing.email_confirmed and not existing.is_guest:
             # Re-send the link, but keep the account's original password, so
@@ -208,7 +213,11 @@ def continue_as_guest(request):
         is_active=True,
         email_confirmed=True,
         email_confirmed_at=timezone.now(),
+        guide_step="today",
+        show_samples=True,
     )
+    from rabbits.samples import add_samples
+    add_samples(user, "today")
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
     return redirect("index")
 
