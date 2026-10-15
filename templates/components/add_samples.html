@@ -1,0 +1,12 @@
+{# Small header action: add this screen's sample content. Shown when show_samples is on. #}
+{% if user.show_samples and sample_screen %}
+  {% if sample_screen_ready %}
+    <span class="inline-flex min-h-10 items-center px-2 text-sm text-muted" title="Samples already added">Add samples</span>
+  {% else %}
+    <form method="post" action="{% url 'samples_add' sample_screen %}" class="inline">{% csrf_token %}
+      <button type="submit" class="mo-press inline-flex min-h-10 items-center gap-1.5 rounded-md px-2 text-sm font-medium text-muted hover:bg-hover hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" data-guide="add-samples">
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add samples
+      </button>
+    </form>
+  {% endif %}
+{% endif %}

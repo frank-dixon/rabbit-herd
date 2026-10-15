@@ -22,7 +22,10 @@ def legal(request, page):
 
 def index(request):
     if request.user.is_authenticated:
-        return render(request, "home.html", home_context(request.user))
+        from rabbits.samples.context import sample_ctx
+        ctx = home_context(request.user)
+        ctx.update(sample_ctx(request.user, "today"))
+        return render(request, "home.html", ctx)
     return render(request, "marketing/home.html")
 
 
@@ -33,6 +36,7 @@ SETTINGS_SECTIONS = [
     ("Rabbitry", "units", "Units", "pages/settings/_herd.html"),
     ("Rabbitry", "schedule", "Breeding schedules", "pages/settings/_herd.html"),
     ("Rabbitry", "reminders", "Reminders", "pages/settings/_herd.html"),
+    ("Preferences", "samples", "Welcome guide and samples", "pages/settings/_samples.html"),
     ("Preferences", "appearance", "Appearance", "pages/settings/_appearance.html"),
     ("Preferences", "side-menu", "Side menu", "pages/settings/_side_menu.html"),
     ("Preferences", "tabs", "Bottom bar", "pages/settings/_tabs.html"),
@@ -89,8 +93,10 @@ def account(request):
     destinations = [(key, DESTINATIONS[key][0]) for key in tab_choices()]
     current_theme = dict(user.THEMES).get(user.ui_theme, "")
     sections = settings_sections(current_theme)
+    from rabbits.samples import sample_count
     return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes, "settings_sections": sections, "settings_nav": settings_nav(sections), "wide": True,
-                                                  "tab_slots": slots, "density_options": [{"value": k, "label": l, "selected": user.ui_density == k} for k, l in user.DENSITIES], "tab_destinations": destinations, "mark_options": mark_options(user), "side_groups": side_groups(user)})
+                                                  "tab_slots": slots, "density_options": [{"value": k, "label": l, "selected": user.ui_density == k} for k, l in user.DENSITIES], "tab_destinations": destinations, "mark_options": mark_options(user), "side_groups": side_groups(user),
+                                                  "sample_count": sample_count(user)})
 
 
 def side_groups(user):

@@ -5,6 +5,7 @@ from accounts.urls import auth_urlpatterns
 from rabbits.export import export_csv
 from rabbits import glossary, schedules
 from rabbits.settings_views import settings_save
+from rabbits import sample_views
 
 # Uploaded photos have no public URL. They are served one at a time, to
 # their owner only, by rabbits.photo_views.photo_file.
@@ -28,6 +29,13 @@ urlpatterns = [
     path("settings/schedules/<int:pk>/", schedules.schedule_form, name="schedule_edit"),
     path("settings/schedules/<int:pk>/delete/", schedules.schedule_delete, name="schedule_delete"),
     path("settings/herd/<slug:section>/", settings_save, name="herd_settings_save"),
+    path("samples/add/<slug:screen>/", sample_views.samples_add, name="samples_add"),
+    path("samples/toggle/", sample_views.samples_toggle, name="samples_toggle"),
+    path("samples/clear/", sample_views.samples_clear, name="samples_clear"),
+    path("guide/restart/", sample_views.guide_restart, name="guide_restart"),
+    path("guide/continue/", sample_views.guide_continue, name="guide_continue"),
+    path("guide/skip/", sample_views.guide_skip, name="guide_skip"),
+    path("guide/step/", sample_views.guide_step, name="guide_step"),
     path("", include("rabbits.hub_urls")),
     path("", include("pages.urls")),
 ]

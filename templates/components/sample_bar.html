@@ -1,0 +1,7 @@
+{# Slim bar on sample detail pages. #}
+{% if sample %}
+<div class="sample-bar" role="status">
+  <span>This is a sample. Edit it freely; it won't count toward your herd.</span>
+  <form method="post" action="{% url 'samples_clear' %}" class="inline">{% csrf_token %}<button type="submit" class="text-sm font-medium text-accent underline underline-offset-4" data-confirm-delete data-title="Clear samples and start fresh?" data-text="This removes every sample record. Your own rabbits and records stay as they are." data-label="Clear samples">Clear samples</button></form>
+</div>
+{% endif %}
