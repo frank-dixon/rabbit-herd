@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% comment %}DRAFT terms of use, written in plain language for a free hobby app. Not legal advice; have them reviewed before any paid plan.{% endcomment %}
+{% block title %}Terms · {{ app_name }}{% endblock %}
+{% block content %}
+<article class="legal">
+  <h1>Terms of use</h1>
+  <p class="legal-updated">Last updated {{ updated }}</p>
+  <p>By using {{ app_name }} you agree to these terms. They're short on purpose.</p>
+  <h2>The service</h2>
+  <p>{{ app_name }} is a free app for keeping rabbitry records. We may add, change or remove features, and we may introduce optional paid plans later. Anything you saved on the free plan stays yours.</p>
+  <h2>Your account</h2>
+  <p>Keep your sign-in details safe; you're responsible for what happens in your account. Give a real email address so you can confirm it and reset your password. Guest sessions live only on the device that created them until you create an account.</p>
+  <h2>Your content</h2>
+  <p>Your records and photos belong to you. You give us permission to store and display them to you only so we can run the app. Only upload photos and information you have the right to use.</p>
+  <h2>Acceptable use</h2>
+  <p>Don't misuse the service: no attempts to break in, overload it, scrape other people's data, or upload anything illegal or harmful. We may suspend accounts that do.</p>
+  <h2>Genetics, health and breeding information</h2>
+  <p>Predictions, inbreeding numbers, schedules and reminders are estimates to help you plan. They are not veterinary advice and can be wrong. Always use your own judgement and ask a vet about your animals' health.</p>
+  <h2>No warranty</h2>
+  <p>The app is provided "as is", without warranties of any kind. We work to keep it running and your data safe, but we can't promise it will always be available or error-free. Export your records regularly if they matter to you.</p>
+  <h2>Limitation of liability</h2>
+  <p>To the extent the law allows, we aren't liable for indirect or consequential losses, or for lost data, profits or animals, arising from using the app.</p>
+  <h2>Ending your account</h2>
+  <p>You can stop using the app at any time. To delete your account and all your data, email {% include "pages/_legal_contact.html" %}.</p>
+  <h2>Changes</h2>
+  <p>We may update these terms; the date above will change, and we'll email you about significant changes. Continuing to use the app means you accept them.</p>
+  <p class="legal-see"><a href="{% url 'privacy' %}">Read the Privacy policy</a></p>
+</article>
+{% endblock %}

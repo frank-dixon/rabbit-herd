@@ -47,3 +47,4 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   .ribbon{width:78%;height:150px;clip-path:polygon(30% 0,100% 0,100% 100%)}
   .shot{margin-top:48px}section.f{padding:64px 0}h2{font-size:30px}
 }
+footer .legal{display:flex;gap:16px}

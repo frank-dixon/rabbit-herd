@@ -14,6 +14,12 @@ from .theme_data import THEMES as THEME_DATA
 from .forms import ComponentExampleForm
 
 
+def legal(request, page):
+    """Privacy policy and terms. Plain pages anyone can read, signed in or not."""
+    from django.conf import settings
+    return render(request, f"pages/{page}.html", {"support_email": settings.SUPPORT_EMAIL, "updated": "October 15, 2026"})
+
+
 def index(request):
     if request.user.is_authenticated:
         return render(request, "home.html", home_context(request.user))

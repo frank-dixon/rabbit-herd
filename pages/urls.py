@@ -13,5 +13,7 @@ urlpatterns = [
     path("manifest.webmanifest", pwa.manifest, name="pwa_manifest"),
     path("sw.js", pwa.service_worker, name="pwa_service_worker"),
     path("offline/", pwa.offline, name="pwa_offline"),
+    path("privacy/", views.legal, {"page": "privacy"}, name="privacy"),
+    path("terms/", views.legal, {"page": "terms"}, name="terms"),
     path("", views.index, name="index"),
 ]

@@ -169,3 +169,14 @@ main .divide-y > li.list-row[data-task-item] { padding-inline: 12px; }
 .confirm-del-link{display:inline-flex;align-items:center;min-height:40px;padding:8px 16px;border-radius:6px;font-weight:500;font-size:14px;color:var(--color-danger);background:var(--color-hover);cursor:pointer}
 .confirm-del-link:hover{background:var(--color-danger-soft,var(--color-hover))}
 .confirm-del-link:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+
+/* Privacy and Terms: one readable column, Direction 2 type, 4/8 spacing. */
+.legal { max-width: 640px; }
+.legal h1 { font-size: 28px; line-height: 36px; font-weight: 600; letter-spacing: -0.01em; }
+.legal h2 { margin-top: 32px; font-size: 16px; line-height: 24px; font-weight: 600; }
+.legal p, .legal li { margin-top: 8px; font-size: 15px; line-height: 24px; color: var(--ink); }
+.legal ul { margin-top: 8px; padding-left: 20px; list-style: disc; }
+.legal li { margin-top: 4px; }
+.legal a { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
+.legal .legal-updated { margin-top: 4px; font-size: 13px; line-height: 20px; color: var(--muted); }
+.legal .legal-see { margin-top: 32px; }

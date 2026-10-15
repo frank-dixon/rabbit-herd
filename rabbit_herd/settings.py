@@ -251,6 +251,8 @@ if not DEBUG and (not WEBAUTHN_RP_ID or not WEBAUTHN_ORIGIN):
 APP_HOSTNAME = hostname_from_env("APP_HOSTNAME")
 DEFAULT_FROM_EMAIL = default_from_email(os.environ, APP_NAME)
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
+# Where people write for help or to delete their account (privacy page, terms).
+SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "").strip()
 # EMAIL_BACKEND stays in charge. Defining MAILERS would make Django ignore it,
 # including the locmem backend the tests swap in.
 _email = email_settings(os.environ)

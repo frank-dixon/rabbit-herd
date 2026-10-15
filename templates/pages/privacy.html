@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% comment %}DRAFT privacy policy, written in plain language for a free hobby app. Not legal advice; have it reviewed before any paid plan.{% endcomment %}
+{% block title %}Privacy policy · {{ app_name }}{% endblock %}
+{% block content %}
+<article class="legal">
+  <h1>Privacy policy</h1>
+  <p class="legal-updated">Last updated {{ updated }}</p>
+  <p>{{ app_name }} is a free app for keeping records on your rabbits. This page explains what we store, why, and what you can ask us to do with it.</p>
+  <h2>What we store</h2>
+  <ul>
+    <li><b>Your account:</b> your email address and a securely hashed password, or a passkey. We never see or store your password itself.</li>
+    <li><b>Your herd records:</b> rabbits, pedigrees, litters, weights, health notes, tasks, costs, contacts and anything else you type in.</li>
+    <li><b>Photos</b> you upload of your rabbits. They are stored privately and only shown to you when signed in.</li>
+    <li><b>Guest sessions:</b> if you try the app without an account, your herd is tied to a cookie on that device until you create an account.</li>
+    <li><b>Basic technical logs</b> (such as IP address and browser type) that our hosting providers keep for security and to fix errors.</li>
+  </ul>
+  <h2>How we use it</h2>
+  <p>Only to run the app for you: to show your records, sign you in, send account emails (confirming your email, resetting your password, reminders you turn on) and keep the service secure. We don't use your data for advertising.</p>
+  <h2>We don't sell your data</h2>
+  <p>We don't sell, rent or trade your information. We share it only with the services that host the app for us (web hosting, database and photo storage, and email delivery), and only so they can run it.</p>
+  <h2>Cookies</h2>
+  <p>We use only the cookies needed to keep you signed in and to protect forms. No tracking or advertising cookies.</p>
+  <h2>Your choices</h2>
+  <ul>
+    <li><b>Export:</b> download your records as CSV files from Settings at any time.</li>
+    <li><b>Delete your account:</b> email {% include "pages/_legal_contact.html" %} from the address on your account and we'll delete your account, records and photos.</li>
+    <li><b>Correct:</b> you can edit or delete any record yourself in the app.</li>
+  </ul>
+  <h2>Security and backups</h2>
+  <p>Connections use HTTPS and passwords are hashed. We keep backups so we can recover from mistakes. No system is perfectly secure, so please use a unique password.</p>
+  <h2>Children</h2>
+  <p>The app isn't meant for children under 13, and we don't knowingly collect their information.</p>
+  <h2>Changes</h2>
+  <p>If we change this policy, we'll update the date above, and we'll email you if a change is significant.</p>
+  <h2>Contact</h2>
+  <p>Questions? Email {% include "pages/_legal_contact.html" %}.</p>
+  <p class="legal-see"><a href="{% url 'terms' %}">Read the Terms</a></p>
+</article>
+{% endblock %}
