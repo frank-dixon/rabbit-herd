@@ -75,8 +75,5 @@
     </section>{% endif %}
     <div class="lg:col-span-2">{% include "rabbits/_linked_costs.html" with add_url=cost_add_url heading_id="litter-costs-heading" %}</div>
   </div>
-  {% if not litter.converted_at %}<form class="mt-4" method="post" action="{% url 'litter_delete' litter.pk %}">
-    {% csrf_token %}
-    <button type="submit" class="inline-flex items-center justify-center rounded px-4 py-2 font-medium border border-line bg-surface text-danger hover:border-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">Remove litter</button>
-  </form>{% endif %}
+  {% if not litter.converted_at %}<div class="mt-4">{% url 'litter_delete' litter.pk as delete_url %}{% include "components/delete_link.html" with href=delete_url label="Delete litter" title=delete_title text=delete_text csrf_token=csrf_token only %}</div>{% endif %}
 {% endblock %}

@@ -24,7 +24,6 @@ class PageThumbTests(PhotoTestCase):
             reverse("rabbit_edit_step", args=[rabbit.pk, "name"]),
             reverse("rabbit_edit_step", args=[rabbit.pk, "line"]),
             reverse("rabbit_photos", args=[rabbit.pk]),
-            reverse("rabbit_delete", args=[rabbit.pk]),
             reverse("rabbit_edit_step", args=[rabbit.pk, "genes"]),
         ]
 

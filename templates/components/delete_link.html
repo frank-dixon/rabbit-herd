@@ -1,0 +1,2 @@
+{# A delete trigger. Without JS it opens the confirm page (GET of href); with JS the shared confirm modal. href (the delete URL), label, title, text, cls (classes), confirm_label, role, csrf_token. #}
+<a href="{{ href }}" class="{{ cls|default:'confirm-del-link' }}"{% if role %} role="{{ role }}"{% endif %} data-confirm-delete data-title="{{ title }}" data-text="{{ text }}" data-label="{{ confirm_label|default:'Delete' }}" data-csrf="{{ csrf_token }}">{{ label }}</a>

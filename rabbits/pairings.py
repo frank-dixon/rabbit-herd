@@ -5,7 +5,7 @@ pedigree entries, and the herd rabbits those point at, followed upward."""
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
 from . import color_odds, genetics, schedules
 from .models import Pairing, PedigreeEntry, Rabbit, Relative, prefs
@@ -209,7 +209,7 @@ def pairing_detail(request, pk):
     from django.utils import timezone
 
     doe_pairs, buck_pairs = color_odds.recorded(pairing.doe), color_odds.recorded(pairing.buck)
-    context = {"pairing": pairing, "rel": relatedness(request.user, pairing.doe, pairing.buck, {}, request.GET.get("asort", "")),
+    context = {"pairing": pairing, "delete_title": f"Delete {pairing}?", "delete_text": PAIRING_DELETE_TEXT, "rel": relatedness(request.user, pairing.doe, pairing.buck, {}, request.GET.get("asort", "")),
                "age_warnings": age_warnings(pairing.doe, pairing.buck), "wide": True,
                "litters": pairing.litters.all(), "today": timezone.localdate(),
                "odds": color_odds.predict(pairing.doe, pairing.buck),
@@ -223,10 +223,17 @@ def pairing_detail(request, pk):
     return render(request, "rabbits/pairing_detail.html", context)
 
 
+PAIRING_DELETE_TEXT = "The pairing and its litters are removed. Both rabbits and any kits in your herd stay."
+
+
 @login_required
-@require_POST
+@require_http_methods(["GET", "POST"])
 def pairing_delete(request, pk):
     pairing = get_object_or_404(Pairing, owner=request.user, pk=pk)
+    if request.method != "POST":
+        from django.urls import reverse
+        from .confirm import confirm_delete
+        return confirm_delete(request, f"Delete {pairing}?", PAIRING_DELETE_TEXT, reverse("pairing_detail", args=[pairing.pk]))
     name = str(pairing)
     pairing.delete()
     messages.success(request, f"The pairing {name} was removed.")

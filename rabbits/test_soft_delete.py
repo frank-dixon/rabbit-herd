@@ -39,12 +39,15 @@ class SoftDeleteTests(TestCase):
         self.assertEqual(purge.purge_rabbits(), 1)
         self.assertFalse(Rabbit.all_objects.filter(pk=self.rabbit.pk).exists())
 
-    def test_purge_keeps_rabbits_inside_the_window_and_remove_needs_the_phrase(self):
+    def test_purge_keeps_rabbits_inside_the_window_and_remove_is_a_plain_confirm(self):
         Rabbit.objects.filter(pk=self.rabbit.pk).update(deleted_at=timezone.now() - datetime.timedelta(days=8))
         self.assertEqual(purge.purge_rabbits(), 0)  # default 30 days
         url = reverse("rabbit_delete_forever", args=[self.rabbit.pk])
-        self.assertEqual(self.client.post(url, {"confirm": "nope"}).status_code, 400)
-        self.client.post(url, {"confirm": "delete Hazel"})
+        page = self.client.get(url)
+        self.assertContains(page, "for good?")
+        self.assertNotContains(page, 'name="confirm"')
+        self.assertTrue(Rabbit.all_objects.filter(pk=self.rabbit.pk).exists())  # GET never deletes
+        self.assertRedirects(self.client.post(url), reverse("rabbit_trash"))
         self.assertFalse(Rabbit.all_objects.filter(pk=self.rabbit.pk).exists())
 
 

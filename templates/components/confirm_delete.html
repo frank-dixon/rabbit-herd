@@ -1,0 +1,10 @@
+{# The shared delete confirm: title, one plain line, Cancel and a red Delete. The no-JS confirm page uses it; confirm-delete.mjs builds the same markup in a <dialog>. title, text, action, cancel_href, label (default Delete), csrf_token. #}
+<div class="confirm-del" data-confirm-body>
+  <h2 class="confirm-del-title" data-confirm-title>{{ title }}</h2>
+  <p class="confirm-del-text" data-confirm-text>{{ text }}</p>
+  <form method="post" action="{{ action }}" class="confirm-del-actions" data-confirm-form>
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <a class="confirm-del-btn" href="{{ cancel_href|default:'/' }}" data-confirm-cancel>Cancel</a>
+    <button type="submit" class="confirm-del-btn is-danger" data-confirm-submit>{{ label|default:"Delete" }}</button>
+  </form>
+</div>

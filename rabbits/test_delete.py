@@ -33,14 +33,16 @@ class DeleteRabbitTests(TestCase):
 
     def test_detail_has_delete_link_and_dialog(self):
         page = self.client.get(reverse("rabbit_detail", args=[self.rabbit.pk]))
-        self.assertContains(page, f'href="{self.url}" data-delete-open="delete-dialog"')
-        self.assertContains(page, '<dialog id="delete-dialog"')
-        self.assertContains(page, "moves to Recently deleted")
+        self.assertContains(page, f'href="{self.url}"')
+        self.assertContains(page, 'data-confirm-delete data-title="Delete Speedwell?"')
+        self.assertContains(page, "move to Recently deleted")
 
     def test_confirm_page_works_without_js(self):
         page = self.client.get(self.url)
-        self.assertContains(page, "moves to Recently deleted")
-        self.assertNotContains(page, "disabled")
+        self.assertContains(page, "Delete Speedwell?")
+        self.assertContains(page, "move to Recently deleted")
+        self.assertContains(page, "data-confirm-submit")
+        self.assertNotContains(page, 'name="confirm"')
 
     def test_get_never_deletes(self):
         self.client.get(self.url, {"confirm": "delete Speedwell"})
@@ -71,3 +73,36 @@ class DeleteRabbitTests(TestCase):
         self.assertFalse(storage.exists(name))
         self.assertFalse(Relative.objects.filter(herd_rabbit_id=self.rabbit.pk).exists())
         self.assertTrue(Rabbit.objects.filter(pk=kit.pk).exists())
+
+
+class SharedConfirmTests(TestCase):
+    """Every entity delete: GET shows the shared confirm page, POST deletes, other owners get 404."""
+
+    def test_litter_pairing_program_schedule_confirm_pages(self):
+        from .models import BreedingSchedule, Litter, Pairing
+
+        User = get_user_model()
+        me, other = User.objects.create_user("me@example.com", "pw-12345678"), User.objects.create_user("them@example.com", "pw-12345678")
+        doe = Rabbit.objects.create(owner=me, name="Clover", sex="doe", breed="Rex", birth_date=date(2025, 1, 1))
+        buck = Rabbit.objects.create(owner=me, name="Basil", sex="buck", breed="Rex", birth_date=date(2025, 1, 1))
+        pairing = Pairing.objects.create(owner=me, doe=doe, buck=buck)
+        litter = Litter.objects.create(owner=me, pairing=pairing, bred_on=date(2026, 9, 1))
+        schedule = BreedingSchedule.objects.create(owner=me, name="Slow")
+        cases = [(reverse("litter_delete", args=[litter.pk]), "Delete the Clover × Basil litter?"),
+                 (reverse("schedule_delete", args=[schedule.pk]), "Delete Slow?"),
+                 (reverse("pairing_delete", args=[pairing.pk]), "Delete Clover × Basil?")]
+        self.client.force_login(other)
+        for url, _ in cases:
+            self.assertEqual(self.client.get(url).status_code, 404, url)
+            self.assertEqual(self.client.post(url).status_code, 404, url)
+        self.client.force_login(me)
+        for url, title in cases:
+            page = self.client.get(url)
+            self.assertContains(page, title)
+            self.assertContains(page, "data-confirm-submit")
+            self.assertNotContains(page, 'name="confirm"')
+        self.assertTrue(Litter.objects.filter(pk=litter.pk).exists())
+        for url, _ in cases:
+            self.assertEqual(self.client.post(url).status_code, 302, url)
+        self.assertFalse(Pairing.objects.filter(pk=pairing.pk).exists())
+        self.assertFalse(BreedingSchedule.objects.filter(pk=schedule.pk).exists())

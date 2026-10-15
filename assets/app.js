@@ -22,6 +22,7 @@ import { bindOffline } from "./offline.mjs";
 import { bindSettings } from "./settings.mjs";
 import { bindSettingsSave } from "./settings-save.mjs";
 import { bindPairingCheck } from "./pairing-check.mjs";
+import { bindConfirmDelete } from "./confirm-delete.mjs";
 import { bindFilters } from "./filters.mjs";
 import { bindMenu } from "./menu.mjs";
 import { bindQuickDone } from "./quick-done.mjs";
@@ -340,6 +341,7 @@ function start() {
   bindSettings(document, window);
   bindSettingsSave(document, window);
   bindPairingCheck(document, window);
+  bindConfirmDelete(document, window);
   bindFilters(document);
   bindMenu(document, window);
   bindQuickDone(document, window);

@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_time
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
 from .status_pills import tone
 from . import costs, flow
@@ -173,6 +173,7 @@ def litter_detail(request, pk):
     past = O.is_past(litter, outcome_kits, timezone.localdate())
     all_tasks = litter.tasks()
     return render(request, "rabbits/litter_detail.html", {
+        "delete_title": f"Delete the {litter.pairing.doe.name} × {litter.pairing.buck.name} litter?", "delete_text": LITTER_DELETE_TEXT,
         "litter": litter, "tasks": [t for t in all_tasks if not t["done"]], "done_tasks": [t for t in all_tasks if t["done"]], "kits": kits, "outcome": outcome, "is_past": past,
         "done_on": O.done_on(litter, outcome_kits) if past else None,
         "timeline": O.timeline(litter, outcome_kits) if litter.kindled_on else [], "room": room, "card": card,
@@ -344,13 +345,20 @@ def litter_add_kit(request, pk):
     return back
 
 
+LITTER_DELETE_TEXT = "The litter, its dates, covers and checks are removed. Kits already in your herd stay."
+
+
 @login_required
-@require_POST
+@require_http_methods(["GET", "POST"])
 def litter_delete(request, pk):
     litter = own_litter(request, pk)
     if litter.converted_at:
         messages.error(request, "This litter was converted and is read-only.")
         return redirect("litter_detail", litter.pk)
+    if request.method != "POST":
+        from .confirm import confirm_delete
+        return confirm_delete(request, f"Delete the {litter.pairing.doe.name} × {litter.pairing.buck.name} litter?",
+                              LITTER_DELETE_TEXT, reverse("litter_detail", args=[litter.pk]))
     pairing = litter.pairing
     litter.delete()
     messages.success(request, "The litter was removed. Kits already in your herd stay there.")

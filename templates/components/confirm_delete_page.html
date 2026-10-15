@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · {{ app_name }}{% endblock %}
+{% block content %}
+  <div class="confirm-del-page">{% include "components/confirm_delete.html" with title=title text=text action=action cancel_href=cancel_href label=label csrf_token=csrf_token only %}</div>
+{% endblock %}

@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
 from .models import BreedingSchedule, Litter, Pairing, Rabbit, prefs
 from .settings_forms import BreedingScheduleForm
@@ -82,9 +82,13 @@ def schedule_form(request, pk=None):
 
 
 @login_required
-@require_POST
+@require_http_methods(["GET", "POST"])
 def schedule_delete(request, pk):
     schedule = get_object_or_404(BreedingSchedule, owner=request.user, pk=pk)
+    if request.method != "POST":
+        from .confirm import confirm_delete
+        return confirm_delete(request, f"Delete {schedule.name}?", "The schedule is removed. Does and litters on it go back to Standard.",
+                              reverse("schedule_edit", args=[schedule.pk]))
     name = schedule.name
     schedule.delete()
     messages.success(request, f"{name} was removed. Does and litters on it are back on Standard.")

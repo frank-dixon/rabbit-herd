@@ -17,12 +17,8 @@
           <div class="flex shrink-0 gap-2">
             <form method="post" action="{% url 'rabbit_undelete' rabbit.pk %}">{% csrf_token %}{% include "components/button.html" with label="Restore" type="submit" variant="secondary" sr_suffix=rabbit.name only %}</form>
             {% url 'rabbit_delete_forever' rabbit.pk as forever_url %}
-            <a href="{{ forever_url }}" data-delete-open="forever-{{ rabbit.pk }}" class="mo-press inline-flex min-h-10 items-center justify-center rounded-md border border-line bg-surface px-3.5 font-medium text-danger hover:border-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Remove<span class="sr-only"> {{ rabbit.name }} for good</span></a>
+            {% include "components/delete_link.html" with href=forever_url label="Delete" title="Delete "|add:rabbit.name|add:" for good?" text=rabbit.forever_text csrf_token=csrf_token only %}
           </div>
-          <dialog id="forever-{{ rabbit.pk }}" class="confirm-dialog m-auto w-[calc(100%-2rem)] max-w-md rounded-xl border border-line bg-surface p-5 text-ink shadow-xl backdrop:bg-ink/40" aria-labelledby="forever-{{ rabbit.pk }}-title">
-            <h2 class="text-lg font-semibold" id="forever-{{ rabbit.pk }}-title">Remove {{ rabbit.name }} for good?</h2>
-            <div class="mt-2">{% include "rabbits/_delete_forever_form.html" with rabbit=rabbit phrase="delete "|add:rabbit.name typed="" error="" field_id="id_forever_" js=True only %}</div>
-          </dialog>
         </li>
       {% endfor %}
     {% include "components/list_panel_end.html" %}

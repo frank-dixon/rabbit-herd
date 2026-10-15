@@ -23,7 +23,7 @@ class PageHeaderTests(TestCase):
         user = get_user_model().objects.create_user(email="h@example.com", password="x-strong-Pass-1")
         self.client.force_login(user)
         rabbit = Rabbit.objects.create(owner=user, name="Clover", sex="doe", breed="Rex", birth_date=date(2025, 1, 1))
-        for name in ("rabbit_detail", "rabbit_edit", "rabbit_photos", "rabbit_pedigree", "rabbit_delete"):
+        for name in ("rabbit_detail", "rabbit_edit", "rabbit_photos", "rabbit_pedigree"):
             body = self.client.get(reverse(name, args=[rabbit.pk])).content.decode()
             header = body[body.index("data-page-header"):body.index("</header>", body.index("data-page-header"))]
             self.assertIn("data-page-thumb", header, name)

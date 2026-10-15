@@ -153,3 +153,19 @@ main .divide-y > li.list-row[data-task-item] { padding-inline: 12px; }
 .rel-table td:first-child{white-space:normal;font-weight:500}
 .rel-table tr+tr td{box-shadow:inset 0 1px 0 var(--line-soft,rgba(0,0,0,.06))}
 @media (prefers-reduced-motion:reduce){.rel-more>summary::after{transition:none}}
+
+/* Shared delete confirm (modal and no-JS page). */
+.app-confirm{margin:auto;width:min(400px,calc(100% - 32px));padding:0;border:0;border-radius:8px;background:var(--color-surface);color:var(--color-ink);box-shadow:0 12px 32px rgba(0,0,0,.18),var(--card-shadow)}
+.app-confirm::backdrop{background:rgba(20,24,22,.4)}
+.confirm-del{padding:24px}
+.confirm-del-title{font-size:18px;line-height:24px;font-weight:600}
+.confirm-del-text{margin-top:8px;font-size:14px;line-height:20px;color:var(--color-muted)}
+.confirm-del-actions{margin-top:24px;display:flex;justify-content:flex-end;gap:8px}
+.confirm-del-btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 16px;border-radius:6px;font-weight:500;font-size:14px;cursor:pointer;color:var(--color-ink);background:var(--color-hover)}
+.confirm-del-btn.is-danger{background:var(--color-danger);color:#fff}
+.confirm-del-btn.is-danger:hover{filter:brightness(.92)}
+.confirm-del-btn:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+.confirm-del-page{max-width:400px;margin:48px auto 0;border-radius:8px;background:var(--color-surface);box-shadow:var(--card-shadow)}
+.confirm-del-link{display:inline-flex;align-items:center;min-height:40px;padding:8px 16px;border-radius:6px;font-weight:500;font-size:14px;color:var(--color-danger);background:var(--color-hover);cursor:pointer}
+.confirm-del-link:hover{background:var(--color-danger-soft,var(--color-hover))}
+.confirm-del-link:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}

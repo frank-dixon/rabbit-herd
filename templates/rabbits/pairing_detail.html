@@ -15,10 +15,7 @@
         {% if pairing.notes %}<dt class="text-neutral-600">Notes</dt><dd class="break-words">{{ pairing.notes }}</dd>{% endif %}
       </dl>
       <div class="mt-4">{% include "rabbits/_relatedness.html" with rel=rel age_warnings=age_warnings only %}</div>
-      <form class="mt-4" method="post" action="{% url 'pairing_delete' pairing.pk %}">
-        {% csrf_token %}
-        <button type="submit" class="inline-flex items-center justify-center rounded px-4 py-2 font-medium border border-line bg-surface text-danger hover:border-danger focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">Remove pairing</button>
-      </form>
+      <div class="mt-4">{% url 'pairing_delete' pairing.pk as delete_url %}{% include "components/delete_link.html" with href=delete_url label="Delete pairing" title=delete_title text=delete_text csrf_token=csrf_token only %}</div>
     </section>
     <section class="scroll-mt-20 ruled pt-4" id="litters" aria-labelledby="litters-heading">
       <h2 class="text-base font-semibold" id="litters-heading">Litters</h2>

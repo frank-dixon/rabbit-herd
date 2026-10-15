@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
 from . import program_plan as plan_mod
 from .color_odds import SERIES
@@ -370,9 +370,13 @@ def program_schedule(request, pk):
 
 
 @login_required
-@require_POST
+@require_http_methods(["GET", "POST"])
 def program_delete(request, pk):
     program = owned(request, pk)
+    if request.method != "POST":
+        from .confirm import confirm_delete
+        return confirm_delete(request, f"Delete {program.title}?", "The program and its plan are removed. Your rabbits and litters stay.",
+                              reverse("program_detail", args=[program.pk]))
     title = program.title
     program.delete()
     messages.success(request, f"{title} was deleted.")

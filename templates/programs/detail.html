@@ -37,11 +37,5 @@
   {% include "programs/_shortest.html" %}
   {% include "programs/_gen_cards.html" %}
   {% include "programs/_breeders.html" %}
-  <details class="group mt-6 text-right">
-    <summary class="inline-flex min-h-9 cursor-pointer list-none items-center text-sm text-muted underline-offset-2 hover:text-danger hover:underline [&::-webkit-details-marker]:hidden">Delete program</summary>
-    <form class="mt-2 inline-flex flex-wrap items-center justify-end gap-3 rounded-lg border border-line bg-surface p-3 text-sm" method="post" action="{% url 'program_delete' program.pk %}">
-      {% csrf_token %}<span>Delete {{ program.title }}? Your rabbits and litters stay.</span>
-      {% include "components/button.html" with label="Delete" type="submit" variant="danger" size="small" only %}
-    </form>
-  </details>
+  <div class="mt-6 text-right">{% url 'program_delete' program.pk as delete_url %}{% include "components/delete_link.html" with href=delete_url label="Delete program" title="Delete "|add:program.title|add:"?" text="The program and its plan are removed. Your rabbits and litters stay." csrf_token=csrf_token only %}</div>
 {% endblock %}

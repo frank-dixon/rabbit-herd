@@ -368,6 +368,7 @@ def rabbit_detail(request, pk):
     main = next((photo for photo in photos if photo.is_main), None)
     context = {
             "rabbit": rabbit, "retention": prefs(request.user).deleted_retention_days,
+            "delete_text": delete_text(rabbit, prefs(request.user).deleted_retention_days),
             "wide": True,
             "main_photo": main,
             "archived_litters": (Litter.objects.filter(owner=request.user, pairing__doe=rabbit, converted_at__isnull=False).count()
@@ -488,16 +489,6 @@ def rabbit_restore(request, pk):
     return redirect("rabbit_detail", pk=rabbit.pk)
 
 
-def delete_phrase(rabbit):
-    return f"delete {rabbit.name}"
-
-
-def delete_phrase_matches(rabbit, typed):
-    """Case-insensitive, with outer and repeated inner spaces ignored."""
-    def tidy(text):
-        return " ".join(str(text or "").split()).casefold()
-    return tidy(typed) == tidy(delete_phrase(rabbit))
-
 
 @login_required
 def rabbit_delete(request, pk):
@@ -510,8 +501,16 @@ def rabbit_delete(request, pk):
         rabbit.save(update_fields=["deleted_at", "updated_at"])
         messages.success(request, f"{rabbit.name} was moved to Recently deleted.")
         return redirect("rabbit_list")
-    return render(request, "rabbits/delete.html", {"rabbit": rabbit, "retention": prefs(request.user).deleted_retention_days,
-                                                   "wide": True})
+    from django.urls import reverse
+    from .confirm import confirm_delete
+
+    return confirm_delete(request, f"Delete {rabbit.name}?", delete_text(rabbit, prefs(request.user).deleted_retention_days),
+                          reverse("rabbit_detail", args=[rabbit.pk]))
+
+
+def delete_text(rabbit, days):
+    keep = "a year" if days == 365 else f"{days} days"
+    return f"{rabbit.name} and its photos, weights and records move to Recently deleted. You can restore it for {keep}."
 
 
 def deleted_rabbit(user, pk):
@@ -526,6 +525,7 @@ def rabbit_trash(request):
                    .order_by("-deleted_at").prefetch_related("photos"))
     for rabbit in rabbits:
         rabbit.purge_on = timezone.localtime(rabbit.deleted_at).date() + datetime.timedelta(days=days)
+        rabbit.forever_text = forever_text(rabbit)
     return render(request, "rabbits/trash.html", {"rabbits": rabbits, "retention": days})
 
 
@@ -544,24 +544,22 @@ def rabbit_undelete(request, pk):
 
 @login_required
 def rabbit_delete_forever(request, pk):
-    """Remove a deleted rabbit for good once its owner types "delete <name>"."""
+    """Remove a deleted rabbit for good (GET shows the shared confirm page)."""
+    from django.urls import reverse
+    from .confirm import confirm_delete
     from .purge import hard_delete
 
     rabbit = deleted_rabbit(request.user, pk)
-    error, typed = "", ""
     if request.method == "POST":
-        typed = request.POST.get("confirm", "")
-        if delete_phrase_matches(rabbit, typed):
-            name = rabbit.name
-            hard_delete(rabbit)
-            messages.success(request, f"{name} was removed for good.")
-            return redirect("rabbit_trash")
-        error = f"Type “{delete_phrase(rabbit)}” exactly to remove {rabbit.name} for good."
-    response = render(request, "rabbits/delete_forever.html",
-                      {"rabbit": rabbit, "phrase": delete_phrase(rabbit), "typed": typed, "error": error, "wide": True})
-    if error:
-        response.status_code = 400
-    return response
+        name = rabbit.name
+        hard_delete(rabbit)
+        messages.success(request, f"{name} was removed for good.")
+        return redirect("rabbit_trash")
+    return confirm_delete(request, f"Delete {rabbit.name} for good?", forever_text(rabbit), reverse("rabbit_trash"))
+
+
+def forever_text(rabbit):
+    return f"{rabbit.name} and all its photos, weights and records are removed. This can't be undone."
 
 
 def legs_text(legs, grand):

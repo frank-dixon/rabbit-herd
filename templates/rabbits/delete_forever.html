@@ -1,7 +1,0 @@
-{% extends "base.html" %}
-{% block title %}Remove {{ rabbit.name }} for good · {{ app_name }}{% endblock %}
-{% block content %}
-  {% url 'rabbit_trash' as trash_url %}
-  {% with title="Remove "|add:rabbit.name|add:" for good?" %}{% include "components/page_header.html" with title=title back_label="Recently deleted" back_href=trash_url only %}{% endwith %}
-  <section class="mt-6 max-w-2xl ruled pt-4">{% include "rabbits/_delete_forever_form.html" with field_id="id_confirm_" js=False %}</section>
-{% endblock %}

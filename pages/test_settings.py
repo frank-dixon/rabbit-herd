@@ -133,7 +133,7 @@ class UndoToastTests(TestCase):
         from django.conf import settings
         for path in Path(settings.BASE_DIR, "templates").rglob("*.html"):
             text = path.read_text()
-            if "data-confirm" in text:
+            if "data-confirm=" in text:  # the shared delete confirm uses data-confirm-*; row removes still undo
                 self.assertIn("Start over", text, path)
 
 
