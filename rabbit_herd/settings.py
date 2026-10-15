@@ -101,6 +101,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "accounts.ratelimit.middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "pages.middleware.prefetch_keeps_messages",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -269,6 +270,13 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = "Lax"
+
+# Default cache stays per process. Attempt limits need one shared count across
+# serverless instances, so they use a database table (created by a migration).
+CACHES = {
+    "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
+    "ratelimit": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "rate_limit_cache"},
+}
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
