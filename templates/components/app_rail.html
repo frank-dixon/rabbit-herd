@@ -1,6 +1,6 @@
 {# Side menu for tablet (icons over short labels) and desktop (full labels). Hidden on phones, which get the bottom tabs and the drawer. The account footer stays pinned to the bottom. #}
 <aside data-print-hide data-app-rail class="sticky top-0 z-30 hidden h-screen shrink-0 flex-col border-r border-line bg-side md:flex md:w-20 lg:w-56" aria-label="App">
-  <a class="hidden h-14 shrink-0 items-center px-5 text-base font-semibold tracking-tight text-ink lg:flex" href="{% url 'index' %}">{{ app_name }}</a>
+  <a class="hidden h-14 shrink-0 items-center px-5 text-base font-semibold tracking-tight text-ink lg:flex lg:gap-2" href="{% url 'index' %}">{% include "components/app_mark.html" %}{{ app_name }}</a>
   <nav class="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-2 pt-3 pb-2 lg:pt-1 lg:pr-3 lg:pl-0" aria-label="Main">
     {% for item in app_nav %}{% include "components/rail_link.html" with group="main" %}{% endfor %}
     <p class="eyebrow mt-4 mb-1 hidden lg:block lg:pl-5" id="rail-records">Records</p>

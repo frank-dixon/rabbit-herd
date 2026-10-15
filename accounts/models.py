@@ -48,6 +48,9 @@ class User(AbstractUser):
     DENSITIES = [("roomy", "Roomy"), ("compact", "Compact")]
     ui_theme = models.CharField(max_length=8, choices=THEMES, default="light")
     ui_density = models.CharField(max_length=8, choices=DENSITIES, default="roomy")
+    # The app icon next to the name in the app shell (pages.marks).
+    MARKS = [("s1", "S1"), ("g2", "G2")]
+    ui_mark = models.CharField(max_length=4, choices=MARKS, default="s1")
     # The Rabbits page layout, remembered per account.
     LIST_VIEWS = [("grid", "Grid"), ("list", "List")]
     ui_list_view = models.CharField(max_length=8, choices=LIST_VIEWS, default="grid")

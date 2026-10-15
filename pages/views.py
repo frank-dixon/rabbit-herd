@@ -50,6 +50,11 @@ def settings_nav(sections):
     return groups
 
 
+def mark_options(user):
+    from .marks import MARKS
+    return [{"key": k, "label": label, "mark": MARKS[k], "current": user.ui_mark == k} for k, label in user.MARKS]
+
+
 @login_required
 def account(request):
     """Settings: appearance (theme, grid density), account, export, log out.
@@ -58,9 +63,10 @@ def account(request):
     if request.method == "POST":
         theme = request.POST.get("ui_theme", user.ui_theme)
         density = request.POST.get("ui_density", user.ui_density)
-        if theme in dict(user.THEMES) and density in dict(user.DENSITIES):
-            user.ui_theme, user.ui_density = theme, density
-            user.save(update_fields=["ui_theme", "ui_density"])
+        app_mark = request.POST.get("ui_mark", user.ui_mark)
+        if theme in dict(user.THEMES) and density in dict(user.DENSITIES) and app_mark in dict(user.MARKS):
+            user.ui_theme, user.ui_density, user.ui_mark = theme, density, app_mark
+            user.save(update_fields=["ui_theme", "ui_density", "ui_mark"])
             response = HttpResponse(status=204) if request.headers.get("X-Requested-With") == "fetch" else None
             if response is None:
                 messages.success(request, "Settings saved.")
@@ -78,7 +84,7 @@ def account(request):
     current_theme = dict(user.THEMES).get(user.ui_theme, "")
     sections = settings_sections(current_theme)
     return render(request, "pages/account.html", {"export_kinds": kinds, "themes": themes, "settings_sections": sections, "settings_nav": settings_nav(sections), "wide": True,
-                                                  "tab_slots": slots, "density_options": [{"value": k, "label": l, "selected": user.ui_density == k} for k, l in user.DENSITIES], "tab_destinations": destinations, "side_groups": side_groups(user)})
+                                                  "tab_slots": slots, "density_options": [{"value": k, "label": l, "selected": user.ui_density == k} for k, l in user.DENSITIES], "tab_destinations": destinations, "mark_options": mark_options(user), "side_groups": side_groups(user)})
 
 
 def side_groups(user):

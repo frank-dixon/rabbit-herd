@@ -10,6 +10,19 @@
       {% include "components/segmented.html" with label="Spacing" name="ui_density" options=density_options only %}
     </fieldset>
     <fieldset class="mt-4 rounded-lg border border-line bg-surface px-4 py-3">
+      <legend class="float-left font-medium">App icon</legend>
+      <div class="clear-left flex flex-wrap gap-2 pt-3" data-mark-grid>
+        {% for o in mark_options %}
+          <label class="group flex w-28 cursor-pointer flex-col items-center gap-2 rounded-lg border border-line bg-surface p-2 text-ink transition-colors duration-150 hover:border-field has-checked:border-accent has-checked:ring-1 has-checked:ring-accent has-focus-visible:ring-2 has-focus-visible:ring-accent">
+            <input class="sr-only" type="radio" name="ui_mark" value="{{ o.key }}"{% if o.current %} checked{% endif %}>
+            {% include "components/app_mark.html" with mark=o.mark size=48 only %}
+            <span class="flex w-full items-center justify-between gap-2 text-sm"><span class="font-medium">{{ o.label }}{% if forloop.first %} <span class="font-normal text-muted">default</span>{% endif %}</span>
+            <svg class="invisible h-4 w-4 shrink-0 text-accent group-has-checked:visible" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" aria-hidden="true"><path d="M5 12.5 10 17 19 7"/></svg></span>
+          </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    <fieldset class="mt-4 rounded-lg border border-line bg-surface px-4 py-3">
       <legend class="float-left font-medium">Theme</legend>
       <div class="clear-left grid grid-cols-2 gap-2 pt-3 sm:grid-cols-3 xl:grid-cols-4" data-theme-grid>
         {% for theme in themes %}

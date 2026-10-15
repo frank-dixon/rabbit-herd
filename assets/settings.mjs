@@ -13,6 +13,10 @@ export function bindSettings(root, win = window) {
     const input = event.target;
     if (input.name === "ui_theme") html.dataset.theme = input.value;
     if (input.name === "ui_density") html.dataset.density = input.value;
+    if (input.name === "ui_mark") {
+      const pick = input.closest("label")?.querySelector(".app-mark");
+      if (pick) for (const m of root.querySelectorAll(".app-mark")) if (!form.contains(m)) { m.setAttribute("viewBox", pick.getAttribute("viewBox")); m.innerHTML = pick.innerHTML; }
+    }
     try {
       const response = await win.fetch(form.action, {
         method: "POST",

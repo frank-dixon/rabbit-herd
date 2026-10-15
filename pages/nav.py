@@ -20,8 +20,10 @@ def ui(request):
     theme = (user.ui_theme if signed_in else "") or "light"
     theme = theme if theme in THEME_COLOR else "light"
     density = (user.ui_density if signed_in else "") or "roomy"
+    from .marks import mark
+    ui_mark = mark(user.ui_mark if signed_in else "")
     # Forms all use the flat sheet now; ui_layout stays as a constant for templates.
-    return {"ui_layout": "v2", "ui_theme": theme, "ui_density": density, "ui_icons": ICONS, "ui_theme_color": THEME_COLOR[theme]}
+    return {"ui_layout": "v2", "ui_theme": theme, "ui_density": density, "ui_icons": ICONS, "ui_theme_color": THEME_COLOR[theme], "ui_mark": ui_mark}
 
 
 def app_name(request):

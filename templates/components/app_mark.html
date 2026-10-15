@@ -1,0 +1,2 @@
+{# The user's app mark (pages.marks): thin line drawing in the ink color. Pass mark= to draw a specific one. #}
+{% if mark %}{% include "components/_mark_svg.html" with m=mark size=size only %}{% else %}{% include "components/_mark_svg.html" with m=ui_mark size=size only %}{% endif %}

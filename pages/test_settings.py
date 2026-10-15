@@ -20,6 +20,20 @@ class SettingsTests(TestCase):
         self.assertContains(page, "#22573B")
         self.assertContains(page, 'value="light" checked')
 
+    def test_app_icon_defaults_to_s1_and_switches_to_g2(self):
+        from pages.marks import MARKS
+        s1, g2 = MARKS["s1"]["paths"][0], MARKS["g2"]["paths"][0]
+        self.assertContains(self.client.get(reverse("index")), s1)
+        self.client.post(reverse("account"), {"ui_mark": "g2"})
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ui_mark, "g2")
+        page = self.client.get(reverse("index")).content.decode()
+        self.assertIn(g2, page)
+        self.assertNotIn(s1, page)
+        self.client.post(reverse("account"), {"ui_mark": "zz"})
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ui_mark, "g2")
+
     def test_saving_theme_and_density_applies_server_side(self):
         response = self.client.post(reverse("account"), {"ui_theme": "warm-b", "ui_density": "compact"})
         self.assertRedirects(response, reverse("account"))
