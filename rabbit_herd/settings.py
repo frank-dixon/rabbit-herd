@@ -306,8 +306,8 @@ from django.urls import reverse_lazy  # noqa: E402
 UNFOLD = {
     "SITE_TITLE": "Bramble Burrow",
     "SITE_HEADER": "Bramble Burrow",
-    # Always dark; Unfold has no "dark by default, switchable" option.
-    "THEME": "dark",
+    # Always light (Frank, 2026-10-16); Unfold has no "light by default, switchable" option.
+    "THEME": "light",
     # Forest green scale (OKLCH), 600 is the main brand shade.
     "COLORS": {
         "primary": {
