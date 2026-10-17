@@ -1,0 +1,14 @@
+{# One rabbit on the Rabbits list; also each kit inside a stacked litter. #}
+{% with main=rabbit.main_photo %}
+  <li>
+    <a href="{% url 'rabbit_detail' rabbit.pk %}" class="block h-full overflow-hidden rounded border border-neutral-300 bg-white hover:border-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+      {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="aspect-square w-full text-4xl" sizes="(min-width: 1024px) 300px, (min-width: 640px) 50vw, 100vw" only %}
+      <span class="block p-3">
+        <span class="block min-w-0 text-lg font-semibold [overflow-wrap:normal]"><span class="sr-only">Open </span>{{ rabbit.name }}{% if rabbit.is_sample %}{% include "components/sample_badge.html" with sample=True only %}{% endif %}</span>
+        <span class="mt-1 pill" data-status-chip data-status="{{ rabbit.status }}">{{ rabbit.status_tag }}</span>
+        <span class="mt-1 block text-sm text-neutral-600">{% if rabbit.died_text %}{{ rabbit.died_text }} · {% endif %}{{ rabbit.get_sex_display }}{% if rabbit.short_breed %} · {{ rabbit.short_breed }}{% endif %}{% if rabbit.purebred_info and rabbit.purebred_info.source != "entered" %} · purebred{% endif %}{% if rabbit.tattoo %} · {{ rabbit.tattoo }}{% endif %}</span>
+        {% include "rabbits/_rabbit_meta.html" with r=rabbit mode="roomy" only %}
+      </span>
+    </a>
+  </li>
+{% endwith %}

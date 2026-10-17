@@ -38,6 +38,7 @@ import { bindAccountMenu } from "./account-menu.mjs";
 import { bindPrefetch } from "./prefetch.mjs";
 import { bindScrollSpy } from "./scrollspy.mjs";
 import { bindRabbitInline } from "./rabbit-inline.mjs";
+import { bindLitterStacks } from "./litter-stack.mjs";
 import { bindGuide } from "./guide.mjs";
 import { bindSegmented } from "./segmented.mjs";
 import { bindFamilyTree } from "./family-tree.mjs";
@@ -371,6 +372,7 @@ function start() {
   bindScrollSpy(document, window);
   bindGuide();
   bindRabbitInline(document, window);
+  bindLitterStacks(document, window);
   bindSegmented(document);
   bindFamilyTree(document);
   bindListSwap(document, window);

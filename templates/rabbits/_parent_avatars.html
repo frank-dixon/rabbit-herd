@@ -1,0 +1,4 @@
+{# Dam and sire mini avatars for a stacked litter: a herd rabbit's photo or swatch, else the initial. #}
+<span class="flex shrink-0 -space-x-2" aria-hidden="true">
+  {% for p in parents %}{% if p.photos %}{% with main=p.main_photo %}{% include "rabbits/_rabbit_thumb.html" with rabbit=p main=main size_class="litter-av block size-6 rounded-full text-[0.6rem]" sizes="24px" only %}{% endwith %}{% else %}<span class="litter-av grid size-6 place-items-center rounded-full bg-well text-[0.65rem] font-semibold text-muted">{{ p.name|default:"?"|slice:":1" }}</span>{% endif %}{% endfor %}
+</span>

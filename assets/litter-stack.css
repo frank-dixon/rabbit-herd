@@ -1,0 +1,11 @@
+/* Stacked litter card (Rabbits list): two offset sheets behind the card read as "more inside". */
+.litter-stack { position: relative; padding: 0 6px 6px 0; }
+.litter-stack::before, .litter-stack::after { content: ""; position: absolute; inset: 0 6px 6px 0; border: 1px solid var(--line); border-radius: 6px; background: var(--well); }
+.litter-stack::before { transform: translate(6px, 6px); }
+.litter-stack::after { transform: translate(3px, 3px); background: var(--side); }
+.litter-stack .litter-stack-card { z-index: 1; background: var(--surface); box-shadow: 0 0 0 1.5px color-mix(in oklab, var(--accent) 22%, transparent); }
+.litter-stack-thumb::before { content: ""; position: absolute; inset: 0; border: 1px solid var(--line); border-radius: 6px; background: var(--well); transform: translate(4px, 4px); }
+[data-litter-toggle] .litter-chev { transition: transform 150ms ease-out; }
+[data-litter-toggle][aria-expanded="true"] .litter-chev { transform: rotate(180deg); }
+.litter-kit-row > [role="row"] { padding-left: 2rem; background: var(--accent-soft); }
+html[data-theme="heritage"] .litter-stack::before, html[data-theme="heritage"] .litter-stack::after, html[data-theme="heritage"] .litter-stack-thumb::before { border-radius: 0; }

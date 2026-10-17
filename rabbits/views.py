@@ -287,11 +287,20 @@ def rabbit_list(request):
         subtitle = f"{total} active rabbit{plural} in your herd"
     else:
         subtitle = f"{total} {noun} rabbit{plural}"
+    entries = rabbits
+    if filters["tab"] not in ("archived", "former"):
+        # Growing-out kits of one litter fold into a stacked card (litter_stacks).
+        from django.db.models import prefetch_related_objects
+        from .litter_stacks import stack_litters
+        linked = [r for r in rabbits if r.status == Rabbit.Status.GROWING and r.litter_id]
+        prefetch_related_objects(linked, "litter__pairing__doe__photos", "litter__pairing__buck__photos")
+        entries = stack_litters(rabbits)
     return render(
         request,
         "rabbits/list.html",
         {
             "rabbits": rabbits,
+            "entries": entries,
             "view": view,
             "wide": True,
             "subtitle": subtitle,

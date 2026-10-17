@@ -1,0 +1,55 @@
+{% comment %} Growing-out kits of one litter, folded into one stacked entry (rabbits/litter_stacks.py).
+   mode: compact | roomy (grid cards) or row (list view). The toggle remembers its open state
+   in localStorage (assets/litter-stack.mjs); a search or filter opens every stack. {% endcomment %}
+{% with key=stack.key first=stack.kits.0 %}{% with main=first.main_photo %}
+{% if mode == "row" %}
+  <li role="none" class="litter-stack-row" data-litter-stack="{{ key }}">
+    <div role="row" class="list-row list-cols grid items-center px-3 hover:bg-side">
+      <span role="cell" class="flex min-w-0 items-center gap-3">
+        <button type="button" class="litter-stack-btn flex min-w-0 items-center gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-expanded="{% if filtering %}true{% else %}false{% endif %}" aria-controls="litter-{{ key }}-0" data-litter-toggle="{{ key }}">
+          <span class="litter-stack-thumb relative shrink-0">{% include "rabbits/_rabbit_thumb.html" with rabbit=first main=main size_class="list-thumb relative z-[1] block rounded-md text-base" only %}</span>
+          <span class="min-w-0">
+            <span class="block break-words font-semibold">{{ stack.title }} <span class="num ml-1 whitespace-nowrap rounded-full bg-accent px-1.5 py-px text-[0.68rem] font-semibold text-on-accent">{{ stack.count }} kits</span></span>
+            <span class="block truncate text-sm text-muted">{{ stack.count }} kits · {{ stack.age_text }}<span class="lg:hidden"> · Growing out</span></span>
+          </span>
+          <svg class="litter-chev size-4 shrink-0 text-muted" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z"/></svg>
+        </button>
+      </span>
+      <span role="cell" class="hidden min-w-0 items-center gap-1.5 text-sm lg:flex">{% include "rabbits/_parent_avatars.html" with parents=stack.parents only %}<span class="truncate text-muted">Dam · Sire</span></span>
+      <span role="cell" class="num hidden text-sm lg:block">{{ stack.age_text }}</span>
+      <span role="cell" class="hidden text-sm text-muted lg:block">—</span>
+      {% if feature_locations %}<span role="cell" class="hidden text-sm text-muted xl:block">—</span>{% endif %}
+      <span role="cell" class="hidden text-sm text-muted xl:block">—</span>
+      <span role="cell" class="justify-self-end lg:justify-self-start"><span class="pill" data-status-chip data-status="{{ first.status }}">{{ first.status_tag }}</span></span>
+    </div>
+  </li>
+  {% for rabbit in stack.kits %}{% include "rabbits/_list_row.html" with rabbit=rabbit litter_key=key %}{% endfor %}
+{% else %}
+  <li class="litter-stack min-w-0" data-litter-stack="{{ key }}">
+    <button type="button" class="litter-stack-card mo-press relative block h-full w-full rounded-md border border-line bg-surface text-left hover:border-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-expanded="{% if filtering %}true{% else %}false{% endif %}" aria-controls="litter-{{ key }}-0" data-litter-toggle="{{ key }}">
+      <span class="relative block overflow-hidden rounded-t-[inherit]">
+        {% if mode == "compact" %}{% include "rabbits/_rabbit_thumb.html" with rabbit=first main=main size_class="block aspect-square w-full text-3xl" sizes="(min-width: 1024px) 180px, (min-width: 640px) 25vw, 33vw" only %}{% else %}{% include "rabbits/_rabbit_thumb.html" with rabbit=first main=main size_class="block aspect-square w-full text-4xl" sizes="(min-width: 1024px) 300px, (min-width: 640px) 50vw, 100vw" only %}{% endif %}
+        <span class="absolute left-1.5 top-1.5 max-w-[calc(100%-4.5rem)] truncate whitespace-nowrap rounded bg-surface/90 px-1.5 py-px text-[0.68rem] font-medium text-ink backdrop-blur-sm" data-status-chip data-status="{{ first.status }}">{{ first.status_tag }}</span>
+        <span class="num absolute right-1.5 top-1.5 whitespace-nowrap rounded-full bg-accent px-1.5 py-px text-[0.68rem] font-semibold text-on-accent">{{ stack.count }} kits</span>
+      </span>
+      <span class="block {% if mode == 'compact' %}px-2.5 pb-2.5 pt-2{% else %}p-3{% endif %}">
+        <span class="block min-w-0 {% if mode == 'compact' %}text-[0.95rem] leading-tight{% else %}text-lg{% endif %} font-semibold"><span class="sr-only">Litter </span>{{ stack.title }}</span>
+        <span class="mt-0.5 block text-xs text-muted">{{ stack.count }} kits · {{ stack.age_text }}</span>
+        <span class="mt-1.5 flex items-center gap-1.5 text-xs text-muted">
+          {% include "rabbits/_parent_avatars.html" with parents=stack.parents only %}<span class="truncate">Dam · Sire</span>
+          <svg class="litter-chev ml-auto size-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z"/></svg>
+        </span>
+      </span>
+    </button>
+  </li>
+  <li id="litter-{{ key }}-0" class="litter-band col-span-full rounded-lg border border-accent/40 bg-accent-soft p-3" data-litter-of="{{ key }}"{% if not filtering %} hidden{% endif %}>
+    <div class="mb-2.5 flex items-center justify-between gap-3">
+      <h3 class="min-w-0 text-[0.95rem] font-semibold"><span aria-hidden="true">♀</span> {{ stack.dam_name }} × <span aria-hidden="true">♂</span> {{ stack.sire_name }} · <span class="num">{{ stack.count }}</span> kits{% if stack.color_text %} · {{ stack.color_text }}{% endif %} · {{ stack.age_text }}</h3>
+      <button type="button" class="inline-flex min-h-11 shrink-0 items-center gap-1 text-sm font-semibold text-accent hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" data-litter-toggle="{{ key }}" aria-expanded="{% if filtering %}true{% else %}false{% endif %}" aria-controls="litter-{{ key }}-0">Collapse<svg class="size-4 rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z"/></svg></button>
+    </div>
+    <ul class="grid gap-2 {% if mode == 'compact' %}grid-cols-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-9{% else %}grid-cols-2 sm:grid-cols-3 lg:grid-cols-4{% endif %}">
+      {% for rabbit in stack.kits %}{% if mode == "compact" %}{% include "rabbits/_list_card_compact.html" with rabbit=rabbit %}{% else %}{% include "rabbits/_list_card_roomy.html" with rabbit=rabbit %}{% endif %}{% endfor %}
+    </ul>
+  </li>
+{% endif %}
+{% endwith %}{% endwith %}
