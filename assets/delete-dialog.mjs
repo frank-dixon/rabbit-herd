@@ -1,19 +1,10 @@
 /*
- * Delete-a-rabbit dialog. The Delete link goes to a confirm page without
- * script; with script it opens a native <dialog> instead. showModal() makes
- * the rest of the page inert (a real focus trap) and Esc closes it.
- * With a typed phrase (removing for good), the confirm button stays disabled
- * until the text matches; the server checks it again. Without one (moving to
- * Recently deleted) it is a plain confirm and Cancel takes focus.
+ * Shared confirm dialog (delete a rabbit, convert a litter). The opener link
+ * goes to a confirm page without script; with script it opens a native
+ * <dialog> instead. showModal() makes the rest of the page inert (a real
+ * focus trap) and Esc closes it. Plain confirm: the action button is enabled
+ * right away and Cancel takes focus.
  */
-
-export function tidy(text) {
-  return String(text || "").trim().split(/\s+/).filter(Boolean).join(" ").toLowerCase();
-}
-
-export function phraseMatches(typed, phrase) {
-  return tidy(typed) === tidy(phrase);
-}
 
 export function bindDeleteDialog(root) {
   root.querySelectorAll("[data-delete-open]").forEach((opener) => {
@@ -22,18 +13,9 @@ export function bindDeleteDialog(root) {
       return; // No <dialog> support: the link's confirm page still works.
     }
     const form = dialog.querySelector("[data-delete-form]");
-    const input = dialog.querySelector("[data-delete-input]");
     const submit = form.querySelector('button[type="submit"]');
-    const update = () => {
-      if (!input) return;
-      const ok = phraseMatches(input.value, form.dataset.phrase);
-      submit.disabled = !ok;
-      submit.classList.toggle("opacity-50", !ok);
-      submit.classList.toggle("cursor-not-allowed", !ok);
-    };
-    input?.addEventListener("input", update);
     form.addEventListener("submit", (event) => {
-      if ((input && !phraseMatches(input.value, form.dataset.phrase)) || form.dataset.sent) {
+      if (form.dataset.sent) {
         event.preventDefault();
         return;
       }
@@ -41,16 +23,11 @@ export function bindDeleteDialog(root) {
       submit.setAttribute("aria-disabled", "true");
     });
     dialog.querySelector("[data-delete-close]").addEventListener("click", () => dialog.close());
-    dialog.addEventListener("close", () => {
-      if (input) input.value = "";
-      update();
-      opener.focus();
-    });
+    dialog.addEventListener("close", () => opener.focus());
     opener.addEventListener("click", (event) => {
       event.preventDefault();
-      update();
       dialog.showModal();
-      (input || dialog.querySelector("[data-delete-close]")).focus();
+      dialog.querySelector("[data-delete-close]").focus();
     });
   });
 }

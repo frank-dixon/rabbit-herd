@@ -83,7 +83,7 @@ def litter_convert(request, pk):
     title = K.litter_title(litter)
     if request.method == "POST":
         try:
-            kits = K.convert(litter.pk, request.user, request.POST.get("confirm", ""))
+            kits = K.convert(litter.pk, request.user)
         except K.ConvertError as error:
             messages.error(request, str(error))
             return redirect(f"/litters/{litter.pk}/convert/")

@@ -32,7 +32,7 @@ class ConvertTests(TestCase):
         slots = self.slots("doe", "buck", "doe")
         K.record_whole(self.litter, self.today, 3, 1200, LitterCheck.WeightKind.TOTAL, "healthy", "Clean ears")
         K.record_each(self.litter, self.today, [(slots[0], 450, "watch", "Small"), (slots[1], None, "", ""), (slots[2], 380, "", "")])
-        kits = K.convert(self.litter.pk, self.owner, "hazel  × basil")
+        kits = K.convert(self.litter.pk, self.owner)
         self.assertEqual(len(kits), 3)
         first = Rabbit.objects.get(litter_slot__number=1)
         self.assertEqual((first.sex, first.birth_date, first.litter_id), ("doe", self.litter.kindled_on, self.litter.pk))
@@ -45,15 +45,12 @@ class ConvertTests(TestCase):
         self.litter.refresh_from_db()
         self.assertIsNotNone(self.litter.converted_at)
         # A second submit (double click) changes nothing.
-        K.convert(self.litter.pk, self.owner, "Hazel × Basil")
+        K.convert(self.litter.pk, self.owner)
         self.assertEqual(Rabbit.objects.filter(litter=self.litter).count(), 3)
 
-    def test_refuses_wrong_name_and_unsexed_kits_become_unknown(self):
+    def test_unsexed_kits_become_unknown(self):
         self.slots("doe", "", "buck")
-        with self.assertRaises(K.ConvertError):
-            K.convert(self.litter.pk, self.owner, "Hazel")
-        self.assertFalse(Rabbit.objects.filter(litter=self.litter).exists())
-        K.convert(self.litter.pk, self.owner, "Hazel × Basil")
+        K.convert(self.litter.pk, self.owner)
         self.assertEqual(Rabbit.objects.get(litter_slot__number=2).sex, Rabbit.Sex.UNKNOWN)
         # Unknown-sex kits are never offered as breeders.
         from .program_plan import herd_breeders
@@ -65,6 +62,29 @@ class ConvertTests(TestCase):
         settings.save()
         Rabbit.objects.create(owner=self.owner, name="Early", sex="buck", color="Black", litter=self.litter, tattoo="K01", birth_date=self.litter.kindled_on)
         self.slots("buck", "doe", "doe")
-        K.convert(self.litter.pk, self.owner, "Hazel × Basil")
+        K.convert(self.litter.pk, self.owner)
         kits = Rabbit.objects.filter(litter=self.litter).order_by("tattoo")
         self.assertEqual([k.tattoo for k in kits], ["K01", "K02", "K03"])
+
+
+class ConvertViewTests(ConvertTests):
+    """The convert dialog is a plain confirm: no typed name, still POST, CSRF and owner-only."""
+
+    def test_confirm_page_has_no_typed_name_and_post_converts(self):
+        from django.contrib.auth import get_user_model
+        from django.urls import reverse
+        url = reverse("litter_convert", args=[self.litter.pk])
+        self.client.force_login(self.owner)
+        page = self.client.get(url)
+        self.assertContains(page, "This can't be undone.")
+        self.assertNotContains(page, 'name="confirm"')
+        self.assertNotContains(page, "to confirm")
+        self.client.get(url)
+        self.assertFalse(Rabbit.objects.filter(litter=self.litter).exists())
+        other = get_user_model().objects.create_user("other-convert@example.com", "pw-12345678")
+        self.client.force_login(other)
+        self.assertEqual(self.client.post(url).status_code, 404)
+        self.assertFalse(Rabbit.objects.filter(litter=self.litter).exists())
+        self.client.force_login(self.owner)
+        self.client.post(url)
+        self.assertEqual(Rabbit.objects.filter(litter=self.litter).count(), 3)

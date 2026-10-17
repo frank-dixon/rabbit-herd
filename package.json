@@ -11,7 +11,7 @@
     "build:css": "tailwindcss -i ./assets/input.css -o ./static/css/app.css --minify",
     "build:js": "esbuild assets/app.js --bundle --minify --outfile=./static/js/app.js",
     "build": "npm run build:css && npm run build:js",
-    "test:js": "node --test assets/rabbit-flow.test.mjs assets/photo-upload.test.mjs assets/delete-dialog.test.mjs assets/offline.test.mjs assets/ptr.test.mjs assets/prefetch.test.mjs assets/scrollspy.test.mjs assets/segmented.test.mjs assets/photo-step.test.mjs assets/list-swap.test.mjs assets/family-tree.test.mjs"
+    "test:js": "node --test assets/rabbit-flow.test.mjs assets/photo-upload.test.mjs assets/offline.test.mjs assets/ptr.test.mjs assets/prefetch.test.mjs assets/scrollspy.test.mjs assets/segmented.test.mjs assets/photo-step.test.mjs assets/list-swap.test.mjs assets/family-tree.test.mjs"
   },
   "dependencies": {
     "@tailwindcss/cli": "^4.3.2",

@@ -21,10 +21,6 @@ def litter_title(litter):
     return f"{litter.pairing.doe.name} × {litter.pairing.buck.name}"
 
 
-def same_text(a, b):
-    return " ".join((a or "").split()).casefold() == " ".join((b or "").split()).casefold()
-
-
 def ensure_slots(litter):
     """One slot per surviving kit, the litter's herd kits linked first."""
     slots = list(litter.slots.select_related("rabbit"))
@@ -100,10 +96,10 @@ def record_each(litter, date, rows):
     return check
 
 
-def convert(litter_id, user, typed):
+def convert(litter_id, user):
     """Make every kit that is still only a number its own rabbit, once.
-    Returns the litter's kit rabbits. Raises ConvertError when the typed
-    name doesn't match (kits with no sex become Unknown); a second submit is a no-op."""
+    Returns the litter's kit rabbits (kits with no sex become Unknown);
+    a second submit is a no-op."""
     from .litter_photos import copy_to_rabbit
     from .litters import kit_breed
     from .tattoo import suggest
@@ -112,8 +108,6 @@ def convert(litter_id, user, typed):
         litter = Litter.objects.select_for_update().select_related("pairing__doe", "pairing__buck").get(pk=litter_id, owner=user)
         if litter.converted_at:
             return list(litter.kits.all())
-        if not same_text(typed, litter_title(litter)):
-            raise ConvertError(f"Type {litter_title(litter)} to confirm.")
         if litter.kindled_on is None:
             raise ConvertError("Record the kindling first.")
         slots = ensure_slots(litter)

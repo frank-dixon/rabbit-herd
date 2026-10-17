@@ -68,7 +68,7 @@ class DeleteRabbitTests(TestCase):
         self.assertTrue(storage.exists(name))  # still restorable
         self.assertContains(self.client.get(reverse("rabbit_list")), "Speedwell was moved to Recently deleted.")
         with self.captureOnCommitCallbacks(execute=True):
-            self.client.post(reverse("rabbit_delete_forever", args=[self.rabbit.pk]), {"confirm": "  DELETE   speedwell "})
+            self.client.post(reverse("rabbit_delete_forever", args=[self.rabbit.pk]))
         self.assertFalse(Rabbit.all_objects.filter(pk=self.rabbit.pk).exists())
         self.assertFalse(storage.exists(name))
         self.assertFalse(Relative.objects.filter(herd_rabbit_id=self.rabbit.pk).exists())

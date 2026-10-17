@@ -49,7 +49,7 @@ class ArchiveOnConvertTests(ConvertTests):
         slots = self.slots("doe", "buck", "doe")
         self.litter.photo.save("l.jpg", jpeg())
         slots[0].photo.save("k.jpg", jpeg())
-        K.convert(self.litter.pk, self.owner, "Hazel × Basil")
+        K.convert(self.litter.pk, self.owner)
         own, inherited = (Litter.objects.get(pk=self.litter.pk).slots.get(number=n).rabbit for n in (1, 2))
         self.assertEqual(own.photos.get(is_main=True).image.read(), slots[0].photo.open("rb").read())
         self.assertTrue(inherited.photos.filter(is_main=True).exists())

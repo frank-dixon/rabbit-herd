@@ -523,7 +523,7 @@ def deleted_rabbit(user, pk):
 
 @login_required
 def rabbit_trash(request):
-    """Recently deleted: restore a rabbit, or remove it for good (typed confirm)."""
+    """Recently deleted: restore a rabbit, or remove it for good."""
     days = prefs(request.user).deleted_retention_days
     rabbits = list(Rabbit.all_objects.filter(owner=request.user, deleted_at__isnull=False)
                    .order_by("-deleted_at").prefetch_related("photos"))
