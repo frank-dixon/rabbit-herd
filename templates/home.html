@@ -9,7 +9,7 @@
     <div class="flex items-end gap-3" data-page-header>
       <div class="min-w-0">
         <h1 class="text-[1.75rem] leading-tight font-semibold tracking-tight md:text-[2.25rem]">Today</h1>
-        <p class="mt-0.5 text-sm text-muted">{{ today|date:"D, M j" }}</p>
+        <p class="mt-0.5 text-sm text-muted">{{ today|day }}</p>
       </div>
       {% if herd.active or herd.deceased or herd.archived %}
         <div class="ml-auto flex gap-2">
@@ -92,7 +92,7 @@
                 {% endfor %}
               </ul>
             {% else %}
-              <div class="flex items-center gap-3.5 border-t border-line pt-3.5 pb-1.5"><p class="flex-1 text-sm">No litters on the ground.{% if tiles.next_kindling %}<span class="block text-[13px] text-muted">{{ tiles.next_kindling.litter.pairing.doe.name }}’s litter is the next one, due {{ tiles.next_kindling.due|date:"D, M j" }}.</span>{% endif %}</p><a class="mo-press shrink-0 rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-on-accent" href="{% url 'pairing_list' %}?new=1#new-pairing">Plan a pairing</a></div>
+              <div class="flex items-center gap-3.5 border-t border-line pt-3.5 pb-1.5"><p class="flex-1 text-sm">No litters on the ground.{% if tiles.next_kindling %}<span class="block text-[13px] text-muted">{{ tiles.next_kindling.litter.pairing.doe.name }}’s litter is the next one, due {{ tiles.next_kindling.due|day }}.</span>{% endif %}</p><a class="mo-press shrink-0 rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-on-accent" href="{% url 'pairing_list' %}?new=1#new-pairing">Plan a pairing</a></div>
             {% endif %}
           </section>
 
@@ -104,7 +104,7 @@
             {% for row in recent_weights %}
               <a class="flex items-center gap-3 border-t border-line py-2.5 hover:bg-side/40" href="{% url 'rabbit_detail' row.rabbit.pk %}#weights">
                 {% include "components/rabbit_avatar.html" with rabbit=row.rabbit size="sm" only %}
-                <span class="min-w-0 flex-1">{{ row.rabbit.name }}<span class="block text-[13px] text-muted">{{ row.weight.date|date:"D, M j" }}</span></span>
+                <span class="min-w-0 flex-1">{{ row.rabbit.name }}<span class="block text-[13px] text-muted">{{ row.weight.date|day }}</span></span>
                 <span class="num shrink-0 text-right text-[13px] text-muted"><span class="block font-semibold text-ink">{{ row.weight.text }}</span>{{ row.delta }}</span>
               </a>
             {% empty %}

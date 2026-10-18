@@ -14,7 +14,7 @@
     {% if c.task and not litter.converted_at %}
       <span class="lc-next mt-2.5 flex items-center justify-between gap-2 border-t border-line pt-2.5 text-sm sm:mt-0 sm:w-64 sm:shrink-0 sm:border-0 sm:pt-0">
         <span class="min-w-0 truncate"><span class="text-muted">Next:</span> {{ c.task.label }}</span>
-        <span class="num shrink-0 {% if c.task_days < 0 %}text-danger{% elif c.task_days == 0 %}font-medium{% else %}text-muted{% endif %}">{% if c.task_days < 0 %}overdue{% elif c.task_days == 0 %}today{% else %}{{ c.task.date|date:"D, M j" }}{% endif %}</span>
+        <span class="num shrink-0 {% if c.task_days < 0 %}text-danger{% elif c.task_days == 0 %}font-medium{% else %}text-muted{% endif %}">{% if c.task_days < 0 %}overdue{% elif c.task_days == 0 %}today{% else %}{{ c.task.date|day }}{% endif %}</span>
       </span>
     {% endif %}
   </a>
@@ -24,7 +24,7 @@
     <span class="lt-body">
       <span class="lt-title">{{ c.title }}{% if c.litter.is_sample %}{% include "components/sample_badge.html" with sample=True only %}{% endif %}</span>
       {% include "rabbits/_litter_card_lines.html" %}
-      {% if c.task and not litter.converted_at %}<span class="lt-next"><span class="min-w-0 truncate text-ink"><span class="text-muted">Next:</span> {{ c.task.label }}</span><span class="num shrink-0 {% if c.task_days < 0 %}text-danger{% elif c.task_days == 0 %}font-medium text-ink{% endif %}">{% if c.task_days < 0 %}overdue{% elif c.task_days == 0 %}today{% else %}{{ c.task.date|date:"M j" }}{% endif %}</span></span>{% endif %}
+      {% if c.task and not litter.converted_at %}<span class="lt-next"><span class="min-w-0 truncate text-ink"><span class="text-muted">Next:</span> {{ c.task.label }}</span><span class="num shrink-0 {% if c.task_days < 0 %}text-danger{% elif c.task_days == 0 %}font-medium text-ink{% endif %}">{% if c.task_days < 0 %}overdue{% elif c.task_days == 0 %}today{% else %}{{ c.task.date|day }}{% endif %}</span></span>{% endif %}
     </span>
   </a>
 {% endif %}

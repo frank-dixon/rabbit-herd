@@ -11,7 +11,7 @@
       </span>
       <span role="cell" class="hidden text-sm lg:block">{{ rabbit.get_sex_display }}</span>
       <span role="cell" class="num hidden text-sm lg:block"{% if rabbit.birth_date and not rabbit.age_until %} title="{{ rabbit.age_title }}"{% endif %}>{% if rabbit.died_text %}{{ rabbit.died_text }}{% elif rabbit.birth_date and not rabbit.age_until %}{{ rabbit.age_text }}{% else %}<span class="text-muted">—</span>{% endif %}</span>
-      <span role="cell" class="num hidden text-sm lg:block"{% if rabbit.last_weight %} title="{{ rabbit.last_weight.date|date:'M j, Y' }}"{% endif %}>{% if rabbit.last_weight %}{{ rabbit.last_weight.text }}{% else %}<span class="text-muted">—</span>{% endif %}</span>
+      <span role="cell" class="num hidden text-sm lg:block"{% if rabbit.last_weight %} title="{{ rabbit.last_weight.date|day }}"{% endif %}>{% if rabbit.last_weight %}{{ rabbit.last_weight.text }}{% else %}<span class="text-muted">—</span>{% endif %}</span>
       <span role="cell" class="justify-self-end lg:justify-self-start"><span class="pill pill-{{ rabbit.status_tone|default:'o' }}" data-status-chip data-status="{{ rabbit.status }}">{{ rabbit.status_tag }}</span></span>
     </div>
   </li>

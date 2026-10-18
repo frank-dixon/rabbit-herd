@@ -6,7 +6,7 @@
     <ul>{% for row in rows %}{% with r=row.rabbit %}
       <li><a class="wt-li{% if sel and sel.rabbit.pk == r.pk %} is-sel{% endif %}" href="{{ row.sel_href }}"{% if sel and sel.rabbit.pk == r.pk %} aria-current="true"{% endif %}>
         {% include "rabbits/_rabbit_thumb.html" with rabbit=r main=r.main_photo size_class="wt-thumb shrink-0 text-sm" only %}
-        <span class="min-w-0 flex-1"><span class="block truncate font-semibold">{{ r.name }}</span><span class="block truncate text-xs text-muted">{{ r.get_sex_display }} · {{ r.age_text }} · {% if row.date %}{{ row.date|date:"M j" }}{% else %}never{% endif %}</span></span>
+        <span class="min-w-0 flex-1"><span class="block truncate font-semibold">{{ r.name }}</span><span class="block truncate text-xs text-muted">{{ r.get_sex_display }} · {{ r.age_text }} · {% if row.date %}{{ row.date|day }}{% else %}never{% endif %}</span></span>
         <span class="shrink-0 text-right"><span class="num block text-sm font-semibold">{{ row.text|default:"—" }}</span><span class="num block text-xs {% if row.change > 0 %}wt-up{% elif row.change < 0 %}wt-down{% else %}text-muted{% endif %}">{{ row.change_text }}</span></span>
       </a></li>
     {% endwith %}{% endfor %}</ul>

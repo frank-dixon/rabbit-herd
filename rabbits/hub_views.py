@@ -18,7 +18,9 @@ LEGS_FOR_GC = 3  # ARBA: three legs, at least one as a senior, make a Grand Cham
 
 
 def short(day):
-    return f"{day:%b} {day.day}"
+    from .templatetags.dates import short_date
+
+    return short_date(day)
 
 
 @login_required

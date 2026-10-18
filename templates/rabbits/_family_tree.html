@@ -4,7 +4,7 @@
     <div><dt>Breed</dt><dd>{{ rabbit.short_breed|default:"—" }}</dd></div>
     <div><dt>Coat</dt><dd>{{ rabbit.color|default:"—" }}</dd></div>
     <div><dt>Sex</dt><dd>{{ rabbit.get_sex_display }}</dd></div>
-    <div><dt>Born</dt><dd>{{ rabbit.birth_date|date:"M j, Y" }}</dd></div>
+    <div><dt>Born</dt><dd>{{ rabbit.birth_date|day }}</dd></div>
     <div><dt>In tree</dt><dd class="num">{{ family_count }}{% if family_relatives %} <small>+ {{ family_relatives }} relative{{ family_relatives|pluralize }}</small>{% endif %}</dd></div>
   </dl>
   <div class="ft-genebar">

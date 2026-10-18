@@ -9,7 +9,7 @@
       <ol class="divide-y divide-line" aria-label="Changes, newest first">
         {% for entry in entries %}
           <li class="grid gap-x-4 gap-y-1 px-4 py-3 md:grid-cols-[11rem_6rem_1fr]">
-            <time class="num text-sm text-muted" datetime="{{ entry.created_at|date:'c' }}">{{ entry.created_at|date:"D, M j, Y" }}<span class="md:block"> · {{ entry.created_at|time:"g:i A" }}</span></time>
+            <time class="num text-sm text-muted" datetime="{{ entry.created_at|date:'c' }}">{{ entry.created_at|day }}<span class="md:block"> · {{ entry.created_at|time:"g:i A" }}</span></time>
             <span class="text-sm"><span class="pill {% if entry.action == 'deleted' %}pill-r{% elif entry.action == 'added' %}pill-g{% endif %}">{{ entry.get_action_display }}</span></span>
             <div class="min-w-0">
               <p class="text-sm">{{ entry.summary }}</p>

@@ -5,7 +5,7 @@
     <span class="block break-words font-semibold">{% if item.url %}<a class="hover:underline focus:outline-none focus-visible:underline" href="{{ item.url }}">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</span>
     <span class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
       {% if item.overdue %}<span class="pill pill-r">Overdue</span>{% elif item.today %}<span class="pill pill-y">Today</span>{% endif %}
-      {% if item.detail %}<span class="whitespace-nowrap">{{ item.detail }} ·</span>{% endif %}<span class="num whitespace-nowrap">{% if item.detail %}due {% endif %}{{ item.date|date:"D, M j" }}</span>
+      {% if item.detail %}<span class="whitespace-nowrap">{{ item.detail }} ·</span>{% endif %}<span class="num whitespace-nowrap">{% if item.detail %}due {% endif %}{{ item.date|day }}</span>
       {% if item.kind == "task" and item.rabbit %}<span>· {{ item.rabbit.name }}</span>{% endif %}
       {% if item.repeat %}<span class="pill" data-repeat-badge><span aria-hidden="true">↻</span> {{ item.repeat }}</span>{% endif %}
     </span>

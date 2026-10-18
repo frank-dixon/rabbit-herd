@@ -39,7 +39,7 @@
         <li class="panel-row" data-row data-row-tap>
           <div class="min-w-0 row-span-2">
             <a class="panel-row-link panel-row-title block" href="?edit={{ entry.pk }}#form" data-modal><span class="text-muted">#{{ entry.position }}</span> {{ entry.buyer }}</a>
-            <p class="panel-row-meta">Wants {{ entry.wants }} · asked {{ entry.requested_on|date:"D, M j" }}{% if entry.reach %} · {{ entry.reach }}{% endif %}{% if entry.rabbit %} · <a class="underline-offset-2 hover:underline" href="{% url 'rabbit_detail' entry.rabbit.pk %}">{{ entry.rabbit.name }}</a>{% endif %}</p>
+            <p class="panel-row-meta">Wants {{ entry.wants }} · asked {{ entry.requested_on|day }}{% if entry.reach %} · {{ entry.reach }}{% endif %}{% if entry.rabbit %} · <a class="underline-offset-2 hover:underline" href="{% url 'rabbit_detail' entry.rabbit.pk %}">{{ entry.rabbit.name }}</a>{% endif %}</p>
             {% if entry.notes %}<p class="panel-row-meta whitespace-pre-line break-words">{{ entry.notes }}</p>{% endif %}
             {% if entry.status == "waiting" %}<p class="panel-row-meta" data-fits>{% if entry.fits %}Fits now: {% for rabbit in entry.fits %}<a class="text-ink underline-offset-2 hover:underline" href="{% url 'rabbit_detail' rabbit.pk %}">{{ rabbit.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}No growing-out rabbit fits yet.{% endif %}</p>{% endif %}
           </div>

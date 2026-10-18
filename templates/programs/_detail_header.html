@@ -3,7 +3,7 @@
   <div class="flex flex-wrap items-start justify-between gap-3">
     <div class="min-w-0">
       <h1 class="text-[1.75rem] leading-tight font-semibold tracking-tight md:text-[2rem]">{{ program.title }}</h1>
-      <p class="mt-1 text-sm text-muted">Started {{ program.created_at|date:"D, M j, Y" }} · Generation {{ plan.progress.generation }} of 2 {% if plan.litter or plan.progress.generation == 2 %}in progress{% else %}planned{% endif %}</p>
+      <p class="mt-1 text-sm text-muted">Started {{ program.created_at|day }} · Generation {{ plan.progress.generation }} of 2 {% if plan.litter or plan.progress.generation == 2 %}in progress{% else %}planned{% endif %}</p>
     </div>
     <div class="flex shrink-0 gap-2">
       {% url 'program_goal' program.pk as goal_url %}{% include "components/button.html" with label="Edit goal" href=goal_url variant="secondary" only %}

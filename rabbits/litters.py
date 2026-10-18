@@ -14,6 +14,7 @@ from django.utils.dateparse import parse_time
 from django.views.decorators.http import require_http_methods, require_POST
 
 from .sync import queueable
+from .templatetags.dates import short_date
 from .status_pills import tone
 from . import costs, flow
 from .models import Breed, BreedShare, Cover, Litter, LitterCheck, Pairing, Rabbit, Relative, prefs, weight_text
@@ -140,6 +141,26 @@ def litter_list(request):
     })
 
 
+def litter_back(request, litter):
+    """The litter page's back link (Critic v3 L3): to the pairing, Today or a parent's page when that's
+    where the user came from, and to Litters otherwise."""
+    from urllib.parse import urlsplit
+
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    referer = request.META.get("HTTP_REFERER", "")
+    path = urlsplit(referer).path if referer and url_has_allowed_host_and_scheme(referer, {request.get_host()}) else ""
+    pairing = reverse("pairing_detail", args=[litter.pairing_id])
+    if path == pairing:
+        return "Pairing", pairing
+    if path == reverse("index"):
+        return "Today", path
+    for parent in (litter.pairing.doe, litter.pairing.buck):
+        if path == reverse("rabbit_detail", args=[parent.pk]):
+            return parent.name, path
+    return "Litters", reverse("litter_list")
+
+
 @login_required
 def litter_detail(request, pk):
     litter = own_litter(request, pk)
@@ -176,13 +197,15 @@ def litter_detail(request, pk):
     outcome = O.outcome(litter, outcome_kits, unit, timezone.localdate())
     past = O.is_past(litter, outcome_kits, timezone.localdate())
     all_tasks = litter.tasks()
+    back_label, back_href = litter_back(request, litter)
     return render(request, "rabbits/litter_detail.html", {
+        "back_label": back_label, "back_href": back_href,
         "delete_title": f"Delete the {litter.pairing.doe.name} × {litter.pairing.buck.name} litter?", "delete_text": LITTER_DELETE_TEXT,
         "litter": litter, "tasks": [t for t in all_tasks if not t["done"]], "done_tasks": [t for t in all_tasks if t["done"]], "kits": kits, "outcome": outcome, "is_past": past,
         "done_on": O.done_on(litter, outcome_kits) if past else None,
         "timeline": O.timeline(litter, outcome_kits) if litter.kindled_on else [], "room": room, "card": card,
         "today": timezone.localdate(), "wide": True,
-        "subtitle": f"Litter bred {litter.bred_on:%b} {litter.bred_on.day}, {litter.bred_on.year} · due {litter.due_on:%b} {litter.due_on.day}",
+        "subtitle": f"Litter bred {short_date(litter.bred_on)} · due {short_date(litter.due_on)}",
         "sex_options": Rabbit.Sex.choices,
         "slots": slots, "checks": checks, "check_mode": "each" if request.GET.get("check") == "each" else "whole",
         "entry_unit": entry_unit(request.user), "litter_title": K.litter_title(litter),

@@ -200,7 +200,9 @@ def day_label(when, today):
         return "Today"
     if when == today - datetime.timedelta(days=1):
         return "Yesterday"
-    return f"{when:%b} {when.day}" + (f", {when.year}" if when.year != today.year else "")
+    from rabbits.templatetags.dates import short_date
+
+    return short_date(when, today)
 
 
 def home_context(user, limit=8):

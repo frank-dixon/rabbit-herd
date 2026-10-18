@@ -34,6 +34,6 @@
       <button type="submit" class="oc-btn oc-btn-pri">Save</button>
     </form>
   </details>
-  <div class="oc-card mt-4">{% if timeline %}<ul class="oc-tl">{% for item in timeline %}<li><span class="text-sm text-muted num">{{ item.date|date:"M j" }}</span><span class="text-sm">{{ item.text }}</span></li>{% endfor %}</ul>{% else %}<p class="oc-tl text-sm text-muted">No notes yet.</p>{% endif %}</div>
+  <div class="oc-card mt-4">{% if timeline %}<ul class="oc-tl">{% for item in timeline %}<li><span class="text-sm text-muted num">{{ item.date|day }}</span><span class="text-sm">{{ item.text }}</span></li>{% endfor %}</ul>{% else %}<p class="oc-tl text-sm text-muted">No notes yet.</p>{% endif %}</div>
 </section>
 {% endif %}

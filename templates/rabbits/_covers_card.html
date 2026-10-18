@@ -11,7 +11,7 @@ date, and so every due date, follows the first cover that took. covers, counted_
         <li data-row-tap class="flex items-start gap-3 px-3 py-2.5" data-cover="{{ cover.outcome }}">
           <span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full {% if cover.outcome == 'covered' %}bg-accent{% elif cover.outcome == 'refused' %}bg-danger{% else %}border-2 border-muted{% endif %}" aria-hidden="true"></span>
           <div class="min-w-0 flex-1">
-            <p class="text-sm"><span class="num font-medium">{{ cover.date|date:"D, M j" }}{% if cover.time %} · {{ cover.time|time:"g:i A" }}{% endif %}</span> · {{ cover.get_outcome_display }}{% if cover.pk == counted_cover %}<span class="ml-2 pill pill-g" data-counts>Counts</span>{% endif %}</p>
+            <p class="text-sm"><span class="num font-medium">{{ cover.date|day }}{% if cover.time %} · {{ cover.time|time:"g:i A" }}{% endif %}</span> · {{ cover.get_outcome_display }}{% if cover.pk == counted_cover %}<span class="ml-2 pill pill-g" data-counts>Counts</span>{% endif %}</p>
             {% if cover.note %}<p class="break-words text-sm text-muted">{{ cover.note }}</p>{% endif %}
           </div>
           {% url 'cover_delete' litter.pk cover.pk as remove_action %}{% include "components/row_actions.html" with name="this cover" remove_action=remove_action undo="Cover removed." only %}

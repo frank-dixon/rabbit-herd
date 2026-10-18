@@ -12,7 +12,7 @@
           {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=rabbit.main_photo size_class="list-thumb shrink-0 rounded-md text-base" only %}
           <div class="min-w-0 flex-1">
             <p class="truncate font-medium">{{ rabbit.name }}{% if rabbit.tattoo %} <span class="text-sm font-normal text-muted">· {{ rabbit.tattoo }}</span>{% endif %}</p>
-            <p class="num text-sm text-muted">Deleted {{ rabbit.deleted_at|date:"D, M j" }} · removed {{ rabbit.purge_on|date:"D, M j" }}</p>
+            <p class="num text-sm text-muted">Deleted {{ rabbit.deleted_at|day }} · removed {{ rabbit.purge_on|day }}</p>
           </div>
           <div class="flex shrink-0 gap-2">
             <form method="post" action="{% url 'rabbit_undelete' rabbit.pk %}">{% csrf_token %}{% include "components/button.html" with label="Restore" type="submit" variant="secondary" sr_suffix=rabbit.name only %}</form>

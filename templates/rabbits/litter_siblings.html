@@ -56,7 +56,7 @@
             </dl>
             <div class="mt-auto pt-3">
               {% if row.cull %}
-                <p class="flex flex-wrap items-center gap-2 text-sm"><span class="pill pill-{{ row.cull.decision|status_tone|default:'o' }}">{{ row.cull.get_decision_display }}</span><span class="text-xs text-muted">{{ row.cull.date|date:"M j" }}</span></p>
+                <p class="flex flex-wrap items-center gap-2 text-sm"><span class="pill pill-{{ row.cull.decision|status_tone|default:'o' }}">{{ row.cull.get_decision_display }}</span><span class="text-xs text-muted">{{ row.cull.date|day }}</span></p>
                 {% if row.cull.reason %}<p class="mt-1 line-clamp-2 text-sm text-muted">{{ row.cull.reason }}</p>{% endif %}
               {% else %}
                 <a class="text-sm text-muted underline hover:text-ink" href="{% url 'rabbit_detail' row.kit.pk %}#culling">Add keep or cull</a>

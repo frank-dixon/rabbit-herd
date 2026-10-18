@@ -36,7 +36,7 @@
                 {% if task.rabbit %}{% include "rabbits/_rabbit_thumb.html" with rabbit=task.rabbit main=task.rabbit.main_photo size_class="list-thumb shrink-0 rounded-md text-base opacity-70" only %}{% else %}<span class="list-thumb grid shrink-0 place-items-center rounded-md bg-side text-muted" aria-hidden="true">{% include "components/icon.html" with d="M5 12.5 10 17 19 7" only %}</span>{% endif %}
                 <span class="min-w-0 flex-1">
                   <span class="block break-words text-muted line-through">{{ task.title }}</span>
-                  <span class="block text-sm text-muted">Due {{ task.due_on|date:"D, M j" }}{% if task.rabbit %} · {{ task.rabbit.name }}{% endif %}</span>
+                  <span class="block text-sm text-muted">Due {{ task.due_on|day }}{% if task.rabbit %} · {{ task.rabbit.name }}{% endif %}</span>
                 </span>
                 <span class="flex shrink-0 items-center gap-1">
                   <form method="post" action="{% url 'task_done' task.pk %}" data-offline-queue="Task">{% csrf_token %}{% include "components/button.html" with label="Undo" sr_suffix=task.title type="submit" variant="secondary" size="small" only %}</form>

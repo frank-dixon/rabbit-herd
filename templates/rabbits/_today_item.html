@@ -13,7 +13,7 @@
   <div class="min-w-0 flex-1">
     <p class="font-semibold [overflow-wrap:anywhere]">{% if item.url %}<a class="hover:underline" href="{{ item.url }}">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</p>
     <p class="text-sm {% if item.overdue %}text-danger{% else %}text-muted{% endif %}">
-      {% if item.detail %}{{ item.detail }} · {% endif %}{% if item.overdue %}Overdue since {{ item.date|date:"D, M j" }}{% elif item.today %}Due today{% else %}{% if item.detail %}due {% endif %}{{ item.date|date:"D, M j" }}{% endif %}{% if item.kind == "task" and item.rabbit %} · {{ item.rabbit.name }}{% endif %}
+      {% if item.detail %}{{ item.detail }} · {% endif %}{% if item.overdue %}Overdue since {{ item.date|day }}{% elif item.today %}Due today{% else %}{% if item.detail %}due {% endif %}{{ item.date|day }}{% endif %}{% if item.kind == "task" and item.rabbit %} · {{ item.rabbit.name }}{% endif %}
     </p>
   </div>
   {% if item.kind == "litter" and item.key == "due" %}

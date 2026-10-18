@@ -24,7 +24,7 @@
           {% for litter in litters %}
             <li><a class="block p-3 text-sm hover:bg-neutral-50" href="{% url 'litter_detail' litter.pk %}">
               <span class="block font-semibold">Bred {{ litter.bred_on|day }}</span>
-              <span class="block text-neutral-600">{% if litter.kindled_on %}Kindled {{ litter.kindled_on|date:"M j" }} · {{ litter.survivors }} surviving{% else %}Due {{ litter.due_on|day }}{% endif %}</span>
+              <span class="block text-neutral-600">{% if litter.kindled_on %}Kindled {{ litter.kindled_on|day }} · {{ litter.survivors }} surviving{% else %}Due {{ litter.due_on|day }}{% endif %}</span>
             </a></li>
           {% endfor %}
         </ul>

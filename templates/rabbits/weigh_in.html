@@ -17,7 +17,7 @@
       <div class="weigh-card rounded-xl border border-line bg-surface p-5">
         <p class="eyebrow">Kit {{ position }} of {{ count }}</p>
         <h1 class="mt-1 truncate text-2xl font-semibold">{{ kit.name }}</h1>
-        <p class="mt-0.5 text-sm text-muted">{% if last %}Last <span class="num">{{ last.text }}</span> on {{ last.date|date:"M j" }}{% else %}First weigh-in{% endif %}</p>
+        <p class="mt-0.5 text-sm text-muted">{% if last %}Last <span class="num">{{ last.text }}</span> on {{ last.date|day }}{% else %}First weigh-in{% endif %}</p>
         <label class="sr-only" for="id_value">Weight of {{ kit.name }}{% if unit == "g" %} in grams{% else %} in ounces{% endif %}</label>
         <div class="mt-4 flex items-baseline justify-center gap-2">
           <input class="num w-full min-w-0 bg-transparent text-center text-6xl! font-medium tracking-tight text-ink outline-none placeholder:text-line" id="id_value" name="value" value="{{ value }}" inputmode="decimal" autocomplete="off" placeholder="{{ last_value|default:'0' }}" autofocus{% if error %} aria-invalid="true" aria-describedby="weigh-error"{% endif %}>
