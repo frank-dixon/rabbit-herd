@@ -81,6 +81,30 @@ class CarryLineSignupTests(TestCase):
         self.assertIsNone(self.signup_line())
 
 
+class GuestDeviceWordingTests(TestCase):
+    """Copyrighter, 2026-10-18: the guest rail and the signup's second line."""
+
+    def test_guest_rail_says_saved_on_this_device_only(self):
+        from pages.copy import RAIL
+
+        self.assertEqual(RAIL["guest"], {"text": "Saved on this device only.", "action": "Create free account"})
+        self.client.force_login(create_guest())
+        body = self.client.get(reverse("rabbit_list")).content.decode()
+        self.assertIn("Saved on this device only.", body)
+        self.assertIn("Create free account", body)
+
+    def test_signup_adds_any_device_line_for_guests_only(self):
+        line = "Then you can open it on any device."
+        self.assertNotIn(line, self.client.get(reverse("signup")).content.decode())
+        demo = get_user_model().objects.create_user("demo-y@demo.invalid", None, is_guest=True, is_demo=True)
+        self.client.force_login(demo)
+        self.assertNotIn(line, self.client.get(reverse("signup")).content.decode())
+        self.client.force_login(create_guest())
+        body = self.client.get(reverse("signup")).content.decode()
+        self.assertIn(line, body)
+        self.assertLess(body.index("data-guest-carry"), body.index(line))
+
+
 class GuestSessionTests(TestCase):
     """Frank, 2026-10-18: a guest herd stays on the device as long as its cookies do; the session
     cookie lasts about a year and slides forward with use."""

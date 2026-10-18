@@ -221,7 +221,7 @@ class GuestTests(MediaMixin, TestCase):
         self.assertTrue(me.is_guest)
         self.assertFalse(has_herd_data(me))
         body = self.client.get(reverse("index")).content.decode()
-        self.assertIn("Your herd isn&#x27;t saved yet.", body)
+        self.assertIn("Saved on this device only.", body)
         self.assertIn("Create free account", body)
         self.assertNotIn(me.email, body)
         self.assertNotIn("data-badge", body)

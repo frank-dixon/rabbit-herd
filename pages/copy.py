@@ -2,7 +2,7 @@
 
 # The one-line bottom rail on guest and demo sessions (components/temp_rail.html).
 RAIL = {
-    "guest": {"text": "Your herd isn't saved yet.", "action": "Create free account"},
+    "guest": {"text": "Saved on this device only.", "action": "Create free account"},
     "demo": {"text": "This is a sample herd. It can't be saved.", "action": "Start my own herd"},
 }
 
