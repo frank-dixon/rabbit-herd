@@ -46,7 +46,6 @@ With the sample demo values, sign in as `demo@example.com` after you set `DEMO_P
 | `APP_HOSTNAME` | Stable public host, with no scheme and no port. When it is set, passkeys and account email links use it. It is also added to allowed hosts and CSRF origins. |
 | `VERCEL_PROJECT_PRODUCTION_URL` | Set by Vercel. The stable production host, with no scheme. Passkeys use it when `APP_HOSTNAME` is unset. |
 | `VERCEL_URL` | Set by Vercel. This deployment's host, with no scheme. It can serve that deployment. Passkeys use it only when no stable host is set. |
-| `RENDER_EXTERNAL_HOSTNAME` | Set by Render. Added to allowed hosts and CSRF origins, and used for passkeys when no stable host above is set. |
 | `WEBAUTHN_RP_ID` | Passkey domain, with no scheme and no port. `localhost` locally. |
 | `WEBAUTHN_RP_NAME` | Name the browser shows when it asks for a passkey. |
 | `WEBAUTHN_ORIGIN` | Origin you open in the browser, such as `http://localhost:8000`. |
@@ -87,14 +86,5 @@ Set these on the project:
 Resend's free plan sends over HTTPS. With `onboarding@resend.dev`, Resend delivers only to the email address on the Resend account. An account created with `fdixon7@gmail.com` can receive testing mail at that address before a domain is verified. A confirmation or reset for any other address cannot, until a domain you control is verified in Resend and `DEFAULT_FROM_EMAIL` uses that domain. `rabbit-herd.vercel.app` cannot be verified, because its DNS is not yours. SMTP still works if you set `EMAIL_PROVIDER` to `smtp` and `EMAIL_HOST`. With neither Resend nor SMTP configured, messages are written to the logs.
 
 A production deploy, where `VERCEL_ENV` is `production`, runs `python manage.py migrate --noinput` and then `python manage.py ensure_demo_user` against `DATABASE_URL`. A failed migration fails the build. Preview builds leave the database alone. Handling a request does not migrate.
-
-## Run the container
-
-```bash
-docker build -t rabbit-herd .
-docker run --env-file .env -p 8000:8000 rabbit-herd
-```
-
-Set the same variables as on Vercel, including `APP_HOSTNAME` when the platform does not provide a host name. The container listens on `PORT`, or 8000 when `PORT` is unset.
 
 Set `EMAIL_PROVIDER` to `resend` and set `RESEND_API_KEY`, or set `EMAIL_HOST` and the other SMTP variables, when you want confirmation mail delivered. Until then, those messages are written to the service logs.

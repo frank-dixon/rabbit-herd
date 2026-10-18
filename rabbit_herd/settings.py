@@ -48,7 +48,7 @@ def hostname_from_env(name):
 def public_hostnames():
     """Hosts that may serve the app. The first name is the passkey host.
 
-    APP_HOSTNAME wins, then the stable Vercel production host, then Render.
+    APP_HOSTNAME wins, then the stable Vercel production host.
     VERCEL_URL is the per-deployment host. It is allowed to answer requests,
     and it becomes the passkey host only when nothing more stable is set.
     """
@@ -56,7 +56,6 @@ def public_hostnames():
     for name in (
         "APP_HOSTNAME",
         "VERCEL_PROJECT_PRODUCTION_URL",
-        "RENDER_EXTERNAL_HOSTNAME",
         "VERCEL_URL",
     ):
         cleaned = hostname_from_env(name)
@@ -93,8 +92,12 @@ INSTALLED_APPS = [
     "accounts",
     "rabbits",
     "pages",
-    "e2e",
 ]
+# The e2e test helpers are a test-only app, never installed in production.
+import sys  # noqa: E402
+
+if sys.argv[1:2] == ["test"]:
+    INSTALLED_APPS.append("e2e")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -192,7 +195,6 @@ MEDIA_ROOT = Path(
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 
 # Where uploaded photos live. PHOTO_STORAGE=s3 keeps them in a private
 # S3-compatible bucket (Supabase Storage in production), because Vercel's
@@ -255,7 +257,7 @@ if DEBUG and not WEBAUTHN_ORIGIN:
 if not DEBUG and (not WEBAUTHN_RP_ID or not WEBAUTHN_ORIGIN):
     raise ImproperlyConfigured(
         "Set WEBAUTHN_RP_ID and WEBAUTHN_ORIGIN, or set APP_HOSTNAME, "
-        "VERCEL_PROJECT_PRODUCTION_URL, RENDER_EXTERNAL_HOSTNAME, or VERCEL_URL."
+        "VERCEL_PROJECT_PRODUCTION_URL, or VERCEL_URL."
     )
 
 APP_HOSTNAME = hostname_from_env("APP_HOSTNAME")
@@ -282,9 +284,6 @@ CSRF_COOKIE_SAMESITE = "Lax"
 
 # Default cache stays per process. Attempt limits need one shared count across
 # serverless instances, so they use a database table (created by a migration).
-# Genetics reads (rabbits.derived): "old" stored Gene rows only, "new" rows plus
-# genes computed from the coat, "both" serves old and logs any difference.
-GENETICS_READ = os.environ.get("GENETICS_READ", "new")
 
 CACHES = {
     "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},

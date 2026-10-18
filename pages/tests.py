@@ -12,7 +12,6 @@ def load_settings(extra):
     env = os.environ.copy()
     for key in (
         "APP_HOSTNAME",
-        "RENDER_EXTERNAL_HOSTNAME",
         "VERCEL_URL",
         "VERCEL_PROJECT_PRODUCTION_URL",
         "WEBAUTHN_RP_ID",
@@ -71,23 +70,6 @@ class HostnameSettingsTests(SimpleTestCase):
         self.assertEqual(settings["rp_id"], "herd.example")
         self.assertEqual(settings["origin"], "https://herd.example")
 
-    def test_app_hostname_is_the_passkey_host_when_render_is_also_set(self):
-        settings = load_settings(
-            {
-                "DEBUG": "false",
-                "SECRET_KEY": "prod-check-" + ("a1b2c3d4" * 8),
-                "APP_HOSTNAME": "app.example",
-                "RENDER_EXTERNAL_HOSTNAME": "render.example",
-            }
-        )
-
-        self.assertIn("app.example", settings["allowed"])
-        self.assertIn("render.example", settings["allowed"])
-        self.assertIn("https://app.example", settings["origins"])
-        self.assertIn("https://render.example", settings["origins"])
-        self.assertEqual(settings["rp_id"], "app.example")
-        self.assertEqual(settings["origin"], "https://app.example")
-
     def test_vercel_production_url_is_the_passkey_host(self):
         settings = load_settings(
             {
@@ -113,7 +95,6 @@ class HostnameSettingsTests(SimpleTestCase):
                 "APP_HOSTNAME": "herd.example",
                 "VERCEL_PROJECT_PRODUCTION_URL": "herd.vercel.app",
                 "VERCEL_URL": "herd-abc123.vercel.app",
-                "RENDER_EXTERNAL_HOSTNAME": "render.example",
             }
         )
 
@@ -122,7 +103,6 @@ class HostnameSettingsTests(SimpleTestCase):
             [
                 "herd.example",
                 "herd.vercel.app",
-                "render.example",
                 "herd-abc123.vercel.app",
             ],
         )
