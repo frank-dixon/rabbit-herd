@@ -5,7 +5,7 @@
 {% block content %}<span data-refreshable hidden></span>
   <div data-swap-root>
   {% url 'pairing_list' as pairings_url %}
-  {% include "components/page_header.html" with title="Litters" subtitle="New litter starts from a pairing: pick one, then Start a litter. Dates for palpating, the nest box and kindling are set for you." primary_label="New litter" primary_href=pairings_url only %}
+  {% include "components/page_header.html" with title="Litters" subtitle="New litter starts from a pairing: pick one, then Start a litter. Dates for palpating, the nest box and kindling are set for you." primary_label="New litter" primary_href=pairings_url primary_pin=True only %}
   <div class="mt-4 flex items-center justify-between gap-4">
     {% if past %}<a class="text-sm text-accent underline-offset-4 hover:underline" href="#past" data-archived-link>Past litters <span class="num text-muted">{{ past|length }}</span></a>{% else %}<span></span>{% endif %}
     {% include "components/segmented.html" with label="Layout" options=view_options icon_only=True swap_sync=True only %}

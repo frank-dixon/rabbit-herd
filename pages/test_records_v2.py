@@ -83,3 +83,6 @@ class RecordsTests(TestCase):
         body = self.client.get(reverse("rabbit_detail", args=[self.rabbit.pk])).content.decode()
         self.assertIn("Add health note", body)
         self.assertNotIn("Add a health note", body)
+
+    def test_litters_pins_new_litter(self):
+        self.pinned(self.client.get(reverse("litter_list")).content.decode(), "New litter")
