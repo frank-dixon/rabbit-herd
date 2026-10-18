@@ -144,7 +144,10 @@ class LandingPageTests(TestCase):
         self.assertContains(response, "Bramble Burrow")
         self.assertContains(response, "Run your rabbitry from one place.")
         self.assertContains(response, 'href="/login/"')
-        self.assertContains(response, 'href="/start/"')
+        # Frank, 2026-10-18: Welcome offers the demo / own-herd choice itself (/start/ stays as an alias).
+        from django.urls import reverse
+        self.assertContains(response, f'action="{reverse("guest")}"')
+        self.assertContains(response, "Start my own herd")
 
     def test_signed_in_user_gets_the_app_at_root(self):
         from django.contrib.auth import get_user_model
