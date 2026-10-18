@@ -261,7 +261,6 @@ def home_context(user, limit=8):
 
 
 HERD_CARDS = 8
-FORMER_CHIPS = 6
 
 
 def herd_first(user, today, active, rabbits, items):
@@ -299,9 +298,6 @@ def herd_first(user, today, active, rabbits, items):
         chip = "Bred" if r.pk in bred_status else r.get_status_display()
         cards.append({"rabbit": photos.get(r.pk, r), "chip": chip, "next": nxt, "overdue": bool(item and item["date"] < today)})
     former = [r for r in rabbits if r.archived_at is None and r.status in (Rabbit.Status.SOLD, Rabbit.Status.CULLED, Rabbit.Status.DECEASED)]
-    former.sort(key=lambda r: (r.death_date or datetime.date.min, r.pk), reverse=True)
-    former_chips = [{"rabbit": photos.get(r.pk, r), "note": r.get_status_display() + (f" {r.death_date:%a, %b} {r.death_date.day}" if r.death_date else "")}
-                    for r in former[:FORMER_CHIPS]]
     pairings = []
     for lit in open_litters:
         s = lit.schedule
@@ -352,13 +348,13 @@ def herd_first(user, today, active, rabbits, items):
         "kindling": (f"{next_kindling['litter'].pairing.doe.name} · " + (pl(nk_days, "day") if nk_days > 0 else "today" if nk_days == 0 else "overdue"))
                     if next_kindling else "No does bred",
         "kindling_value": f"{next_kindling['due']:%a, %b} {next_kindling['due'].day}" if next_kindling else "None",
-        "sold": f"{sum(1 for r in former if r.status == Rabbit.Status.CULLED)} culled · {sum(1 for r in former if r.status == Rabbit.Status.DECEASED)} deceased",
+        # The culled count stays out of the Today tiles (Critic, 2026-10-18); Former on Rabbits has it.
+        "sold": "",
     }
     return {
         "tile_bars": bars,
         "herd_cards": cards,
         "herd_more": max(len(living) - HERD_CARDS, 0),
-        "former_chips": former_chips,
         "tiles": {
             "herd": len(living), "bucks": sum(1 for r in living if r.sex == Rabbit.Sex.BUCK),
             "does": sum(1 for r in living if r.sex == Rabbit.Sex.DOE),

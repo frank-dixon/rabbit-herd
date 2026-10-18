@@ -31,7 +31,9 @@ class TodayHerdFirstTests(TestCase):
         self.assertEqual(c["herd_cards"][0]["chip"], "Bred")
         self.assertTrue(c["herd_cards"][0]["overdue"])
         self.assertIn("Weighed", c["herd_cards"][1]["next"])
-        self.assertEqual({chip["rabbit"].name for chip in c["former_chips"]}, {"Lily", "Juniper"})
+        self.assertNotIn("former_chips", c)
+        self.assertNotContains(page, "data-former")
+        self.assertNotContains(page, "culled ·")
         tiles = c["tiles"]
         self.assertEqual((tiles["herd"], tiles["bucks"], tiles["does"], tiles["bred"], tiles["sold"], tiles["culled"]), (2, 1, 1, 1, 1, 1))
         self.assertEqual(tiles["next_kindling"]["due"], self.litter.due_on)
@@ -40,6 +42,10 @@ class TodayHerdFirstTests(TestCase):
         self.assertContains(page, "Overdue and today")
         self.assertContains(page, "data-quick-done")
         self.assertContains(page, "Willow × Jet")
+        # Overdue and due-today come before the herd cards in the page at every width.
+        body = page.content.decode()
+        self.assertLess(body.index("data-due-first"), body.index("data-herd-cards"))
+        self.assertLess(body.index("Overdue and today"), body.index("data-tiles"))
 
     def test_former_and_sold_rabbits_never_show_as_herd_cards(self):
         names = [card["rabbit"].name for card in self.client.get(reverse("index")).context["herd_cards"]]
@@ -60,7 +66,7 @@ class TodayCountsTests(TestCase):
         page = self.client.get(reverse("index"))
         self.assertEqual(page.context["herd"]["active"], 2)
         self.assertEqual(page.context["tiles"]["herd"], 2)
-        self.assertContains(page, "2 rabbits</a> · 2 does · 0 bucks · 1 breeding · 1 growing out")
+        self.assertNotContains(page, "data-herd-summary")  # the footer line repeated the tiles (Critic T4)
 
     def test_recent_weights_show_one_row_per_rabbit(self):
         today = timezone.localdate()
