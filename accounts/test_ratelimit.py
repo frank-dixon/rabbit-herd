@@ -54,3 +54,27 @@ class RateLimitTests(TestCase):
             for _ in range(40):
                 self.assertNotEqual(self.post("guest").status_code, 429)
                 self.client.logout()
+
+
+class CacheTableTests(TestCase):
+    """The test runner creates cache tables itself, so check the migration directly."""
+
+    def test_migration_creates_the_configured_table(self):
+        import importlib
+
+        from django.conf import settings
+        from django.db import connection
+
+        table = settings.CACHES["ratelimit"]["LOCATION"]
+        from types import SimpleNamespace
+
+        with connection.cursor() as cursor:
+            cursor.execute(f"DROP TABLE {connection.ops.quote_name(table)}")
+        self.assertNotIn(table, connection.introspection.table_names())
+        mod = importlib.import_module("accounts.migrations.0019_ratelimit_cache_table_name")
+        editor = SimpleNamespace(connection=connection)
+        mod.create_table(None, editor)
+        self.assertIn(table, connection.introspection.table_names())
+        mod.create_table(None, editor)  # existing table: still a no-op
+        caches["ratelimit"].set("probe", 1)
+        self.assertEqual(caches["ratelimit"].get("probe"), 1)
