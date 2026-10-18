@@ -7,7 +7,8 @@
     o  grey   sold, processed, culled, archived (no longer in the herd)
     (none)    routine, like a checkup: the plain neutral pill
 
-COI maps low / mid / high to green / amber / red (coi_tone). The colors are the
+COI maps low / mid / high to green / neutral grey / red (coi_tone; Frank, 2026-10-18): the
+% label carries a medium value, and only high gets a color warning. The colors are the
 --{g,b,y,r}-soft / -ink tokens and --pill / --ink-2 in assets/themes.css;
 pages/test_status_colors.py checks each pair reads at 4.5:1 in every theme."""
 
@@ -16,7 +17,7 @@ TONES = {
           "keep", "kept", "done", "not related", "low", "low coi", "ready", "picked", "purebred", "counts"},
     "b": {"bred", "expecting", "pregnant", "planned", "waiting", "next", "covered"},
     "y": {"due soon", "due today", "today", "watch", "behind", "behind curve", "treatment", "weigh-in overdue",
-          "needs attention", "offered a rabbit", "hold", "open", "related", "mid", "moderate"},
+          "needs attention", "offered a rabbit", "hold", "open", "related"},
     "r": {"overdue", "sick", "needs action", "action needed", "illness", "injury", "problem", "high", "high coi",
           "closely related"},
     "o": {"sold", "processed", "culled", "cull", "archived", "deceased", "retired", "dead", "former", "reached"},
@@ -42,6 +43,6 @@ def status_tone(status):
 
 
 def coi_tone(coi):
-    """Low, mid and high inbreeding: green, amber, red."""
+    """Low, mid and high inbreeding: green, the plain grey pill, red."""
     coi = float(coi or 0)
-    return "r" if coi >= COI_HIGH else "y" if coi >= COI_MID else "g"
+    return "r" if coi >= COI_HIGH else "" if coi >= COI_MID else "g"

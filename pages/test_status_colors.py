@@ -37,7 +37,7 @@ class StatusColorTests(SimpleTestCase):
             self.assertEqual(tone(word), expected, word)
         self.assertEqual(status_tone("growing"), "g")
         self.assertEqual(status_tone("sold"), "o")
-        self.assertEqual([coi_tone(0), coi_tone(3), coi_tone(12.5), coi_tone(25)], ["g", "g", "y", "r"])
+        self.assertEqual([coi_tone(0), coi_tone(3), coi_tone(12.5), coi_tone(25)], ["g", "g", "", "r"])  # medium is grey with its % label
 
     def test_every_word_has_one_color(self):
         seen = {}
