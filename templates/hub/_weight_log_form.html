@@ -1,0 +1,13 @@
+{# The one Log weight form for the Weights page. weights-page.mjs clones it into a row's popover when it opens, so the page doesn't carry a form per row. #}
+<template data-weight-log-template>
+  <form class="popover wt-log-pop" method="post" action="" data-weight-log>
+    {% csrf_token %}<input type="hidden" name="next" value="{{ here }}">
+    <div class="wt-log-fields">
+      {% if unit == "kg" %}<label>kg<input name="kg" inputmode="decimal" autocomplete="off" required></label>
+      {% else %}<label>lb<input name="lb" inputmode="numeric" autocomplete="off"></label><label>oz<input name="oz" inputmode="decimal" autocomplete="off"></label>{% endif %}
+      <label>Date<input type="date" name="date" value="{{ today|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}"></label>
+    </div>
+    <p class="wt-log-err" data-weight-log-error hidden></p>
+    <div class="wt-log-foot"><button type="submit" class="wt-btn wt-btn-pri">Save</button></div>
+  </form>
+</template>

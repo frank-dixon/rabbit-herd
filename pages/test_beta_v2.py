@@ -43,3 +43,10 @@ class BetaV2LayoutTests(TestCase):
         body = self.client.get(reverse("index")).content.decode()
         self.assertIn("data-rail-key", body)
         self.assertNotIn("group-hover/rail:translate", body)
+
+    def test_weights_page_carries_one_log_form_not_one_per_row(self):
+        body = self.client.get(reverse("weights_hub")).content.decode()
+        self.assertEqual(body.count("data-weight-log-template"), 1)
+        self.assertEqual(body.count("<form class=\"popover wt-log-pop\""), 1)
+        self.assertEqual(body.count("data-weight-log-panel"), body.count("data-weight-log-fallback"))
+        self.assertGreaterEqual(body.count("data-weight-log-fallback"), 3)

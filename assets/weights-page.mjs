@@ -69,6 +69,13 @@ export function bindWeightsPage(doc, win = window) {
     const panel = event.target;
     if (!panel.matches?.("[data-weight-log-panel]") || !panel.open) return;
     root.querySelectorAll("[data-weight-log-panel][open]").forEach((other) => { if (other !== panel) other.open = false; });
+    const fallback = panel.querySelector("[data-weight-log-fallback]");
+    const template = doc.querySelector("template[data-weight-log-template]");
+    if (fallback && template) {
+      const form = template.content.firstElementChild.cloneNode(true);
+      form.action = panel.dataset.logAction;
+      fallback.replaceWith(form);
+    }
     panel.querySelector("input:not([type=hidden])")?.focus();
   }, true);
   doc.addEventListener("pointerdown", (event) => {

@@ -1,14 +1,5 @@
-{# Inline Log weight for one rabbit: a small popover form. row: weights_page row. #}
-<details class="wt-log" data-weight-log-panel>
+{# Inline Log weight for one rabbit: a small popover. The form itself is cloned in from hub/_weight_log_form.html; without JS the popover links to the rabbit's own weight form. row: weights_page row. #}
+<details class="wt-log" data-weight-log-panel data-log-action="{% url 'weights_log' row.rabbit.pk %}">
   <summary class="wt-btn wt-btn-sm">Log weight<span class="sr-only"> for {{ row.rabbit.name }}</span></summary>
-  <form class="popover wt-log-pop" method="post" action="{% url 'weights_log' row.rabbit.pk %}" data-weight-log>
-    {% csrf_token %}<input type="hidden" name="next" value="{{ here }}">
-    <div class="wt-log-fields">
-      {% if unit == "kg" %}<label>kg<input name="kg" inputmode="decimal" autocomplete="off" required></label>
-      {% else %}<label>lb<input name="lb" inputmode="numeric" autocomplete="off"></label><label>oz<input name="oz" inputmode="decimal" autocomplete="off"></label>{% endif %}
-      <label>Date<input type="date" name="date" value="{{ today|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}"></label>
-    </div>
-    <p class="wt-log-err" data-weight-log-error hidden></p>
-    <div class="wt-log-foot"><button type="submit" class="wt-btn wt-btn-pri">Save</button></div>
-  </form>
+  <a class="popover wt-log-pop" href="{% url 'rabbit_detail' row.rabbit.pk %}?weigh=1#weights" data-weight-log-fallback>Log weight<span class="sr-only"> for {{ row.rabbit.name }}</span></a>
 </details>

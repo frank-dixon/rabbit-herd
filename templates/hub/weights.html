@@ -78,4 +78,5 @@
 {% url "rabbit_create" as a_url %}{% include "components/empty.html" with title="No rabbits to weigh yet." text="Add a rabbit, then log its weight from here or its page." href=a_url action="Add a rabbit" icon=ui_icons.weights only %}
   {% endif %}
   </div>
+{% include "hub/_weight_log_form.html" %}
 {% endblock %}
