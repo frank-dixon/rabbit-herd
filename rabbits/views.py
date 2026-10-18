@@ -25,31 +25,6 @@ def owned_rabbit(user, pk):
     return get_object_or_404(owned_rabbits(user), pk=pk)
 
 
-LIST_VIEWS = ("grid", "list")
-LIST_VIEW_SESSION_KEY = "rabbit_list_view"
-
-
-def list_view_choice(request):
-    """Grid or list for the rabbit list, and the grid's density. ?view= and
-    ?density= set them (plain links, so no JS is needed) and the account
-    remembers both."""
-    user = request.user
-    changed = []
-    asked = request.GET.get("view")
-    if asked in LIST_VIEWS and asked != user.ui_list_view:
-        user.ui_list_view = asked
-        changed.append("ui_list_view")
-    density = request.GET.get("density")
-    if density in dict(user.DENSITIES) and density != user.ui_density:
-        user.ui_density = density
-        changed.append("ui_density")
-    if changed:
-        user.save(update_fields=changed)
-    if asked in LIST_VIEWS:
-        request.session[LIST_VIEW_SESSION_KEY] = asked
-    return user.ui_list_view if user.ui_list_view in LIST_VIEWS else "grid"
-
-
 def breed_names(breeds):
     """Breed names for the filter: purebred names and every breed in a cross."""
     names = set()
@@ -68,12 +43,12 @@ def breed_names(breeds):
 # Rabbits page sort: list-view column headers and the Filter panel's Sort
 # select share one ?sort= value (rabbits/sorting.py). "-age" is oldest first.
 LIST_COLUMNS = [("name", "Rabbit"), ("breed", "Sex and breed"), ("age", "Age"), ("weight", "Last weight"),
-                ("location", "Location"), ("next", "Next"), ("status", "Status")]
+                ("location", "Location"), ("status", "Status")]
 SORT_KEYS = dict(LIST_COLUMNS)
 SORT_DESC_FIRST = {"weight"}
 SORT_LEGACY = {"oldest": "-age", "youngest": "age"}
 SORT_CHOICES = [("-age", "Oldest first"), ("age", "Youngest first"), ("name", "Name A–Z"), ("-name", "Name Z–A"),
-                ("-weight", "Heaviest first"), ("weight", "Lightest first"), ("next", "Next date soonest"),
+                ("-weight", "Heaviest first"), ("weight", "Lightest first"),
                 ("breed", "Sex and breed"), ("status", "Status")]
 SORT_FUNCS = {
     "name": lambda r: r.name.casefold(),
@@ -82,7 +57,6 @@ SORT_FUNCS = {
     "age": lambda r: -r.birth_date.toordinal() if r.birth_date else None,
     "weight": lambda r: r.last_weight.grams if getattr(r, "last_weight", None) else None,
     "location": lambda r: r.location.name.casefold() if r.location_id else None,
-    "next": lambda r: r.next_item["date"] if getattr(r, "next_item", None) else None,
     "status": lambda r: (str(r.status_tag), r.name.casefold()),
 }
 
@@ -141,22 +115,15 @@ def query_string(params, **changes):
 
 
 def list_row_columns(user, rabbits):
-    """The list view's columns: latest weight and the next open date."""
-    from .tasks import open_items
+    """The list's latest weight per rabbit: one query that picks each rabbit's
+    newest row in the database, instead of loading every weight ever logged."""
+    from django.db.models import OuterRef, Subquery
 
-    ids = {r.pk for r in rabbits}
-    latest = {}
-    for w in Weight.objects.filter(rabbit_id__in=ids).order_by("rabbit_id", "-date", "-pk"):
-        latest.setdefault(w.rabbit_id, w)
-    upcoming = {}
-    items = open_items(user)
-    for item in items:
-        rabbit = item.get("rabbit")
-        if rabbit and rabbit.pk in ids and rabbit.pk not in upcoming:
-            upcoming[rabbit.pk] = {**item, "label": item["title"].split(":")[0] if item["kind"] == "litter" else item["title"]}
+    ids = [r.pk for r in rabbits]
+    newest = Weight.objects.filter(rabbit_id=OuterRef("rabbit_id")).order_by("-date", "-pk").values("pk")[:1]
+    latest = {w.rabbit_id: w for w in Weight.objects.filter(rabbit_id__in=ids, pk=Subquery(newest))}
     for r in rabbits:
         r.last_weight = latest.get(r.pk)
-        r.next_item = upcoming.get(r.pk)
         r.age_until = r.death_date if r.status in Rabbit.FORMER else None
 
 
@@ -173,58 +140,9 @@ def ago_text(day, today):
     return day.strftime("%b %-d") if day.year == today.year else day.strftime("%b %-d, %Y")
 
 
-def card_stats(user, rabbits, today):
-    """One context line per card: does (due, nursing, last litter), bucks (last
-    bred), juniors (vs the breed curve). Two queries for the whole page."""
-    from . import growth_curve as G
-
-    ids = [r.pk for r in rabbits if r.status not in Rabbit.FORMER]
-    by_doe, by_buck = {}, {}
-    gestation = prefs(user).gestation_days
-    for lit in (Litter.objects.filter(owner=user).filter(Q(pairing__doe_id__in=ids) | Q(pairing__buck_id__in=ids))
-                .select_related("pairing", "breeding_schedule").order_by("-bred_on", "-pk")):
-        by_doe.setdefault(lit.pairing.doe_id, []).append(lit)
-        by_buck.setdefault(lit.pairing.buck_id, lit)
-    for r in rabbits:
-        w = getattr(r, "last_weight", None)
-        r.weight_ago = ago_text(w.date, today) if w else ""
-        r.stat, r.stat_tone = "", ""
-        if r.status in Rabbit.FORMER:
-            continue
-        if r.status == Rabbit.Status.GROWING:
-            points, _ = G.curve_for(r)
-            vs = G.versus(points, (w.date - r.birth_date).days, w.grams) if (w and points and r.birth_date) else None
-            if vs is not None:
-                pct = round(abs(vs) * 100)
-                if abs(vs) <= G.ON_TRACK:
-                    r.stat, r.stat_tone = "On track vs curve", "g"
-                else:
-                    r.stat, r.stat_tone = f"{pct}% {'ahead of' if vs > 0 else 'behind'} curve", "g" if vs > 0 else "r"
-            continue
-        if r.sex == "doe":
-            lits = by_doe.get(r.pk, [])
-            open_lit = next((l for l in lits if not l.kindled_on and not l.converted_at), None)
-            if open_lit:
-                days = (open_lit.bred_on + datetime.timedelta(days=(open_lit.breeding_schedule.gestation_days
-                        if open_lit.breeding_schedule_id else gestation)) - today).days
-                if days >= -7:
-                    r.stat = f"Due in {days} day{'' if days == 1 else 's'}" if days > 0 else ("Due today" if days == 0 else f"{-days} days past due")
-                    r.stat_tone = "a" if days <= 3 else ""
-                    continue
-            kindled = next((l for l in lits if l.kindled_on), None)
-            if kindled and not kindled.weaned and not kindled.converted_at and (today - kindled.kindled_on).days <= 56:
-                r.stat = f"Kits {(today - kindled.kindled_on).days} days old"
-            elif kindled:
-                n = kindled.born_alive or 0
-                r.stat = f"Last litter {kindled.kindled_on.strftime('%b %-d')} · {n} kit{'' if n == 1 else 's'}"
-        elif r.sex == "buck" and r.pk in by_buck:
-            r.stat = f"Last bred {by_buck[r.pk].bred_on.strftime('%b %-d')}"
-
-
 @login_required
 def rabbit_list(request):
     from rabbits.samples.context import sample_ctx
-    view = list_view_choice(request)
     filters = list_filters(request)
     mine = owned_rabbits(request.user)
     live = mine.filter(archived_at__isnull=True)
@@ -253,7 +171,6 @@ def rabbit_list(request):
         rabbits = [rabbit for rabbit in rabbits if bool(rabbit.purebred_info) == want]
     # Sold rabbits go last; sort is stable, so each group keeps its order.
     list_row_columns(request.user, rabbits)
-    card_stats(request.user, rabbits, timezone.localdate())
     if filters["sort"]:
         rabbits = sort_by_age(rabbits, filters["sort"])
     else:
@@ -300,7 +217,6 @@ def rabbit_list(request):
         {
             "rabbits": rabbits,
             "entries": entries,
-            "view": view,
             "wide": True,
             "subtitle": subtitle,
             "filters": filters,
@@ -319,12 +235,6 @@ def rabbit_list(request):
             "status_options": [(v, l) for v, l in Rabbit.Status.choices
                                if filters["tab"] == "archived" or (v in Rabbit.FORMER) == (filters["tab"] == "former")],
             "breed_options": breed_names(breed for breed, _, _ in herd),
-            "view_options": [
-                {"href": "?" + query_string(filters, view=key), "label": label, "icon": key, "selected": view == key}
-                for key, label in (("grid", "Grid"), ("list", "List"))],
-            "density_options": [
-                {"href": "?" + query_string(filters, density=key), "label": label, "selected": request.user.ui_density == key}
-                for key, label in request.user.DENSITIES],
             "active_qs": query_string({"view": ""}, tab="active"),
             "archived_qs": query_string({}, tab="archived"),
             "clear_qs": query_string({}, tab=filters["tab"]),

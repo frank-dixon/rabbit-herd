@@ -17,34 +17,38 @@ class RabbitListLayoutTests(TestCase):
             birth_date=date(2025, 3, 1),
         )
 
-    def test_grid_is_the_default_with_short_breed_full_name_status_and_letter(self):
+    def test_one_list_view_with_the_agreed_row(self):
+        # Frank, 2026-10-18: one view only. No grid, no list toggle, no Roomy/Compact.
         page = self.client.get(reverse("rabbit_list"))
-        self.assertEqual(page.context["view"], "grid")
-        self.assertContains(page, 'data-view="grid"')
-        self.assertNotContains(page, 'data-view="list"')
-        self.assertContains(page, "Cross · Creme d&#x27;Argent 50% +2 more")
-        self.assertContains(page, "Blackberry")
-        self.assertNotContains(page, "truncate")
-        self.assertContains(page, "Breeding")
+        body = page.content.decode()
+        self.assertEqual(body.count("data-view="), 1)
+        self.assertIn('data-view="list"', body)
+        self.assertNotIn("data-view-controls", body)
+        self.assertNotIn('aria-label="Grid size"', body)
+        self.assertNotIn('aria-label="Layout"', body)
+        self.assertIn("Blackberry", body)
+        self.assertIn("Buck", body)
+        self.assertIn('class="pill pill-g"', body)  # Breeding: green
         self.assertContains(page, "1 active rabbit in your herd")
         self.assertContains(page, "max-w-6xl")
+        for header in ("Sex", "Age", "Last weight", "Status"):
+            self.assertIn(header, body)
 
-    def test_view_param_switches_to_list_and_is_remembered(self):
-        page = self.client.get(reverse("rabbit_list"), {"view": "list"})
-        self.assertContains(page, 'data-view="list"')
-        self.assertContains(page, 'href="?view=grid"')
-        again = self.client.get(reverse("rabbit_list"))
-        self.assertEqual(again.context["view"], "list")
-        # The saved choice applies at every screen size: no grid behind it.
-        self.assertNotContains(again, 'data-view="grid"')
-        self.assertEqual(again.content.decode().count("data-view="), 1)
-        self.assertContains(again, "Last weight")
-        back = self.client.get(reverse("rabbit_list"), {"view": "grid"})
-        self.assertNotContains(back, 'data-view="list"')
+    def test_old_view_and_density_links_are_harmless(self):
+        for params in ({"view": "grid"}, {"view": "table"}, {"density": "compact"}):
+            body = self.client.get(reverse("rabbit_list"), params).content.decode()
+            self.assertEqual(body.count("data-view="), 1)
+            self.assertIn('data-view="list"', body)
 
-    def test_unknown_view_value_is_ignored(self):
-        page = self.client.get(reverse("rabbit_list"), {"view": "table"})
-        self.assertEqual(page.context["view"], "grid")
+    def test_latest_weight_is_one_small_query(self):
+        from .models import Weight
+
+        rabbit = Rabbit.objects.get(name="Blackberry")
+        for day in range(1, 29):
+            Weight.objects.create(rabbit=rabbit, date=date(2026, 2, day), grams=3028 if day == 28 else 2000)
+        body = self.client.get(reverse("rabbit_list")).content.decode()
+        self.assertIn(Weight.objects.get(grams=3028).text, body)
+        self.assertNotIn(Weight.objects.filter(grams=2000).first().text, body)
 
 
 class ArchivedLayoutTests(TestCase):
@@ -120,14 +124,6 @@ class SearchFilterTests(TestCase):
         self.assertContains(page, "No rabbits match these filters.")
         self.assertContains(page, "0 of 3 active rabbits")
 
-    def test_view_toggle_keeps_filters_and_saved_view(self):
-        page, _ = self.names(sex="doe", view="list")
-        self.assertContains(page, 'href="?sex=doe&amp;view=grid"')
-        self.assertContains(page, 'data-view="list"')
-        again, _ = self.names(status="growing")
-        self.assertContains(again, 'data-view="list"')
-
-
 class DeceasedTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user("dead@example.com", "pw-12345678")
@@ -163,24 +159,6 @@ class DensityTests(TestCase):
         self.client.force_login(self.user)
         Rabbit.objects.create(owner=self.user, name="Pepper", sex="doe", birth_date="2025-03-10", breed="Rex")
 
-    def test_roomy_is_the_default_grid(self):
-        page = self.client.get(reverse("rabbit_list"))
-        self.assertContains(page, 'data-view="grid"')
-        self.assertNotContains(page, 'data-density="compact"')
-        controls = page.content.decode()
-        controls = controls[controls.index("data-view-controls"):]
-        self.assertIn('aria-label="Grid size"', controls)
-        self.assertRegex(controls, r'href="\?density=roomy"[^>]*aria-current="true"')
-
-    def test_compact_grid_is_two_up_with_a_single_detail_line(self):
-        self.user.ui_density = "compact"
-        self.user.save()
-        page = self.client.get(reverse("rabbit_list"))
-        self.assertContains(page, 'data-density="compact"')
-        self.assertContains(page, "grid-cols-2")
-        self.assertContains(page, "♀</span><span class=\"sr-only\">Doe</span>")
-        self.assertRegex(page.content.decode(), r'href="\?density=compact"[^>]*aria-current="true"')
-
     def test_quick_toggle_saves_and_returns_to_the_list(self):
         response = self.client.post(reverse("account"), {"ui_theme": "light", "ui_density": "compact", "next": "/rabbits/?sex=doe"})
         self.assertRedirects(response, "/rabbits/?sex=doe")
@@ -190,18 +168,6 @@ class DensityTests(TestCase):
     def test_toggle_refuses_an_outside_next(self):
         response = self.client.post(reverse("account"), {"ui_theme": "light", "ui_density": "compact", "next": "https://example.org/"})
         self.assertRedirects(response, reverse("account"))
-
-    def test_density_and_layout_links_persist_per_account(self):
-        self.client.get(reverse("rabbit_list") + "?density=compact&sex=doe")
-        self.client.get(reverse("rabbit_list") + "?view=list")
-        self.user.refresh_from_db()
-        self.assertEqual((self.user.ui_density, self.user.ui_list_view), ("compact", "list"))
-        self.client.logout()
-        self.client.force_login(self.user)
-        page = self.client.get(reverse("rabbit_list")).content.decode()
-        self.assertIn('data-view="list"', page)
-        self.assertNotIn('aria-label="Grid size"', page)
-        self.assertRegex(page, r'href="\?view=list"[^>]*aria-current="true"')
 
     def test_settings_no_longer_has_the_grid_row(self):
         self.assertNotContains(self.client.get(reverse("account")), "Rabbit grid")

@@ -1,20 +1,17 @@
-{# One rabbit on the Rabbits list; also each kit inside a stacked litter. #}
+{# One rabbit on the Rabbits list (also each kit inside a litter group): 40px thumb, name and tattoo, sex, age, latest weight, one status pill. #}
 {% with main=rabbit.main_photo %}
   <li role="none"{% if litter_key %} class="litter-kit-row" data-litter-of="{{ litter_key }}"{% if not filtering %} hidden{% endif %}{% endif %} data-swipe data-swipe-href="{% url 'rabbit_detail' rabbit.pk %}?weigh=1#weights" data-swipe-label="Log weight">
     <div role="row" class="rl-row list-row list-cols grid items-center px-3 hover:bg-side">
       <span role="cell" class="flex min-w-0 items-center gap-3">
-        {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="list-thumb shrink-0 rounded-md text-base" only %}
+        {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="list-thumb shrink-0 rounded-md" sizes="40px" only %}
         <span class="min-w-0">
-          <span class="block break-words font-semibold"><a href="{% url 'rabbit_detail' rabbit.pk %}" class="list-row-link focus:outline-none">{{ rabbit.name }}</a>{% if rabbit.is_sample %}{% include "components/sample_badge.html" with sample=True only %}{% endif %}{% if rabbit.tattoo %} <span class="num text-xs font-normal text-muted">{{ rabbit.tattoo }}</span>{% endif %}</span>
-          <span class="block truncate text-sm text-muted lg:hidden">{{ rabbit.get_sex_display }}{% if rabbit.short_breed %} · {{ rabbit.short_breed }}{% endif %}{% if rabbit.died_text %} · {{ rabbit.died_text }}{% endif %}{% if rabbit.next_item.overdue %} · <span class="text-danger">{{ rabbit.next_item.label }} overdue</span>{% endif %}</span>
-          {% include "rabbits/_rabbit_meta.html" with r=rabbit mode="row" only %}
+          <span class="block truncate font-semibold"><a href="{% url 'rabbit_detail' rabbit.pk %}" class="list-row-link focus:outline-none">{{ rabbit.name }}</a>{% if rabbit.is_sample %}{% include "components/sample_badge.html" with sample=True only %}{% endif %}{% if rabbit.tattoo %} <span class="num text-xs font-normal text-muted">{{ rabbit.tattoo }}</span>{% endif %}</span>
+          <span class="num block truncate text-sm text-muted lg:hidden">{{ rabbit.get_sex_display }}{% if rabbit.died_text %} · {{ rabbit.died_text }}{% elif rabbit.birth_date and not rabbit.age_until %} · {{ rabbit.age_text }}{% endif %}{% if rabbit.last_weight %} · {{ rabbit.last_weight.text }}{% endif %}</span>
         </span>
       </span>
-      <span role="cell" class="hidden min-w-0 break-words text-sm lg:block">{{ rabbit.get_sex_display }}{% if rabbit.short_breed %} · {{ rabbit.short_breed }}{% endif %}{% if rabbit.purebred_info and rabbit.purebred_info.source != "entered" %} · purebred{% endif %}</span>
-      <span role="cell" class="num hidden text-sm lg:block"{% if rabbit.birth_date and not rabbit.age_until %} title="{{ rabbit.age_title }}"{% endif %}>{% if rabbit.birth_date and not rabbit.age_until %}{{ rabbit.age_text }}{% elif rabbit.birth_date %}<span class="text-muted">Born {{ rabbit.birth_date|date:"Y" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</span>
-      <span role="cell" class="num hidden text-sm leading-tight lg:block">{% if rabbit.last_weight %}{{ rabbit.last_weight.text }}<span class="block text-xs text-muted" title="{{ rabbit.last_weight.date|date:'M j, Y' }}">{{ rabbit.weight_ago }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</span>
-      {% if feature_locations %}<span role="cell" class="hidden min-w-0 break-words text-sm xl:block">{% if rabbit.location %}{{ rabbit.location.name }}{% else %}<span class="text-muted">—</span>{% endif %}</span>{% endif %}
-      <span role="cell" class="hidden min-w-0 break-words text-sm leading-tight xl:block">{% if rabbit.next_item %}{{ rabbit.next_item.label }}<span class="block text-xs {% if rabbit.next_item.overdue %}text-danger{% else %}text-muted{% endif %}">{% if rabbit.next_item.overdue %}Overdue · {% endif %}{{ rabbit.next_item.date|date:"M j" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</span>
+      <span role="cell" class="hidden text-sm lg:block">{{ rabbit.get_sex_display }}</span>
+      <span role="cell" class="num hidden text-sm lg:block"{% if rabbit.birth_date and not rabbit.age_until %} title="{{ rabbit.age_title }}"{% endif %}>{% if rabbit.died_text %}{{ rabbit.died_text }}{% elif rabbit.birth_date and not rabbit.age_until %}{{ rabbit.age_text }}{% else %}<span class="text-muted">—</span>{% endif %}</span>
+      <span role="cell" class="num hidden text-sm lg:block"{% if rabbit.last_weight %} title="{{ rabbit.last_weight.date|date:'M j, Y' }}"{% endif %}>{% if rabbit.last_weight %}{{ rabbit.last_weight.text }}{% else %}<span class="text-muted">—</span>{% endif %}</span>
       <span role="cell" class="justify-self-end lg:justify-self-start"><span class="pill pill-{{ rabbit.status_tone|default:'o' }}" data-status-chip data-status="{{ rabbit.status }}">{{ rabbit.status_tag }}</span></span>
     </div>
   </li>

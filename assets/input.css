@@ -8,7 +8,6 @@
 @import "./outcomes.css";
 @import "./ancestor-thumb.css";
 @import "./sort-th.css";
-@import "./rabbit-meta.css";
 @import "./weights.css";
 @import "./items.css";
 @import "./components.css";
@@ -311,20 +310,20 @@ select:not([multiple]):not([size]) {
   .gene-level-unknown { background: transparent; border-color: transparent; color: var(--muted); }
 }
 
-/* Rabbit list rows: one grid template for the header and every row, so columns align. */
+/* Rabbit list rows: one grid template for the header and every row, so columns align.
+   Phones: thumb + name over "sex · age · weight", pill right. From 1024px the same cells are columns;
+   at 1280 the rows tighten into a denser table. */
 .list-cols { grid-template-columns: minmax(0, 1fr) auto; column-gap: 0.75rem; }
-.list-row { padding-block: 0.5rem; }
-.list-thumb { width: 2.75rem; height: 2.75rem; }
+.list-row { padding-block: 0.5rem; min-height: 56px; }
+.list-thumb { width: 40px; height: 40px; }
+.list-head { min-height: 36px; align-items: center; }
 @media (min-width: 1024px) {
-  .list-cols { grid-template-columns: minmax(11rem, 1.5fr) minmax(9rem, 1.4fr) 5.5rem 7rem 6.5rem; column-gap: 1rem; }
-  .list-thumb { width: 3rem; height: 3rem; }
+  .list-cols { grid-template-columns: minmax(14rem, 2.4fr) 5rem 7rem 7rem 8rem; column-gap: 1rem; }
 }
 @media (min-width: 1280px) {
-  .list-cols { grid-template-columns: minmax(11rem, 1.4fr) minmax(9rem, 1.3fr) 5rem 7rem minmax(6rem, 0.8fr) minmax(8rem, 1fr) 6.5rem; }
-  .list-cols-noloc .list-cols { grid-template-columns: minmax(11rem, 1.4fr) minmax(9rem, 1.3fr) 5rem 7rem minmax(8rem, 1fr) 6.5rem; }
+  .list-row { padding-block: 0.25rem; min-height: 48px; }
+  .list-cols { grid-template-columns: minmax(16rem, 3fr) 5.5rem 8rem 8rem 8.5rem; }
 }
-html[data-density="compact"] .list-row { padding-block: 0.3rem; }
-html[data-density="compact"] .list-thumb { width: 2.25rem; height: 2.25rem; }
 
 /* Anything you can click shows the pointer; anything disabled says so. */
 @layer base {

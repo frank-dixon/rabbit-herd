@@ -16,7 +16,7 @@
   </div>
 
   <form method="get" class="mt-3" role="search" aria-label="Search and filter rabbits" data-filter-form>
-    <span data-swap="hidden">{% if filters.tab != 'active' %}<input type="hidden" name="tab" value="{{ filters.tab }}">{% endif %}{% if view == 'list' %}<input type="hidden" name="view" value="list">{% endif %}</span>
+    <span data-swap="hidden">{% if filters.tab != 'active' %}<input type="hidden" name="tab" value="{{ filters.tab }}">{% endif %}</span>
     <div class="flex items-center gap-2">
       <label class="relative min-w-0 flex-1">
         <span class="sr-only">Search by name or tattoo</span>
@@ -78,10 +78,6 @@
           </div>
         </div>
       </details>
-        <div class="ml-auto flex shrink-0 items-center gap-2" data-view-controls data-swap="controls">{% if rabbits %}
-          {% if view == 'grid' %}<div class="hidden md:block">{% include "components/segmented.html" with label="Grid size" options=density_options only %}</div>{% endif %}
-          {% include "components/segmented.html" with label="Layout" options=view_options icon_only=True only %}
-        {% endif %}</div>
     </div>
     <div data-swap="chips">{% if filter_chips %}
       <ul class="mt-2 flex flex-wrap gap-1.5" aria-label="Active filters">
@@ -95,31 +91,18 @@
   <div data-swap="results" data-result-count="{{ rabbits|length }}">
   {% if rabbits %}
 
-    {% if view == 'grid' and ui_density == 'compact' %}
-    <ul class="mo-stagger mt-4 grid grid-flow-row-dense grid-cols-2 gap-2.5 sm:grid-cols-3 md:gap-3 lg:grid-cols-5 xl:grid-cols-6" data-view="grid" data-density="compact">
-      {% for entry in entries %}
-        {% if entry.kind == "stack" %}{% include "rabbits/_litter_stack.html" with stack=entry mode="compact" %}{% else %}{% include "rabbits/_list_card_compact.html" with rabbit=entry %}{% endif %}
-      {% endfor %}
-    </ul>
-    {% elif view == 'grid' %}
-    <ul class="mo-stagger mt-5 grid grid-flow-row-dense grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-view="grid">
-      {% for entry in entries %}
-        {% if entry.kind == "stack" %}{% include "rabbits/_litter_stack.html" with stack=entry mode="roomy" %}{% else %}{% include "rabbits/_list_card_roomy.html" with rabbit=entry %}{% endif %}
-      {% endfor %}
-    </ul>
-    {% else %}
-      {# One bordered list with row dividers. Columns line up across rows: xl shows them all, lg drops location and next, phones keep two lines. #}
-      <div class="mt-5 overflow-hidden rounded-lg border border-line bg-surface{% if not feature_locations %} list-cols-noloc{% endif %}" data-view="list" role="table" aria-label="Rabbits">
-        <div role="rowgroup"><div class="list-cols hidden border-b border-line px-3 py-2 text-xs font-medium text-muted lg:grid" role="row">
-          {% include "components/sort_th.html" with h=sort_headers.name tag="span" only %}{% include "components/sort_th.html" with h=sort_headers.breed tag="span" only %}{% include "components/sort_th.html" with h=sort_headers.age tag="span" only %}{% include "components/sort_th.html" with h=sort_headers.weight tag="span" only %}{% if feature_locations %}{% include "components/sort_th.html" with h=sort_headers.location tag="span" cls="hidden xl:block" only %}{% endif %}{% include "components/sort_th.html" with h=sort_headers.next tag="span" cls="hidden xl:block" only %}{% include "components/sort_th.html" with h=sort_headers.status tag="span" only %}
-        </div></div>
-        <ul class="divide-y divide-line" role="rowgroup">
-          {% for entry in entries %}
-            {% if entry.kind == "stack" %}{% include "rabbits/_litter_stack.html" with stack=entry mode="row" %}{% else %}{% include "rabbits/_list_row.html" with rabbit=entry %}{% endif %}
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
+    {# One list for every screen (Frank, 2026-10-18): thumb, name and tattoo, sex, age, latest weight, one status pill.
+       Phones keep two lines; from 1024px the same cells line up as columns, denser at 1280. #}
+    <div class="mt-4 overflow-hidden rounded-lg border border-line bg-surface" data-view="list" role="table" aria-label="Rabbits">
+      <div role="rowgroup"><div class="list-cols list-head hidden border-b border-line px-3 text-xs font-medium text-muted lg:grid" role="row">
+        {% include "components/sort_th.html" with h=sort_headers.name tag="span" only %}<span role="columnheader">Sex</span>{% include "components/sort_th.html" with h=sort_headers.age tag="span" only %}{% include "components/sort_th.html" with h=sort_headers.weight tag="span" only %}{% include "components/sort_th.html" with h=sort_headers.status tag="span" only %}
+      </div></div>
+      <ul class="divide-y divide-line" role="rowgroup">
+        {% for entry in entries %}
+          {% if entry.kind == "stack" %}{% include "rabbits/_litter_stack.html" with stack=entry %}{% else %}{% include "rabbits/_list_row.html" with rabbit=entry %}{% endif %}
+        {% endfor %}
+      </ul>
+    </div>
   {% else %}
     {% if filtering %}
       {% with href="?"|add:clear_qs %}{% include "components/empty.html" with title="No rabbits match these filters." text="Try a different search, or clear it to see the whole herd." href=href action="Clear the search and filters" kind="filtered" secondary=True icon=ui_icons.rabbits only %}{% endwith %}

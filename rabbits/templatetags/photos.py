@@ -42,8 +42,7 @@ def ancestor_thumb(rabbit, color=""):
 
 @register.inclusion_tag("components/coat_swatch.html")
 def coat_swatch(rabbit, box=""):
-    """No-photo stand-in: a tile tinted from the recorded coat color, or a neutral rabbit silhouette when there is none."""
-    from rabbits.swatches import swatch
-
+    """No-photo stand-in: one neutral rabbit silhouette everywhere (Critic, 2026-10-18: one
+    placeholder style, no coat stripes). The coat color stays in the text beside it."""
     color = (getattr(rabbit, "color", "") or "").strip()
-    return {"box": box, "background": swatch(color) if color else "", "color": color}
+    return {"box": box, "background": "", "color": color}

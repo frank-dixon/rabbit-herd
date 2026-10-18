@@ -408,8 +408,8 @@ class PhotoDisplayTests(PhotoTestCase):
         add_photo(plain)  # an extra only, so no thumbnail
         page = self.client.get(reverse("rabbit_list"))
         self.assertContains(page, self.src(main), count=1)
-        self.assertContains(page, "Open </span>Clover")
-        self.assertContains(page, "Open </span>Basil")
+        self.assertContains(page, 'class="list-row-link focus:outline-none">Clover</a>')
+        self.assertContains(page, 'class="list-row-link focus:outline-none">Basil</a>')
         self.assertContains(page, "coat-swatch")
 
     def test_the_list_loads_photos_in_one_query(self):

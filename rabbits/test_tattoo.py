@@ -52,7 +52,7 @@ class TattooTests(TestCase):
         names = lambda q: [r.name for r in self.client.get(reverse("rabbit_list"), {"q": q}).context["rabbits"]]
         self.assertEqual(names("hz12"), ["Hazel"])
         self.assertEqual(names("HZ"), ["Hazel"])
-        self.assertContains(self.client.get(reverse("rabbit_list")), "· HZ12")
+        self.assertContains(self.client.get(reverse("rabbit_list")), '<span class="num text-xs font-normal text-muted">HZ12</span>')
 
     def test_self_pk_cannot_be_posted(self):
         url = reverse("rabbit_flow_step", args=["name"])
