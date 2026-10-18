@@ -15,7 +15,11 @@
  * Logging out never deletes kept entries, and sending never reloads the page.
  */
 
+import { showToast } from "./toast.mjs";
+
 export const QUEUE_KEY = "bb-offline-queue";
+export const PHOTOS_ONLINE = "Photos need a connection. Add them again when you're back online.";
+export const savedText = (label) => `${label} saved on this device. It will be added when you're back online.`;
 export const LEASE_KEY = "bb-offline-lease";
 export const LOCK_NAME = "bb-offline-sync";
 
@@ -338,17 +342,33 @@ export function bindOffline(doc, win) {
       const fields = Array.from(new FormData(form).entries()).filter(([, value]) => typeof value === "string").map(([name, value]) => [name, value]);
       queueEntry(storage, form.action, fields, form.getAttribute("data-offline-queue"), user());
       freshOp(form);
+      const hadPhoto = Array.from(form.querySelectorAll('input[type="file"]')).some((input) => input.files && input.files.length);
+      const text = savedText(form.getAttribute("data-offline-queue")) + (hadPhoto ? ` ${PHOTOS_ONLINE}` : "");
       const note = form.querySelector("[data-offline-note]");
       if (note) {
         note.hidden = false;
-        note.textContent = `${form.getAttribute("data-offline-queue")} saved on this device. It will be added when you're back online.`;
+        note.textContent = text;
+      } else {
+        showToast(doc, text, { win });
       }
-      form.querySelectorAll("input:not([type=hidden]):not([type=date]), textarea").forEach((input) => {
+      // A queued done/undo row leaves the list right away, as it would online.
+      const row = form.closest("[data-offline-row]");
+      if (row) row.hidden = true;
+      form.querySelectorAll("input:not([type=hidden]):not([type=date]):not([type=radio]):not([type=checkbox]), textarea").forEach((input) => {
         input.value = "";
       });
       render();
     });
   });
+  // Photos are online-only: say so instead of letting an upload fail.
+  doc.addEventListener("change", (event) => {
+    const input = event.target;
+    if (nav.onLine || !input?.matches?.('input[type="file"]') || input.closest("form[data-offline-queue]")) return;
+    event.stopImmediatePropagation();
+    input.value = "";
+    showToast(doc, PHOTOS_ONLINE, { win });
+  }, true);
+  doc.addEventListener("bb:queued", render);
   doc.querySelectorAll('form[action$="/logout/"]').forEach((form) => {
     form.addEventListener("submit", (event) => {
       const warning = logoutWarning(pendingEntries(storage, user()).length, failedEntries(storage, user()).length);

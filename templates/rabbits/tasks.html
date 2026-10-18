@@ -39,7 +39,7 @@
                   <span class="block text-sm text-muted">Due {{ task.due_on|date:"D, M j" }}{% if task.rabbit %} · {{ task.rabbit.name }}{% endif %}</span>
                 </span>
                 <span class="flex shrink-0 items-center gap-1">
-                  <form method="post" action="{% url 'task_done' task.pk %}">{% csrf_token %}{% include "components/button.html" with label="Undo" sr_suffix=task.title type="submit" variant="secondary" size="small" only %}</form>
+                  <form method="post" action="{% url 'task_done' task.pk %}" data-offline-queue="Task">{% csrf_token %}{% include "components/button.html" with label="Undo" sr_suffix=task.title type="submit" variant="secondary" size="small" only %}</form>
                   <form method="post" action="{% url 'task_delete' task.pk %}" data-undo-remove="Task removed.">{% csrf_token %}{% include "components/button.html" with label="Remove" sr_suffix=task.title type="submit" variant="secondary" size="small" only %}</form>
                 </span>
               </li>

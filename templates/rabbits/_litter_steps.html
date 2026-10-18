@@ -3,14 +3,14 @@
   {% for task in steps %}
     <li class="panel-row is-flex" data-task="{{ task.key }}">
       {% if not task.done and not litter.converted_at and task.age or not task.done and not litter.converted_at and task.key != "due" and not litter.kindled_on %}
-        <form method="post" action="{% url 'litter_task' litter.pk %}" class="shrink-0">{% csrf_token %}<input type="hidden" name="task" value="{{ task.key }}"><input type="hidden" name="done" value="1">{% include "components/check_button.html" with label=task.label only %}</form>
+        <form method="post" action="{% url 'litter_task' litter.pk %}" class="shrink-0" data-offline-queue="Task">{% csrf_token %}<input type="hidden" name="task" value="{{ task.key }}"><input type="hidden" name="done" value="1">{% include "components/check_button.html" with label=task.label only %}</form>
       {% elif not task.done %}<span class="w-8 shrink-0" aria-hidden="true"></span>{% endif %}
       <div class="min-w-0 flex-1">
         <p class="panel-row-title{% if task.done %} text-muted line-through{% endif %}">{{ task.label }}</p>
         <p class="panel-row-meta">{% if task.key == "rebreed" %}{{ task.age }} days after kindling{% elif task.age %}Kits {{ task.age }} days old{% else %}Day {{ task.day }}{% endif %} · {{ task.date|day }}{% if not task.done %}{% if task.date < today %} · <span class="font-semibold text-danger">overdue</span>{% elif task.date == today %} · <span class="font-semibold text-ink">today</span>{% endif %}{% else %} · done{% endif %}</p>
       </div>
       {% if task.done and not litter.converted_at %}{% if task.age or task.key != "due" and not litter.kindled_on %}
-        <form method="post" action="{% url 'litter_task' litter.pk %}">{% csrf_token %}<input type="hidden" name="task" value="{{ task.key }}"><input type="hidden" name="done" value="0">{% include "components/button.html" with label="Undo" sr_suffix=task.label type="submit" variant="secondary" size="small" only %}</form>
+        <form method="post" action="{% url 'litter_task' litter.pk %}" data-offline-queue="Task">{% csrf_token %}<input type="hidden" name="task" value="{{ task.key }}"><input type="hidden" name="done" value="0">{% include "components/button.html" with label="Undo" sr_suffix=task.label type="submit" variant="secondary" size="small" only %}</form>
       {% endif %}{% endif %}
     </li>
   {% empty %}

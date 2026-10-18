@@ -158,3 +158,9 @@ test("status after sending says to refresh instead of reloading", () => {
   assert.equal(statusText(true, 0, 0, 2), "Added 2 saved entries. Refresh to see them.");
   assert.match(statusText(true, 0, 1, 0), /1 saved entry needs a fix/);
 });
+
+test("queued daily work says where it is kept, and photos say they need a connection", async () => {
+  const { savedText, PHOTOS_ONLINE } = await import("./offline.mjs");
+  assert.equal(savedText("Task"), "Task saved on this device. It will be added when you're back online.");
+  assert.match(PHOTOS_ONLINE, /^Photos need a connection\./);
+});

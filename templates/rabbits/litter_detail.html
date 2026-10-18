@@ -42,7 +42,7 @@
       {% endif %}
       {% if not litter.converted_at %}<details class="mt-3"{% if not litter.kindled_on %} open{% endif %}>
         <summary class="cursor-pointer text-sm text-neutral-600 underline">{% if litter.kindled_on %}Update kits and losses{% else %}Record the kindling{% endif %}</summary>
-        <form class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2" method="post" action="{% url 'litter_kindle' litter.pk %}">
+        <form class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2" method="post" action="{% url 'litter_kindle' litter.pk %}" data-offline-queue="Kindling">
           {% csrf_token %}
           {% if litter.kindled_on %}{% include "components/text_input.html" with name="kindled_on" label="Kindled on" type="date" value=litter.kindled_on|date:"Y-m-d" only %}{% else %}{% include "components/text_input.html" with name="kindled_on" label="Kindled on" type="date" value=today|date:"Y-m-d" only %}{% endif %}
           {% include "components/text_input.html" with name="born_alive" label="Born alive" type="number" min="0" max="30" value=litter.born_alive|default_if_none:"" only %}

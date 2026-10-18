@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
+from .sync import queueable
 from .templatetags.dates import short_date
 from django.views.decorators.http import require_POST
 
@@ -155,6 +156,7 @@ def task_list(request):
 
 @login_required
 @require_POST
+@queueable("task-done")
 def task_done(request, pk):
     task = get_object_or_404(Task, owner=request.user, pk=pk)
     with transaction.atomic():

@@ -53,3 +53,63 @@ def duplicate():
 
 def invalid(error):
     return JsonResponse({"ok": False, "error": error}, status=422)
+
+
+QUEUE_FAILED = "This change couldn't be saved. Open it and try again."
+
+
+def queueable(kind):
+    """Lets a plain POST view take queued (offline) posts and double submits safely.
+
+    The view runs inside one transaction with the op_id claim. A redirect with no
+    error message counts as applied; anything else (a re-rendered form, an error
+    message) rolls the claim back so the same op_id can be tried again. Queue
+    flushes get the JSON answers above instead of the page, and the toasts the
+    view queued are dropped so they don't pop up later on some other page."""
+    from functools import wraps
+
+    from django.contrib import messages
+
+    def queued_messages(request):
+        store = getattr(request, "_messages", None)
+        return getattr(store, "_queued_messages", [])
+
+    def wrap(view):
+        @wraps(view)
+        def inner(request, *args, **kwargs):
+            queued = is_queue(request)
+            if request.method != "POST" or (op_id(request) is None and not queued):
+                return view(request, *args, **kwargs)
+            if already_applied(request):
+                if queued:
+                    return duplicate()
+                return view_redirect(request)
+            before = len(queued_messages(request))
+            with transaction.atomic():
+                if not claim(request, kind):
+                    return duplicate() if queued else view_redirect(request)
+                response = view(request, *args, **kwargs)
+                added = queued_messages(request)[before:]
+                errors = [m for m in added if m.level >= messages.ERROR]
+                ok = response.status_code in (301, 302, 303) and not errors
+                if not ok:
+                    transaction.set_rollback(True)
+            if not queued:
+                return response
+            del queued_messages(request)[before:]
+            if ok:
+                return applied()
+            return invalid(str(errors[0].message) if errors else QUEUE_FAILED)
+        return inner
+    return wrap
+
+
+def view_redirect(request):
+    """Where a repeated plain post goes: its safe next, else the page it came from."""
+    from django.shortcuts import redirect
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    for url in (request.POST.get("next", ""), request.META.get("HTTP_REFERER", "")):
+        if url and url_has_allowed_host_and_scheme(url, {request.get_host()}, require_https=request.is_secure()):
+            return redirect(url)
+    return redirect("/")

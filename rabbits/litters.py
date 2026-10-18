@@ -13,6 +13,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_time
 from django.views.decorators.http import require_http_methods, require_POST
 
+from .sync import queueable
 from .status_pills import tone
 from . import costs, flow
 from .models import Breed, BreedShare, Cover, Litter, LitterCheck, Pairing, Rabbit, Relative, prefs, weight_text
@@ -240,6 +241,7 @@ def litter_main_card(litter, slots, kits, unit):
 
 @login_required
 @require_POST
+@queueable("litter-task")
 def litter_task(request, pk):
     litter = own_litter(request, pk)
     if litter.converted_at:
@@ -265,6 +267,7 @@ def litter_task(request, pk):
 
 @login_required
 @require_POST
+@queueable("kindling")
 def litter_kindle(request, pk):
     litter = own_litter(request, pk)
     if litter.converted_at:
@@ -429,6 +432,7 @@ def cover_delete(request, pk, cover_pk):
 
 @login_required
 @require_POST
+@queueable("litter-note")
 def litter_note_add(request, pk):
     """A dated note on the litter's Notes timeline."""
     from .models import LitterNote

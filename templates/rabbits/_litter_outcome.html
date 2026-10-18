@@ -28,7 +28,7 @@
 <section class="mt-8 scroll-mt-20" id="notes" aria-labelledby="notes-heading" data-litter-notes>
   <details class="group/n">
     <summary class="oc-head list-none" style="cursor:default"><h2 class="text-base font-semibold" id="notes-heading">Notes</h2><span class="oc-btn" role="button">Add note</span></summary>
-    <form class="oc-note-form" method="post" action="{% url 'litter_note_add' litter.pk %}">{% csrf_token %}
+    <form class="oc-note-form" method="post" action="{% url 'litter_note_add' litter.pk %}" data-offline-queue="Note">{% csrf_token %}
       <input type="date" name="date" value="{{ today|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}" aria-label="Date">
       <input type="text" name="text" maxlength="500" placeholder="What happened" aria-label="Note" required>
       <button type="submit" class="oc-btn oc-btn-pri">Save</button>

@@ -12,6 +12,7 @@ from django.db import transaction
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
+from .sync import queueable
 from .flow_forms import DEATH_CAUSES
 from .models import Contact, CullNote, Rabbit, prefs
 from .views import owned_rabbit
@@ -36,6 +37,7 @@ def parse_date(raw, born):
 
 
 @login_required
+@queueable("status")
 def rabbit_status(request, pk):
     rabbit = owned_rabbit(request.user, pk)
     buyers = Contact.objects.filter(owner=request.user).order_by("-is_buyer", "name")

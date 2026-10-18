@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
 
+from .sync import queueable
 from . import litter_kits as K
 from .litters import own_litter
 from .models import LitterCheck, Rabbit, prefs
@@ -25,6 +26,7 @@ def clean_status(value):
 
 @login_required
 @require_POST
+@queueable("litter-check")
 def litter_check(request, pk):
     litter = own_litter(request, pk)
     back = redirect(f"/litters/{litter.pk}/?check={request.POST.get('mode', 'whole')}#checks")
