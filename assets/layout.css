@@ -334,6 +334,9 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
 .temp-rail-action::after { content: ""; position: absolute; inset: -12px -8px; }
 .temp-rail-action:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
 @media (max-width: 767.98px) {
+  /* Phones: the line may wrap rather than cut the sentence off. */
+  .temp-rail { font-size: 12px; gap: 10px; padding-inline: 12px; }
+  .temp-rail-text { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; }
   body:has([data-app-tabs]) .temp-rail { bottom: calc(var(--tabbar-h, 64px) + env(safe-area-inset-bottom)); }
 }
 @media print { .temp-rail { display: none; } }
@@ -344,7 +347,7 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
 @media (max-width: 767.98px) {
   body:has([data-app-tabs]) .pin-main { position: fixed; z-index: 19; left: 1rem; right: 1rem; height: auto; min-height: 48px; justify-content: center;
     bottom: calc(var(--tabbar-h, 64px) + env(safe-area-inset-bottom) + 0.75rem); box-shadow: 0 6px 18px rgb(31 36 33 / 0.18); }
-  body:has([data-app-tabs]):has(.temp-rail) .pin-main { bottom: calc(var(--tabbar-h, 64px) + env(safe-area-inset-bottom) + var(--rail-h, 33px) + 0.75rem); }
+  body:has([data-app-tabs]):has(.temp-rail) .pin-main { bottom: calc(var(--tabbar-h, 64px) + env(safe-area-inset-bottom) + var(--rail-h, 44px) + 0.5rem); }
   body:has([data-app-tabs]):has(.pin-main) main { padding-bottom: calc(160px + env(safe-area-inset-bottom)); }
 }
 
@@ -360,4 +363,17 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
   :is(main, dialog) label:has(> input:is([type="checkbox"], [type="radio"])) { min-height: 44px; }
   :is(main, dialog) label:has(> input:is([type="checkbox"], [type="radio"])):not(.flex, .grid, .inline-flex, .block) { display: inline-flex; align-items: center; gap: 0.5rem; }
   .seg a, .seg button, [data-tab-list] a, [data-tab-list] button { min-height: 44px; }
+}
+
+/* Full-width buttons stay full width (signup and sign-in submit, the first-screen choices). */
+:is(a, button).mo-press.w-full, main button[type="submit"].w-full { width: 100%; }
+/* First-screen choices are tiles: the quiet one keeps a visible border on the canvas. */
+.choice-tile { border: 1px solid var(--field) !important; background-color: var(--surface) !important; border-radius: 10px !important; padding: 0.875rem 1rem !important; }
+.choice-tile:hover { border-color: var(--ink-2) !important; }
+.choice-tile.is-primary { border-color: var(--accent) !important; background-color: var(--accent) !important; }
+.choice-tile .choice-title { font-size: 1.125rem !important; font-weight: 600 !important; }
+/* Phones and touch: the compact 34px button rule above gives way to 44px targets. */
+@media (max-width: 767.98px), (pointer: coarse) {
+  :is(a, button).mo-press, main button[type="submit"]:not(.sr-only, .underline, [class*="underline"]), dialog button[type="submit"] { min-height: 44px !important; }
+  :is(a, button).mo-press:is(.min-h-14, .text-lg) { min-height: 48px !important; }
 }
