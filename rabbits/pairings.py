@@ -233,9 +233,12 @@ def pairing_list(request):
     columns = [{"label": "Pair", "sort": "pair"}, {"label": "Inbreeding", "wide_only": True, "sort": "coi"}, {"label": "Predicted colors", "wide_only": True},
                {"label": "Last litter", "wide_only": True, "sort": "bred"}, {"label": "Status", "align": "r", "sort": "status"}]
     items = sorted_items(request, items, columns, desc_first=("coi", "bred"))
+    # Finished pairings fold away under "Past pairings (n)" so the page leads with what's live (Critic).
+    past = [it for it in items if it["pill"]["label"] == "Done"]
+    items = [it for it in items if it["pill"]["label"] != "Done"]
     from rabbits.samples.context import sample_ctx
     return render(request, "rabbits/pairings.html", {
-        "pairings": pairings, "items": items, "view": view, "view_options": view_options(request, view), "stats": stats,
+        "pairings": pairings, "items": items, "past": past, "view": view, "view_options": view_options(request, view), "stats": stats,
         "columns": columns, "errors": errors, "values": values, "check": check, "wide": True,
         "doe_options": herd_choices(request.user, Rabbit.Sex.DOE),
         "buck_options": herd_choices(request.user, Rabbit.Sex.BUCK),
