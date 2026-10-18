@@ -347,3 +347,17 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
   body:has([data-app-tabs]):has(.temp-rail) .pin-main { bottom: calc(var(--tabbar-h, 64px) + env(safe-area-inset-bottom) + var(--rail-h, 33px) + 0.75rem); }
   body:has([data-app-tabs]):has(.pin-main) main { padding-bottom: calc(160px + env(safe-area-inset-bottom)); }
 }
+
+/* Tap targets: 44px or more on phones and touch screens (Critic A1). Mouse-driven desktops keep the
+   compact sizes. Checkboxes grow to 22px and the label around them is the 44px target. */
+@media (max-width: 767.98px), (pointer: coarse) {
+  .icon-btn { width: 44px; height: 44px; }
+  .wt-btn, .wt-btn-sm { height: auto; min-height: 44px; }
+  .wt-btn-sm { padding: 0 12px; font-size: 13px; border-radius: 6px; }
+  .filter-btn { height: 44px; min-width: 44px; }
+  .task-check { min-width: 44px; min-height: 44px; }
+  :is(main, dialog) input:is([type="checkbox"], [type="radio"]) { width: 22px; height: 22px; }
+  :is(main, dialog) label:has(> input:is([type="checkbox"], [type="radio"])) { min-height: 44px; }
+  :is(main, dialog) label:has(> input:is([type="checkbox"], [type="radio"])):not(.flex, .grid, .inline-flex, .block) { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .seg a, .seg button, [data-tab-list] a, [data-tab-list] button { min-height: 44px; }
+}
