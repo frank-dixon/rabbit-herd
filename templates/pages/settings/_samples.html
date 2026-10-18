@@ -8,8 +8,8 @@
         <p class="mt-0.5 text-sm text-muted">Sample records on every screen, marked Sample. They never count toward your herd, exports or limits.</p>
       </div>
       <form method="post" action="{% url 'samples_toggle' %}" class="inline">{% csrf_token %}
-        <button type="submit" role="switch" aria-checked="{% if user.show_samples %}true{% else %}false{% endif %}" aria-label="Show samples" class="sw relative h-5 w-9 shrink-0 rounded-full {% if user.show_samples %}bg-accent{% else %}bg-[#C9CCC9]{% endif %} transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-          <span class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow {% if user.show_samples %}translate-x-4{% endif %} transition-transform" aria-hidden="true"></span>
+        <button type="submit" role="switch" aria-checked="{% if user.show_samples %}true{% else %}false{% endif %}" aria-label="Show samples" class="switch shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+          <span class="switch-thumb" aria-hidden="true"></span>
         </button>
       </form>
     </div>
