@@ -1,5 +1,5 @@
-{# Inline Log weight for one rabbit: a small popover. The form itself is cloned in from hub/_weight_log_form.html; without JS the popover links to the rabbit's own weight form. row: weights_page row. #}
+{# Inline Log weight for one rabbit: a 44px "+" (the rabbit page's row pattern: tap the row, or this action) opening a small popover. The form itself is cloned in from hub/_weight_log_form.html; without JS the popover links to the rabbit's own weight form. row: weights_page row. #}
 <details class="wt-log" data-weight-log-panel data-log-action="{% url 'weights_log' row.rabbit.pk %}">
-  <summary class="wt-btn wt-btn-sm">Log weight<span class="sr-only"> for {{ row.rabbit.name }}</span></summary>
+  <summary class="row-menu-btn wt-log-btn" title="Log weight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="sr-only">Log weight for {{ row.rabbit.name }}</span></summary>
   <a class="popover wt-log-pop" href="{% url 'rabbit_detail' row.rabbit.pk %}?weigh=1#weights" data-weight-log-fallback>Log weight<span class="sr-only"> for {{ row.rabbit.name }}</span></a>
 </details>

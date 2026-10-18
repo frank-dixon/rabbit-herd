@@ -24,8 +24,8 @@
   </table>
 </div>
 <ul class="wt-card wt-rows md:hidden" data-view="rows">{% for row in rows %}{% with r=row.rabbit %}
-  <li class="wt-row" data-weight-row="{{ r.pk }}">
-    <a class="wt-row-main" href="{% url 'rabbit_detail' r.pk %}#weights">{% include "rabbits/_rabbit_thumb.html" with rabbit=r main=r.main_photo size_class="wt-thumb-lg shrink-0 text-base" only %}
+  <li class="wt-row" data-weight-row="{{ r.pk }}" data-row-tap>
+    <a class="wt-row-main" href="{% url 'rabbit_detail' r.pk %}#weights" data-row-open>{% include "rabbits/_rabbit_thumb.html" with rabbit=r main=r.main_photo size_class="wt-thumb-lg shrink-0 text-base" only %}
       <span class="min-w-0 flex-1"><span class="block font-semibold">{{ r.name }}</span><span class="block text-xs text-muted">{{ r.get_sex_display }} · {{ r.age_text }} · {% if row.date %}{{ row.date|date:"M j" }}{% else %}never weighed{% endif %}</span>
         {% if row.vs_text %}<span class="pill pill-{{ row.vs_tone }} mt-1">{{ row.vs_text }}</span>{% elif row.overdue and row.date %}<span class="pill pill-y mt-1">Weigh-in overdue</span>{% endif %}</span>
       <span class="shrink-0 text-right"><span class="num block font-semibold">{{ row.text|default:"—" }}</span><span class="num block text-xs {% if row.change > 0 %}wt-up{% elif row.change < 0 %}wt-down{% else %}text-muted{% endif %}">{{ row.change_text }}</span></span>

@@ -70,3 +70,20 @@ class RowMenuTests(TestCase):
         body = self.client.get(reverse("cost_list")).content.decode()
         self.assertIn('data-row data-row-tap', body)
         self.assertIn("row-menu-btn", body)
+
+
+class WeightsPageRowTests(TestCase):
+    """Critic v3 W2: the Weights page uses the rabbit page's pattern, a tappable row plus a 44px action."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user("wp@example.com", "pw-12345678")
+        self.client.force_login(self.user)
+        self.rabbit = Rabbit.objects.create(owner=self.user, name="Juniper", sex="doe", breed="Rex", birth_date=datetime.date(2025, 1, 1))
+        Weight.objects.create(rabbit=self.rabbit, date=datetime.date(2026, 9, 1), grams=Decimal("3000"))
+
+    def test_rows_are_tappable_with_a_44px_log_action(self):
+        body = self.client.get(reverse("weights_hub")).content.decode()
+        self.assertEqual(body.count('data-weight-row="%d" data-row-tap' % self.rabbit.pk), 2)  # table row and phone row
+        self.assertNotIn("wt-btn wt-btn-sm", body)
+        self.assertIn('<summary class="row-menu-btn wt-log-btn" title="Log weight">', body)
+        self.assertIn("Log weight for Juniper", body)
