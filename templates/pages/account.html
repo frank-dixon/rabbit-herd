@@ -5,9 +5,10 @@
 
 {% block content %}
   {% include "components/page_header.html" with title="Settings" only %}
-  <div class="mt-6 lg:grid lg:max-w-[calc(13rem+2.5rem+60rem)] lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10">
+  <div class="settings-root mt-6 lg:grid lg:max-w-[calc(13rem+2.5rem+60rem)] lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-10">
   {% include "pages/_settings_nav.html" %}
   <div class="min-w-0" data-settings-panel>
+    <a class="settings-back mo-press inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-accent lg:hidden" href="#settings-sections"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>All settings</a>
 
   {% for section in settings_sections %}
     <div class="settings-section {% if forloop.first %}mt-8 lg:mt-0{% else %}mt-10{% endif %}" data-settings-slot="{{ section.anchor }}">{% include section.template %}</div>

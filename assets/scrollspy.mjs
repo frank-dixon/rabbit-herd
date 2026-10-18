@@ -73,11 +73,9 @@ export function bindScrollSpy(root, win = window) {
   for (const [link, el] of pairs) {
     link.addEventListener("click", (event) => {
       if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.button > 0)) return;
-      event?.preventDefault?.();
-      const reduce = win.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      // Settings shows one section at a time by its #anchor (:target), so let the link change the
+      // hash: replaceState wouldn't update :target. Back then returns to the list on a phone.
       hold(link);
-      win.history?.replaceState?.(null, "", link.hash);
-      el.scrollIntoView?.({ behavior: reduce ? "auto" : "smooth", block: "start" });
     });
   }
   win.addEventListener("scroll", onScroll, { passive: true });

@@ -1,0 +1,41 @@
+"""Settings (Critic v2 item 7): one section at a time, and one save model, autosave with a
+"Saved" status per section."""
+from pathlib import Path
+
+from django.contrib.auth import get_user_model
+from django.test import TestCase
+from django.urls import reverse
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class SettingsSectionTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user("settings@example.com", "pw-12345678")
+        self.client.force_login(self.user)
+        self.body = self.client.get(reverse("account")).content.decode()
+
+    def test_one_section_shows_at_a_time(self):
+        css = (ROOT / "assets" / "layout.css").read_text()
+        block = css[css.index("Settings: one section at a time"):]
+        self.assertIn(".settings-section:not(:has(:target)) { display: none; }", block)
+        self.assertIn("[data-settings-panel]:not(:has(.settings-section :target)) { display: none; }", block)
+        self.assertIn('id="settings-sections"', self.body)
+        self.assertIn('href="#settings-sections"', self.body)  # All settings, back to the list on a phone
+
+    def test_every_settings_form_autosaves_with_a_status(self):
+        self.assertIn("Changes save as you make them.", self.body)
+        for section in ("rabbitry", "units", "schedule", "reminders"):
+            form = self.body[self.body.index(f'id="{section}" method="post"'):]
+            form = form[:form.index("</form>")]
+            self.assertIn("data-autosave-status", form, section)
+            self.assertIn("data-section-save", form, section)  # the no-JS Save
+        tabs = self.body[self.body.index('id="tabs"'):]
+        self.assertIn('data-autosave="tabs"', tabs[:tabs.index(">")])
+        for status in ("data-appearance-status", "data-side-menu-status"):
+            self.assertIn(status, self.body)
+
+    def test_no_global_save_bar(self):
+        js = (ROOT / "assets" / "settings-save.mjs").read_text()
+        self.assertNotIn("save-bar", js)
+        self.assertIn('export const SAVED = "Saved";', js)

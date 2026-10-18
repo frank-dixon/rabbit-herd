@@ -58,13 +58,14 @@ test("the last section wins at the bottom of the page", () => {
   assert.equal(page.links[2].current, "location");
 });
 
-test("a click marks its link, updates the hash, and holds through the scroll", () => {
+test("a click marks its link, leaves the hash to the link (for :target), and holds through the scroll", () => {
   const page = fakePage({ rabbitry: 0, units: 600, appearance: 1400 });
   bindScrollSpy(page.root, page.win);
-  page.listeners["appearance:click"]({ preventDefault() {} });
+  let prevented = false;
+  page.listeners["appearance:click"]({ preventDefault() { prevented = true; } });
   assert.equal(page.links[2].current, "location");
-  assert.deepEqual(page.history, ["#appearance"]);
-  assert.deepEqual(page.scrolled, ["appearance"]);
+  assert.equal(prevented, false);
+  assert.deepEqual(page.history, []);
   Object.assign(page.tops, { rabbitry: -500, units: 100, appearance: 900 }); // mid-scroll
   page.listeners.scroll();
   assert.equal(page.links[2].current, "location");

@@ -1,47 +1,65 @@
 /*
- * Settings: one save model. With JS the per-section Save buttons hide; any
- * change shows one sticky bar, and Save posts every changed section, then
- * shows a "Saved" toast. A section with errors falls back to a normal submit,
- * so the server's error page explains it. Without JS each section keeps its
- * own Save button.
+ * Settings: one save model, autosave. Every settings section saves as it changes and says "Saved"
+ * next to its heading (appearance and the side menu do the same in settings.mjs and
+ * side-menu.mjs). Text fields save when you leave them or press Enter. A herd section the server
+ * rejects falls back to a normal submit, so its error page explains why. The bottom bar shows the
+ * server's reason instead (for example a tab picked twice) and saves once the picks are valid,
+ * then refreshes the bar on the page. Without JS each section keeps its own Save button.
  */
-import { showToast } from "./toast.mjs";
+export const SAVED = "Saved";
 
 export function bindSettingsSave(doc, win = window) {
-  const forms = [...doc.querySelectorAll("form[data-settings-section][id]")];
-  if (!forms.length) return;
-  const dirty = new Set();
-  const bar = doc.createElement("div");
-  bar.className = "save-bar";
-  bar.hidden = true;
-  bar.setAttribute("role", "region");
-  bar.setAttribute("aria-label", "Unsaved changes");
-  bar.innerHTML = '<span class="save-bar-text">You have unsaved changes</span><span class="save-bar-actions"><button type="button" class="save-bar-btn" data-save-bar-reset>Discard</button><button type="button" class="save-bar-btn is-primary" data-save-bar-save>Save changes</button></span>';
-  doc.body.append(bar);
-  const save = bar.querySelector("[data-save-bar-save]");
+  const forms = [...doc.querySelectorAll("form[data-settings-section][id], form[data-autosave]")];
   forms.forEach((form) => {
-    form.querySelectorAll("[data-section-save]").forEach((b) => { b.hidden = true; });
-    const mark = () => { dirty.add(form); bar.hidden = false; };
-    form.addEventListener("input", mark);
-    form.addEventListener("change", mark);
-  });
-  bar.querySelector("[data-save-bar-reset]").addEventListener("click", () => win.location.reload());
-  save.addEventListener("click", async () => {
-    save.disabled = true;
-    for (const form of [...dirty]) {
+    form.querySelectorAll("[data-section-save]").forEach((el) => { el.hidden = true; });
+    const say = (text) => { const status = form.querySelector("[data-autosave-status]"); if (status) status.textContent = text; };
+    const tabs = form.getAttribute("data-autosave") === "tabs";
+    let timer = 0;
+    async function save(submitter) {
+      const body = new win.FormData(form, submitter || undefined);
       try {
-        const response = await win.fetch(form.action, { method: "POST", body: new FormData(form), credentials: "same-origin" });
-        const back = new URL(response.url, win.location.href).pathname === win.location.pathname;
-        if (!response.ok || !back) throw new Error("not saved");
-        dirty.delete(form);
+        const response = await win.fetch(form.action, {
+          method: "POST", body, credentials: "same-origin",
+          headers: tabs ? { "X-Requested-With": "fetch" } : {},
+        });
+        if (tabs) {
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.ok) { say("Pick 3 to 5 different tabs."); return; }
+          await refreshTabs(doc, win, submitter ? form : null);
+        } else if (!response.ok || new URL(response.url, win.location.href).pathname !== win.location.pathname) {
+          form.submit();
+          return;
+        }
+        say(SAVED);
       } catch (error) {
-        console.error(error);
+        win.console?.error?.(error);
         form.submit();
-        return;
       }
     }
-    save.disabled = false;
-    bar.hidden = true;
-    showToast(doc, "Saved", { win });
+    form.addEventListener("change", () => {
+      say("");
+      win.clearTimeout(timer);
+      timer = win.setTimeout(() => save(), 250);
+    });
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      win.clearTimeout(timer);
+      save(event.submitter && event.submitter.name ? event.submitter : null);
+    });
   });
+}
+
+/** Swap in the saved bottom bar (and, after Reset, the form's picks) without reloading. */
+async function refreshTabs(doc, win, form) {
+  const bar = doc.querySelector("[data-app-tabs]");
+  if (!bar && !form) return;
+  const response = await win.fetch(win.location.pathname, { credentials: "same-origin" });
+  const page = new win.DOMParser().parseFromString(await response.text(), "text/html");
+  const fresh = page.querySelector("[data-app-tabs]");
+  if (bar && fresh) bar.innerHTML = fresh.innerHTML;
+  const freshForm = form && page.querySelector(`form#${form.id}`);
+  if (freshForm) {
+    form.innerHTML = freshForm.innerHTML;
+    form.querySelectorAll("[data-section-save]").forEach((el) => { el.hidden = true; });
+  }
 }

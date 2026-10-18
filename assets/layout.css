@@ -390,3 +390,19 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
   :is(a, button).mo-press, main button[type="submit"]:not(.sr-only, .underline, [class*="underline"]), dialog button[type="submit"] { min-height: 44px !important; }
   :is(a, button).mo-press:is(.min-h-14, .text-lg) { min-height: 48px !important; }
 }
+
+/* ---- Settings: one section at a time (Critic v2 S2). The section is the URL's #anchor (:target), so
+   links like /settings/#units and the guide keep working, with or without JS. ---- */
+[data-settings-panel]:has(.settings-section :target) .settings-section:not(:has(:target)) { display: none; }
+[data-settings-panel]:has(.settings-section :target) .settings-section { margin-top: 0; }
+.settings-back { display: none; }
+@media (min-width: 1024px) {
+  [data-settings-panel]:not(:has(.settings-section :target)) .settings-section ~ .settings-section { display: none; }
+}
+@media (max-width: 1023.98px) {
+  [data-settings-panel]:not(:has(.settings-section :target)) { display: none; }
+  .settings-root:has(.settings-section :target) [data-settings-nav] { display: none; }
+  [data-settings-panel]:has(.settings-section :target) .settings-back { display: inline-flex; margin-bottom: 4px; }
+  /* The list is a menu here, not a "you are here" nav. */
+  [data-settings-nav] a[aria-current] { font-weight: inherit; color: var(--ink); }
+}
