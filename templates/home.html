@@ -73,17 +73,19 @@
         <div class="contents md:block md:space-y-5">
           <section class="rounded-[10px] border border-line bg-surface px-4 pt-1 pb-3" aria-labelledby="pairings-heading" data-pairings-progress>
             <h2 class="flex items-center gap-2 pt-3 pb-2 text-[15px] font-semibold" id="pairings-heading">Pairings and litters {% if progress_count %}<span class="num pill">{{ progress_count }}</span>{% endif %}<a class="ml-auto text-[13px] font-normal text-muted underline hover:text-ink" href="{% url 'pairing_list' %}">All pairings</a></h2>
-            {% for p in pairings_progress %}
-              <a class="flex items-center gap-2.5 border-t border-line py-3 hover:bg-side/40" href="{% url 'litter_detail' p.litter.pk %}" data-progress-row>
-                <span class="flex shrink-0">{% include "components/rabbit_avatar.html" with rabbit=p.doe size="sm" only %}<span class="-ml-3 rounded-md ring-2 ring-surface">{% include "components/rabbit_avatar.html" with rabbit=p.buck size="sm" only %}</span></span>
-                <span class="min-w-0 flex-1 font-semibold">{{ p.doe.name }} × {{ p.buck.name }}</span>
-                {% for step in p.steps %}{% if step.state == "next" %}<span class="num shrink-0 text-right text-sm leading-tight"><span class="block">{{ step.label }}</span><span class="block text-muted">{{ step.date|day }}</span></span>{% endif %}{% endfor %}
-              </a>
-            {% endfor %}
-            {% if litters %}
+            {% if pairings_progress or litters %}
+              {% comment %} One list, one row shape (Critic v2 T3): the pair, what's happening, and the day count on the right. Pregnancies first (day since breeding, next step and date), then litters on the ground (day since kindling, kits, average weight). {% endcomment %}
               <ul class="divide-y divide-line border-t border-line" data-active-litters>
+                {% for p in pairings_progress %}
+                  <li><a class="flex items-center gap-3 py-3 hover:bg-side/40" href="{% url 'litter_detail' p.litter.pk %}" data-progress-row>
+                    {% include "rabbits/_today_pair.html" with doe=p.doe buck=p.buck only %}
+                    <span class="min-w-0 flex-1"><span class="block font-semibold">{{ p.doe.name }} × {{ p.buck.name }}</span><span class="block text-sm text-muted">{% for step in p.steps %}{% if step.state == "next" %}{{ step.label }} {{ step.date|day }}{% endif %}{% endfor %}</span></span>
+                    <span class="num shrink-0 text-right text-sm leading-tight"><span class="block">day {{ p.day }}</span><span class="block text-muted">of {{ p.of }}</span></span>
+                  </a></li>
+                {% endfor %}
                 {% for row in litters %}
                   <li><a class="flex items-center gap-3 py-3 hover:bg-side/40" href="{% url 'litter_detail' row.litter.pk %}">
+                    {% include "rabbits/_today_pair.html" with doe=row.doe buck=row.buck only %}
                     <span class="min-w-0 flex-1"><span class="block font-semibold">{{ row.litter.pairing.doe.name }} × {{ row.litter.pairing.buck.name }}</span><span class="block text-sm text-muted">{{ row.kits }} kit{{ row.kits|pluralize }}{% if row.behind %} · <span class="text-warn"><svg class="mr-0.5 inline h-3.5 w-3.5 -translate-y-px align-middle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>{{ row.behind }} behind</span>{% endif %}</span></span>
                     <span class="num shrink-0 text-right text-sm leading-tight"><span class="block">day {{ row.age }}</span>{% if row.average_text %}<span class="block text-muted">{{ row.average_text }} avg</span>{% endif %}</span>
                   </a></li>

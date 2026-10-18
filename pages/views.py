@@ -248,6 +248,9 @@ def home_context(user, limit=8):
         **herd_first(user, today, active, rabbits, items, all_litters),
     }
     context["progress_count"] = len(context["pairings_progress"]) + len(context["litters"])
+    for row in litters:  # the same avatars as the pairing rows above them
+        pairing = row["litter"].pairing
+        row["doe"], row["buck"] = by_pk.get(pairing.doe_id, pairing.doe), by_pk.get(pairing.buck_id, pairing.buck)
     context["week_count"] = len(context["week_now"]) + len(context["week_later"])
     return context
 
@@ -302,7 +305,7 @@ def herd_first(user, today, active, rabbits, items, all_litters=None):
                          "steps": [{"label": "Bred", "date": lit.bred_on, "state": "done"},
                                    {"label": "Palpated" if lit.palpated else "Palpate", "date": palpate, "state": "done" if lit.palpated else ("next" if stage == 1 else "")},
                                    {"label": "Due", "date": due, "state": "next" if lit.palpated else ""}],
-                         "due": due})
+                         "due": due, "day": max(0, (today - lit.bred_on).days), "of": (due - lit.bred_on).days})
     next_kindling = min(pairings, key=lambda p: p["due"]) if pairings else None
     weights = []
     latest = {}
