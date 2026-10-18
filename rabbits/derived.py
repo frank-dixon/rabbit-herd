@@ -3,11 +3,8 @@
 Gene rows hold what a person recorded. A rabbit with genes_implied=True also
 has probable genes at every locus its breed, color and eye color prove, read
 from gene_fill instead of stored rows. genes_of() is the one read every
-genetics view uses; settings.GENETICS_READ picks the path:
-
-- "old": the stored rows only, exactly as before.
-- "new": stored rows plus the computed ones.
-- "both": serve "old", compute "new" too and log any difference.
+genetics view uses: stored rows plus the computed ones. A rabbit that isn't
+flagged reads its stored rows only.
 
 Herd pedigrees already come from walking dam and sire up the herd
 (pedigree.build_tree, pairings.ancestors); the cleanup only drops stored
@@ -18,11 +15,6 @@ same rabbit's genes or parents many times does the work once.
 """
 
 import contextvars
-import logging
-
-from django.conf import settings
-
-log = logging.getLogger("rabbits.genetics_parity")
 
 _cache = contextvars.ContextVar("rabbits_derived_cache", default=None)
 
@@ -56,10 +48,6 @@ def forget(rabbit_id=None):
     store = _cache.get()
     if store:
         store.clear()
-
-
-def mode():
-    return getattr(settings, "GENETICS_READ", "old")
 
 
 def implied_genes(rabbit):
@@ -99,20 +87,11 @@ def genes_of(rabbit):
         return []
     if rabbit.pk is None:
         return _genes_of(rabbit)
-    return list(memo(("genes", rabbit.pk, mode(), rabbit.genes_implied), lambda: _genes_of(rabbit)))
+    return list(memo(("genes", rabbit.pk, rabbit.genes_implied), lambda: _genes_of(rabbit)))
 
 
 def _genes_of(rabbit):
-    stored = _stored(rabbit)
-    how = mode()
-    if how == "old":
-        return stored
-    new = _new(rabbit, stored)
-    if how == "both":
-        if gene_key(new) != gene_key(stored):
-            log.warning("genes mismatch rabbit=%s old=%s new=%s", rabbit.pk, gene_key(stored), gene_key(new))
-        return stored
-    return new
+    return _new(rabbit, _stored(rabbit))
 
 
 def has_gene(rabbit, locus):

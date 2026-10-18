@@ -1,9 +1,8 @@
 """Compare every genetics output before and after the genes cleanup.
 
-Reads everything with GENETICS_READ="old" on the database as it is ("new" if
-it was already cleaned), then,
-inside a transaction that is always rolled back, applies the cleanup plan,
-reads everything again with GENETICS_READ="new", and compares. Nothing is
+Reads everything on the database as it is, then, inside a transaction that
+is always rolled back, applies the cleanup plan, reads everything again and
+compares. Nothing is
 written. Exit status 1 when anything differs.
 
     python manage.py genetics_parity            # whole database
@@ -16,7 +15,6 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from django.test.utils import override_settings
 
 
 class Rollback(Exception):
@@ -132,12 +130,8 @@ class Command(BaseCommand):
                 raise CommandError("No such account.")
         owner_ids = sorted(set(Rabbit.all_objects.filter(owner__in=users).values_list("owner_id", flat=True)))
 
-        # Before any cleanup nothing is flagged and "old" (stored rows only) is the
-        # baseline. A database already cleaned (or seeded by the new seed_demo)
-        # has flagged rabbits, so its baseline is "new" as it is served today.
-        baseline = "new" if Rabbit.all_objects.filter(genes_implied=True).exists() else "old"
-        with override_settings(GENETICS_READ=baseline):
-            before = snapshot(owner_ids)
+        baseline = "cleaned" if Rabbit.all_objects.filter(genes_implied=True).exists() else "stored rows"
+        before = snapshot(owner_ids)
         if opts.get("dump"):
             with open(opts["dump"], "w") as fh:
                 json.dump(before, fh, sort_keys=True, default=str)
@@ -146,8 +140,7 @@ class Command(BaseCommand):
         try:
             with transaction.atomic():
                 result = genes_cleanup.apply(p)
-                with override_settings(GENETICS_READ="new"):
-                    after = snapshot(owner_ids)
+                after = snapshot(owner_ids)
                 raise Rollback
         except Rollback:
             pass

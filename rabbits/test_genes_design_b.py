@@ -8,7 +8,7 @@ import uuid
 from pathlib import Path
 
 from django.core.management import call_command
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.utils import timezone
 
 from accounts.models import User
@@ -62,7 +62,6 @@ class DesignBTests(TestCase):
         self.assertEqual((Gene.objects.count(), PedigreeEntry.objects.count()), before)
         self.assertFalse(Rabbit.objects.filter(genes_implied=True).exists())
 
-    @override_settings(GENETICS_READ="new")
     def test_cleanup_dry_run_remove_and_restore(self):
         old = derived.gene_key(derived.genes_of(Rabbit.objects.get(pk=self.kit.pk)))
         out = io.StringIO()
@@ -85,13 +84,6 @@ class DesignBTests(TestCase):
         self.assertFalse(kit.genes_implied)
         self.assertEqual(derived.gene_key(list(kit.genes.all())), old)
 
-    def test_cleanup_refuses_while_reads_are_old(self):
-        from django.core.management.base import CommandError
-
-        with override_settings(GENETICS_READ="old"), self.assertRaises(CommandError):
-            call_command("genes_cleanup", "--backup", "/tmp/never-written.json", stdout=io.StringIO())
-
-    @override_settings(GENETICS_READ="new")
     def test_coat_change_and_gene_edit_store_computed_genes_first(self):
         genes_cleanup.apply(genes_cleanup.plan())
         kit = Rabbit.objects.get(pk=self.kit.pk)
@@ -101,13 +93,6 @@ class DesignBTests(TestCase):
         kit = Rabbit.objects.get(pk=self.kit.pk)
         self.assertFalse(kit.genes_implied)
         self.assertEqual(derived.gene_key(list(kit.genes.all())), shown)
-
-    @override_settings(GENETICS_READ="both")
-    def test_both_serves_old_and_logs_differences(self):
-        genes_cleanup.apply(genes_cleanup.plan())
-        kit = Rabbit.objects.get(pk=self.kit.pk)
-        with self.assertLogs("rabbits.genetics_parity", "WARNING"):
-            self.assertEqual(derived.genes_of(kit), [])
 
 
 class PruneTests(TestCase):
