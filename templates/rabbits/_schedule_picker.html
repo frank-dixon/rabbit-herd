@@ -3,14 +3,16 @@
   <h2 class="text-base font-semibold" id="schedule-heading">Breeding schedule</h2>
   <p class="mt-1 text-sm text-muted">{{ help }}</p>
   <p class="mt-2 font-mono text-sm" data-schedule-current>Palpate day {{ current.palpate_day }} · nest box day {{ current.nest_box_day }} · due day {{ current.gestation_days }} · wean {{ current.wean_age }} · rebreed {{ current.rebreed_days }}</p>
-  <form class="mt-3 flex flex-col gap-3" method="post" action="{{ action }}">
+  {% include "components/add_fold_start.html" with label="Change schedule" only %}
+  <div data-modal-content="schedule" data-add-sheet-body><form class="mt-3 flex flex-col gap-3" method="post" action="{{ action }}">
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     <div class="max-w-sm">{% include "components/select.html" with name="schedule" label="Schedule" options=options value=value no_blank=True only %}</div>
     <label class="flex cursor-pointer items-start gap-3 text-sm">
       <input class="mt-0.5 h-5 w-5 shrink-0 rounded border-field accent-[var(--accent)]" type="checkbox" name="recalculate" value="1">
       <span>{{ recalc_label }}<span class="block text-muted">Otherwise only new litters use it.</span></span>
     </label>
-    <div>{% include "components/button.html" with label="Save schedule" type="submit" variant="secondary" only %}</div>
-  </form>
+    <div>{% include "components/button.html" with label="Save schedule" type="submit" variant="primary" only %}</div>
+  </form></div>
+  {% include "components/add_fold_end.html" %}
   {% url 'schedule_add' as add_url %}<p class="mt-3 text-sm"><a class="underline underline-offset-2" href="{{ add_url }}">Add or edit schedules in Settings</a></p>
 </section>

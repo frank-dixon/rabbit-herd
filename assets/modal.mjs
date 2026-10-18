@@ -6,6 +6,11 @@
  * place, the server's message shows as a toast, and the modal closes. Any other
  * answer (the next card, or the same card with server-side errors) renders in
  * the modal. Without JavaScript the links simply open the pages.
+ *
+ * Add forms tucked in a <details data-add-fold> open in this same dialog too: the form itself
+ * moves in (its listeners, like the offline queue, come along) and goes back when the dialog
+ * closes. Inside a [data-refresh] region it saves in place; elsewhere it submits as a normal
+ * form, as it does without JavaScript.
  */
 import { reducedMotion } from "./motion.mjs";
 import { showToast } from "./toast.mjs";
@@ -50,11 +55,12 @@ export function bindModal(doc, win = window) {
   let opener = null;
   let busy = false;
   let key = ""; // which [data-modal-content="key"] section of the page to show (data-modal="key")
+  let local = null; // { node, home, heading, refresh } an add fold's form shown in the dialog
   const parser = new win.DOMParser();
 
   function close() {
     if (!dialog.open) return;
-    const done = () => { dialog.removeAttribute("data-closing"); dialog.close(); body.replaceChildren(); if (opener) opener.focus({ preventScroll: true }); };
+    const done = () => { dialog.removeAttribute("data-closing"); dialog.close(); putBack(); body.replaceChildren(); if (opener && opener.isConnected) opener.focus({ preventScroll: true }); };
     if (reducedMotion(win)) { done(); return; }
     dialog.setAttribute("data-closing", "");
     win.setTimeout(done, 150);
@@ -63,8 +69,41 @@ export function bindModal(doc, win = window) {
   function refresh(page) {
     doc.querySelectorAll("[data-refresh]").forEach((region) => {
       const fresh = page.querySelector(`[data-refresh="${region.getAttribute("data-refresh")}"]`);
-      if (fresh) region.innerHTML = fresh.innerHTML;
+      if (!fresh) return;
+      region.innerHTML = fresh.innerHTML;
+      region.dispatchEvent(new win.CustomEvent("bb:refreshed", { bubbles: true }));
     });
+  }
+
+  /** Return a moved add form to its place (or drop it when its region was refreshed). */
+  function putBack() {
+    if (!local) return;
+    const { node, home, heading } = local;
+    local = null;
+    if (heading) heading.hidden = false;
+    if (home.isConnected) home.replaceWith(node);
+    else node.remove();
+  }
+
+  function openFold(fold, summary) {
+    const node = fold.querySelector("[data-modal-content]") || fold.querySelector(".fold-body");
+    if (!node || dialog.open) return false;
+    const home = doc.createElement("span");
+    home.hidden = true;
+    node.replaceWith(home);
+    const heading = node.querySelector("h2, h3");
+    if (heading) heading.hidden = true; // the dialog header shows it
+    local = { node, home, heading, refresh: Boolean(home.closest("[data-refresh]")) };
+    opener = summary;
+    key = node.getAttribute("data-modal-content") || "";
+    title.textContent = (heading?.textContent || summary.textContent || "").trim();
+    body.replaceChildren(node);
+    body.dataset.url = win.location.href;
+    dialog.showModal();
+    const field = body.querySelector("[aria-invalid=true], input:not([type=hidden]), select, textarea");
+    if (field) field.focus({ preventScroll: true });
+    body.scrollTop = 0;
+    return true;
   }
 
   async function load(url, init) {
@@ -76,8 +115,9 @@ export function bindModal(doc, win = window) {
       const page = parser.parseFromString(await response.text(), "text/html");
       const landed = new URL(response.url || url, win.location.href);
       if (landed.pathname === win.location.pathname && init && init.method === "POST" && response.ok && response.redirected !== false) {
+        if (local) local.node.querySelectorAll("form").forEach((form) => form.reset());
         refresh(page);
-        const message = page.querySelector("[data-toasts] [data-toast] span, [data-toasts] [data-toast]")?.textContent?.trim();
+        const message = (page.querySelector("[data-toasts] [data-toast] > span") || page.querySelector("[data-toasts] [data-toast]"))?.textContent?.trim();
         close();
         showToast(doc, message || "Saved.", { win });
         return;
@@ -88,6 +128,7 @@ export function bindModal(doc, win = window) {
       }
       const { title: heading, nodes } = modalContent(page, key);
       title.textContent = heading;
+      putBack();
       body.replaceChildren(...nodes.map((node) => doc.importNode(node, true)));
       if (body.querySelector("[data-add-sheet-body]")) prefixIds(body);
       body.dataset.url = landed.href;
@@ -107,6 +148,11 @@ export function bindModal(doc, win = window) {
 
   doc.addEventListener("click", (event) => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const summary = event.target.closest && event.target.closest("details[data-add-fold]:not([open]) > summary");
+    if (summary && !dialog.contains(summary)) {
+      if (openFold(summary.parentElement, summary)) event.preventDefault();
+      return;
+    }
     const link = event.target.closest && event.target.closest("a[href]");
     if (!link) return;
     const inside = dialog.contains(link);
@@ -123,7 +169,9 @@ export function bindModal(doc, win = window) {
   });
   body.addEventListener("submit", (event) => {
     const form = event.target;
-    if ((form.method || "get").toLowerCase() !== "post") return;
+    if (event.defaultPrevented || (form.method || "get").toLowerCase() !== "post") return; // queued offline, or handled
+    if (local && !local.refresh) return; // no region to refresh: a normal submit
+
     event.preventDefault();
     const data = new win.FormData(form, event.submitter || undefined);
     load(form.getAttribute("action") ? form.action : body.dataset.url, { method: "POST", body: data });

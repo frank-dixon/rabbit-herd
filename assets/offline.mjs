@@ -325,7 +325,10 @@ export function bindOffline(doc, win) {
     const input = form.querySelector('input[name="op_id"]');
     if (input) input.value = newOpId(win.crypto);
   };
-  doc.querySelectorAll("form[data-offline-queue]").forEach((form) => {
+  const prepared = new WeakSet();
+  const prepare = (form) => {
+    if (prepared.has(form)) return;
+    prepared.add(form);
     if (!form.querySelector('input[name="op_id"]')) {
       const input = doc.createElement("input");
       input.type = "hidden";
@@ -359,7 +362,10 @@ export function bindOffline(doc, win) {
       });
       render();
     });
-  });
+  };
+  doc.querySelectorAll("form[data-offline-queue]").forEach(prepare);
+  // A region the modal swapped in place brings fresh forms: queue those too.
+  doc.addEventListener("bb:refreshed", (event) => event.target.querySelectorAll?.("form[data-offline-queue]").forEach(prepare));
   // Photos are online-only: say so instead of letting an upload fail.
   doc.addEventListener("change", (event) => {
     const input = event.target;

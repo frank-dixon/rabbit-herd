@@ -32,7 +32,8 @@
   {% else %}
     {% include "components/empty.html" with title="No weights yet." text="Add one below to start the growth chart." compact=True icon=ui_icons.weights only %}
   {% endif %}
-  <form class="mt-4 border-t border-neutral-200 pt-4" method="post" action="{% url 'rabbit_weight_add' rabbit.pk %}" data-offline-queue="Weight" novalidate>
+  {% include "components/add_fold_start.html" with label="Add a weight" open=weight_errors only %}
+  <div data-modal-content="weights" data-add-sheet-body><form class="mt-4" method="post" action="{% url 'rabbit_weight_add' rabbit.pk %}" data-offline-queue="Weight" novalidate>
     {% csrf_token %}
     <h3 class="font-medium">Add a weight</h3>
     {% if weight_errors %}<p class="mt-2 rounded-md border border-danger bg-danger-soft px-3 py-2 text-sm text-danger" role="alert" data-weight-error>The weight wasn't saved. Fix the field marked below.</p>{% endif %}
@@ -51,6 +52,7 @@
     <p class="mt-1 text-sm text-muted">{% url 'account' as settings_url %}Change units in <a class="underline" href="{{ settings_url }}#units">Settings</a>.</p>
     <div class="mt-2">{% include "components/text_input.html" with name="note" label="Note (optional)" value=weight_values.note errors=weight_errors.note only %}</div>
     <p class="mt-2 text-sm font-medium" role="status" data-offline-note hidden></p>
-    <div class="mt-3">{% include "components/button.html" with label="Add weight" type="submit" variant="secondary" only %}</div>
-  </form>
+    <div class="mt-3">{% include "components/button.html" with label="Add weight" type="submit" variant="primary" only %}</div>
+  </form></div>
+  {% include "components/add_fold_end.html" %}
 </section>
