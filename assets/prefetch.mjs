@@ -23,20 +23,14 @@ export function bindPrefetch(doc, win = window) {
   const conn = win.navigator.connection;
   if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ""))) return;
   const done = new Set();
-  const spec = win.HTMLScriptElement?.supports?.("speculationrules");
+  // <link rel=prefetch>, not inline speculation rules: the CSP (script-src 'self') blocks those,
+  // which logged a console error on every press and prefetched nothing.
   const go = (href) => {
     if (!href || done.has(href) || done.size > 40) return;
     done.add(href);
-    if (spec) {
-      const s = doc.createElement("script");
-      s.type = "speculationrules";
-      s.textContent = JSON.stringify({ prefetch: [{ source: "list", urls: [href], eagerness: "immediate" }] });
-      doc.head.append(s);
-    } else {
-      const l = doc.createElement("link");
-      l.rel = "prefetch"; l.href = href; l.as = "document";
-      doc.head.append(l);
-    }
+    const l = doc.createElement("link");
+    l.rel = "prefetch"; l.href = href; l.as = "document";
+    doc.head.append(l);
   };
   let timer = 0;
   doc.addEventListener("pointerover", (e) => {
