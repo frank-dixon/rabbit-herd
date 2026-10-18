@@ -206,7 +206,7 @@ async function registerPasskey(button) {
   // Added to a signed-in account: stay on the page, close the one-time offer if that's where it came from.
   const offer = button.closest("[data-passkey-offer]");
   if (offer) offer.remove();
-  showToast(document, "Passkey added.");
+  showToast(document, "Passkey added. Use it next time you sign in.");
 }
 
 /**

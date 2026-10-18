@@ -18,8 +18,8 @@
 import { showToast } from "./toast.mjs";
 
 export const QUEUE_KEY = "bb-offline-queue";
-export const PHOTOS_ONLINE = "Photos need a connection. Add them again when you're back online.";
-export const savedText = (label) => `${label} saved on this device. It will be added when you're back online.`;
+export const PHOTOS_ONLINE = "Photos need a connection. Add them when you're back online.";
+export const savedText = (label) => `${label} saved on this device. It'll sync when you're back online.`;
 export const LEASE_KEY = "bb-offline-lease";
 export const LOCK_NAME = "bb-offline-sync";
 

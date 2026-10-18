@@ -89,6 +89,24 @@ class FirstScreenTests(MediaMixin, TestCase):
         body = self.client.get(reverse("start")).content.decode()
         self.assertNotIn("See a demo herd", body)
         self.assertIn("Start my own herd", body)
+        response = self.client.post(reverse("start_demo"), follow=True)
+        self.assertContains(response, "The demo herd isn&#x27;t available right now. Try again soon.")
+
+    def test_final_copy_strings(self):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        from accounts.ratelimit import MESSAGES
+        from rabbits.sync import QUEUE_FAILED
+
+        self.assertEqual(MESSAGES["demo"], "Too many demo herds started. Try again later.")  # the limit is per hour
+        self.assertEqual(QUEUE_FAILED, "This change didn't sync. Open it and save again.")
+        app_js = (Path(settings.BASE_DIR) / "assets" / "app.js").read_text()
+        self.assertIn('"Passkey added. Use it next time you sign in."', app_js)
+        page = self.client.get(reverse("pwa_offline"))
+        self.assertContains(page, "<h1 class=\"text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]\">You're offline</h1>")
+        self.assertContains(page, "Pages you've already opened still work. Daily tasks save on this device and sync when you're back online. Photos need a connection.")
 
 
 class DemoTests(MediaMixin, TestCase):
@@ -222,7 +240,8 @@ class GuestTests(MediaMixin, TestCase):
         real = User.objects.create_user(email="keeper@example.com", password=PASSWORD, email_confirmed=True)
         rabbit(real, "Old", "buck", tattoo="C1")
         Location.objects.create(owner=real, name="Hutch 1")
-        self.client.post(reverse("login"), {"username": "keeper@example.com", "password": PASSWORD})
+        response = self.client.post(reverse("login"), {"username": "keeper@example.com", "password": PASSWORD}, follow=True)
+        self.assertContains(response, "Your guest herd is now in your account.")
         self.assertEqual(Rabbit.objects.filter(owner=real).count(), 2)
         self.assertEqual(sorted(Rabbit.objects.filter(owner=real).values_list("tattoo", flat=True)), ["C1", "C1 (guest)"])
         self.assertEqual(sorted(Location.objects.filter(owner=real).values_list("name", flat=True)), ["Hutch 1", "Hutch 1 (guest)"])

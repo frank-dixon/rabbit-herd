@@ -55,7 +55,7 @@ def invalid(error):
     return JsonResponse({"ok": False, "error": error}, status=422)
 
 
-QUEUE_FAILED = "This change couldn't be saved. Open it and try again."
+QUEUE_FAILED = "This change didn't sync. Open it and save again."
 
 
 def queueable(kind):

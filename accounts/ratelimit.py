@@ -37,7 +37,7 @@ MESSAGES = {
     "signup": "Too many accounts were started from here. Wait an hour, then try again.",
     "reset": "Too many reset requests. Check your inbox (and spam) for the last email, or try again in an hour.",
     "guest": "Too many guest sessions were started from here. Wait an hour, or create an account.",
-    "demo": "Too many demo herds were started from here. Wait an hour, then try again.",
+    "demo": "Too many demo herds started. Try again later.",
 }
 
 

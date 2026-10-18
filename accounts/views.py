@@ -59,7 +59,7 @@ def sign_in(request, user):
         delete_demo_account(previous)
     elif previous.is_guest and not user.is_guest and not user.is_demo:
         if merge_guest_into(previous, user):
-            messages.success(request, "Your guest herd was added to this account.")
+            messages.success(request, "Your guest herd is now in your account.")
 
 
 def leave_demo(request):
@@ -270,7 +270,7 @@ def start_demo(request):
         return redirect("index")
     leave_demo(request)
     if begin(request) is None:
-        messages.error(request, "The demo herd isn't available right now.")
+        messages.error(request, "The demo herd isn't available right now. Try again soon.")
         return redirect("start")
     return redirect("index")
 
