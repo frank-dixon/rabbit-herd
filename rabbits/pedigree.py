@@ -11,10 +11,35 @@ from .models import PEDIGREE_GENERATIONS, PedigreeEntry, Rabbit, Relative, posit
 
 def known_parents(rabbit_id):
     """{"s"/"d": (herd rabbit or outside rabbit, relative row or None)} from one rabbit's records.
-    Cached for the rest of the request; any pedigree or relative write clears it."""
+    Cached for the rest of the request; any pedigree or relative write clears it.
+    A page that needs many rabbits calls all_parents(owner) first, which fills
+    the cache for the whole herd in two queries."""
     from . import derived
 
     return dict(derived.memo(("parents", rabbit_id), lambda: _known_parents(rabbit_id)))
+
+
+def all_parents(owner_id):
+    """{rabbit_id: known_parents(rabbit_id)} for every rabbit the owner has
+    (deleted ones too), from two queries. Same rules as _known_parents: stored
+    pedigree positions first, then dam and sire relatives fill what's missing."""
+    from . import derived
+
+    def load():
+        ids = list(Rabbit.all_objects.filter(owner_id=owner_id).values_list("pk", flat=True))
+        found = {pk: {} for pk in ids}
+        for entry in (PedigreeEntry.objects.filter(rabbit__owner_id=owner_id)
+                      .select_related("herd_rabbit", "outside").order_by("rabbit_id", "position", "pk")):
+            found.setdefault(entry.rabbit_id, {})[entry.position] = (entry.ancestor, None)
+        for row in (Relative.objects.filter(rabbit__owner_id=owner_id, relationship__in=["dam", "sire"])
+                    .select_related("herd_rabbit", "outside").order_by("rabbit_id", "relationship", "pk")):
+            found.setdefault(row.rabbit_id, {}).setdefault("d" if row.relationship == "dam" else "s", (row.other, row))
+        return found
+
+    result = derived.memo(("all_parents", owner_id), load)
+    for pk, parents in result.items():
+        derived.memo(("parents", pk), lambda parents=parents: parents)
+    return result
 
 
 def _known_parents(rabbit_id):

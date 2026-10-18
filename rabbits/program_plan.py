@@ -5,15 +5,15 @@ genetics is in rabbits.planner; this module reads the herd and words it."""
 import datetime
 from fractions import Fraction
 
+from django.db.models import Q
 from django.utils import timezone
 
 from . import derived
 from . import planner as P
 from .color_odds import UNKNOWN
 from . import routes as routes_mod
-from .models import Gene, Litter, Pairing, Rabbit, Relative, prefs
+from .models import Gene, Litter, Pairing, Rabbit, Relative, prefs_for
 from .gene_fill import from_breed_and_color
-from .pedigree import known_parents
 
 FULL = {"B": "B_", "C": "C_", "D": "D_", "E": "E_"}
 # Common show and fancy colors as targets: (key, label, description, {locus: pattern}).
@@ -105,23 +105,43 @@ def unknown_gene_count(user):
 
 
 def herd_breeders(user):
-    """Rabbits still in the herd; sold, culled and deceased ones are gone."""
-    return list(Rabbit.objects.filter(owner=user, archived_at__isnull=True)
-                .exclude(status__in=Rabbit.FORMER).exclude(sex=Rabbit.Sex.UNKNOWN).prefetch_related("genes", "photos")
-                .select_related("sold_to").order_by("name", "pk"))
+    """Rabbits still in the herd; sold, culled and deceased ones are gone. Once per request."""
+    from . import derived
+
+    owner_id = getattr(user, "pk", user)
+    return list(derived.memo(("herd_breeders", owner_id), lambda: list(
+        Rabbit.objects.filter(owner_id=owner_id, archived_at__isnull=True)
+        .exclude(status__in=Rabbit.FORMER).exclude(sex=Rabbit.Sex.UNKNOWN).prefetch_related("genes", "photos")
+        .select_related("sold_to").order_by("name", "pk"))))
+
+
+def open_litters(owner_id):
+    """{doe_id: litter} for every doe's current breeding, in one query (see open_litter)."""
+    from . import derived
+
+    def load():
+        recent = timezone.localdate() - datetime.timedelta(days=56)
+        unkindled, recent_kindled = {}, {}
+        rows = (Litter.objects.filter(pairing__doe__owner_id=owner_id)
+                .filter(Q(kindled_on__isnull=True) | Q(kindled_on__gte=recent))
+                .select_related("pairing", "breeding_schedule").order_by("-bred_on", "-pk"))
+        for litter in rows:
+            target = unkindled if litter.kindled_on is None else recent_kindled
+            target.setdefault(litter.pairing.doe_id, litter)
+        return {**recent_kindled, **unkindled}
+
+    return derived.memo(("open_litters", owner_id), load)
 
 
 def open_litter(doe):
     """The doe's current breeding (not yet kindled, or kindled under 8 weeks ago)."""
-    recent = timezone.localdate() - datetime.timedelta(days=56)
-    return (Litter.objects.filter(pairing__doe=doe).filter(kindled_on__isnull=True).order_by("-bred_on").first()
-            or Litter.objects.filter(pairing__doe=doe, kindled_on__gte=recent).order_by("-bred_on").first())
+    return open_litters(doe.owner_id).get(doe.pk)
 
 
 def candidates(program):
     """Every breeder the program can use, as plain dicts keyed "h:<pk>" or "x:<pk>"."""
     out = []
-    for r in herd_breeders(program.owner):
+    for r in herd_breeders(program.owner_id):
         sold = r.status == Rabbit.Status.SOLD
         litter = open_litter(r) if r.sex == "doe" and not sold else None
         where = "In herd" + (" · bred" if litter else "")
@@ -140,14 +160,22 @@ def candidates(program):
 def pedigree(user):
     """Parents of every herd rabbit, for Wright's COI. Outside rabbits named as
     parents are nodes without parents of their own."""
+    from . import derived
+
+    owner_id = getattr(user, "pk", user)
+    return derived.memo(("coi_pedigree", owner_id), lambda: _pedigree(owner_id))
+
+
+def _pedigree(owner_id):
+    from .pedigree import all_parents
+
     parents = {}
-    for r in Rabbit.all_objects.filter(owner=user).only("pk"):
-        found = known_parents(r.pk)
+    for pk, found in all_parents(owner_id).items():
         node = lambda other: None if other is None else (("h" if isinstance(other, Rabbit) else "o"), other.pk)
         sire = found.get("s", (None, None))[0]
         dam = found.get("d", (None, None))[0]
         if sire is not None or dam is not None:
-            parents[("h", r.pk)] = (node(sire), node(dam))
+            parents[("h", pk)] = (node(sire), node(dam))
     return P.Pedigree(parents)
 
 
@@ -262,14 +290,36 @@ def bars(rows):
 
 
 def litter_size(user):
-    sizes = [l.born_alive for l in Litter.objects.filter(owner=user, born_alive__isnull=False).only("born_alive")[:30] if l.born_alive]
-    return round(sum(sizes) / len(sizes)) if len(sizes) >= 3 else DEFAULT_LITTER
+    from . import derived
+
+    owner_id = getattr(user, "pk", user)
+
+    def load():
+        sizes = [l.born_alive for l in Litter.objects.filter(owner_id=owner_id, born_alive__isnull=False).only("born_alive")[:30] if l.born_alive]
+        return round(sum(sizes) / len(sizes)) if len(sizes) >= 3 else DEFAULT_LITTER
+
+    return derived.memo(("litter_size", owner_id), load)
+
+
+def children_of(owner_id):
+    """{(relationship, parent_id): {child ids}} from dam and sire relatives, once per request."""
+    from . import derived
+
+    def load():
+        out = {}
+        for rel, parent, child in (Relative.objects.filter(rabbit__owner_id=owner_id, relationship__in=["dam", "sire"],
+                                                           herd_rabbit__isnull=False)
+                                   .values_list("relationship", "herd_rabbit_id", "rabbit_id")):
+            out.setdefault((rel, parent), set()).add(child)
+        return out
+
+    return derived.memo(("children_of", owner_id), load)
 
 
 def build(program):
     """Everything the program page shows, or {"missing": ...} before setup is done."""
     breeders = candidates(program)
-    ped = pedigree(program.owner)
+    ped = pedigree(program.owner_id)
     dam = find(breeders, f"h:{program.dam_id}") if program.dam_id else None
     sire = find(breeders, sire_key(program))
     picked = {b["key"] for b in (dam, sire) if b}
@@ -282,14 +332,14 @@ def build(program):
     g1_coi = ped.coi(sire["node"], dam["node"])
     litter = dam["litter"] if dam["litter"] and sire["rabbit"] is not None and dam["litter"].pairing.buck_id == sire["rabbit"].pk else None
     today = timezone.localdate()
-    gestation = prefs(program.owner).gestation_days
+    gestation = prefs_for(program.owner_id).gestation_days
     g1_due = litter.due_on if litter else today + datetime.timedelta(days=gestation)
     g1_born = litter.kindled_on if litter and litter.kindled_on else g1_due
     options = g2_options(program, dam, sire, breeders, ped)
     chosen_key = sire_key(program, 2)
     g2 = next((o for o in options if o["mate"]["key"] == chosen_key), None) or (options[0] if options else None)
     alt = next((o for o in options if g2 and o["mate"]["key"] != g2["mate"]["key"]), None)
-    n = litter_size(program.owner)
+    n = litter_size(program.owner_id)
     kept = P.kept_genes(program.target, dam["genes"], sire["genes"])
     keep_word = {"doe": "does", "buck": "bucks"}.get(program.keep_sex, "kits")
     kit_word = {"doe": "doe", "buck": "buck"}.get(program.keep_sex, "kit")
@@ -360,8 +410,9 @@ def progress(program, dam, sire, g2):
     if not (dam["rabbit"] and sire["rabbit"]):
         g1_kits = []
     else:
-        dam_kids = set(Relative.objects.filter(relationship="dam", herd_rabbit=dam["rabbit"]).values_list("rabbit_id", flat=True))
-        sire_kids = set(Relative.objects.filter(relationship="sire", herd_rabbit=sire["rabbit"]).values_list("rabbit_id", flat=True))
+        kids = children_of(program.owner_id)
+        dam_kids = kids.get(("dam", dam["rabbit"].pk), set())
+        sire_kids = kids.get(("sire", sire["rabbit"].pk), set())
         g1_kits = list(dam_kids & sire_kids)
     kept = 0
     if g1_kits and g2 and g2["mate"]["rabbit"] is not None:
@@ -462,7 +513,7 @@ def shortest_view(program, breeders=None, plan=None):
     the plan's chosen starting pair, and outside-rabbit specs when the herd
     alone can't do better."""
     breeders = breeders if breeders is not None else known_breeders(program.owner, program)
-    ready, overall = routes_mod.shortest(program.target, breeders, coi_veto(program, pedigree(program.owner)))
+    ready, overall = routes_mod.shortest(program.target, breeders, coi_veto(program, pedigree(program.owner_id)))
     view = {"ready": route_view(ready, program.target), "overall": route_view(overall, program.target), "shopping": []}
     if plan and plan.get("dam") and ready:
         mine = (plan["dam"]["key"], plan["sire"]["key"])

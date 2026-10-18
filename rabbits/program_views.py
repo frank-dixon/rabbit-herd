@@ -42,7 +42,10 @@ def steps(current, program=None):
 def program_list(request):
     from .index_items import index_view, sorted_items, stat, view_options
 
-    programs = list(Program.objects.filter(owner=request.user).select_related("dam", "sire").prefetch_related("dam__photos", "sire__photos"))
+    programs = list(Program.objects.filter(owner=request.user).select_related("dam", "sire")
+                    .prefetch_related("outside"))
+    for p in programs:
+        p.owner = request.user  # already loaded; saves a user query per program
     view = index_view(request, "programs", "grid")
     items = sorted((program_item(p) for p in programs), key=lambda it: -it["rank"])
     best = max((float(it["best"]) for it in items if it["best"] is not None), default=None)

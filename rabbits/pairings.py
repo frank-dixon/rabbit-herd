@@ -20,8 +20,40 @@ def _key(herd_rabbit_id, outside_id):
     return ("herd", herd_rabbit_id) if herd_rabbit_id else ("outside", outside_id)
 
 
-def ancestors(rabbit, limit=MAX_GENERATIONS):
+class AncestorIndex:
+    """Every parent link of one keeper's herd, loaded in four queries, so
+    ancestor walks and sibling checks for many pairings cost nothing more."""
+
+    def __init__(self, owner_id):
+        self.up = {}  # rabbit_id -> [(generations, herd rabbit or None, outside or None)]
+        for row in (Relative.objects.filter(rabbit__owner_id=owner_id, relationship__in=PARENT_STEPS)
+                    .select_related("herd_rabbit", "outside").order_by("rabbit_id", "relationship", "pk")):
+            self.up.setdefault(row.rabbit_id, []).append((PARENT_STEPS[row.relationship], row.herd_rabbit, row.outside))
+        for entry in (PedigreeEntry.objects.filter(rabbit__owner_id=owner_id)
+                      .select_related("herd_rabbit", "outside").order_by("rabbit_id", "position", "pk")):
+            self.up.setdefault(entry.rabbit_id, []).append((len(entry.position), entry.herd_rabbit, entry.outside))
+        # A herd rabbit that lists this one as its offspring is a parent.
+        for row in (Relative.objects.filter(herd_rabbit__owner_id=owner_id, relationship="offspring")
+                    .select_related("rabbit").order_by("relationship", "pk")):
+            self.up.setdefault(row.herd_rabbit_id, []).append((1, row.rabbit, None))
+        self.siblings = {}
+        for row in (Relative.objects.filter(rabbit__owner_id=owner_id, herd_rabbit__isnull=False,
+                                            relationship__in=["sibling", "half_sibling"]).order_by("relationship", "pk")):
+            self.siblings.setdefault(frozenset((row.rabbit_id, row.herd_rabbit_id)), row)
+
+    def sibling_row(self, a, b):
+        return self.siblings.get(frozenset((a.pk, b.pk)))
+
+
+def ancestor_index(owner_id):
+    from . import derived
+
+    return derived.memo(("ancestor_index", owner_id), lambda: AncestorIndex(owner_id))
+
+
+def ancestors(rabbit, limit=MAX_GENERATIONS, index=None):
     """{key: (name, generations back)} keeping the closest generation."""
+    index = index or ancestor_index(rabbit.owner_id)
     found = {}
     frontier = [(rabbit.pk, 0)]
     done = set()
@@ -30,15 +62,7 @@ def ancestors(rabbit, limit=MAX_GENERATIONS):
         if pk in done:
             continue
         done.add(pk)
-        rows = [(PARENT_STEPS[row.relationship], row.herd_rabbit, row.outside)
-                for row in Relative.objects.filter(rabbit_id=pk, relationship__in=PARENT_STEPS)
-                .select_related("herd_rabbit", "outside")]
-        rows += [(len(entry.position), entry.herd_rabbit, entry.outside)
-                 for entry in PedigreeEntry.objects.filter(rabbit_id=pk).select_related("herd_rabbit", "outside")]
-        # A herd rabbit that lists this one as its offspring is a parent.
-        rows += [(1, row.rabbit, None)
-                 for row in Relative.objects.filter(herd_rabbit_id=pk, relationship="offspring").select_related("rabbit")]
-        for steps, herd, outside in rows:
+        for steps, herd, outside in index.up.get(pk, ()):
             gen = depth + steps
             other = herd or outside
             if other is None or gen > limit or (herd is not None and herd.pk == rabbit.pk):
@@ -55,17 +79,16 @@ def generation_word(gen):
     return {1: "parent", 2: "grandparent", 3: "great-grandparent"}.get(gen, f"{gen - 2}× great-grandparent")
 
 
-def inbreeding_warnings(doe, buck):
+def inbreeding_warnings(doe, buck, index=None):
     """Plain sentences, closest relationship first; empty when none is known."""
-    doe_up, buck_up = ancestors(doe), ancestors(buck)
+    index = index or ancestor_index(doe.owner_id)
+    doe_up, buck_up = ancestors(doe, index=index), ancestors(buck, index=index)
     warnings = []
     for child, parent, child_up in ((doe, buck, doe_up), (buck, doe, buck_up)):
         hit = child_up.get(("herd", parent.pk))
         if hit:
             warnings.append(f"{parent.name} is {child.name}'s {generation_word(hit[1])}.")
-    siblings = Relative.objects.filter(
-        rabbit__in=[doe, buck], herd_rabbit__in=[doe, buck], relationship__in=["sibling", "half_sibling"]
-    ).first()
+    siblings = index.sibling_row(doe, buck)
     if siblings:
         warnings.append(f"{doe.name} and {buck.name} are recorded as {siblings.get_relationship_display().split(' (')[0].lower()}s.")
     shared = sorted(set(doe_up) & set(buck_up), key=lambda key: (doe_up[key][1] + buck_up[key][1], doe_up[key][0]))
@@ -82,9 +105,9 @@ def age_warnings(doe, buck):
     """Plain sentences for a doe or buck younger than the owner's breeding age."""
     from django.utils import timezone
 
-    from .models import prefs
+    from .models import prefs_for
 
-    months = prefs(doe.owner).breeding_age_months
+    months = prefs_for(doe.owner_id).breeding_age_months
     today = timezone.localdate()
     out = []
     for rabbit in (doe, buck):
@@ -118,15 +141,15 @@ def relatedness(user, doe, buck, params=None, sort=""):
     """The New pairing summary: severity, the closest relationship, COI, and the shared-ancestor table."""
     from . import program_plan, sorting
 
-    doe_up, buck_up = ancestors(doe), ancestors(buck)
+    index = ancestor_index(doe.owner_id)
+    doe_up, buck_up = ancestors(doe, index=index), ancestors(buck, index=index)
     closest = ""
     for child, parent, up in ((doe, buck, doe_up), (buck, doe, buck_up)):
         hit = up.get(("herd", parent.pk))
         if hit and not closest:
             word = ("sire" if parent.sex == Rabbit.Sex.BUCK else "dam") if hit[1] == 1 else generation_word(hit[1])
             closest = f"{parent.name} is {child.name}'s {word}"
-    siblings = Relative.objects.filter(rabbit__in=[doe, buck], herd_rabbit__in=[doe, buck],
-                                       relationship__in=["sibling", "half_sibling"]).first()
+    siblings = index.sibling_row(doe, buck)
     if siblings and not closest:
         closest = f"{doe.name} and {buck.name} are {siblings.get_relationship_display().split(' (')[0].lower()}s"
     shared = [k for k in set(doe_up) & set(buck_up)]
@@ -259,10 +282,11 @@ def pairing_items(user, pairings):
 
     today = timezone.localdate()
     ped = program_plan.pedigree(user)
+    index = ancestor_index(user.pk)
     items = []
     for p in pairings:
         coi = float(ped.coi(("h", p.buck_id), ("h", p.doe_id))) * 100
-        warnings = inbreeding_warnings(p.doe, p.buck)
+        warnings = inbreeding_warnings(p.doe, p.buck, index)
         odds = color_odds.predict(p.doe, p.buck)
         chips = [{"swatch": swatch(name), "label": name.replace(" (black points)", "").replace(" (blue points)", " blue"), "note": pct}
                  for name, pct in odds["colors"][:3]]
@@ -286,7 +310,7 @@ def pairing_items(user, pairings):
             "href": reverse("pairing_detail", args=[p.pk]), "is_sample": p.is_sample, "title": f"{p.doe.name} × {p.buck.name}",
             "sub": f"{p.doe.color or 'Color not set'} × {p.buck.color or 'Color not set'}", "thumbs": [p.doe, p.buck],
             "pill": pill, "coi": coi, "chips_label": "Predicted colors", "chips": chips,
-            "kv": [{"label": when, "value": result}, {"label": "Litters", "value": p.litters.count()}],
+            "kv": [{"label": when, "value": result}, {"label": "Litters", "value": len(p.litters.all())}],
             "foot": {"pill": coi_pill, "text": relation},
             "mobile": f"{result} · COI {coi:.1f}%",
             "cells": [{"kind": "lead"}, {"kind": "pill", "wide_only": True, **coi_pill}, {"kind": "chips", "chips": chips, "wide_only": True},

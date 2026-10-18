@@ -926,7 +926,7 @@ class Pairing(models.Model):
 
     @property
     def schedule(self):
-        return self.resolved_schedule() or prefs(self.owner)
+        return self.resolved_schedule() or prefs_for(self.owner_id)
 
 
 class Litter(models.Model):
@@ -985,7 +985,9 @@ class Litter(models.Model):
     @property
     def schedule(self):
         """The litter's named schedule, or the owner's Standard one."""
-        return self.breeding_schedule or prefs(self.owner)
+        if self.breeding_schedule_id:
+            return self.breeding_schedule
+        return prefs_for(self.owner_id)
 
     @property
     def schedule_name(self):
@@ -1491,9 +1493,18 @@ def prefs(user):
         return HerdSettings()
     cached = getattr(user, "_herd_settings_cache", None)
     if cached is None:
-        cached = HerdSettings.objects.filter(user=user).first() or HerdSettings(user=user)
+        cached = prefs_for(user.pk)
         user._herd_settings_cache = cached
     return cached
+
+
+def prefs_for(user_id):
+    """HerdSettings by owner id, once per request, without loading the user row."""
+    from . import derived
+
+    if user_id is None:
+        return HerdSettings()
+    return derived.memo(("prefs", user_id), lambda: HerdSettings.objects.filter(user_id=user_id).first() or HerdSettings(user_id=user_id))
 
 
 class HistoryEntry(models.Model):

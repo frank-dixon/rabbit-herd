@@ -210,7 +210,9 @@ def home_context(user, limit=8):
     from rabbits.tasks import open_items
 
     today = timezone.localdate()
-    rabbits = list(Rabbit.objects.filter(owner=user).real())
+    # One load of the herd (with photos and breed text) serves every block below.
+    rabbits = list(Rabbit.objects.filter(owner=user).real().select_related("purebred")
+                   .prefetch_related("photos", "breed_shares__breed"))
     live = [r for r in rabbits if r.archived_at is None]
     # The same "active" as the Rabbits list: living rabbits still in the herd.
     active = [r for r in live if r.status not in Rabbit.FORMER]
@@ -239,8 +241,8 @@ def home_context(user, limit=8):
         "today": today,
         "due_now": [i for i in items if i["date"] <= today],
         "this_week": [i for i in items if today < i["date"] <= week_end],
-        "litters": active_litters(user, today),
-        "watch": watch_list(user, today),
+        "litters": (litters := active_litters(user, today)),
+        "watch": watch_list(user, today, litters),
         "herd": {
             "active": len(active),
             "does": sum(1 for r in active if r.sex == Rabbit.Sex.DOE),
@@ -268,17 +270,17 @@ def herd_first(user, today, active, rabbits, items):
     from rabbits.models import Litter, Rabbit, Weight
 
     week_end = today + datetime.timedelta(days=7)
-    photos = {r.pk: r for r in Rabbit.objects.filter(owner=user).prefetch_related("photos")}
+    photos = {r.pk: r for r in rabbits}
     next_for = {}
     for item in items:
         rabbit = item.get("rabbit")
         if rabbit and rabbit.pk not in next_for:
             next_for[rabbit.pk] = item
-    latest_weight = {}
-    for w in Weight.objects.filter(rabbit__owner=user).order_by("rabbit_id", "-date", "-pk"):
-        latest_weight.setdefault(w.rabbit_id, w)
     living = [r for r in active if r.status in (Rabbit.Status.BREEDING, Rabbit.Status.GROWING)]
     living.sort(key=lambda r: (next_for[r.pk]["date"] if r.pk in next_for else datetime.date.max, r.name))
+    latest_weight = {}
+    for w in Weight.objects.filter(rabbit_id__in=[r.pk for r in living[:HERD_CARDS]]).order_by("rabbit_id", "-date", "-pk"):
+        latest_weight.setdefault(w.rabbit_id, w)
     open_litters = list(Litter.objects.filter(owner=user, kindled_on__isnull=True).real().select_related("pairing__doe", "pairing__buck")
                         .prefetch_related("pairing__doe__photos", "pairing__buck__photos").order_by("bred_on"))
     bred_status = {lit.pairing.doe_id for lit in open_litters}
@@ -312,23 +314,26 @@ def herd_first(user, today, active, rabbits, items):
                          "due": due})
     next_kindling = min(pairings, key=lambda p: p["due"]) if pairings else None
     weights = []
-    seen = set()
-    recent = Weight.objects.filter(rabbit__owner=user, rabbit__archived_at__isnull=True).select_related("rabbit").order_by("-date", "-pk")
-    for w in recent.iterator():
+    latest = {}
+    recent = Weight.objects.filter(rabbit__owner=user, rabbit__archived_at__isnull=True, date__lte=today).order_by("-date", "-pk")
+    for w in recent.iterator(chunk_size=200):
         # One row per rabbit: its latest weight.
-        if w.rabbit_id in seen:
-            continue
-        seen.add(w.rabbit_id)
-        if len(seen) > 4:
+        latest.setdefault(w.rabbit_id, w)
+        if len(latest) >= 4:
             break
-        before = Weight.objects.filter(rabbit=w.rabbit, date__lt=w.date).order_by("-date", "-pk").first()
-        delta = w.grams - before.grams if before else None
-        weights.append({"weight": w, "rabbit": photos.get(w.rabbit_id, w.rabbit), "delta": delta_text(delta, w.unit) if delta else ""})
+    before = {}
+    for w in (Weight.objects.filter(rabbit_id__in=list(latest)).order_by("rabbit_id", "-date", "-pk")):
+        if w.date < latest[w.rabbit_id].date:
+            before.setdefault(w.rabbit_id, w)
+    for rid, w in latest.items():
+        prev = before.get(rid)
+        delta = w.grams - prev.grams if prev else None
+        weights.append({"weight": w, "rabbit": photos.get(rid) or w.rabbit, "delta": delta_text(delta, w.unit) if delta else ""})
     week = [i for i in items if i["date"] <= week_end]
     from . import minibars as MB
 
     mo = MB.months(today)
-    everyone = list(Rabbit.objects.filter(owner=user).real())
+    everyone = rabbits
     left = lambda r: r.sold_on or r.death_date or (r.archived_at.date() if r.archived_at else None)
     herd_by_month = [sum(1 for r in everyone if r.birth_date <= end and not (left(r) and left(r) <= end)
                          and (r.status in (Rabbit.Status.BREEDING, Rabbit.Status.GROWING) or left(r))) for _, end, _ in mo]
@@ -415,7 +420,7 @@ def active_litters(user, today):
     return rows
 
 
-def watch_list(user, today):
+def watch_list(user, today, litters=None):
     """Health follow-ups that are still open, and kits well under their litter's average."""
     from rabbits.models import HealthNote
 
@@ -430,7 +435,7 @@ def watch_list(user, today):
         items.append({"title": f"{note.rabbit.name} · {note.get_kind_display().lower()}",
                       "detail": f"Noted {note.date:%b} {note.date.day} · {when}", "urgent": days <= 0,
                       "url": f"/rabbits/{note.rabbit_id}/#health", "task": note.task})
-    for row in active_litters(user, today):
+    for row in (litters if litters is not None else active_litters(user, today)):
         kits, average = kit_weights(row["litter"])
         for kit in kits:
             if kit["behind"]:

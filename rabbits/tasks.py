@@ -68,17 +68,27 @@ def form_context(values, errors):
 
 
 
-def open_items(user, today=None, *, samples=None):
+def open_items(user, today=None, *, samples=None, photos=True):
     """Every open task and litter date, soonest first, as plain dicts.
 
     samples=None follows the user's Show samples setting; False excludes samples
-    (reminders and caps)."""
+    (reminders and the nav badge). photos=False skips loading thumbnails, for
+    callers that only count. Memoized per request."""
+    from . import derived
+
     today = today or timezone.localdate()
+    return list(derived.memo(("open_items", user.pk, today, samples, photos), lambda: _open_items(user, today, samples, photos)))
+
+
+def _open_items(user, today, samples, photos):
     items = []
     tasks = Task.objects.filter(owner=user, done_at__isnull=True)
     tasks = tasks.real() if samples is False else tasks.for_view(user)
-    for task in tasks.select_related("rabbit").prefetch_related("rabbit__photos"):
-        items.append({"kind": "task", "pk": task.pk, "title": task.title, "date": task.due_on, "repeat": task.repeat_label(),
+    tasks = tasks.select_related("rabbit")
+    if photos:
+        tasks = tasks.prefetch_related("rabbit__photos")
+    for task in tasks:
+        items.append({"kind": "task", "pk": task.pk, "sample": task.is_sample, "title": task.title, "date": task.due_on, "repeat": task.repeat_label(),
                       "rabbit": task.rabbit, "url": reverse("rabbit_detail", args=[task.rabbit_id]) if task.rabbit_id else ""})
     # Litters still to kindle, plus recent ones with wean or process dates
     # open; older litters are history and stay off the list.
@@ -86,14 +96,16 @@ def open_items(user, today=None, *, samples=None):
     litters = Litter.objects.filter(owner=user)
     litters = litters.real() if samples is False else litters.for_view(user)
     litters = litters.filter(
-        Q(kindled_on__isnull=True) | Q(kindled_on__gte=recent)).select_related("pairing__doe", "pairing__buck").prefetch_related("pairing__doe__photos")
+        Q(kindled_on__isnull=True) | Q(kindled_on__gte=recent)).select_related("pairing__doe", "pairing__buck", "breeding_schedule")
+    if photos:
+        litters = litters.prefetch_related("pairing__doe__photos")
     for litter in litters:
         litter.owner = user  # Shares the user's cached settings; no query per litter.
         for task in litter.tasks():
             if not task["done"]:
                 pair = f"{litter.pairing.doe.name} × {litter.pairing.buck.name}"
                 start = f"Kindled {short_date(litter.kindled_on)}" if litter.kindled_on else f"Bred {short_date(litter.bred_on)}"
-                items.append({"kind": "litter", "pk": litter.pk, "key": task["key"], "date": task["date"],
+                items.append({"kind": "litter", "pk": litter.pk, "sample": litter.is_sample, "key": task["key"], "date": task["date"],
                               "title": f"{task['label']} · {pair}", "detail": start,
                               "rabbit": litter.pairing.doe, "url": reverse("litter_detail", args=[litter.pk])})
     for item in items:

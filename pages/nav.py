@@ -158,11 +158,15 @@ def due_count(user):
 
     from django.utils import timezone
 
+    # The badge is what needs doing today: overdue plus due today, real records
+    # only, so sample tasks never put a number on a new herd.
     today = timezone.localdate()
-    day, items = getattr(user, "_open_items", (None, None))
-    if day != today:
-        items = open_items(user, today)
-    return sum(1 for item in items if item["date"] <= today)
+    from rabbits import derived
+
+    items = derived.peek(("open_items", user.pk, today, None, True))  # the page's own list, when it made one
+    if items is None:
+        items = open_items(user, today, samples=False, photos=False)
+    return sum(1 for item in items if item["date"] <= today and not item.get("sample"))
 
 
 def item(key, current, label=None, url=None):

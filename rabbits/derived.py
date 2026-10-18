@@ -42,6 +42,12 @@ def memo(key, compute):
     return store[key]
 
 
+def peek(key):
+    """A value memo() already computed this request, else None."""
+    store = _cache.get()
+    return store.get(key) if store else None
+
+
 def forget(rabbit_id=None):
     """Drop cached reads after a write in the same request (wired to model signals;
     queryset update() and delete() callers must call it themselves)."""

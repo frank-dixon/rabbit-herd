@@ -10,7 +10,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from .models import (BreedShare, HealthNote, HistoryEntry, KitCheck, Litter, LitterCheck, LitterKit, Rabbit,
-                     Relative, Weight, prefs)
+                     Relative, Weight, prefs, prefs_for)
 
 
 class ConvertError(Exception):
@@ -74,7 +74,7 @@ def copy_row(row, rabbit, unit):
 def record_whole(litter, date, kit_count, grams, weight_kind, status, note):
     check = LitterCheck.objects.create(litter=litter, date=date, mode=LitterCheck.Mode.WHOLE, kit_count=kit_count,
                                        grams=grams, weight_kind=weight_kind, status=status, note=note)
-    unit = prefs(litter.owner).weight_unit
+    unit = prefs_for(litter.owner_id).weight_unit
     for slot in ensure_slots(litter):
         if slot.rabbit_id:
             copy_whole(check, slot.rabbit, unit)
@@ -88,7 +88,7 @@ def record_each(litter, date, rows):
     if not rows:
         return None
     check = LitterCheck.objects.create(litter=litter, date=date, mode=LitterCheck.Mode.EACH, kit_count=len(rows))
-    unit = prefs(litter.owner).weight_unit
+    unit = prefs_for(litter.owner_id).weight_unit
     for slot, grams, status, note in rows:
         row = KitCheck.objects.create(litter_check=check, kit=slot, grams=grams, status=status, note=note)
         if slot.rabbit_id:

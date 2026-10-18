@@ -150,7 +150,6 @@ def list_row_columns(user, rabbits):
         latest.setdefault(w.rabbit_id, w)
     upcoming = {}
     items = open_items(user)
-    user._open_items = (timezone.localdate(), items)  # the nav's due badge reuses these this request
     for item in items:
         rabbit = item.get("rabbit")
         if rabbit and rabbit.pk in ids and rabbit.pk not in upcoming:
