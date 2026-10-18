@@ -52,6 +52,7 @@ import { bindSideMenu } from "./side-menu.mjs";
 import { focusSmooth, reducedMotion } from "./motion.mjs";
 import { bindPageActions } from "./page-actions.mjs";
 import { bindBottomStack } from "./bottom-stack.mjs";
+import { bindQuietTransitions } from "./view-transitions.mjs";
 import { bindRowMenus } from "./row-menu.mjs";
 
 /**
@@ -349,6 +350,7 @@ function start() {
   bindDeathFields(document);
   bindOffline(document, window);
   bindBottomStack(document, window);
+  bindQuietTransitions(window);
   bindRowMenus(document);
   bindSettings(document, window);
   bindSettingsSave(document, window);

@@ -7,6 +7,7 @@
  * a plain link or form. Any fetch failure falls back to a normal navigation. POST forms
  * marked [data-swap-post] post in the background, then the list swaps from the same URL.
  */
+import { startQuiet } from "./view-transitions.mjs";
 import { bindSegmented, place } from "./segmented.mjs";
 import { reducedMotion } from "./motion.mjs";
 
@@ -75,7 +76,7 @@ export function bindListSwap(doc, win) {
       if (ctl.signal.aborted) return;
       const run = () => { if (!apply(fresh)) throw new Error("no region"); };
       if (push) win.history.pushState({ listSwap: true }, "", url);
-      if (doc.startViewTransition && !reducedMotion(win)) await doc.startViewTransition(run).updateCallbackDone;
+      if (doc.startViewTransition && !reducedMotion(win)) await startQuiet(doc, run).updateCallbackDone;
       else run();
       root.dispatchEvent(new win.CustomEvent("list-swap:done", { bubbles: true, detail: { source } }));
     } catch (error) {

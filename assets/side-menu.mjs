@@ -3,6 +3,7 @@
  * button), save the whole order with fetch, and reorder the live side menu.
  * Without JS each button posts and the page comes back reordered.
  */
+import { startQuiet } from "./view-transitions.mjs";
 import { reducedMotion } from "./motion.mjs";
 
 export function moveKey(order, key, way) {
@@ -49,7 +50,7 @@ export function bindSideMenu(doc, win) {
     const sibling = button.dataset.way === "up" ? row.previousElementSibling : row.nextElementSibling;
     if (!sibling) return;
     const swap = () => { if (button.dataset.way === "up") sibling.before(row); else sibling.after(row); syncButtons(list); };
-    if (doc.startViewTransition && !reducedMotion(win)) await doc.startViewTransition(swap).updateCallbackDone; else swap();
+    if (doc.startViewTransition && !reducedMotion(win)) await startQuiet(doc, swap).updateCallbackDone; else swap();
     (button.disabled ? row.querySelector("button:not([disabled])") : button)?.focus();
     const keys = [...form.querySelectorAll("[data-side-key]")].map((li) => li.dataset.sideKey);
     syncRail(doc, keys);
