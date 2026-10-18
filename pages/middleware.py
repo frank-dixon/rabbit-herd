@@ -56,7 +56,8 @@ SEEN_EVERY_SECONDS = 600
 def touch_last_seen(get_response):
     """Record when an account was last used, at most every ten minutes per
     session: demo copies are deleted a day after last use and empty guests
-    are deactivated after seven days (accounts.demo, accounts.guest)."""
+    are deactivated after seven days (accounts.demo, accounts.guest). A guest's
+    session cookie is pushed a year out each time, so the herd stays on the device."""
     import time
 
     def middleware(request):
@@ -72,10 +73,16 @@ def touch_last_seen(get_response):
             return response
         user = getattr(request, "user", None)
         if user is not None and user.is_authenticated:
+            from django.contrib.auth import get_user_model
             from django.utils import timezone
 
-            type(user).objects.filter(pk=user.pk).update(last_seen_at=timezone.now())
+            # request.user can still be the lazy wrapper here, so not type(user).objects.
+            get_user_model().objects.filter(pk=user.pk).update(last_seen_at=timezone.now())
             session["seen_at"] = now
+            if user.is_guest and not user.is_demo:
+                from accounts.guest import GUEST_SESSION_AGE
+
+                session.set_expiry(GUEST_SESSION_AGE)  # slides: a year from this visit
         return response
 
     return middleware

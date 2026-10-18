@@ -285,14 +285,14 @@ def start_demo(request):
 @require_POST
 def continue_as_guest(request):
     """Start my own herd: an empty herd that's kept, saved later with an email and password."""
-    from .guest import create_guest
+    from .guest import GUEST_SESSION_AGE, create_guest
 
     if request.user.is_authenticated and not request.user.is_demo:
         return redirect("index")
     leave_demo(request)
     user = create_guest()
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-    request.session.set_expiry(60 * 60 * 24 * 90)
+    request.session.set_expiry(GUEST_SESSION_AGE)
     return redirect("index")
 
 

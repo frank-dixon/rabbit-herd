@@ -22,6 +22,10 @@ from .models import User
 EMPTY_GUEST_DAYS = 7
 
 
+# A guest herd lives on this device as long as its cookies and site data do (Frank, 2026-10-18): the
+# session cookie lasts a year and slides forward with use (pages.middleware.touch_last_seen).
+GUEST_SESSION_AGE = 60 * 60 * 24 * 365
+
 def create_guest():
     return User.objects.create_user(
         email=f"guest-{uuid.uuid4().hex}@guest.invalid",

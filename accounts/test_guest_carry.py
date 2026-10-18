@@ -1,6 +1,7 @@
 """The signup line that tells a guest their herd comes along (Copyrighter, 2026-10-18)."""
 import datetime
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
@@ -78,3 +79,36 @@ class CarryLineSignupTests(TestCase):
 
     def test_signed_out_visitors_never_see_it(self):
         self.assertIsNone(self.signup_line())
+
+
+class GuestSessionTests(TestCase):
+    """Frank, 2026-10-18: a guest herd stays on the device as long as its cookies do; the session
+    cookie lasts about a year and slides forward with use."""
+
+    def test_starting_a_guest_herd_sets_a_year_long_cookie(self):
+        from accounts.guest import GUEST_SESSION_AGE
+
+        response = self.client.post(reverse("guest"))
+        cookie = response.cookies[settings.SESSION_COOKIE_NAME]
+        self.assertEqual(int(cookie["max-age"]), GUEST_SESSION_AGE)
+        self.assertEqual(GUEST_SESSION_AGE, 365 * 24 * 60 * 60)
+
+    def test_the_cookie_slides_forward_with_use(self):
+        from accounts.guest import GUEST_SESSION_AGE
+
+        self.client.post(reverse("guest"))
+        session = self.client.session
+        session["seen_at"] = 0  # last seen long ago
+        session.set_expiry(60)  # as if nearly expired
+        session.save()
+        response = self.client.get(reverse("index"))
+        self.assertEqual(int(response.cookies[settings.SESSION_COOKIE_NAME]["max-age"]), GUEST_SESSION_AGE)
+
+    def test_demo_sessions_do_not_slide_to_a_year(self):
+        from accounts.guest import GUEST_SESSION_AGE
+
+        demo = get_user_model().objects.create_user("demo-z@demo.invalid", None, is_guest=True, is_demo=True)
+        self.client.force_login(demo)
+        response = self.client.get(reverse("index"))
+        cookie = response.cookies.get(settings.SESSION_COOKIE_NAME)
+        self.assertTrue(cookie is None or cookie["max-age"] != GUEST_SESSION_AGE)
