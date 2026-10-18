@@ -197,8 +197,9 @@ STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 # Where uploaded photos live. PHOTO_STORAGE=s3 keeps them in a private
 # S3-compatible bucket (Supabase Storage in production), because Vercel's
 # /tmp is wiped between requests. Anything else uses the local folder above.
-# The bucket is private and no public or signed URLs are handed out: photos
-# are only ever streamed through the owner-checked photo_file view.
+# The bucket is private. Photo URLs always go through an owner-checked view;
+# with S3 that view answers with a one-hour signed link (rabbits.photo_delivery),
+# so the bytes don't pass through a Django function.
 PHOTO_STORAGE = os.environ.get("PHOTO_STORAGE", "").strip().lower()
 if PHOTO_STORAGE == "s3":
     DEFAULT_STORAGE = {
@@ -218,6 +219,8 @@ if PHOTO_STORAGE == "s3":
     }
 else:
     DEFAULT_STORAGE = {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+PHOTO_SIGNED_URLS = env_flag("PHOTO_SIGNED_URLS", default=PHOTO_STORAGE == "s3")
+PHOTO_SIGNED_URL_SECONDS = int(os.environ.get("PHOTO_SIGNED_URL_SECONDS", "3600"))
 
 STORAGES = {
     "default": DEFAULT_STORAGE,

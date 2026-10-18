@@ -7,17 +7,17 @@ with a CSRF token and redirects afterwards, so a refresh never repeats it.
 """
 
 import datetime
-import mimetypes
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import FileResponse, Http404
+
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
 from . import photo_processing
+from .photo_delivery import deliver
 from .renditions import delete_renditions, rendition
 from .forms import PhotoNotesForm, PhotoUploadForm
 from .models import Rabbit, RabbitPhoto, valid_taken_date
@@ -45,18 +45,7 @@ def photo_file(request, pk):
     width = request.GET.get("w", "")
     if width.isdigit():
         name = rendition(photo.image, int(width)) or name
-    try:
-        handle = photo.image.storage.open(name, "rb")
-    except (FileNotFoundError, OSError):
-        raise Http404("This photo's file is missing.")
-    content_type = mimetypes.guess_type(name)[0] or "application/octet-stream"
-    if not content_type.startswith("image/"):
-        content_type = "application/octet-stream"
-    response = FileResponse(handle, content_type=content_type)
-    # The URL carries a version from the file name, so it can be kept long.
-    response["Cache-Control"] = "private, max-age=2592000, immutable" if request.GET.get("v") else "private, max-age=3600"
-    response["Content-Disposition"] = "inline"
-    return response
+    return deliver(request, photo.image.storage, name)
 
 
 @login_required

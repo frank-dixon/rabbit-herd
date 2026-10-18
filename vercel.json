@@ -1,5 +1,25 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "django",
-  "buildCommand": "sh vercel-build.sh"
+  "buildCommand": "sh vercel-build.sh",
+  "headers": [
+    {
+      "source": "/static/(.*)\\.([0-9a-f]{12})\\.(css|js|woff2|png|svg|jpg|jpeg|webp|ico)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
+  ]
 }

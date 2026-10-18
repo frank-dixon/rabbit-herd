@@ -86,8 +86,11 @@ async function page(request) {
 async function photo(request) {
   const cache = await caches.open(PHOTOS);
   const saved = await cache.match(request);
+  // The app URL is the stable key. With S3 it redirects to a short-lived signed
+  // link; the image that comes back (opaque, cross-origin) is kept under the
+  // app URL, so the photo still shows offline after the link expires.
   const fresh = fetch(request).then((response) => {
-    if (response.ok && !response.redirected) {
+    if (response.ok || response.type === "opaque") {
       cache.put(request, response.clone()).then(() => trim(PHOTOS, MAX_PHOTOS));
     }
     return response;
@@ -107,7 +110,7 @@ self.addEventListener("fetch", (event) => {
   }
   if (request.mode === "navigate") {
     event.respondWith(page(request));
-  } else if (/^\/rabbits\/(photos\/\d+|outside\/\d+\/photo)\/$/.test(url.pathname)) {
+  } else if (/^\/(rabbits\/(photos\/\d+|outside\/\d+\/photo)|litters\/\d+(\/kits\/\d+)?\/photo)\/$/.test(url.pathname)) {
     event.respondWith(photo(request));
   } else if (url.pathname.startsWith("/static/") || url.pathname === "/manifest.webmanifest") {
     event.respondWith(caches.match(request).then((saved) => saved || fetch(request)));

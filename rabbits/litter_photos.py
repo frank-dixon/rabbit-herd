@@ -6,12 +6,13 @@ parents' coats and tagged Placeholder. Photos are served only to their
 owner, like rabbit photos. Uploads go through the same cleaning as rabbit
 photos (size and type checks, metadata stripped)."""
 
-import mimetypes
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.http import FileResponse, Http404, JsonResponse
+from django.http import Http404, JsonResponse
+
+from .photo_delivery import deliver
 from django.shortcuts import get_object_or_404, redirect
 from django.templatetags.static import static
 from django.urls import reverse
@@ -99,15 +100,7 @@ def serve(request, field):
     width = request.GET.get("w", "")
     if width.isdigit():
         name = rendition(field, int(width)) or name
-    try:
-        handle = field.storage.open(name, "rb")
-    except (FileNotFoundError, OSError):
-        raise Http404("This photo's file is missing.")
-    content_type = mimetypes.guess_type(name)[0] or "application/octet-stream"
-    response = FileResponse(handle, content_type=content_type if content_type.startswith("image/") else "application/octet-stream")
-    response["Cache-Control"] = "private, max-age=2592000, immutable" if request.GET.get("v") else "private, max-age=3600"
-    response["Content-Disposition"] = "inline"
-    return response
+    return deliver(request, field.storage, name)
 
 
 def wants_json(request):

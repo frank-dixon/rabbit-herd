@@ -45,3 +45,41 @@ class PhotoStorageSettingsTests(SimpleTestCase):
         self.assertEqual(style, "path")
         self.assertIsNone(acl)
         self.assertEqual(bucket, "rabbit-photos")
+
+
+class SignedPhotoUrlTests(SimpleTestCase):
+    """With S3, the owner-checked view answers with a short-lived signed link."""
+
+    def test_signed_redirect_after_owner_check(self):
+        from unittest import mock
+
+        from django.test import RequestFactory, override_settings
+
+        from rabbits import photo_delivery
+
+        storage = mock.Mock()
+        storage.url.return_value = "https://bucket.example/rabbit-photos/1/x.webp?X-Amz-Signature=abc"
+        request = RequestFactory().get("/rabbits/photos/1/?w=320&v=1")
+        with override_settings(PHOTO_SIGNED_URLS=True, PHOTO_SIGNED_URL_SECONDS=3600):
+            response = photo_delivery.deliver(request, storage, "rabbit-photos/1/x.w320.webp")
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response["Location"].startswith("https://bucket.example/"))
+        storage.url.assert_called_once_with(
+            "rabbit-photos/1/x.w320.webp", parameters={"ResponseContentType": "image/webp"}, expire=3600)
+        self.assertEqual(response["Cache-Control"], "private, max-age=3300")
+        storage.open.assert_not_called()
+
+    def test_local_files_still_stream(self):
+        from unittest import mock
+
+        from django.test import RequestFactory, override_settings
+
+        from rabbits import photo_delivery
+
+        storage = mock.Mock()
+        storage.open.return_value = __import__("io").BytesIO(b"img")
+        with override_settings(PHOTO_SIGNED_URLS=False):
+            response = photo_delivery.deliver(RequestFactory().get("/x/?v=1"), storage, "a.jpg")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("immutable", response["Cache-Control"])
+        storage.url.assert_not_called()
