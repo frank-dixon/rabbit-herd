@@ -17,15 +17,16 @@ class RabbitListLayoutTests(TestCase):
             birth_date=date(2025, 3, 1),
         )
 
-    def test_one_list_view_with_the_agreed_row(self):
-        # Frank, 2026-10-18: one view only. No grid, no list toggle, no Roomy/Compact.
+    def test_list_is_the_default_with_the_agreed_row(self):
+        # Frank, 2026-10-18: compact list by default (phones included), a Grid/List toggle, no Roomy/Compact.
         page = self.client.get(reverse("rabbit_list"))
         body = page.content.decode()
         self.assertEqual(body.count("data-view="), 1)
         self.assertIn('data-view="list"', body)
         self.assertNotIn("data-view-controls", body)
         self.assertNotIn('aria-label="Grid size"', body)
-        self.assertNotIn('aria-label="Layout"', body)
+        self.assertIn('aria-label="Layout"', body)
+        self.assertNotIn("data-density", body.split("<body", 1)[1])
         self.assertIn("Blackberry", body)
         self.assertIn("Buck", body)
         self.assertIn('class="pill pill-g"', body)  # Breeding: green
@@ -35,10 +36,23 @@ class RabbitListLayoutTests(TestCase):
             self.assertIn(header, body)
 
     def test_old_view_and_density_links_are_harmless(self):
-        for params in ({"view": "grid"}, {"view": "table"}, {"density": "compact"}):
+        for params in ({"view": "table"}, {"density": "compact"}):
             body = self.client.get(reverse("rabbit_list"), params).content.decode()
             self.assertEqual(body.count("data-view="), 1)
             self.assertIn('data-view="list"', body)
+
+    def test_grid_uses_the_row_anatomy_and_the_plain_placeholder(self):
+        body = self.client.get(reverse("rabbit_list"), {"view": "grid"}).content.decode()
+        self.assertEqual(body.count("data-view="), 1)
+        self.assertIn('data-view="grid"', body)
+        card = body.split("data-grid-card", 1)[1].split("</li>", 1)[0]
+        for bit in ("Blackberry", "Buck", 'class="pill pill-g"', "coat-swatch", "is-empty"):
+            self.assertIn(bit, card)
+        self.assertNotIn("stripe", card)
+        # The choice is remembered for the account; ?view=list switches back.
+        self.assertIn('data-view="grid"', self.client.get(reverse("rabbit_list")).content.decode())
+        self.client.get(reverse("rabbit_list"), {"view": "list"})
+        self.assertIn('data-view="list"', self.client.get(reverse("rabbit_list")).content.decode())
 
     def test_latest_weight_is_one_small_query(self):
         from .models import Weight

@@ -26,6 +26,17 @@ class IndexPageTests(TestCase):
         self.owner.refresh_from_db()
         self.assertEqual(self.owner.ui_views, {"shows": "grid"})
 
+    def test_herd_pages_default_to_list_and_health_has_no_toggle(self):
+        # Frank, 2026-10-18: Grid/List on Rabbits, Pairings and Litters, list by default; Health and Weights get none.
+        for name in ("rabbit_list", "pairing_list", "litter_list"):
+            page = self.client.get(reverse(name))
+            self.assertEqual(page.context["view"], "list", name)
+            self.assertContains(page, 'aria-label="Layout"')
+        health = self.client.get(reverse("health_list") + "?view=grid")
+        self.assertEqual(health.context["view"], "list")
+        self.assertNotContains(health, 'aria-label="Layout"')
+        self.assertNotContains(self.client.get(reverse("weights_hub")), 'aria-label="Layout"')
+
     def test_resolve_closes_note_and_its_follow_up_task(self):
         task = Task.objects.create(owner=self.owner, title="Follow up", due_on=self.today, rabbit=self.rabbit)
         note = HealthNote.objects.create(rabbit=self.rabbit, date=self.today, kind="illness", notes="Snuffles", follow_up_on=self.today, task=task)

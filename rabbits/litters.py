@@ -99,7 +99,7 @@ def litter_card(litter, today):
 def litter_list(request):
     from .index_items import index_view, view_options
 
-    view = index_view(request, "litters", "grid")
+    view = index_view(request, "litters", "list")
     today = timezone.localdate()
     litters = list(Litter.objects.filter(owner=request.user).for_view(request.user)
                    .select_related("pairing__doe", "pairing__buck", "breeding_schedule")

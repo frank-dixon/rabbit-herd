@@ -225,7 +225,7 @@ def pairing_list(request):
 
     pairings = list(Pairing.objects.filter(owner=request.user).for_view(request.user).select_related("doe", "buck")
                     .prefetch_related("doe__photos", "buck__photos", "doe__genes", "buck__genes", "litters"))
-    view = index_view(request, "pairings", "grid")
+    view = index_view(request, "pairings", "list")
     items = pairing_items(request.user, pairings)
     count = lambda label: sum(1 for it in items if it["pill"]["label"] == label)
     stats = [stat("Bred, due soon", count("Bred"), "waiting to kindle"), stat("Kits on ground", count("Kits on ground"), "not yet weaned or moved"),

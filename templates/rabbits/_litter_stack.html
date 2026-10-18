@@ -1,6 +1,24 @@
-{% comment %} Growing-out kits of one litter, folded into one collapsible group row (rabbits/litter_stacks.py).
-   The toggle remembers its open state in localStorage (assets/litter-stack.mjs); a search or filter opens every group. {% endcomment %}
+{% comment %} Growing-out kits of one litter, folded into one entry (rabbits/litter_stacks.py): a collapsible group row
+   in the list, a stacked card with a kit band in the grid (mode="grid"). The toggle remembers its open state in
+   localStorage (assets/litter-stack.mjs); a search or filter opens every group. {% endcomment %}
 {% with key=stack.key first=stack.kits.0 %}{% with main=first.main_photo %}
+{% if mode == "grid" %}
+  <li class="litter-stack min-w-0" data-litter-stack="{{ key }}">
+    <button type="button" class="litter-stack-card mo-press relative block h-full w-full overflow-hidden rounded-lg border border-line bg-surface text-left hover:border-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" aria-expanded="{% if filtering %}true{% else %}false{% endif %}" aria-controls="litter-{{ key }}-band" data-litter-toggle="{{ key }}">
+      {% include "rabbits/_rabbit_thumb.html" with rabbit=first main=main size_class="block aspect-square w-full" sizes="(min-width: 1024px) 200px, (min-width: 640px) 33vw, 50vw" only %}
+      <span class="block p-2.5">
+        <span class="block truncate font-semibold"><span class="sr-only">Litter </span>{{ stack.title }}</span>
+        <span class="num block truncate text-sm text-muted">{{ stack.count }} kits · {{ stack.age_text }}</span>
+        <span class="mt-1.5 flex items-center gap-1.5"><span class="pill pill-{{ first.status_tone|default:'o' }}" data-status-chip data-status="{{ first.status }}">{{ first.status_tag }}</span><svg class="litter-chev ml-auto size-4 shrink-0 text-muted" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z"/></svg></span>
+      </span>
+    </button>
+  </li>
+  <li id="litter-{{ key }}-band" class="col-span-full rounded-lg border border-line bg-side p-2.5" data-litter-of="{{ key }}"{% if not filtering %} hidden{% endif %}>
+    <ul class="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5" aria-label="{{ stack.title }}">
+      {% for rabbit in stack.kits %}{% include "rabbits/_grid_card.html" with rabbit=rabbit %}{% endfor %}
+    </ul>
+  </li>
+{% else %}
   <li role="none" class="litter-stack-row" data-litter-stack="{{ key }}">
     <div role="row" class="list-row list-cols grid items-center px-3 hover:bg-side">
       <span role="cell" class="flex min-w-0 items-center gap-3">
@@ -20,4 +38,5 @@
     </div>
   </li>
   {% for rabbit in stack.kits %}{% include "rabbits/_list_row.html" with rabbit=rabbit litter_key=key %}{% endfor %}
+{% endif %}
 {% endwith %}{% endwith %}

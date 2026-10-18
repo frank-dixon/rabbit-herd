@@ -143,7 +143,10 @@ def ago_text(day, today):
 @login_required
 def rabbit_list(request):
     from rabbits.samples.context import sample_ctx
+
+    from .index_items import index_view, view_options
     filters = list_filters(request)
+    view = index_view(request, "rabbits", "list")  # list by default (and on phones); the grid is remembered per account
     mine = owned_rabbits(request.user)
     live = mine.filter(archived_at__isnull=True)
     # Active is the living herd; Former holds sold, culled and deceased rabbits.
@@ -216,7 +219,7 @@ def rabbit_list(request):
         "rabbits/list.html",
         {
             "rabbits": rabbits,
-            "entries": entries,
+            "entries": entries, "view": view, "view_options": view_options(request, view),
             "wide": True,
             "subtitle": subtitle,
             "filters": filters,

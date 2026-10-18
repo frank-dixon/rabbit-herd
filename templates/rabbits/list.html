@@ -78,6 +78,7 @@
           </div>
         </div>
       </details>
+      <div class="ml-auto shrink-0" data-swap="controls">{% if rabbits %}{% include "components/segmented.html" with label="Layout" options=view_options icon_only=True swap_sync=True only %}{% endif %}</div>
     </div>
     <div data-swap="chips">{% if filter_chips %}
       <ul class="mt-2 flex flex-wrap gap-1.5" aria-label="Active filters">
@@ -91,6 +92,14 @@
   <div data-swap="results" data-result-count="{{ rabbits|length }}">
   {% if rabbits %}
 
+    {% if view == "grid" %}
+    {# Grid (Frank, 2026-10-18): one card style with the list row's anatomy; a litter is a stacked card that opens a kit band. #}
+    <ul class="mo-stagger mt-4 grid grid-flow-row-dense grid-cols-2 gap-2.5 sm:grid-cols-3 md:gap-3 lg:grid-cols-5" data-view="grid">
+      {% for entry in entries %}
+        {% if entry.kind == "stack" %}{% include "rabbits/_litter_stack.html" with stack=entry mode="grid" %}{% else %}{% include "rabbits/_grid_card.html" with rabbit=entry %}{% endif %}
+      {% endfor %}
+    </ul>
+    {% else %}
     {% comment %} One list for every screen (Frank, 2026-10-18): thumb, name and tattoo, sex, age, latest weight, one status pill.
        Phones keep two lines; from 1024px the same cells line up as columns, denser at 1280. {% endcomment %}
     <div class="mt-4 overflow-hidden rounded-lg border border-line bg-surface" data-view="list" role="table" aria-label="Rabbits">
@@ -103,6 +112,7 @@
         {% endfor %}
       </ul>
     </div>
+    {% endif %}
   {% else %}
     {% if filtering %}
       {% with href="?"|add:clear_qs %}{% include "components/empty.html" with title="No rabbits match these filters." text="Try a different search, or clear it to see the whole herd." href=href action="Clear the search and filters" kind="filtered" secondary=True icon=ui_icons.rabbits only %}{% endwith %}

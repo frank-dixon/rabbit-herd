@@ -27,7 +27,6 @@ def short(day):
 def health_list(request):
     today = timezone.localdate()
     notes = list(HealthNote.objects.filter(rabbit__owner=request.user).select_related("rabbit", "task").prefetch_related("rabbit__photos").order_by("-date", "-pk")[:200])
-    view = index_view(request, "health", "list")
     tab = request.GET.get("tab", "open")
     tab = tab if tab in ("open", "resolved", "all") else "open"
     open_notes = [n for n in notes if not n.resolved]
@@ -39,7 +38,7 @@ def health_list(request):
                {"label": "State", "align": "r", "wide_only": True}, {"label": "", "align": "r"}]
     items = sorted_items(request, items, columns)
     return render(request, "hub/health.html", {
-        "notes": notes, "items": items, "wide": True, "view": view, "view_options": view_options(request, view),
+        "notes": notes, "items": items, "wide": True, "view": "list",  # Health has no layout toggle (Frank, 2026-10-18)
         "tabs": tabs(request, tab, [("open", "Open", len(open_notes)), ("resolved", "Resolved", len(notes) - len(open_notes)), ("all", "All", len(notes))]),
         "stats": [stat("Open", len(open_notes), "notes to watch"), stat("Overdue", overdue, "follow-ups past due", "r" if overdue else ""),
                   stat("Logged in 30 days", recent, "all types")],
