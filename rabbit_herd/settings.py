@@ -286,6 +286,10 @@ CACHES = {
     "ratelimit": {"BACKEND": "django.core.cache.backends.db.DatabaseCache", "LOCATION": "rate_limit_cache"},
 }
 
+# Who may tell us the visitor's IP for attempt limits (accounts.ratelimit.client_ip).
+TRUST_VERCEL_FORWARDED = env_flag("TRUST_VERCEL_FORWARDED", default=bool(os.environ.get("VERCEL")))
+TRUSTED_PROXIES = env_list("TRUSTED_PROXIES")
+
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"

@@ -11,6 +11,7 @@ a limiter outage must never lock people out.
 import hashlib
 import logging
 
+from django.conf import settings
 from django.core.cache import caches
 from django.db import DatabaseError
 from django.shortcuts import render
@@ -39,10 +40,24 @@ MESSAGES = {
 
 
 def client_ip(request):
-    """The visitor's IP. Vercel sets X-Forwarded-For with the client first; elsewhere REMOTE_ADDR."""
-    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    return (forwarded.split(",")[0].strip() or request.META.get("HTTP_X_REAL_IP", "")
-            or request.META.get("REMOTE_ADDR", "") or "unknown")
+    """The visitor's IP, using forwarding headers only from proxies we trust.
+
+    On Vercel (TRUST_VERCEL_FORWARDED, on when VERCEL is set) the edge overwrites
+    X-Forwarded-For with the real client, so its first entry is used. Behind a
+    proxy listed in TRUSTED_PROXIES (such as a local Caddy at 127.0.0.1), the
+    right-most entry that isn't one of those proxies is used. Anywhere else the
+    header can be forged, so REMOTE_ADDR wins.
+    """
+    remote = request.META.get("REMOTE_ADDR", "") or "unknown"
+    forwarded = [p.strip() for p in request.META.get("HTTP_X_FORWARDED_FOR", "").split(",") if p.strip()]
+    if getattr(settings, "TRUST_VERCEL_FORWARDED", False):
+        return forwarded[0] if forwarded else remote
+    trusted = set(getattr(settings, "TRUSTED_PROXIES", ()))
+    if remote in trusted:
+        for hop in reversed(forwarded):
+            if hop not in trusted:
+                return hop
+    return remote
 
 
 def _key(bucket, scope, value):
