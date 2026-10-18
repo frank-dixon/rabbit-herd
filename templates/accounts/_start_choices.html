@@ -1,0 +1,25 @@
+{% comment %}The first choice, on Welcome (/ signed out) and /start/ (Frank, 2026-10-18). Plain POST forms,
+so they work without JS. Pass demo_ready; marketing=True uses the Welcome page's own stylesheet.{% endcomment %}
+{% if marketing %}
+<div class="choices" data-start-choices>
+  {% if demo_ready %}<form method="post" action="{% url 'start_demo' %}">{% csrf_token %}<button type="submit" class="choice"><b>See a demo herd</b><span>Look around with sample rabbits. Nothing is saved.</span></button></form>{% endif %}
+  <form method="post" action="{% url 'guest' %}">{% csrf_token %}<button type="submit" class="choice pri"><b>Start my own herd</b><span>Add your own rabbits. Saved on this device.</span></button></form>
+</div>
+{% else %}
+  <div class="mt-6 grid gap-3" data-start-choices>
+    {% if demo_ready %}
+    <form method="post" action="{% url 'start_demo' %}">{% csrf_token %}
+      <button type="submit" class="choice-tile mo-press flex min-h-20 w-full cursor-pointer flex-col items-start justify-center gap-1 rounded-lg border border-field bg-surface px-4 py-3 text-left hover:border-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas">
+        <span class="choice-title text-lg font-semibold text-ink">See a demo herd</span>
+        <span class="text-sm text-muted">Look around with sample rabbits. Nothing is saved.</span>
+      </button>
+    </form>
+    {% endif %}
+    <form method="post" action="{% url 'guest' %}">{% csrf_token %}
+      <button type="submit" class="choice-tile is-primary mo-press flex min-h-20 w-full cursor-pointer flex-col items-start justify-center gap-1 rounded-lg border border-accent bg-accent px-4 py-3 text-left text-on-accent hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas">
+        <span class="choice-title text-lg font-semibold">Start my own herd</span>
+        <span class="text-sm opacity-90">Add your own rabbits. Saved on this device.</span>
+      </button>
+    </form>
+  </div>
+{% endif %}

@@ -76,14 +76,21 @@ class RegistryTests(TestCase):
 class FirstScreenTests(MediaMixin, TestCase):
     def test_offers_demo_and_own_herd_with_the_final_wording(self):
         make_baseline()
-        body = self.client.get(reverse("start")).content.decode()
-        self.assertIn("See a demo herd", body)
-        self.assertIn("Look around with sample rabbits. Nothing is saved.", body)
-        self.assertIn("Start my own herd", body)
-        self.assertIn("Add your own rabbits. Free during the beta.", body)
+        for url in (reverse("start"), reverse("index")):  # on /start/ and right on Welcome (Frank, 2026-10-18)
+            body = self.client.get(url).content.decode()
+            self.assertIn("See a demo herd", body)
+            self.assertIn("Look around with sample rabbits. Nothing is saved.", body)
+            self.assertIn("Start my own herd", body)
+            self.assertIn("Add your own rabbits. Saved on this device.", body)
+            self.assertIn(f'action="{reverse("start_demo")}"', body)
+            self.assertIn(f'action="{reverse("guest")}"', body)
+            self.assertIn("csrfmiddlewaretoken", body)
 
-    def test_marketing_start_button_goes_to_the_first_screen(self):
-        self.assertIn(f'href="{reverse("start")}"', self.client.get("/").content.decode())
+    def test_welcome_choice_starts_a_guest_herd(self):
+        page = self.client.get("/")
+        self.assertNotIn("Start free", page.content.decode())
+        response = self.client.post(reverse("guest"))
+        self.assertRedirects(response, reverse("index"), fetch_redirect_response=False)
 
     def test_without_a_baseline_only_own_herd_is_offered(self):
         body = self.client.get(reverse("start")).content.decode()

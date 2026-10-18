@@ -52,3 +52,17 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   .shot{margin-top:48px}section.f{padding:64px 0}h2{font-size:30px}
 }
 footer .legal{display:flex;gap:16px}
+
+/* The first choice, right on Welcome (accounts/_start_choices.html; Frank, 2026-10-18). */
+.choices{display:grid;gap:12px;max-width:440px;margin-top:4px}
+.choices form{margin:0}
+.choice{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;min-height:72px;padding:12px 16px;border:1px solid #C9CFC9;border-radius:10px;background:#fff;color:#18211C;font:inherit;text-align:left;cursor:pointer}
+.choice:hover{border-color:#5B6660}
+.choice:focus-visible{outline:2px solid #22573B;outline-offset:2px}
+.choice b{font-size:17px;font-weight:600}
+.choice span{font-size:14px;color:#5B6660}
+.choice.pri{background:#22573B;border-color:#22573B;color:#fff}
+.choice.pri:hover{background:#1C4A32}
+.choice.pri span{color:rgba(255,255,255,.9)}
+.choices+.cta{margin-top:12px}
+.end .choices{margin:0 auto}

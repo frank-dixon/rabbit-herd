@@ -26,7 +26,9 @@ def index(request):
         ctx = home_context(request.user)
         ctx.update(sample_ctx(request.user, "today"))
         return render(request, "home.html", ctx)
-    return render(request, "marketing/home.html")
+    from accounts.demo import baseline
+
+    return render(request, "marketing/home.html", {"demo_ready": baseline() is not None})
 
 
 # Settings sections in page order: (group, anchor, label, template). The sub-nav and the page
