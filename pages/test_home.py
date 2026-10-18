@@ -35,17 +35,8 @@ class HomeTests(TestCase):
         herd = page.context["herd"]
         self.assertEqual((herd["active"], herd["does"], herd["bucks"], herd["deceased"], herd["archived"]), (3, 2, 1, 1, 1))
         self.assertEqual([(s["label"], s["count"]) for s in herd["statuses"]], [("Breeding", 2), ("Growing out", 1)])
-        self.assertContains(page, "3 rabbits</a> · 2 does · 1 buck · 2 breeding · 1 growing out")
+        self.assertNotContains(page, "data-herd-summary")  # the tiles carry these counts (Critic T4)
         self.assertNotContains(page, "Stranger")
-
-    def test_recent_lists_newest_first_and_links_to_the_rabbit(self):
-        older = self.add("Older")
-        Rabbit.objects.filter(pk=older.pk).update(created_at=timezone.now() - datetime.timedelta(days=3))
-        newer = self.add("Newer")
-        recent = self.client.get(reverse("index")).context["recent"]
-        self.assertEqual([item["title"] for item in recent[:2]], ["Added Newer to the herd", "Added Older to the herd"])
-        self.assertEqual(recent[0]["when"], "Today")
-
 
     def test_today_sections_from_real_data(self):
         from rabbits.models import HealthNote, Litter, Pairing, Task, Weight

@@ -163,7 +163,10 @@ def due_count(user):
     today = timezone.localdate()
     from rabbits import derived
 
-    items = derived.peek(("open_items", user.pk, today, None, True))  # the page's own list, when it made one
+    # The page's own list, when it made one (with or without photos).
+    items = derived.peek(("open_items", user.pk, today, None, True))
+    if items is None:
+        items = derived.peek(("open_items", user.pk, today, None, False))
     if items is None:
         items = open_items(user, today, samples=False, photos=False)
     return sum(1 for item in items if item["date"] <= today and not item.get("sample"))
