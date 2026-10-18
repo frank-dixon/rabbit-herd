@@ -6,7 +6,7 @@ import datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -46,6 +46,34 @@ def health_photos(request):
 def health_add(request, pk):
     rabbit = get_object_or_404(Rabbit, owner=request.user, pk=pk)
     back = redirect(f"/rabbits/{rabbit.pk}/#health")
+    return add_note(request, rabbit, back, back)
+
+
+def herd_options(user):
+    """Rabbits a new health note can be for: in the herd, not archived."""
+    rabbits = Rabbit.objects.filter(owner=user, archived_at__isnull=True).exclude(status__in=Rabbit.FORMER).order_by("name")
+    return [(str(pk), name) for pk, name in rabbits.values_list("pk", "name")]
+
+
+@login_required
+def health_new(request):
+    """Add a health note from the Health page: pick the rabbit, then the same fields as on its page.
+    Opens in the shared modal; saving returns to Health."""
+    options = herd_options(request.user)
+    if request.method == "POST":
+        retry = redirect("health_new")
+        rabbit = Rabbit.objects.filter(owner=request.user, archived_at__isnull=True, pk=request.POST.get("rabbit") or 0).first() \
+            if str(request.POST.get("rabbit", "")).isdigit() else None
+        if rabbit is None:
+            messages.error(request, "Choose the rabbit this note is for.")
+            return retry
+        return add_note(request, rabbit, redirect("health_list"), retry)
+    return render(request, "hub/health_new.html", {
+        "rabbit_options": options, "health_kinds": HealthNote.Kind.choices, "today_iso": timezone.localdate().isoformat(),
+    })
+
+
+def add_note(request, rabbit, back, fail):
     day = parse(request.POST.get("health_date"))
     kind = request.POST.get("health_kind", "")
     notes = request.POST.get("notes", "").strip()[:1000]
@@ -71,7 +99,7 @@ def health_add(request, pk):
         if queued:
             return sync.invalid(f"The health note wasn't saved. {error}")
         messages.error(request, error)
-        return back
+        return fail
     with transaction.atomic():
         if not sync.claim(request, "health"):
             return sync.duplicate() if queued else back

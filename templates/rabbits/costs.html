@@ -7,7 +7,7 @@
   {% url 'cost_new' as new_href %}
   <div data-refresh="costs">
   {% if expenses %}
-    {% include "components/page_header.html" with title="Costs" primary_label="New cost" primary_href=new_href primary_modal=True subtitle="Feed purchases and other spending, with simple totals." only %}
+    {% include "components/page_header.html" with title="Costs" primary_label="New cost" primary_href=new_href primary_modal=True primary_pin=True subtitle="Feed purchases and other spending, with simple totals." only %}
     <dl class="stat-grid" aria-label="Totals" data-cost-totals>
       {% include "components/stat_card.html" with label=totals.month_label value=totals.month|money bars=totals.month_bars only %}
       {% include "components/stat_card.html" with label=totals.year_label value=totals.year|money only %}

@@ -16,7 +16,7 @@ import { reducedMotion } from "./motion.mjs";
 import { showToast } from "./toast.mjs";
 import { bindRabbitFlow } from "./rabbit-flow.mjs";
 
-const EDIT_PATH = /^\/rabbits\/\d+\/(edit|change|genes|status)\b|^\/relatives\/\d+\/add-to-herd\/|^\/costs\/(new|\d+\/edit)\//;
+const EDIT_PATH = /^\/rabbits\/\d+\/(edit|change|genes|status)\b|^\/relatives\/\d+\/add-to-herd\/|^\/costs\/(new|\d+\/edit)\/|^\/health\/new\//;
 
 export function staysInModal(url, base) {
   const target = new URL(url, base);

@@ -1,5 +1,17 @@
-{# The shared list rows for index pages: columns [{label, align, wide_only}], items with cells in the same order. #}
-<div class="wt-card it-rows"><table class="wt-table">
+{# The shared list rows for index pages: columns [{label, align, wide_only}], items with cells in the same order. stacked: on phones, stacked rows (title, pill, the item's mobile line, its foot and action) instead of a narrow table. #}
+<div class="wt-card it-rows{% if stacked %} max-md:hidden{% endif %}"><table class="wt-table">
   <thead><tr>{% for c in columns %}{% if c.h %}{% include "components/sort_th.html" with h=c.h cls=c.cls only %}{% else %}<th class="{{ c.cls }}">{{ c.label }}</th>{% endif %}{% endfor %}</tr></thead>
   <tbody>{% for it in items %}<tr class="{% if it.dim %}is-dim{% endif %}">{% for cell in it.cells %}{% include "components/item_cell.html" with it=it cell=cell %}{% endfor %}</tr>{% endfor %}</tbody>
 </table></div>
+{% if stacked %}<ul class="wt-card it-stack md:hidden">{% for it in items %}
+  <li class="it-stack-row{% if it.dim %} is-dim{% endif %}">
+    <a class="it-stack-main" href="{{ it.href }}">{% include "components/item_thumbs.html" with thumbs=it.thumbs swatch=it.swatch only %}
+      <span class="min-w-0 flex-1"><span class="flex flex-wrap items-center gap-x-2 gap-y-1"><span class="it-title">{{ it.title }}</span>{% if it.pill.label %}<span class="pill{% if it.pill.tone %} pill-{{ it.pill.tone }}{% endif %}">{{ it.pill.label }}</span>{% endif %}</span>
+        {% if it.sub %}<span class="it-sub">{{ it.sub }}</span>{% endif %}
+        {% if it.text %}<span class="it-stack-text">{{ it.text }}</span>{% endif %}
+        {% if it.foot.text or it.foot.end.label %}<span class="it-stack-foot"><span class="{% if it.foot.tone == 'r' %}text-danger{% else %}text-muted{% endif %}">{{ it.foot.text }}</span>{% if it.foot.end.label %}<span class="pill{% if it.foot.end.tone %} pill-{{ it.foot.end.tone }}{% endif %}">{{ it.foot.end.label }}</span>{% endif %}</span>{% endif %}
+      </span>
+    </a>
+    {% if it.action %}<div class="it-stack-act">{% include "components/item_action.html" with a=it.action %}</div>{% endif %}
+  </li>{% endfor %}
+</ul>{% endif %}
