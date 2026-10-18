@@ -350,7 +350,10 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
   .temp-rail { position: fixed; left: 0; right: 0; bottom: var(--tabbar-h); z-index: 21; height: 24px; min-height: 24px; padding: 0 12px; gap: 10px;
     font-size: 11px; line-height: 24px; background: var(--color-surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
   .temp-rail-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .temp-rail-action::after { inset: -6px -8px; }
+  /* 44px hit area: the 24px link reaches 10px past the rail on each side, invisibly; the rail stays 24px
+     and sits above its neighbours so the reach wins. */
+  .temp-rail { z-index: 22; }
+  .temp-rail-action::after { inset: -10px -8px; }
   /* Without a tab bar the rail is the bottom edge, so it carries the home-indicator inset. */
   body:not(:has([data-app-tabs])) .temp-rail { height: calc(24px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); }
   body:not(:has([data-app-tabs])):has(.temp-rail) { --rail-h: calc(24px + env(safe-area-inset-bottom)); }

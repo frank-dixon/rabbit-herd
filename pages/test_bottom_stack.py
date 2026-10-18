@@ -27,6 +27,12 @@ class BottomStackTests(SimpleTestCase):
         self.assertNotIn("var(--surface)", block)  # not a token; the stack must be opaque
         self.assertGreaterEqual(block.count("background: var(--color-surface)") + block.count("background-color: var(--color-surface)"), 3)
 
+    def test_rail_link_has_a_44px_hit_area(self):
+        css = (ROOT / "assets" / "layout.css").read_text()
+        block = css[css.index("Phone bottom stack"):css.index("Tap targets: 44px")]
+        self.assertIn(".temp-rail-action::after { inset: -10px -8px; }", block)  # 24 + 2 x 10
+        self.assertIn("height: 24px; min-height: 24px", block)
+
     def test_the_measurer_is_bound(self):
         js = (ROOT / "assets" / "app.js").read_text()
         self.assertIn('import { bindBottomStack } from "./bottom-stack.mjs";', js)

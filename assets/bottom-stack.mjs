@@ -16,7 +16,9 @@ export function measureStack(doc, win = window) {
   const tabs = fixedHeight(win, doc.querySelector("[data-app-tabs]"));
   const rail = fixedHeight(win, doc.querySelector(".temp-rail"));
   const action = Math.max(fixedHeight(win, doc.querySelector(".pin-main")), fixedHeight(win, doc.querySelector("[data-action-bar]")));
-  const px = (n) => `${Math.round(n)}px`;
+  // Real (sub-pixel) heights, rounded down: rounding a 57.5px tab bar up to 58 left a half-pixel strip of
+  // page showing between the rail and the tab bar (Critic v3).
+  const px = (n) => `${Math.floor(n * 100) / 100}px`;
   body.style.setProperty("--tabbar-h", px(tabs));
   body.style.setProperty("--rail-h", px(rail));
   body.style.setProperty("--action-h", px(action));

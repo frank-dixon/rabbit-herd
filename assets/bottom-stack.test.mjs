@@ -18,6 +18,13 @@ test("stacks the tab bar, rail and pinned button", () => {
   assert.equal(vars["--rail-h"], "24px");
 });
 
+test("sub-pixel heights are kept, so the layers meet with no strip between them", () => {
+  const { doc, win, vars } = fakeDoc({ tabs: [57.5], rail: [24], pin: [48] });
+  measureStack(doc, win);
+  assert.equal(vars["--tabbar-h"], "57.5px");
+  assert.equal(vars["--stack-h"], "129.5px");
+});
+
 test("a form action bar counts, and a hidden or static one doesn't", () => {
   assert.equal(measureStack(fakeDoc({ rail: [24], bar: [76] }).doc, fakeDoc({}).win).total, 100);
   assert.equal(measureStack(fakeDoc({ tabs: [64, "fixed", "none"], bar: [76, "static"] }).doc, fakeDoc({}).win).total, 0);
