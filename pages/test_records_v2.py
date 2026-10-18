@@ -86,3 +86,14 @@ class RecordsTests(TestCase):
 
     def test_litters_pins_new_litter(self):
         self.pinned(self.client.get(reverse("litter_list")).content.decode(), "New litter")
+
+    def test_open_pill_is_grey_until_the_follow_up_is_due(self):
+        from rabbits.hub_views import health_item
+
+        today = timezone.localdate()
+        note = lambda follow: HealthNote.objects.create(rabbit=self.rabbit, date=today, kind="checkup", follow_up_on=follow)
+        tone = lambda follow: health_item(note(follow), today)["foot"]["end"]["tone"]
+        self.assertEqual(tone(None), "")
+        self.assertEqual(tone(today + datetime.timedelta(days=3)), "")
+        self.assertEqual(tone(today), "y")
+        self.assertEqual(tone(today - datetime.timedelta(days=2)), "r")

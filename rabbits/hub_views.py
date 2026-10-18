@@ -51,11 +51,13 @@ def health_item(note, today):
     if note.resolved:
         state, follow, tone = {"label": "Resolved", "tone": ""}, "—", ""
     else:
-        state = {"label": "Open", "tone": status_tone("watch")}
+        # Open is grey until its follow-up comes due: amber on the day, red once overdue (Critic v3 V2).
+        state = {"label": "Open", "tone": ""}
         if note.follow_up_on:
             days = (note.follow_up_on - today).days
             follow = f"Overdue {-days} day{'s' if days != -1 else ''}" if days < 0 else "Follow up today" if days == 0 else f"Follow up in {days} day{'s' if days != 1 else ''}"
             tone = "r" if days < 0 else ""
+            state["tone"] = "r" if days < 0 else "y" if days == 0 else ""
         else:
             follow, tone = "No follow-up set", ""
     kind = {"label": note.get_kind_display(), "tone": status_tone(note.get_kind_display())}
