@@ -1,7 +1,7 @@
-{# Radio choices as large tiles. Pass name, legend, tiles (each with value, label, hint, checked), errors, quiet to hide the legend visually when a heading already asks, and stack to keep one tile per row. #}
+{# Radio choices as large tiles. Pass name, legend, tiles (each with value, label, hint, checked), errors, quiet to hide the legend visually when a heading already asks, and stack to keep one tile per row. Two tiles share a row on phones only when neither has a hint (Critic v3). #}
 <fieldset id="id_{{ name }}"{% if errors %} aria-describedby="id_{{ name }}_error"{% endif %}>
   <legend class="{% if quiet %}sr-only{% else %}block text-lg font-semibold text-neutral-900{% endif %}">{{ legend }}</legend>
-  <div class="mt-2 grid gap-2 {% if stack %}grid-cols-1{% elif tiles|length == 2 %}grid-cols-2{% else %}grid-cols-1 sm:grid-cols-2{% endif %}">
+  <div class="mt-2 grid gap-2 {% if stack %}grid-cols-1{% elif tiles|length == 2 and not tiles.0.hint and not tiles.1.hint %}grid-cols-2{% else %}grid-cols-1 sm:grid-cols-2{% endif %}">
     {% for tile in tiles %}
       <label for="id_{{ name }}_{{ forloop.counter0 }}" class="flex min-h-16 cursor-pointer items-start gap-3 rounded-lg border border-neutral-400 bg-white px-4 py-4 text-lg has-checked:border-neutral-900 has-checked:bg-neutral-100 has-focus-visible:ring-2 has-focus-visible:ring-accent">
         <input class="mt-1 h-5 w-5 shrink-0 accent-neutral-900" type="radio" id="id_{{ name }}_{{ forloop.counter0 }}" name="{{ name }}" value="{{ tile.value }}"{% if tile.checked %} checked{% endif %}{% if errors %} aria-invalid="true"{% endif %}>
