@@ -1,6 +1,6 @@
 {# One quiet line for guest and demo sessions: never blocks anything. Above the tab bar on phones, along the bottom of the content on wider screens. Wording: pages/copy.py RAIL. #}
 <div data-print-hide class="temp-rail" data-temp-rail="{{ temp_rail.kind }}" role="note">
-  <span class="min-w-0 truncate">{{ temp_rail.text }}</span>
+  <span class="temp-rail-text min-w-0 truncate">{{ temp_rail.text }}</span>
   {% if temp_rail.kind == "demo" %}
     <form method="post" action="{% url 'guest' %}" class="shrink-0">{% csrf_token %}<button type="submit" class="temp-rail-action">{{ temp_rail.action }}</button></form>
   {% else %}
