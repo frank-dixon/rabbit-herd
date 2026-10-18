@@ -40,7 +40,7 @@ class AppShellTests(TestCase):
         tabs = html[html.index("data-app-tabs"):]
         self.assertEqual([t for t in ("today", "rabbits", "litters", "weights", "tasks") if f'data-tab="{t}"' in tabs],
                          ["today", "rabbits", "litters", "weights", "tasks"])
-        self.assertIn('1<span class="sr-only"> due</span>', tabs)
+        self.assertIn('1<span class="sr-only"> overdue or due today</span>', tabs)
 
     def test_menu_button_works_without_js(self):
         html = self.client.get(reverse("rabbit_list")).content.decode()
