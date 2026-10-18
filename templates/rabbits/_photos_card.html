@@ -32,7 +32,7 @@
         </a>
         {% if photo.is_main %}<span class="pointer-events-none absolute left-2.5 top-2.5 rounded bg-accent px-1.5 py-0.5 text-xs font-semibold text-on-accent">Main</span>{% endif %}
         <span class="photo-tile-cap block truncate text-muted" data-date-badge title="{{ photo.date_badge }}"><span class="hidden sm:inline">{{ photo.badge_parts.0 }} </span><span class="sr-only sm:hidden">{{ photo.badge_parts.0 }} </span>{{ photo.badge_parts.1 }}</span>
-        {% if photo.is_credit %}<details class="photo-credit-pop photo-tile-cap"><summary class="cursor-pointer list-none text-muted hover:text-ink [&::-webkit-details-marker]:hidden">Credit</summary><p class="mt-1 text-xs text-muted break-words">{{ photo.notes }}</p></details>{% elif photo.notes %}<p class="photo-tile-cap -mt-1 truncate text-muted" title="{{ photo.notes }}">{{ photo.notes }}</p>{% endif %}
+        {% if photo.notes %}<p class="photo-tile-cap -mt-1 truncate text-muted" title="{{ photo.notes }}">{{ photo.notes }}</p>{% endif %}
 
         <dialog id="photo-{{ photo.pk }}-options" class="fixed inset-0 z-30 m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded border border-neutral-300 bg-white p-4 text-neutral-800 shadow-lg backdrop:bg-neutral-900/50 target:block" aria-labelledby="photo-{{ photo.pk }}-title">
           <div class="flex items-center justify-between gap-3">

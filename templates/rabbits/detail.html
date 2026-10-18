@@ -15,14 +15,8 @@
       <figure class="overflow-hidden sm:w-2/5 sm:shrink-0 lg:w-full">
         {% if main_photo %}
           <img draggable="false" class="aspect-[16/10] max-h-[200px] w-full object-cover sm:aspect-square sm:max-h-none" {% photo_src main_photo "(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" %} alt="{{ rabbit.name }}, main photo" fetchpriority="high" decoding="async">
-          {% if main_photo.is_credit %}
-          <figcaption class="photo-credit px-1 pt-1.5">
-            <details class="photo-credit-pop inline-block">
-              <summary class="cursor-pointer list-none text-xs font-medium text-muted hover:text-ink [&::-webkit-details-marker]:hidden">Credit</summary>
-              <p class="mt-1 max-w-full text-xs text-muted">{{ main_photo.notes }}</p>
-            </details>
-          </figcaption>
-          {% elif main_photo.notes %}<figcaption class="photo-credit px-1 pt-2 text-xs text-muted">{{ main_photo.notes }}</figcaption>{% endif %}
+          {# The credit itself, in full (attribution must stay readable), never a bare "Credit" toggle (Critic v3 V1). #}
+          {% if main_photo.notes %}<figcaption class="photo-credit px-1 pt-1.5 text-xs text-muted">{{ main_photo.notes }}</figcaption>{% endif %}
         {% else %}
           {% coat_swatch rabbit "aspect-[16/10] max-h-[200px] w-full sm:aspect-square sm:max-h-none" %}
         {% endif %}

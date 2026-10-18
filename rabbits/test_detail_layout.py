@@ -75,3 +75,21 @@ class FoldTests(TestCase):
         # Add forms sit behind an Add button even when the section is open.
         self.assertIn('data-add-fold>', body)
         self.assertIn(">Add health note</summary>", body.replace("</svg>", ">").replace(">>", ">"))
+
+
+class PhotoCreditTests(TestCase):
+    """Critic v3 V1: no bare "Credit" toggle; the credit text itself shows under the photo."""
+
+    def test_credit_text_shows_without_a_bare_label(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from .models import RabbitPhoto
+
+        user = get_user_model().objects.create_user("credit@example.com", "pw-12345678")
+        self.client.force_login(user)
+        rabbit = Rabbit.objects.create(owner=user, name="Cinder", sex="doe", breed="Rex", birth_date=date(2025, 1, 1))
+        RabbitPhoto.objects.create(rabbit=rabbit, image=SimpleUploadedFile("c.gif", b"GIF89a\x01\x00\x01\x00\x00\x00\x00;", content_type="image/gif"),
+                                   notes="Demo photo: A. Person, CC0, via Wikimedia Commons (a doe).", is_main=True)
+        body = self.client.get(reverse("rabbit_detail", args=[rabbit.pk])).content.decode()
+        self.assertNotIn(">Credit<", body)
+        self.assertIn("Demo photo: A. Person, CC0, via Wikimedia Commons (a doe).", body)
