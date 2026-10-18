@@ -82,3 +82,25 @@ def deactivate_empty_guests(now=None):
     now = now or timezone.now()
     ids = [g.pk for g in idle_empty_guests(now)]
     return User.objects.filter(pk__in=ids).update(is_active=False, deactivated_at=now)
+
+
+def carry_line(rabbits, litters):
+    """The signup line that tells a guest their herd comes along (Copyrighter, 2026-10-18):
+    "Your 12 rabbits and 3 litters move into your new account." A part with a zero count is left
+    out; one part with a count of 1 takes "moves"; nothing at all gets the general line."""
+    parts = [f"{n} {word}{'' if n == 1 else 's'}" for n, word in ((rabbits, "rabbit"), (litters, "litter")) if n]
+    if not parts:
+        return "Everything you've added so far moves into your new account."
+    verb = "moves" if len(parts) == 1 and (rabbits or litters) == 1 else "move"
+    return f"Your {' and '.join(parts)} {verb} into your new account."
+
+
+def carry_line_for(user):
+    """carry_line for a guest's own records (not samples). None for anyone else, demo accounts included."""
+    if not getattr(user, "is_authenticated", False) or not user.is_guest or user.is_demo:
+        return None
+    from rabbits.models import Litter, Rabbit
+
+    rabbits = Rabbit.objects.filter(owner=user, is_sample=False).count()
+    litters = Litter.objects.filter(owner=user, is_sample=False).count()
+    return carry_line(rabbits, litters)

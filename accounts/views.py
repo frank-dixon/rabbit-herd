@@ -106,6 +106,13 @@ class SignupView(FormView):
             return redirect("index")
         return super().dispatch(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        from .guest import carry_line_for
+
+        context = super().get_context_data(**kwargs)
+        context["guest_carry"] = carry_line_for(self.request.user)
+        return context
+
     def form_valid(self, form):
         existing = form.existing_user
         user = self.request.user

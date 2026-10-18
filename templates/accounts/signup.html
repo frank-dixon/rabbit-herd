@@ -3,6 +3,7 @@
 {% block auth_title %}Create an account{% endblock %}
 {% block auth_form %}
   {% url 'signup' as signup_url %}
+  {% if guest_carry %}<p class="mt-2 text-sm text-muted" data-guest-carry>{{ guest_carry }}</p>{% endif %}
   <form method="post" action="{{ signup_url }}" class="mt-6 space-y-5" data-auth-form novalidate>
     {% csrf_token %}
     {% include "accounts/_auth_field.html" with field=form.email type="email" autocomplete="username" inputmode="email" only %}
