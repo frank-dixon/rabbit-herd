@@ -8,9 +8,9 @@
       <th><span class="sr-only">Log weight</span></th>
     </tr></thead>
     <tbody>{% for row in rows %}{% with r=row.rabbit %}
-      <tr data-weight-row="{{ r.pk }}">
+      <tr data-weight-row="{{ r.pk }}" data-row-tap>
         <td class="wt-check"><input type="checkbox" name="ids" value="{{ r.pk }}" form="weigh-group" aria-label="Select {{ r.name }}"></td>
-        <td><a class="wt-name" href="{% url 'rabbit_detail' r.pk %}#weights">{% include "rabbits/_rabbit_thumb.html" with rabbit=r main=r.main_photo size_class="wt-thumb shrink-0 text-sm" only %}<span class="min-w-0"><span class="block font-semibold">{{ r.name }}</span><span class="block text-xs text-muted">{{ r.short_breed }}</span></span></a></td>
+        <td><a class="wt-name" href="{% url 'rabbit_detail' r.pk %}#weights" data-row-open>{% include "rabbits/_rabbit_thumb.html" with rabbit=r main=r.main_photo size_class="wt-thumb shrink-0 text-sm" only %}<span class="min-w-0"><span class="block font-semibold">{{ r.name }}</span><span class="block text-xs text-muted">{{ r.short_breed }}</span></span></a></td>
         <td class="wt-hl text-muted">{{ r.get_sex_display }}</td>
         <td class="r num" title="{{ r.age_title }}">{{ r.age_text }}</td>
         <td class="r num font-semibold">{{ row.text|default:"—" }}</td>

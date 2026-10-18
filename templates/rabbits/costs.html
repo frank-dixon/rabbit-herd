@@ -23,7 +23,7 @@
     {% include "components/list_panel_start.html" with title="Recent costs" count=expenses|length id="costs-heading" hook="costs" empty="No costs yet." only %}
       {% for expense in expenses %}
         {% url 'cost_edit_form' expense.pk as edit_href %}
-        <li class="panel-row" data-row>
+        <li class="panel-row" data-row data-row-tap>
           <div class="min-w-0 row-span-2">
             <a class="panel-row-link panel-row-title block" href="{{ edit_href }}" data-modal>{{ expense.description }}</a>
             <p class="panel-row-meta">{{ expense.date|date:"D, M j" }} · {{ expense.get_category_display }}{% if expense.per_lb %} · {{ expense.weight_lb|floatformat:"-2" }} lb at {{ expense.per_lb|money }}/lb{% endif %}{% if expense.rabbit %} · {{ expense.rabbit.name }}{% endif %}{% if expense.litter %} · {{ expense.litter.pairing }} litter{% endif %}</p>

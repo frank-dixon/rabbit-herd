@@ -126,6 +126,43 @@ def weight_add(request, pk):
 
 @login_required
 @require_POST
+def weight_edit(request, pk):
+    """Save changes to one weight (the row's Edit opens the weights form with ?weight=<id>)."""
+    weight = get_object_or_404(Weight, rabbit__owner=request.user, pk=pk)
+    rabbit = weight.rabbit
+    form = WeightForm(request.POST, rabbit=rabbit)
+    if form.is_valid():
+        data = form.cleaned_data
+        weight.date, weight.grams, weight.unit, weight.note = data["day"], data["grams"], data["unit"], data["note"]
+        weight.save(update_fields=["date", "grams", "unit", "note"])
+        messages.success(request, f"{weight_text(weight.grams, prefs(request.user).weight_unit)} on {weight.date:%b} {weight.date.day} was saved.")
+        return redirect(f"/rabbits/{rabbit.pk}/#weights")
+    first = next(iter(form.errors.values()))[0]
+    request.session["weight_form"] = {
+        "rabbit": rabbit.pk, "editing": weight.pk,
+        "values": {key: request.POST.get(key, "") for key in ("date", "lb", "oz", "kg", "note")},
+        "errors": {field: errors[0] for field, errors in form.errors.items()},
+    }
+    messages.error(request, f"The weight wasn't saved. {first}", extra_tags="toast")
+    return redirect(f"/rabbits/{rabbit.pk}/?weight={weight.pk}#weights")
+
+
+def edit_values(weight, unit):
+    """The weights form's fields for an existing weight, in the unit the form shows."""
+    values = {"date": weight.date.isoformat(), "note": weight.note}
+    grams = Decimal(weight.grams)
+    if unit == "kg":
+        values["kg"] = f"{(grams / 1000).quantize(Decimal('0.001')).normalize():f}"
+    else:
+        ounces = grams / GRAMS_PER_OUNCE
+        lb = int(ounces // 16)
+        oz = (ounces - lb * 16).quantize(Decimal("0.1")).normalize()
+        values["lb"], values["oz"] = str(lb), f"{oz:f}"
+    return values
+
+
+@login_required
+@require_POST
 def weight_delete(request, pk):
     weight = get_object_or_404(Weight, rabbit__owner=request.user, pk=pk)
     weight.delete()

@@ -3,7 +3,7 @@
   {% if show_entries %}
     <ul class="mt-3 divide-y divide-neutral-200 text-sm" data-show-entries>
       {% for entry in show_entries %}
-        <li class="flex items-start justify-between gap-3 py-2{% if entry == show_editing %} bg-neutral-100{% endif %}">
+        <li data-row-tap class="flex items-start justify-between gap-3 py-2{% if entry == show_editing %} bg-neutral-100{% endif %}">
           <div class="min-w-0">
             <p><span class="font-medium">{{ entry.show_name }}</span> · {{ entry.date|day }}{% if entry.location %} · {{ entry.location }}{% endif %}</p>
             {% if entry.show_class or entry.placing or entry.award or entry.leg %}

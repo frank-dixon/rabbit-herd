@@ -3,7 +3,7 @@
   {% if health_notes %}
     <ul class="mt-3 divide-y divide-neutral-200 text-sm" data-health-notes>
       {% for note in health_notes %}
-        <li class="flex items-start justify-between gap-3 py-2">
+        <li data-row-tap class="flex items-start justify-between gap-3 py-2">
           <div class="min-w-0">
             <p>{% status_pill note.get_kind_display %} · {{ note.date|date:"D, M j" }}</p>
             {% if note.notes %}<p class="whitespace-pre-line break-words text-neutral-800">{{ note.notes }}</p>{% endif %}

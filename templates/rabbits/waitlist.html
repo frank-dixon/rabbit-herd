@@ -36,7 +36,7 @@
   <div data-refresh="waitlist">
     {% include "components/list_panel_start.html" with title="Waiting" count=open_entries|length id="open-heading" hook="waitlist-open" empty="Nobody is waiting." only %}
       {% for entry in open_entries %}
-        <li class="panel-row" data-row>
+        <li class="panel-row" data-row data-row-tap>
           <div class="min-w-0 row-span-2">
             <a class="panel-row-link panel-row-title block" href="?edit={{ entry.pk }}#form" data-modal><span class="text-muted">#{{ entry.position }}</span> {{ entry.buyer }}</a>
             <p class="panel-row-meta">Wants {{ entry.wants }} · asked {{ entry.requested_on|date:"D, M j" }}{% if entry.reach %} · {{ entry.reach }}{% endif %}{% if entry.rabbit %} · <a class="underline-offset-2 hover:underline" href="{% url 'rabbit_detail' entry.rabbit.pk %}">{{ entry.rabbit.name }}</a>{% endif %}</p>
@@ -52,7 +52,7 @@
     {% if closed_entries %}
       {% include "components/list_panel_start.html" with title="Closed" count=closed_entries|length id="closed-heading" hook="waitlist-closed" only %}
         {% for entry in closed_entries %}
-          <li class="panel-row" data-row>
+          <li class="panel-row" data-row data-row-tap>
             <div class="min-w-0">
               <a class="panel-row-link panel-row-title block" href="?edit={{ entry.pk }}#form" data-modal>{{ entry.buyer }}</a>
               <p class="panel-row-meta">Wanted {{ entry.wants }}{% if entry.rabbit %} · <a class="underline-offset-2 hover:underline" href="{% url 'rabbit_detail' entry.rabbit.pk %}">{{ entry.rabbit.name }}</a>{% endif %}</p>

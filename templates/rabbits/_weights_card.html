@@ -22,9 +22,9 @@
     {% endwith %}
     <ul class="mt-3 divide-y divide-neutral-200 text-sm" data-weight-list>
       {% for weight in weights|slice:":6" %}
-        <li class="flex items-start justify-between gap-3 py-2">
+        <li class="flex items-center justify-between gap-3 py-2{% if weight == weight_editing %} bg-neutral-100{% endif %}" data-row-tap>
           <span class="min-w-0"><span class="font-medium">{{ weight.grams|weigh:request.user }}</span> · {{ weight.date|day }}{% if weight.note %}<span class="block break-words text-neutral-600">{{ weight.note }}</span>{% endif %}</span>
-          {% url 'rabbit_weight_delete' weight.pk as remove_action %}{% include "components/row_actions.html" with name="this weight" remove_action=remove_action undo="Weight removed." only %}
+          {% url 'rabbit_weight_delete' weight.pk as remove_action %}{% with pk=weight.pk|stringformat:"d" %}{% with edit_href="?weight="|add:pk|add:"#weights" %}{% include "components/row_actions.html" with name="this weight" edit_href=edit_href modal_key="weights" remove_action=remove_action undo="Weight removed." only %}{% endwith %}{% endwith %}
         </li>
       {% endfor %}
     </ul>
@@ -32,10 +32,10 @@
   {% else %}
     {% include "components/empty.html" with title="No weights yet." text="Add one below to start the growth chart." compact=True icon=ui_icons.weights only %}
   {% endif %}
-  {% include "components/add_fold_start.html" with label="Add a weight" open=weight_errors only %}
-  <div data-modal-content="weights" data-add-sheet-body><form class="mt-4" method="post" action="{% url 'rabbit_weight_add' rabbit.pk %}" data-offline-queue="Weight" novalidate>
+  {% if weight_editing %}{% include "components/add_fold_start.html" with label="Add a weight" open=True only %}{% else %}{% include "components/add_fold_start.html" with label="Add a weight" open=weight_errors only %}{% endif %}
+  <div data-modal-content="weights" data-add-sheet-body>{% if weight_editing %}<form class="mt-4" method="post" action="{% url 'rabbit_weight_edit' weight_editing.pk %}" novalidate>{% else %}<form class="mt-4" method="post" action="{% url 'rabbit_weight_add' rabbit.pk %}" data-offline-queue="Weight" novalidate>{% endif %}
     {% csrf_token %}
-    <h3 class="font-medium">Add a weight</h3>
+    <h3 class="font-medium">{% if weight_editing %}Edit weight{% else %}Add a weight{% endif %}</h3>
     {% if weight_errors %}<p class="mt-2 rounded-md border border-danger bg-danger-soft px-3 py-2 text-sm text-danger" role="alert" data-weight-error>The weight wasn't saved. Fix the field marked below.</p>{% endif %}
     {% if weight_unit == "kg" %}
       <div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]" data-weight-unit="kg">
@@ -52,7 +52,7 @@
     <p class="mt-1 text-sm text-muted">{% url 'account' as settings_url %}Change units in <a class="underline" href="{{ settings_url }}#units">Settings</a>.</p>
     <div class="mt-2">{% include "components/text_input.html" with name="note" label="Note (optional)" value=weight_values.note errors=weight_errors.note only %}</div>
     <p class="mt-2 text-sm font-medium" role="status" data-offline-note hidden></p>
-    <div class="mt-3">{% include "components/button.html" with label="Add weight" type="submit" variant="primary" only %}</div>
+    <div class="mt-3 flex flex-wrap items-center gap-3">{% include "components/button.html" with label=weight_editing|yesno:"Save weight,Add weight" type="submit" variant="primary" only %}{% if weight_editing %}<a class="text-sm underline" href="?#weights">Cancel</a>{% endif %}</div>
   </form></div>
   {% include "components/add_fold_end.html" %}
 </section>

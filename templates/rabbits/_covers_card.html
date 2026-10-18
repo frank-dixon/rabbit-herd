@@ -8,7 +8,7 @@ date, and so every due date, follows the first cover that took. covers, counted_
   {% if covers %}
     <ol class="mt-3 flex flex-col divide-y divide-line rounded-md border border-line bg-surface" data-covers>
       {% for cover in covers %}
-        <li class="flex items-start gap-3 px-3 py-2.5" data-cover="{{ cover.outcome }}">
+        <li data-row-tap class="flex items-start gap-3 px-3 py-2.5" data-cover="{{ cover.outcome }}">
           <span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full {% if cover.outcome == 'covered' %}bg-accent{% elif cover.outcome == 'refused' %}bg-danger{% else %}border-2 border-muted{% endif %}" aria-hidden="true"></span>
           <div class="min-w-0 flex-1">
             <p class="text-sm"><span class="num font-medium">{{ cover.date|date:"D, M j" }}{% if cover.time %} · {{ cover.time|time:"g:i A" }}{% endif %}</span> · {{ cover.get_outcome_display }}{% if cover.pk == counted_cover %}<span class="ml-2 pill pill-g" data-counts>Counts</span>{% endif %}</p>

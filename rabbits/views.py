@@ -265,10 +265,19 @@ def weight_context(request, rabbit):
     from .models import prefs
 
     last_unit = prefs(request.user).weight_unit
+    from .weights import edit_values
+
     failed = request.session.pop("weight_form", None)
     if not failed or failed.get("rabbit") != rabbit.pk:
         failed = {"values": {}, "errors": {}}
+    editing = None
+    wanted = failed.get("editing") or request.GET.get("weight", "")
+    if str(wanted).isdigit():
+        editing = next((w for w in entries if w.pk == int(wanted)), None)
+        if editing and not failed["values"]:
+            failed["values"] = edit_values(editing, last_unit)
     return {
+        "weight_editing": editing,
         "weight_values": failed["values"],
         "weight_errors": failed["errors"],
         "weights": list(reversed(entries)),

@@ -215,3 +215,17 @@ main .divide-y > li.list-row[data-task-item] { padding-inline: 12px; }
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.25); transition: transform 150ms ease-out; }
 .switch[aria-checked="true"] .switch-thumb { transform: translateX(18px); }
 @media (prefers-reduced-motion: reduce) { .switch, .switch-thumb { transition: none; } }
+/* Row menu: one 44px "…" target per row instead of 20px pencil and trash icons (Critic v2 W2/A1). */
+.row-menu { position: relative; flex: none; }
+.row-menu-btn { display: inline-flex; width: 44px; height: 44px; margin: -10px -10px -10px 0; align-items: center; justify-content: center; border-radius: 8px; color: var(--muted); cursor: pointer; list-style: none; }
+.row-menu-btn::-webkit-details-marker { display: none; }
+.row-menu-btn:hover, .row-menu[open] .row-menu-btn { background: var(--well); color: var(--ink); }
+.row-menu-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+.row-menu-btn svg { width: 20px; height: 20px; }
+.row-menu-pop { position: absolute; right: 0; top: calc(100% + 4px); min-width: 10rem; padding: 4px; z-index: 30; }
+.row-menu-item { display: flex; width: 100%; min-height: 44px; align-items: center; gap: 10px; padding: 0 12px; border: 0; border-radius: 6px; background: none; font-size: 14px; font-weight: 500; color: var(--ink); cursor: pointer; text-align: left; }
+.row-menu-item svg { width: 16px; height: 16px; color: var(--muted); }
+.row-menu-item:hover { background: var(--hover); }
+.row-menu-item.is-danger, .row-menu-item.is-danger svg { color: var(--danger); }
+.row-menu-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+[data-row-tap] { cursor: pointer; }

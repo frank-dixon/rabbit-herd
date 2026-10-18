@@ -12,6 +12,7 @@ urlpatterns = [
     path("deleted/<int:pk>/remove/", views.rabbit_delete_forever, name="rabbit_delete_forever"),
     path("<int:pk>/weights/", weights.weight_add, name="rabbit_weight_add"),
     path("weights/<int:pk>/delete/", weights.weight_delete, name="rabbit_weight_delete"),
+    path("weights/<int:pk>/edit/", weights.weight_edit, name="rabbit_weight_edit"),
     path("<int:pk>/health/", health.health_add, name="rabbit_health_add"),
     path("health/<int:pk>/delete/", health.health_delete, name="rabbit_health_delete"),
     path("<int:pk>/culling/", culling.cull_add, name="rabbit_cull_add"),
