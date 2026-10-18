@@ -91,8 +91,8 @@
   <div data-swap="results" data-result-count="{{ rabbits|length }}">
   {% if rabbits %}
 
-    {# One list for every screen (Frank, 2026-10-18): thumb, name and tattoo, sex, age, latest weight, one status pill.
-       Phones keep two lines; from 1024px the same cells line up as columns, denser at 1280. #}
+    {% comment %} One list for every screen (Frank, 2026-10-18): thumb, name and tattoo, sex, age, latest weight, one status pill.
+       Phones keep two lines; from 1024px the same cells line up as columns, denser at 1280. {% endcomment %}
     <div class="mt-4 overflow-hidden rounded-lg border border-line bg-surface" data-view="list" role="table" aria-label="Rabbits">
       <div role="rowgroup"><div class="list-cols list-head hidden border-b border-line px-3 text-xs font-medium text-muted lg:grid" role="row">
         {% include "components/sort_th.html" with h=sort_headers.name tag="span" only %}<span role="columnheader">Sex</span>{% include "components/sort_th.html" with h=sort_headers.age tag="span" only %}{% include "components/sort_th.html" with h=sort_headers.weight tag="span" only %}{% include "components/sort_th.html" with h=sort_headers.status tag="span" only %}

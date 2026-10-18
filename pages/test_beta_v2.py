@@ -50,3 +50,9 @@ class BetaV2LayoutTests(TestCase):
         self.assertEqual(body.count("<form class=\"popover wt-log-pop\""), 1)
         self.assertEqual(body.count("data-weight-log-panel"), body.count("data-weight-log-fallback"))
         self.assertGreaterEqual(body.count("data-weight-log-fallback"), 3)
+
+    def test_no_template_comment_leaks_into_pages(self):
+        for name in ("index", "rabbit_list", "pairing_list", "task_list", "weights_hub", "litter_list"):
+            body = self.client.get(reverse(name)).content.decode()
+            self.assertNotIn("{#", body, name)
+            self.assertNotIn("#}", body, name)
