@@ -23,7 +23,7 @@
       <div class="flex shrink-0 flex-wrap items-center gap-2 whitespace-nowrap print:hidden [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap" data-header-actions>
         {% include "components/add_samples.html" %}
         {% if actions_template %}{% include actions_template %}{% endif %}
-        {% if print_label %}<button type="button" class="mo-press inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-line bg-surface px-4 py-2 font-medium text-ink hover:border-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" data-print-button onclick="window.print()">{{ print_label }}</button>{% endif %}
+        {% if print_label %}<button type="button" class="mo-press inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-line bg-surface px-4 py-2 font-medium text-ink hover:border-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" data-print-button>{{ print_label }}</button>{% endif %}
         {% if secondary_label %}{% include "components/button.html" with label=secondary_label href=secondary_href variant="secondary" only %}{% endif %}
         {% if primary_label %}{% include "components/button.html" with label=primary_label href=primary_href modal=primary_modal variant="primary" only %}{% endif %}
       </div>

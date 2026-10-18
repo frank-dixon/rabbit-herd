@@ -98,6 +98,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.middleware.csp.ContentSecurityPolicyMiddleware",
+    "pages.middleware.security_headers",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -289,6 +291,37 @@ CACHES = {
 # Who may tell us the visitor's IP for attempt limits (accounts.ratelimit.client_ip).
 TRUST_VERCEL_FORWARDED = env_flag("TRUST_VERCEL_FORWARDED", default=bool(os.environ.get("VERCEL")))
 TRUSTED_PROXIES = env_list("TRUSTED_PROXIES")
+
+# Content-Security-Policy (Django's CSP middleware). No inline scripts or
+# handlers anywhere in the app; inline style attributes are still allowed.
+# Photos may come from the photo bucket's signed URLs (PHOTO_S3_ENDPOINT_URL).
+from django.utils.csp import CSP  # noqa: E402
+
+def _origin(url):
+    from urllib.parse import urlsplit
+    parts = urlsplit(url or "")
+    return f"{parts.scheme}://{parts.netloc}" if parts.scheme and parts.netloc else ""
+
+_photo_origin = _origin(os.environ.get("PHOTO_S3_ENDPOINT_URL", ""))
+SECURE_CSP = {
+    "default-src": [CSP.SELF],
+    "script-src": [CSP.SELF],
+    "style-src": [CSP.SELF, CSP.UNSAFE_INLINE],
+    "img-src": [CSP.SELF, "data:", "blob:"] + ([_photo_origin] if _photo_origin else []),
+    "font-src": [CSP.SELF],
+    "connect-src": [CSP.SELF] + ([_photo_origin] if _photo_origin else []),
+    "manifest-src": [CSP.SELF],
+    "worker-src": [CSP.SELF],
+    "object-src": [CSP.NONE],
+    "base-uri": [CSP.SELF],
+    "form-action": [CSP.SELF],
+    "frame-ancestors": [CSP.NONE],
+}
+PERMISSIONS_POLICY = (
+    "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), "
+    "publickey-credentials-get=(self), publickey-credentials-create=(self)"
+)
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"

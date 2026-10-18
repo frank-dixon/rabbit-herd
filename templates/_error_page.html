@@ -13,12 +13,4 @@
       <a class="text-sm font-medium text-ink underline underline-offset-4 hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" href="{{ back_href|default:'/' }}" data-error-back>Back</a>
     </div>
   </section>
-  <script>
-    (function () {
-      var back = document.querySelector("[data-error-back]");
-      if (back && window.history.length > 1 && document.referrer && new URL(document.referrer).origin === location.origin) {
-        back.addEventListener("click", function (event) { event.preventDefault(); history.back(); });
-      }
-    })();
-  </script>
 {% endblock %}

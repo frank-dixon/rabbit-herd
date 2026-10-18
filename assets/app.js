@@ -50,6 +50,7 @@ import { bindAddSheets, bindMoreMenus } from "./add-sheet.mjs";
 import { bindModal } from "./modal.mjs";
 import { bindSideMenu } from "./side-menu.mjs";
 import { focusSmooth, reducedMotion } from "./motion.mjs";
+import { bindPageActions } from "./page-actions.mjs";
 
 /**
  * Read the CSRF token from the page.
@@ -383,6 +384,7 @@ function start() {
   bindAddSheets(document);
   bindMoreMenus(document);
   bindModal(document, window);
+  bindPageActions(document, window);
   // Arriving to log a weight (a swipe or the Log weight button): focus the entry.
   if (new URLSearchParams(window.location.search).has("weigh")) {
     const weigh = document.querySelector('#weights form[action$="/weights/"] input:not([type=hidden]):not([type=date])');
