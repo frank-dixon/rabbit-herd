@@ -41,7 +41,7 @@ async function trim(name, max) {
   await Promise.all(keys.slice(0, Math.max(keys.length - max, 0)).map((key) => cache.delete(key)));
 }
 
-const PRIVATE_PATHS = /^\/(accounts|admin|login|signup|logout|demo)(\/|$)/;
+const PRIVATE_PATHS = /^\/(accounts|admin|login|signup|logout|start|demo)(\/|$)/;
 
 function cacheable(url) {
   return !PRIVATE_PATHS.test(url.pathname) && url.pathname !== "/sw.js";

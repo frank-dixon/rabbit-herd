@@ -7,3 +7,6 @@ class PagesConfig(AppConfig):
 
     def ready(self):
         from . import checks  # noqa: F401
+        from .middleware import connect_login_signal
+
+        connect_login_signal()

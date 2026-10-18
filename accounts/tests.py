@@ -162,17 +162,19 @@ class PasswordAccountTests(TestCase):
 
 
 class PasskeyEndpointTests(TestCase):
-    def test_register_options_require_an_email(self):
+    def test_register_options_need_a_signed_in_account(self):
+        # No passkey-only signup: a passkey is an add-on to an email-and-password account.
         response = self.client.post(
             reverse("passkey_register_options"),
-            data=json.dumps({}),
+            data=json.dumps({"email": "frank@example.com"}),
             content_type="application/json",
         )
 
-        self.assertEqual(response.status_code, 400)
-        self.assertIn("email", response.json()["error"].lower())
+        self.assertEqual(response.status_code, 403)
+        self.assertNotIn("webauthn_register_challenge", self.client.session)
 
     def test_register_options_issue_a_challenge(self):
+        self.client.force_login(make_user())
         response = self.client.post(
             reverse("passkey_register_options"),
             data=json.dumps({"email": "frank@example.com"}),
@@ -196,17 +198,6 @@ class PasskeyEndpointTests(TestCase):
             [-7, -257],
         )
         self.assertIn("webauthn_register_challenge", self.client.session)
-
-    def test_register_options_reject_a_duplicate_email(self):
-        make_user()
-
-        response = self.client.post(
-            reverse("passkey_register_options"),
-            data=json.dumps({"email": "frank@example.com"}),
-            content_type="application/json",
-        )
-
-        self.assertEqual(response.status_code, 400)
 
     def test_login_options_issue_a_challenge(self):
         response = self.client.post(

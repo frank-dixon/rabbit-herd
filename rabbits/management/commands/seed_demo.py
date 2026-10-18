@@ -29,6 +29,8 @@ from rabbits.models import (
 from rabbits.models import PEDIGREE_POSITIONS, LitterNote
 
 DEMO_EMAIL = "demo@bramble-burrow.app"
+# --baseline: the sample herd "See a demo herd" copies (accounts.demo). Nobody signs in to it.
+BASELINE_EMAIL = "demo-baseline@demo.invalid"
 NZ = "New Zealand"
 CAL = "Californian"
 GENE_LOCI = ["A", "B", "C", "D", "E", "En"]
@@ -221,9 +223,23 @@ class Command(BaseCommand):
                             help="Don't set the password: an existing account keeps its own; a new one gets none.")
         parser.add_argument("--genes-only", action="store_true",
                             help="Only (re)write genes on the existing demo rabbits; nothing else changes.")
+        parser.add_argument("--baseline", action="store_true",
+                            help="Build the sample herd that See a demo herd copies (no sign-in).")
 
-    def handle(self, no_password=False, genes_only=False, **options):
+    def handle(self, no_password=False, genes_only=False, baseline=False, **options):
         gene_map = {row[0]: row[6] for row in HERD}
+        if baseline:
+            from accounts.models import DemoBaseline
+
+            today = timezone.localdate()
+            with transaction.atomic():
+                user, created = self.account(None, email=BASELINE_EMAIL, active=False)
+                counts = self.herd(user, today)
+                counts.update(compact(user))
+                DemoBaseline.objects.update_or_create(owner=user, defaults={"as_of": today, "enabled": True})
+            self.stdout.write(("Created" if created else "Updated") + f" the demo herd ({BASELINE_EMAIL}, as of {today}).")
+            self.stdout.write(", ".join(f"{k}: {v}" for k, v in counts.items()))
+            return
         if genes_only:
             user = get_user_model().objects.filter(email__iexact=DEMO_EMAIL).first()
             if user is None:
@@ -244,19 +260,19 @@ class Command(BaseCommand):
         self.stdout.write(("Created" if created else "Updated") + f" {DEMO_EMAIL}.")
         self.stdout.write(", ".join(f"{k}: {v}" for k, v in counts.items()))
 
-    def account(self, password):
+    def account(self, password, email=DEMO_EMAIL, active=True):
         User = get_user_model()
-        user = User.objects.filter(email__iexact=DEMO_EMAIL).first()
+        user = User.objects.filter(email__iexact=email).first()
         created = user is None
         if created:
-            user = User.objects.create_user(email=DEMO_EMAIL)
+            user = User.objects.create_user(email=email)
         if password:
             user.set_password(password)
-        elif created:
+        elif created or not active:
             user.set_unusable_password()
         user.email_confirmed = True
         user.email_confirmed_at = user.email_confirmed_at or timezone.now()
-        user.is_active = True
+        user.is_active = active
         user.save()
         HerdSettings.objects.update_or_create(
             user=user,

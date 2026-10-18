@@ -1,6 +1,7 @@
 import secrets
 import uuid
 
+from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
@@ -40,6 +41,20 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     webauthn_user_handle = models.BinaryField(max_length=64, editable=False)
     is_guest = models.BooleanField(default=False)
+    # A temporary "See a demo herd" account: fully usable, never saved, merged or
+    # converted, and pruned a day after last use (accounts.demo).
+    is_demo = models.BooleanField(default=False, db_index=True)
+    # Guest lifecycle (specs/guest-mode.md section 7): last request, when a guest
+    # became a real account, when an empty guest was deactivated, and the account
+    # a guest herd was merged into.
+    last_seen_at = models.DateTimeField(null=True, blank=True)
+    claimed_at = models.DateTimeField(null=True, blank=True)
+    deactivated_at = models.DateTimeField(null=True, blank=True)
+    merged_into = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, related_name="merged_guests")
+    # The one-time "add a passkey" offer after signup: "" (not offered),
+    # "pending" (show it), "skipped" or "done" (never show again).
+    PASSKEY_OFFER = [("", "Not offered"), ("pending", "Pending"), ("skipped", "Skipped"), ("done", "Done")]
+    passkey_offer = models.CharField(max_length=8, choices=PASSKEY_OFFER, blank=True, default="")
     email_confirmed = models.BooleanField(default=False)
     email_confirmed_at = models.DateTimeField(null=True, blank=True)
     confirmation_sent_at = models.DateTimeField(null=True, blank=True)
@@ -70,6 +85,11 @@ class User(AbstractUser):
     guide_step = models.CharField(max_length=40, blank=True, default="")
     guide_dismissed_at = models.DateTimeField(null=True, blank=True)
 
+    @property
+    def is_temporary(self):
+        """A guest or demo session: the herd isn't saved to an account yet."""
+        return self.is_guest or self.is_demo
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
@@ -98,3 +118,30 @@ class PasskeyCredential(models.Model):
 
     def __str__(self):
         return f"Passkey for {self.user.email}"
+
+
+class DemoBaseline(models.Model):
+    """The sample herd every "See a demo herd" visitor gets a private copy of.
+
+    The herd itself is an ordinary (inactive) account whose rabbits, litters,
+    tasks and photos are edited in the admin like any other herd. as_of is the
+    day those records were written for: each copy moves every date forward by
+    the days since then, so the demo always reads as current and nothing lands
+    in the future. Only the newest enabled row is used."""
+
+    owner = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="demo_baseline",
+        help_text="The account that holds the sample herd. Edit its records like any herd.",
+    )
+    as_of = models.DateField(help_text="The day the sample records were written for. Copies move every date forward from here.")
+    keep_hours = models.PositiveSmallIntegerField(default=24, help_text="A demo copy is deleted this many hours after its last use.")
+    enabled = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-enabled", "-updated_at"]
+        verbose_name = "demo herd"
+        verbose_name_plural = "demo herd"
+
+    def __str__(self):
+        return f"Demo herd from {self.owner.email} (as of {self.as_of})"

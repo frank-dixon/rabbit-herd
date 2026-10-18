@@ -1,14 +1,14 @@
 {# Settings section: account. Listed in pages.views.SETTINGS_SECTIONS. #}
   <section class="ruled pt-4" id="account" aria-labelledby="account-heading">
     <h2 class="text-base font-semibold" id="account-heading">Account</h2>
-    <p class="mt-2 text-muted">{% if user.is_guest %}This is a guest session.{% else %}Signed in as <span class="text-ink">{{ user.email }}</span>.{% endif %}</p>
+    <p class="mt-2 text-muted">{% if user.is_guest %}This is a guest session.{% elif user.is_demo %}This is a sample herd. It can't be saved.{% else %}Signed in as <span class="text-ink">{{ user.email }}</span>.{% endif %}</p>
     <div class="mt-4 flex flex-wrap gap-2">
-      {% if not user.is_guest %}
+      {% if not user.is_temporary %}
         {% if user.has_usable_password %}
           {% url 'password_change' as password_change_url %}
           {% include "components/button.html" with label="Change password" href=password_change_url variant="secondary" only %}
         {% endif %}
-        {% include "components/button.html" with label="Add a passkey" variant="secondary" id="passkey-register" data_authenticated="true" only %}
+        {% include "components/button.html" with label="Add a passkey" variant="secondary" id="passkey-register" only %}
       {% endif %}
       <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}

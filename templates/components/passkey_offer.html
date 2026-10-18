@@ -1,0 +1,11 @@
+{# Once, after signup: offer a passkey as an add-on. Skip is saved and it never shows again (Settings > Account still has Add a passkey). Wording: pages/copy.py PASSKEY_OFFER. #}
+<div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[10px] border border-line bg-surface px-4 py-3" data-passkey-offer role="region" aria-label="Passkey">
+  <p class="min-w-0 flex-1 text-[15px]">{{ passkey_offer.text }}</p>
+  <div class="flex items-center gap-2">
+    <form method="post" action="{% url 'passkey_offer_skip' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button type="submit" class="mo-press inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium text-muted hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">{{ passkey_offer.skip }}</button>
+    </form>
+    <button type="button" data-passkey-add class="mo-press inline-flex min-h-11 items-center rounded-md bg-accent px-4 text-sm font-semibold text-on-accent hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">{{ passkey_offer.add }}</button>
+  </div>
+  <p class="w-full text-sm font-medium text-danger" role="alert" data-passkey-error hidden></p>
+</div>

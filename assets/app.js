@@ -27,7 +27,7 @@ import { bindFilters } from "./filters.mjs";
 import { bindMenu } from "./menu.mjs";
 import { bindQuickDone } from "./quick-done.mjs";
 import { bindTabEdit } from "./tab-edit.mjs";
-import { bindToasts } from "./toast.mjs";
+import { bindToasts, showToast } from "./toast.mjs";
 import { bindUndoRemove } from "./undo-remove.mjs";
 import { bindSwipe } from "./swipe.mjs";
 import { bindWeighIn } from "./weigh-in.mjs";
@@ -196,25 +196,17 @@ async function registerPasskey(button) {
     showPasskeyError("This browser does not support passkeys.");
     return;
   }
-  const body = {};
-  const emailFieldId = button.getAttribute("data-email-field");
-  if (emailFieldId) {
-    const emailField = document.getElementById(emailFieldId);
-    const email = emailField ? emailField.value.trim() : "";
-    if (!email) {
-      showPasskeyError("Enter an email address first.");
-      return;
-    }
-    body.email = email;
-  }
-  const options = await postJson("/accounts/passkey/register/options/", body);
+  const options = await postJson("/accounts/passkey/register/options/", {});
   const credential = await navigator.credentials.create({
     publicKey: publicKeyCreationOptions(options),
   });
-  const result = await postJson("/accounts/passkey/register/verify/", {
+  await postJson("/accounts/passkey/register/verify/", {
     credential: credentialToJSON(credential),
   });
-  followRedirect(result.redirect);
+  // Added to a signed-in account: stay on the page, close the one-time offer if that's where it came from.
+  const offer = button.closest("[data-passkey-offer]");
+  if (offer) offer.remove();
+  showToast(document, "Passkey added.");
 }
 
 /**
@@ -305,14 +297,27 @@ async function offerPasskeyAutofill(button) {
 }
 
 function bindPasskeys() {
-  const registerButton = document.getElementById("passkey-register");
-  if (registerButton) {
+  document.querySelectorAll("#passkey-register, [data-passkey-add]").forEach(function (registerButton) {
     registerButton.addEventListener("click", function () {
       registerPasskey(registerButton).catch(function (error) {
         showPasskeyError(error.message || "The passkey could not be created.");
       });
     });
-  }
+  });
+  // Skip on the one-time offer: saved without leaving the page.
+  document.querySelectorAll("[data-passkey-offer] form").forEach(function (form) {
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      const offer = form.closest("[data-passkey-offer]");
+      fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { "X-Requested-With": "fetch" },
+        credentials: "same-origin",
+      }).catch(function () {});
+      if (offer) offer.remove();
+    });
+  });
   const loginButton = document.getElementById("passkey-login");
   if (loginButton) {
     loginButton.addEventListener("click", function () {

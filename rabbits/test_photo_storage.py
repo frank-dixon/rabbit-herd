@@ -33,7 +33,7 @@ def probe(**env):
 class PhotoStorageSettingsTests(SimpleTestCase):
     def test_local_filesystem_by_default(self):
         backend, *_ = probe()
-        self.assertEqual(backend, "django.core.files.storage.FileSystemStorage")
+        self.assertEqual(backend, "rabbits.storage.PhotoFileSystemStorage")
 
     def test_s3_when_asked_private_and_path_style(self):
         backend, style, acl, bucket = probe(
@@ -41,7 +41,7 @@ class PhotoStorageSettingsTests(SimpleTestCase):
             PHOTO_S3_ENDPOINT_URL="https://example.invalid/storage/v1/s3",
             PHOTO_S3_ACCESS_KEY_ID="test-id", PHOTO_S3_SECRET_ACCESS_KEY="test-secret",
         )
-        self.assertEqual(backend, "storages.backends.s3.S3Storage")
+        self.assertEqual(backend, "rabbits.storage.PhotoS3Storage")
         self.assertEqual(style, "path")
         self.assertIsNone(acl)
         self.assertEqual(bucket, "rabbit-photos")

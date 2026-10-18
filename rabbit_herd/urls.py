@@ -6,6 +6,7 @@ from rabbits.export import export_csv
 from rabbits import glossary, schedules
 from rabbits.settings_views import settings_save
 from rabbits import sample_views
+from pages import cron
 
 # Uploaded photos have no public URL. They are served one at a time, to
 # their owner only, by rabbits.photo_views.photo_file.
@@ -25,6 +26,7 @@ urlpatterns = [
     path("contacts/", include("rabbits.contact_urls")),
     path("genetics/", include("rabbits.genetics_urls")),
     path("glossary/", glossary.glossary, name="glossary"),
+    path("cron/daily/", cron.daily, name="cron_daily"),
     path("settings/schedules/new/", schedules.schedule_form, name="schedule_add"),
     path("settings/schedules/<int:pk>/", schedules.schedule_form, name="schedule_edit"),
     path("settings/schedules/<int:pk>/delete/", schedules.schedule_delete, name="schedule_delete"),

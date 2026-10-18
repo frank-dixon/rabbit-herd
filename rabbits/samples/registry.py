@@ -13,7 +13,7 @@ SAMPLE_CHILD_MODELS = (
 )
 
 EXEMPT_OWNER_MODELS = (
-    "BreedingSchedule", "SyncOp",
+    "BreedingSchedule", "SyncOp", "DemoBaseline",
 )
 
 

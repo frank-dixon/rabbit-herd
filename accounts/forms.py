@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.password_validation import validate_password
@@ -55,11 +56,6 @@ class SignupForm(forms.Form):
         strip=False,
         widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
     )
-    password2 = forms.CharField(
-        label="Confirm password",
-        strip=False,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
-    )
 
     def clean_email(self):
         # An existing email is not an error. The view answers with the same
@@ -72,9 +68,6 @@ class SignupForm(forms.Form):
     def clean(self):
         cleaned = super().clean()
         password1 = cleaned.get("password1")
-        password2 = cleaned.get("password2")
-        if password1 and password2 and password1 != password2:
-            self.add_error("password2", "The passwords don't match.")
         if password1:
             try:
                 validate_password(password1)
@@ -89,3 +82,16 @@ class SignupForm(forms.Form):
             is_active=False,
             email_confirmed=False,
         )
+
+    def claim(self, guest):
+        """Turn a guest into this account in place: same herd, same rows, now
+        with an email and password. Signed in still; the email link confirms it."""
+        guest.email = self.cleaned_data["email"]
+        guest.set_password(self.cleaned_data["password1"])
+        guest.is_guest = False
+        guest.email_confirmed = False
+        guest.email_confirmed_at = None
+        guest.claimed_at = timezone.now()
+        guest.passkey_offer = "pending"
+        guest.save()
+        return guest

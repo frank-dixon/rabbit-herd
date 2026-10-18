@@ -22,6 +22,8 @@ auth_urlpatterns = [
     path("login/", views.EmailLoginView.as_view(), name="login"),
     path("signup/", views.SignupView.as_view(), name="signup"),
     path("logout/", views.AppLogoutView.as_view(), name="logout"),
+    path("start/", views.start, name="start"),
+    path("start/demo/", views.start_demo, name="start_demo"),
 ]
 
 urlpatterns = [
@@ -31,6 +33,7 @@ urlpatterns = [
     path("signup/done/", views.signup_done, name="signup_done"),
     path("confirm/<uidb64>/<token>/", views.confirm_email, name="confirm_email"),
     path("guest/", views.continue_as_guest, name="guest"),
+    path("passkey/offer/skip/", views.passkey_offer_skip, name="passkey_offer_skip"),
     path(
         "password/change/",
         views.AppPasswordChangeView.as_view(),

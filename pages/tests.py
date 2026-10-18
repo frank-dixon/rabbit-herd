@@ -144,7 +144,7 @@ class LandingPageTests(TestCase):
         self.assertContains(response, "Bramble Burrow")
         self.assertContains(response, "Run your rabbitry from one place.")
         self.assertContains(response, 'href="/login/"')
-        self.assertContains(response, 'href="/signup/"')
+        self.assertContains(response, 'href="/start/"')
 
     def test_signed_in_user_gets_the_app_at_root(self):
         from django.contrib.auth import get_user_model

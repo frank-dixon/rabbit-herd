@@ -48,3 +48,50 @@ def security_headers(get_response):
         return response
 
     return middleware
+
+
+SEEN_EVERY_SECONDS = 600
+
+
+def touch_last_seen(get_response):
+    """Record when an account was last used, at most every ten minutes per
+    session: demo copies are deleted a day after last use and empty guests
+    are deactivated after seven days (accounts.demo, accounts.guest)."""
+    import time
+
+    def middleware(request):
+        response = get_response(request)
+        # Only when the view already loaded the user (so /sw.js and static stay query-free).
+        if not hasattr(request, "_cached_user"):
+            return response
+        session = getattr(request, "session", None)
+        if session is None:
+            return response
+        now = int(time.time())
+        if now - int(session.get("seen_at", 0) or 0) < SEEN_EVERY_SECONDS:
+            return response
+        user = getattr(request, "user", None)
+        if user is not None and user.is_authenticated:
+            from django.utils import timezone
+
+            type(user).objects.filter(pk=user.pk).update(last_seen_at=timezone.now())
+            session["seen_at"] = now
+        return response
+
+    return middleware
+
+
+def _seen_on_login(sender, request, user, **kwargs):
+    import time
+
+    from django.utils import timezone
+
+    type(user).objects.filter(pk=user.pk).update(last_seen_at=timezone.now())
+    if request is not None and hasattr(request, "session"):
+        request.session["seen_at"] = int(time.time())
+
+
+def connect_login_signal():
+    from django.contrib.auth.signals import user_logged_in
+
+    user_logged_in.connect(_seen_on_login, dispatch_uid="pages-seen-on-login")

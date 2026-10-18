@@ -50,7 +50,7 @@ def send_due(now=None):
         daily_email_sent_on=today).select_related("user")
     for prefs in rows:
         user = prefs.user
-        if not user.is_active or user.is_guest or not user.email:
+        if not user.is_active or user.is_guest or user.is_demo or not user.email:
             continue
         user._herd_settings_cache = prefs
         message = summary(user, prefs, today)

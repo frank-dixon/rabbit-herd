@@ -203,7 +203,7 @@ def app_nav(request):
         "app_destinations": [item(key, current) for key in tab_choices()],
         "app_settings_icon": ICONS["settings"],
         "herd_prefs_name": herd_name(user),
-        "account_name": herd_name(user) or user.get_full_name() or user.email,
+        "account_name": herd_name(user) or user.get_full_name() or ("Guest" if user.is_temporary else user.email),
         "account_detail": account_detail(user),
     }
 
@@ -216,6 +216,8 @@ def herd_name(user):
 
 def account_detail(user):
     """The second footer line: the person's name under a rabbitry name, else their email."""
+    if user.is_temporary:  # never show the made-up guest or demo address
+        return ""
     full = user.get_full_name()
     if herd_name(user) and full:
         return full
@@ -241,3 +243,19 @@ def guide(request):
     ]
     import json
     return {"guide_steps": steps, "guide_steps_json": json.dumps(steps), "guide_step": user.guide_step}
+
+
+def temporary(request):
+    """The bottom rail for guest and demo sessions, and the one-time passkey offer."""
+    user = getattr(request, "user", None)
+    if not user or not user.is_authenticated:
+        return {}
+    from .copy import PASSKEY_OFFER, RAIL
+
+    if user.is_demo:
+        return {"temp_rail": {"kind": "demo", **RAIL["demo"]}}
+    if user.is_guest:
+        return {"temp_rail": {"kind": "guest", **RAIL["guest"]}}
+    if user.passkey_offer == "pending":
+        return {"passkey_offer": PASSKEY_OFFER}
+    return {}

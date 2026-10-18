@@ -12,3 +12,9 @@ class Command(BaseCommand):
         from rabbits import purge
 
         purge.run()
+        # ...and retires demo copies and empty guests (cheap when there are none).
+        from accounts.demo import prune_demo_accounts
+        from accounts.guest import deactivate_empty_guests
+
+        prune_demo_accounts()
+        deactivate_empty_guests()

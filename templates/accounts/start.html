@@ -1,0 +1,27 @@
+{% extends "accounts/_auth_base.html" %}
+{% comment %}The first screen for a new visitor: look around a sample herd (a private copy, deleted a day
+after last use, never saved), or start an empty herd of their own that's kept and saved later.
+Both are plain POST forms, so they work without JS.{% endcomment %}
+{% block title %}Get started · {{ app_name }}{% endblock %}
+{% block auth_title %}Get started{% endblock %}
+{% block auth_form %}
+  <div class="mt-6 grid gap-3" data-start-choices>
+    {% if demo_ready %}
+    <form method="post" action="{% url 'start_demo' %}">{% csrf_token %}
+      <button type="submit" class="mo-press flex min-h-20 w-full cursor-pointer flex-col items-start justify-center gap-1 rounded-lg border border-field bg-surface px-4 py-3 text-left hover:border-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas">
+        <span class="text-lg font-semibold text-ink">See a demo herd</span>
+        <span class="text-sm text-muted">Look around with sample rabbits. Nothing is saved.</span>
+      </button>
+    </form>
+    {% endif %}
+    <form method="post" action="{% url 'guest' %}">{% csrf_token %}
+      <button type="submit" class="mo-press flex min-h-20 w-full cursor-pointer flex-col items-start justify-center gap-1 rounded-lg border border-accent bg-accent px-4 py-3 text-left text-on-accent hover:bg-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas">
+        <span class="text-lg font-semibold">Start my own herd</span>
+        <span class="text-sm opacity-90">Add your own rabbits. Free during the beta.</span>
+      </button>
+    </form>
+  </div>
+{% endblock %}
+{% block auth_footer %}
+  <a href="{% url 'login' %}" class="inline-flex min-h-11 items-center rounded-sm text-base font-medium text-accent underline underline-offset-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">I have an account</a>
+{% endblock %}

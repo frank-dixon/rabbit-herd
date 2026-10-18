@@ -18,6 +18,7 @@
         </div>
       {% endif %}
     </div>
+    {% if passkey_offer %}{% include "components/passkey_offer.html" %}{% endif %}
 
     {% if not herd.active and not herd.deceased and not herd.archived %}
 {% url "rabbit_create" as a_url %}{% include "components/empty.html" with title="No rabbits yet." text="Add your first rabbit. Its tasks, litters and weights show up here each day." href=a_url action="Add a rabbit" kind="herd" icon=ui_icons.today only %}

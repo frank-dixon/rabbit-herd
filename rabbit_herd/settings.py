@@ -108,6 +108,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "pages.middleware.touch_last_seen",
     "rabbits.derived.middleware",
     "accounts.ratelimit.middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -139,6 +140,7 @@ TEMPLATES = [
                 "pages.nav.ui",
                 "pages.nav.features",
                 "pages.nav.guide",
+                "pages.nav.temporary",
             ],
         },
     },
@@ -205,7 +207,7 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 PHOTO_STORAGE = os.environ.get("PHOTO_STORAGE", "").strip().lower()
 if PHOTO_STORAGE == "s3":
     DEFAULT_STORAGE = {
-        "BACKEND": "storages.backends.s3.S3Storage",
+        "BACKEND": "rabbits.storage.PhotoS3Storage",
         "OPTIONS": {
             "bucket_name": os.environ["PHOTO_S3_BUCKET"],
             "endpoint_url": os.environ["PHOTO_S3_ENDPOINT_URL"],
@@ -220,7 +222,7 @@ if PHOTO_STORAGE == "s3":
         },
     }
 else:
-    DEFAULT_STORAGE = {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+    DEFAULT_STORAGE = {"BACKEND": "rabbits.storage.PhotoFileSystemStorage"}
 PHOTO_SIGNED_URLS = env_flag("PHOTO_SIGNED_URLS", default=PHOTO_STORAGE == "s3")
 PHOTO_SIGNED_URL_SECONDS = int(os.environ.get("PHOTO_SIGNED_URL_SECONDS", "3600"))
 

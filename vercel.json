@@ -21,5 +21,11 @@
         }
       ]
     }
+  ],
+  "crons": [
+    {
+      "path": "/cron/daily/",
+      "schedule": "0 8 * * *"
+    }
   ]
 }

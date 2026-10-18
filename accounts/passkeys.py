@@ -2,7 +2,6 @@
 
 import binascii
 import json
-import secrets
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
@@ -27,11 +26,9 @@ from webauthn.helpers.structs import (
     UserVerificationRequirement,
 )
 
-from .models import PasskeyCredential, User
+from .models import PasskeyCredential
 
 REGISTER_CHALLENGE = "webauthn_register_challenge"
-REGISTER_EMAIL = "webauthn_register_email"
-REGISTER_HANDLE = "webauthn_register_handle"
 AUTH_CHALLENGE = "webauthn_auth_challenge"
 
 
@@ -65,29 +62,19 @@ def _selection():
 
 
 def registration_options(request, payload):
-    if request.user.is_authenticated:
-        user = request.user
-        user_id = bytes(user.webauthn_user_handle)
-        if user.is_guest:
-            raise PasskeyError("Guest sessions cannot register a passkey.")
-        user_name = user.email
-        exclude = [
-            PublicKeyCredentialDescriptor(id=bytes(cred.credential_id))
-            for cred in user.passkeys.all()
-        ]
-        request.session.pop(REGISTER_EMAIL, None)
-        request.session.pop(REGISTER_HANDLE, None)
-    else:
-        email = str(payload.get("email") or "").strip().lower()
-        if not email or "@" not in email:
-            raise PasskeyError("Enter the email address for this passkey.")
-        if User.objects.filter(email__iexact=email).exists():
-            raise PasskeyError("An account with that email already exists.")
-        user_id = secrets_token()
-        user_name = email
-        exclude = []
-        request.session[REGISTER_EMAIL] = email
-        request.session[REGISTER_HANDLE] = bytes_to_base64url(user_id)
+    """Passkeys are an add-on to a signed-in account with an email and
+    password; there is no passkey-only signup."""
+    if not request.user.is_authenticated:
+        raise PasskeyError("Sign in first, then add a passkey.", status=403)
+    user = request.user
+    if user.is_guest or user.is_demo:
+        raise PasskeyError("Create an account first, then add a passkey.", status=403)
+    user_id = bytes(user.webauthn_user_handle)
+    user_name = user.email
+    exclude = [
+        PublicKeyCredentialDescriptor(id=bytes(cred.credential_id))
+        for cred in user.passkeys.all()
+    ]
 
     options = generate_registration_options(
         rp_id=settings.WEBAUTHN_RP_ID,
@@ -109,16 +96,12 @@ def registration_options(request, payload):
     return options_to_json_dict(options)
 
 
-def secrets_token():
-    return secrets.token_bytes(32)
-
-
 def verify_registration(request, credential):
     challenge = request.session.pop(REGISTER_CHALLENGE, None)
-    email = request.session.pop(REGISTER_EMAIL, None)
-    handle = request.session.pop(REGISTER_HANDLE, None)
     if not challenge:
         raise PasskeyError("That passkey registration expired. Start again.")
+    if not request.user.is_authenticated or request.user.is_guest or request.user.is_demo:
+        raise PasskeyError("Sign in first, then add a passkey.", status=403)
 
     try:
         verification = verify_registration_response(
@@ -131,25 +114,8 @@ def verify_registration(request, credential):
     except InvalidRegistrationResponse as exc:
         raise PasskeyError("The passkey could not be verified.") from exc
 
+    user = request.user
     with transaction.atomic():
-        created = False
-        if request.user.is_authenticated:
-            user = request.user
-        else:
-            if not email or not handle:
-                raise PasskeyError("That passkey registration expired. Start again.")
-            user = User(
-                email=email,
-                webauthn_user_handle=base64url_to_bytes(handle),
-                is_active=False,
-                email_confirmed=False,
-            )
-            user.set_unusable_password()
-            try:
-                user.save()
-            except IntegrityError as exc:
-                raise PasskeyError("An account with that email already exists.") from exc
-            created = True
         try:
             PasskeyCredential.objects.create(
                 user=user,
@@ -159,7 +125,10 @@ def verify_registration(request, credential):
             )
         except IntegrityError as exc:
             raise PasskeyError("That passkey is already registered.") from exc
-    return user, created
+        if user.passkey_offer != "done":
+            user.passkey_offer = "done"
+            user.save(update_fields=["passkey_offer"])
+    return user, False
 
 
 def authentication_options(request):

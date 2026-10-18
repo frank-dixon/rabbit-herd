@@ -6,7 +6,9 @@ from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
 from unfold.admin import ModelAdmin
 from unfold.forms import AdminPasswordChangeForm
 
-from .models import PasskeyCredential, User
+from unfold.decorators import action
+
+from .models import DemoBaseline, PasskeyCredential, User
 
 
 class AccountUserCreationForm(UserCreationForm):
@@ -27,13 +29,20 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
     form = AccountUserChangeForm
     add_form = AccountUserCreationForm
     ordering = ("email",)
-    list_display = ("email", "is_staff", "is_active", "email_confirmed", "is_guest")
+    list_display = ("email", "is_staff", "is_active", "email_confirmed", "is_guest", "is_demo", "last_seen_at")
+    list_filter = ("is_active", "is_guest", "is_demo", "is_staff", "email_confirmed")
     search_fields = ("email",)
+    actions = ["reactivate"]
+    readonly_fields = ("last_seen_at", "claimed_at", "deactivated_at", "merged_into")
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         (
             "Status",
-            {"fields": ("is_active", "is_guest", "email_confirmed", "email_confirmed_at")},
+            {"fields": ("is_active", "is_guest", "is_demo", "email_confirmed", "email_confirmed_at", "passkey_offer")},
+        ),
+        (
+            "Guest lifecycle",
+            {"fields": ("last_seen_at", "claimed_at", "deactivated_at", "merged_into")},
         ),
         (
             "Permissions",
@@ -45,6 +54,22 @@ class UserAdmin(BaseUserAdmin, ModelAdmin):
         (None, {"classes": ("wide",), "fields": ("email", "password1", "password2")}),
     )
     filter_horizontal = ("groups", "user_permissions")
+
+    @action(description="Reactivate selected accounts")
+    def reactivate(self, request, queryset):
+        """Bring back guests deactivated for being empty and unused (never merged ones)."""
+        count = queryset.filter(is_active=False, merged_into__isnull=True, is_demo=False).update(is_active=True, deactivated_at=None)
+        self.message_user(request, f"Reactivated {count} account{'s' if count != 1 else ''}.")
+
+
+@admin.register(DemoBaseline)
+class DemoBaselineAdmin(ModelAdmin):
+    """The sample herd that See a demo herd copies. Its rabbits, litters and
+    tasks are the owner's ordinary records: filter any list by that owner to edit them."""
+
+    list_display = ("owner", "as_of", "keep_hours", "enabled", "updated_at")
+    list_select_related = ("owner",)
+    autocomplete_fields = ("owner",)
 
 
 @admin.register(PasskeyCredential)
