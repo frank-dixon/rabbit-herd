@@ -84,10 +84,13 @@ def shell_fingerprint():
 def service_worker(request):
     assets = shell_assets()
     version = hashlib.sha256(("|".join(assets) + shell_fingerprint()).encode()).hexdigest()[:12]
-    response = render(
-        request,
-        "pwa/sw.js",
-        {"assets": assets, "version": version},
+    # No request context: the worker is the same for everyone, so rendering it
+    # never touches the session or the user table.
+    from django.http import HttpResponse
+    from django.template.loader import render_to_string
+
+    response = HttpResponse(
+        render_to_string("pwa/sw.js", {"assets": assets, "version": version}),
         content_type="application/javascript",
     )
     response["Service-Worker-Allowed"] = "/"

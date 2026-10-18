@@ -22,8 +22,17 @@ class PwaTests(TestCase):
         self.assertIn("no-cache", response["Cache-Control"])
         body = response.content.decode()
         self.assertIn('"/offline/"', body)
-        self.assertIn("accounts|admin", body)
+        self.assertIn("accounts|admin|login|signup|logout", body)
+        self.assertIn("NETWORK_TIMEOUT_MS = 3000", body)
+        self.assertIn('"bb-pages-" + CACHE_SCHEMA', body)
+
         self.assertIn("/static/css/app", body)
+
+    def test_service_worker_runs_no_queries(self):
+        user = get_user_model().objects.create_user(email="sw@example.com", password="x-strong-Pass-1")
+        self.client.force_login(user)
+        with self.assertNumQueries(0):
+            self.assertEqual(self.client.get("/sw.js").status_code, 200)
 
     def test_offline_page_and_head_links(self):
         self.assertContains(self.client.get("/offline/"), "You're offline")

@@ -1,11 +1,17 @@
 {% autoescape off %}/* Bramble Burrow service worker. Version {{ version }}.
- * Shell assets: cache first. Pages: network first, the last copy kept for
- * offline use. Photos: cache first, refreshed in the background.
- * Sign-in pages, admin and anything that is not a GET are never cached. */
+ * Shell assets: cache first. Pages: network first with a 3 second timeout,
+ * then the last saved copy. Photos: cache first, refreshed in the background.
+ * Sign-in pages (/login/, /signup/, /logout/, /accounts/), admin and anything
+ * that is not a GET are never cached. */
 const VERSION = "{{ version }}";
+// Bump CACHE_SCHEMA when the shape of saved pages or photos changes; older
+// caches are deleted on activate.
+const CACHE_SCHEMA = "v2";
 const SHELL = "bb-shell-" + VERSION;
-const PAGES = "bb-pages";
-const PHOTOS = "bb-photos";
+const PAGES = "bb-pages-" + CACHE_SCHEMA;
+const PHOTOS = "bb-photos-" + CACHE_SCHEMA;
+const KEEP = [SHELL, PAGES, PHOTOS];
+const NETWORK_TIMEOUT_MS = 3000;
 const OFFLINE_URL = "/offline/";
 const SHELL_URLS = [OFFLINE_URL, "/manifest.webmanifest"{% for asset in assets %}, "{{ asset|escapejs }}"{% endfor %}];
 const MAX_PAGES = 60;
@@ -18,14 +24,14 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key.startsWith("bb-shell-") && key !== SHELL).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys.filter((key) => key.startsWith("bb-") && !KEEP.includes(key)).map((key) => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener("message", (event) => {
   if (event.data === "clear-private") {
-    event.waitUntil(Promise.all([caches.delete(PAGES), caches.delete(PHOTOS)]));
+    event.waitUntil(clearPrivate());
   }
 });
 
@@ -35,20 +41,42 @@ async function trim(name, max) {
   await Promise.all(keys.slice(0, Math.max(keys.length - max, 0)).map((key) => cache.delete(key)));
 }
 
+const PRIVATE_PATHS = /^\/(accounts|admin|login|signup|logout|demo)(\/|$)/;
+
 function cacheable(url) {
-  return !/^\/(accounts|admin)\//.test(url.pathname) && url.pathname !== "/sw.js";
+  return !PRIVATE_PATHS.test(url.pathname) && url.pathname !== "/sw.js";
+}
+
+function clearPrivate() {
+  return Promise.all([caches.delete(PAGES), caches.delete(PHOTOS)]);
+}
+
+async function savePage(request, response) {
+  if (response.redirected) {
+    // Sent to sign-in: the session ended, so drop this device's private copies.
+    if (PRIVATE_PATHS.test(new URL(response.url).pathname)) await clearPrivate();
+    return;
+  }
+  if (!response.ok || !(response.headers.get("content-type") || "").includes("text/html")) return;
+  const cache = await caches.open(PAGES);
+  await cache.put(request, response);
+  trim(PAGES, MAX_PAGES);
 }
 
 async function page(request) {
+  const network = fetch(request);
+  const stored = network.then((response) => savePage(request, response.clone())).catch(() => null);
+  const timeout = new Promise((resolve) => setTimeout(resolve, NETWORK_TIMEOUT_MS, "timeout"));
   try {
-    const response = await fetch(request);
-    if (response.ok && !response.redirected && (response.headers.get("content-type") || "").includes("text/html")) {
-      const cache = await caches.open(PAGES);
-      await cache.delete(request);
-      await cache.put(request, response.clone());
-      trim(PAGES, MAX_PAGES);
+    const first = await Promise.race([network, timeout]);
+    if (first !== "timeout") {
+      stored.catch(() => null);
+      return first;
     }
-    return response;
+    // Weak signal: show the saved copy now; the network answer still refreshes it.
+    const saved = await caches.match(request, { cacheName: PAGES });
+    if (saved) return saved;
+    return await network;
   } catch (error) {
     const saved = await caches.match(request, { cacheName: PAGES });
     return saved || (await caches.match(OFFLINE_URL));
