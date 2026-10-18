@@ -337,3 +337,13 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
   body:has([data-app-tabs]) .temp-rail { bottom: calc(var(--tabbar-h, 64px) + env(safe-area-inset-bottom)); }
 }
 @media print { .temp-rail { display: none; } }
+
+/* The page's one main action, pinned above the tab bar on phones for long lists (Add, New pairing,
+   New task, Weigh a group). It is the same element as the header button, so there is never a second
+   copy for screen readers. It stacks above the guest/demo rail when that shows. */
+@media (max-width: 767.98px) {
+  body:has([data-app-tabs]) .pin-main { position: fixed; z-index: 19; left: 1rem; right: 1rem; height: auto; min-height: 48px; justify-content: center;
+    bottom: calc(var(--tabbar-h, 64px) + env(safe-area-inset-bottom) + 0.75rem); box-shadow: 0 6px 18px rgb(31 36 33 / 0.18); }
+  body:has([data-app-tabs]):has(.temp-rail) .pin-main { bottom: calc(var(--tabbar-h, 64px) + env(safe-area-inset-bottom) + var(--rail-h, 33px) + 0.75rem); }
+  body:has([data-app-tabs]):has(.pin-main) main { padding-bottom: calc(160px + env(safe-area-inset-bottom)); }
+}

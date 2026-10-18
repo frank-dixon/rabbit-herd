@@ -3,7 +3,7 @@
 {% block title %}Tasks · {{ app_name }}{% endblock %}
 
 {% block content %}<span data-refreshable hidden></span>
-  {% include "components/page_header.html" with title="Tasks" primary_label="New task" primary_href="?new=1#new-task" primary_modal=True subtitle="Your to-dos and litter dates, soonest first." only %}
+  {% include "components/page_header.html" with title="Tasks" primary_label="New task" primary_pin=True primary_href="?new=1#new-task" primary_modal=True subtitle="Your to-dos and litter dates, soonest first." only %}
   <details class="add-sheet" id="new-task" data-add-sheet{% if request.GET.new or errors %} open{% endif %}>
     <summary class="hidden">New task</summary>
     <section class="mt-6 ruled pt-4" aria-labelledby="add-task-heading" data-modal-content data-add-sheet-body>

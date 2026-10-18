@@ -1,6 +1,6 @@
 {% comment %} The one page header, app-wide. Title and subtitle on the left; actions on the right that never wrap their text and drop below the title when space is tight.
    Pass title. Optional: subtitle, back_label and back_href (a small "← Label" link above the title), rabbit and rabbit2 (photo thumbnails, or a styled initial, beside the title; shows in print too),
-   badge (a small pill after the title), primary_label/primary_href, secondary_label/secondary_href, print_label (a Print button), actions_template (custom action markup, rendered with the page context),
+   badge (a small pill after the title), primary_label/primary_href (primary_pin pins it above the tab bar on phones), secondary_label/secondary_href, print_label (a Print button), actions_template (custom action markup, rendered with the page context),
    compact_actions (keep the actions beside the title on phones), heading_id and focus_heading (for flows that move focus to the heading), print_hide. {% endcomment %}
 <header class="page-header{% if print_hide %} print:hidden{% endif %}" data-page-header data-guide="page-header"{% if print_hide %} data-print-hide{% endif %}>
   {% if back_href %}
@@ -25,7 +25,7 @@
         {% if actions_template %}{% include actions_template %}{% endif %}
         {% if print_label %}<button type="button" class="mo-press inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-line bg-surface px-4 py-2 font-medium text-ink hover:border-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" data-print-button>{{ print_label }}</button>{% endif %}
         {% if secondary_label %}{% include "components/button.html" with label=secondary_label href=secondary_href variant="secondary" only %}{% endif %}
-        {% if primary_label %}{% include "components/button.html" with label=primary_label href=primary_href modal=primary_modal variant="primary" only %}{% endif %}
+        {% if primary_label %}{% include "components/button.html" with label=primary_label href=primary_href modal=primary_modal variant="primary" extra=primary_pin|yesno:"pin-main," only %}{% endif %}
       </div>
     {% endif %}
   </div>
