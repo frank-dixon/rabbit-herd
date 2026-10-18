@@ -2,6 +2,6 @@
 <dl class="fact-grid mt-4" aria-label="Key facts" data-fact-summary>
   <div><dt>Age</dt><dd>{% if rabbit.birth_date %}{{ rabbit.age_text }}{% else %}—{% endif %}</dd></div>
   <div><dt>Status</dt><dd>{{ rabbit.get_status_display }}</dd></div>
-  <div><dt>Latest weight</dt><dd>{% with w=weights.0 %}{% if w %}{{ w.grams|weigh:request.user }} <span>{{ w.date|date:"D, M j" }}</span>{% else %}—{% endif %}{% endwith %}</dd></div>
+  <div><dt>Latest weight</dt><dd>{% with w=weights.0 %}{% if w %}{{ w.grams|weigh:request.user }} <span>{{ w.date|day }}</span>{% else %}—{% endif %}{% endwith %}</dd></div>
   {% if feature_locations %}<div><dt>Location</dt><dd>{{ rabbit.location.name|default:"—" }}</dd></div>{% endif %}
 </dl>
