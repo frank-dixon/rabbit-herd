@@ -70,15 +70,15 @@ HERD = [
     ("Slate", "buck", NZ, "Blue", 900, "breeding", "aa BB Cc dd EE enen",
      {"tattoo": "NZ2406", "loc": "B2", "dam_out": "Skyline", "sire": "Basalt"}),
     ("Garnet", "doe", NZ, "Red", 900, "culled", "Aa BB CC Dd ee enen",
-     {"tattoo": "NZ2311", "died": 90, "cull": "Poor mothering on two litters.", "dam_out": "Cinnabar", "sire": "Ember"}),
+     {"tattoo": "NZ2311", "died": 90, "cull": "Poor mothering on two litters.", "dam_out": "Cinnabar", "sire_out": "Kestrel"}),
     ("Patch", "buck", NZ, "Broken Black", 880, "breeding", "aa Bb Cc Dd EE Enen",
      {"tattoo": "NZ2407", "loc": "B5", "dam_out": "Nightshade", "sire_out": "Checkers"}),
     ("Indigo", "doe", NZ, "Blue", 850, "breeding", "aa BB Cc dd EE enen",
      {"tattoo": "NZ2408", "loc": "D5", "dam": "Nimbus", "sire": "Basalt"}),
     ("Snow", "doe", NZ, "REW", 800, "breeding", "aa BB cc dd EE enen",
-     {"tattoo": "NZ2411", "loc": "D12", "eye": "ruby", "dam_out": "Alba", "sire": "Frost"}),
+     {"tattoo": "NZ2411", "loc": "D12", "eye": "ruby", "dam_out": "Alba", "sire_out": "Glacier"}),
     ("Coral", "doe", NZ, "Red", 780, "breeding", "Aa BB Cc Dd ee enen",
-     {"tattoo": "NZ2412", "loc": "D8", "dam_out": "Cinnabar", "sire": "Ember"}),
+     {"tattoo": "NZ2412", "loc": "D8", "dam_out": "Cinnabar", "sire_out": "Kestrel"}),
     ("Shadow", "doe", NZ, "Black", 720, "breeding", "aa Bb CC Dd EE enen",
      {"tattoo": "NZ2410", "loc": "D2", "dam": "Ink", "sire": "Obsidian"}),
     ("Sierra", "doe", CAL, "Californian", 700, "breeding", "aa BB chch Dd EE enen",
@@ -107,7 +107,7 @@ HERD = [
     ("Copper", "doe", NZ, "Red", 430, "breeding", "Aa BB CC Dd ee enen",
      {"tattoo": "NZ2509", "loc": "D10", "dam": "Coral", "sire": "Ember"}),
     ("Raven", "doe", NZ, "Black", 400, "breeding", "aa BB CC Dd EE enen",
-     {"tattoo": "NZ2508", "loc": "D4", "dam": "Ink", "sire": "Slate"}),
+     {"tattoo": "NZ2508", "loc": "D4", "dam": "Ink", "sire": "Patch"}),
     ("Cobalt", "doe", NZ, "Blue", 380, "breeding", "aa BB Cc dd EE enen",
      {"tattoo": "NZ2511", "loc": "D7", "dam": "Indigo", "sire": "Slate"}),
     ("Sonora", "doe", CAL, "Californian", 360, "breeding", "aa BB chch Dd EE enen",
@@ -116,8 +116,8 @@ HERD = [
      {"tattoo": "NZ2512", "loc": "D14", "eye": "ruby", "dam": "Snow", "sire": "Frost"}),
     ("Harlequin", "doe", NZ, "Broken Black", 320, "breeding", "aa Bb CC Dd EE Enen",
      {"tattoo": "NZ2515", "loc": "D17", "dam": "Shadow", "sire": "Patch"}),
-    ("Flame", "doe", NZ, "Red", 300, "breeding", "Aa BB CC Dd ee enen",
-     {"tattoo": "NZ2514", "loc": "D11", "dam": "Sienna", "sire": "Ember"}),
+    ("Flame", "doe", NZ, "Red", 300, "breeding", "Aa BB Cc Dd ee enen",
+     {"tattoo": "NZ2514", "loc": "D11", "dam": "Sienna", "sire": "Frost"}),
     # Juniors converted from Ink × Patch (kindled 95 days ago)
     ("Jet", "buck", NZ, "Black", 95, "growing", "aa Bb Cc Dd EE enen", {"loc": "G1", "kit_of": "converted"}),
     ("Soot", "doe", NZ, "Black", 95, "growing", "aa BB CC Dd EE enen", {"loc": "G1", "kit_of": "converted"}),
@@ -136,6 +136,8 @@ OUTSIDE = [
     ("Cinnabar", "NZ red doe · Northwind NZ"),
     ("Alba", "NZ REW doe · Kessler New Zealands"),
     ("Checkers", "NZ broken black buck · Northwind NZ"),
+    ("Kestrel", "NZ red buck · Northwind NZ"),
+    ("Glacier", "NZ REW buck · Cedar Run"),
     ("Sunset", "Californian doe · Fairhaven Californians"),
     ("Pacific", "Californian buck · Fairhaven Californians"),
 ]
@@ -149,9 +151,10 @@ RABBITRY = {"Black": ("Kessler New Zealands", "KNZ"), "Blue": ("Cedar Run Meat R
             "Red": ("Northwind NZ", "NW"), "REW": ("Kessler New Zealands", "KNZ"),
             "Broken Black": ("Northwind NZ", "NW"), "Californian": ("Fairhaven Californians", "FC"),
             "Fawn": ("Big Timber Flemish", "BTF")}
-OUTSIDE_SEX_WORD = {"Old Coal": "buck", "Checkers": "buck", "Pacific": "buck"}
+OUTSIDE_SEX_WORD = {"Old Coal": "buck", "Checkers": "buck", "Pacific": "buck", "Kestrel": "buck", "Glacier": "buck"}
 OUTSIDE_COLOR = {"Old Coal": "Black", "Nightshade": "Black", "Skyline": "Blue", "Cinnabar": "Red", "Alba": "REW",
-                 "Checkers": "Broken Black", "Sunset": "Californian", "Pacific": "Californian"}
+                 "Checkers": "Broken Black", "Sunset": "Californian", "Pacific": "Californian",
+                 "Kestrel": "Red", "Glacier": "REW"}
 
 BUYERS = [
     ("Dana Whitfield", "Whitfield Farm Rabbitry", "(717) 555-0142", "Lancaster, PA"),
@@ -346,7 +349,13 @@ class Command(BaseCommand):
 
         photos = self.photos(R, old_files)
 
+        def related(doe, buck):
+            """A doe with her own sire, or a buck with his own dam: never paired."""
+            return parents.get(doe, (None, None))[1] == buck or parents.get(buck, (None, None))[0] == doe
+
         def pair(doe, buck):
+            if related(doe, buck):
+                raise CommandError(f"Demo data pairs {doe} with a parent ({buck}).")
             return Pairing.objects.get_or_create(owner=user, doe=R[doe], buck=R[buck])[0]
 
         def litter(doe, buck, bred, **kw):
@@ -380,9 +389,13 @@ class Command(BaseCommand):
                 kd = day(kindle_back)
                 if any(abs((kd - t).days) < 60 for t in taken):
                     continue
-                buck = sires_by_color.get(color, "Obsidian")
-                if (R[buck].birth_date - kd).days > -200:  # buck too young then
-                    buck = "Basalt" if (R["Basalt"].death_date or today) > kd else "Obsidian"
+                buck = None
+                for option in (sires_by_color.get(color, "Obsidian"), "Obsidian", "Quill", "Patch", "Slate", "Ember", "Frost"):
+                    if not related(name, option) and (R[option].birth_date - kd).days <= -200:
+                        buck = option
+                        break
+                if buck is None:  # every herd buck too young then (or her sire)
+                    buck = "Basalt" if (R["Basalt"].death_date or today) > kd and not related(name, "Basalt") else "Quill"
                 n = 6 + noise(name, kindle_back, 3)
                 litter(name, buck, kindle_back + 31, palpated=True, nest_box_in=True, kindled_on=kd,
                        born_alive=max(n, 3), born_dead=noise(name, kindle_back, 1) % 2, died_after=noise(buck, kindle_back, 1) % 2,
@@ -416,15 +429,15 @@ class Command(BaseCommand):
             LitterCheck.objects.create(litter=conv, date=day(back), mode="whole", kit_count=5, grams=g,
                                        weight_kind="average", status="healthy", note=f"Week {wk} average")
 
-        # 3. Weaned, convert-pending (Magpie × Patch, En × En so one charlie)
-        pending = litter("Magpie", "Patch", 74, nest_box_in=True, kindled_on=day(43), born_alive=6, weaned=True,
+        # 3. Weaned, convert-pending (Domino × Patch, En × En so one charlie)
+        pending = litter("Domino", "Patch", 74, nest_box_in=True, kindled_on=day(43), born_alive=6, weaned=True,
                          notes="Weaned and sexed. Broken × broken: one charlie, three broken, two solid.")
         for i, (sx, col) in enumerate([("doe", "Broken Blue"), ("buck", "Broken Black"), ("doe", "Charlie Blue"),
                                        ("buck", "Blue"), ("doe", "Broken Blue"), ("buck", "Black")], 1):
             LitterKit.objects.create(litter=pending, number=i, sex=sx, color=col)
         for wk in range(1, 7):
             LitterCheck.objects.create(litter=pending, date=day(43 - wk * 7), mode="whole", kit_count=6,
-                                       grams=NZ_CURVE[wk] + noise("Magpie", wk, 20), weight_kind="average",
+                                       grams=NZ_CURVE[wk] + noise("Domino", wk, 20), weight_kind="average",
                                        status="healthy", note=f"Week {wk}")
 
         # 4. NZ×Californian growing kits, 5 weeks (Mojave × Slate): per-kit weights, faster than pure NZ
@@ -476,17 +489,17 @@ class Command(BaseCommand):
             LitterKit.objects.create(litter=bb, number=i, color=col)
         LitterCheck.objects.create(litter=bb, date=day(8), mode="whole", kit_count=6, grams=NZ_CURVE[1],
                                    weight_kind="average", status="healthy")
-        # 9. Nest box in, due in 2 days (Shadow × Obsidian)
-        nest = litter("Shadow", "Obsidian", 29, nest_box_in=True, notes="Nest box in; she is pulling fur.")
+        # 9. Nest box in, due in 2 days (Shadow × Ember)
+        nest = litter("Shadow", "Ember", 29, nest_box_in=True, notes="Nest box in; she is pulling fur.")
         Cover.objects.create(litter=nest, date=day(29), outcome="covered")
         Cover.objects.create(litter=nest, date=day(28), outcome="no_fall", note="Second try next morning.")
         # 10. Nest box due today (Snow × Frost: REW × REW, all REW)
         litter("Snow", "Frost", 28, notes="REW × REW: every kit will be REW.")
         # 11. Palpate due (Azure × Slate), bred 12 days ago
-        palp = litter("Azure", "Slate", 12, palpated=False, notes="Palpate today.")
+        palp = litter("Azure", "Obsidian", 12, palpated=False, notes="Palpate today.")
         Cover.objects.create(litter=palp, date=day(12), outcome="covered")
-        # 12. Bred / expecting with covers (Domino × Ember: broken red × red)
-        exp = litter("Domino", "Ember", 5, notes="Broken × solid red: expect about half broken.")
+        # 12. Bred / expecting with covers (Magpie × Ember: broken blue × red)
+        exp = litter("Magpie", "Ember", 5, notes="Broken blue × red: expect about half broken.")
         Cover.objects.create(litter=exp, date=day(6), outcome="refused", note="Not ready; tried again next day.")
         Cover.objects.create(litter=exp, date=day(5), time=datetime.time(8, 0), outcome="covered")
         Cover.objects.create(litter=exp, date=day(5), time=datetime.time(17, 15), outcome="covered")
@@ -597,7 +610,7 @@ class Command(BaseCommand):
         for title, back, rabbit, repeat, done in [
             ("Fix the water line on the doe row", 4, None, "", False),        # overdue
             ("Pay the feed store invoice", 6, None, "", False),               # overdue
-            ("Tattoo the Magpie keepers", 1, "Magpie", "", False),           # overdue
+            ("Tattoo the Domino keepers", 1, "Domino", "", False),           # overdue
             ("Weigh the Mojave cross litter", 0, "Mojave", "weekly", False),  # today
             ("Scrub and refill water bottles", 0, None, "daily", False),      # today
             ("Trim nails on the buck row", -5, None, "monthly", False),       # upcoming
@@ -965,13 +978,21 @@ class Command(BaseCommand):
                 k = i - len(kept)
                 if k == 0 and survivors - len(kept) >= 4:
                     fate, end_wk = "sold", 8 + lit_n % 2
-                elif k == 1 and survivors - len(kept) >= 5:
+                elif k == 1 and survivors - len(kept) >= 5 and lit_n % 4 == 0:
                     fate, end_wk = "culled", 6 + lit_n % 2
                 elif age_days < 70 + 14:
                     fate, end_wk = "growing", None
                 else:
                     fate, end_wk = "processed", 10 + (lit_n + i) % 3
                 end = litter.kindled_on + datetime.timedelta(days=end_wk * 7) if end_wk else None
+                if end and end > today:  # nothing in the future: still growing
+                    fate, end_wk, end = "growing", None, None
+                if fate == "processed" and age_days > 84 + 60:
+                    # Older fryer litters are counted on the litter, not one card per
+                    # kit, as most meat keepers record them.
+                    LitterKit.objects.create(litter=litter, number=number, sex=sex, color=color)
+                    outcomes += 1
+                    continue
                 kit = Rabbit.objects.create(
                     owner=user, name=f"{doe.name} kit {number}", sex=sex,
                     breed="NZ × Californian" if cross else doe.breed, breed_type="crossbred" if cross else "purebred",
@@ -1008,9 +1029,11 @@ class Command(BaseCommand):
                         f"Grown out for meat; processed at {end_wk} weeks."
                     new_culls.append(CullNote(rabbit=kit, date=end, decision="cull", reason=why))
                 base = color.replace("Broken ", "").replace("Charlie ", "")
-                name = photo_by_color.get(base) or photo_by_color.get("Black")
-                if fate == "growing" and self.fresh_photo(kit, base, litter.kindled_on + datetime.timedelta(days=35)):
-                    name = None  # still in the herd: its own unused pool photo
+                # Only kits still in the herd get a photo, each its own unused one,
+                # so no two rabbits share a picture.
+                name = None
+                if fate == "growing":
+                    self.fresh_photo(kit, base, litter.kindled_on + datetime.timedelta(days=35))
                 if name:
                     new_photos.append(RabbitPhoto(rabbit=kit, image=name, is_main=True, taken_at=litter.kindled_on +
                                                   datetime.timedelta(days=35)))

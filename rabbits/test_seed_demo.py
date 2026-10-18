@@ -89,3 +89,51 @@ class SeedDemoPagesTests(TestCase):
         for qs in ("?tab=former", "?view=list", "?tab=archived"):
             self.assertEqual(self.client.get(reverse("rabbit_list") + qs).status_code, 200)
         self.assertGreater(checked, 10)
+
+
+class DemoDataIsBelievableTests(TestCase):
+    """Critic's and Frank's demo fixes: nothing in the future, no doe paired with
+    her sire (or buck with his dam), a realistic number of culled cards, and
+    no two rabbits sharing a photo."""
+
+    @classmethod
+    def setUpTestData(cls):
+        seed("--no-password")
+        cls.user = User.objects.get(email="demo@bramble-burrow.app")
+
+    def test_nothing_is_dated_in_the_future(self):
+        from .models import CullNote, LitterCheck, LitterNote
+
+        today = datetime.date.today()
+        self.assertFalse(Weight.objects.filter(rabbit__owner=self.user, date__gt=today).exists())
+        rabbits = Rabbit.all_objects.filter(owner=self.user)
+        self.assertFalse(rabbits.filter(sold_on__gt=today).exists())
+        self.assertFalse(rabbits.filter(death_date__gt=today).exists())
+        self.assertFalse(rabbits.filter(birth_date__gt=today).exists())
+        self.assertFalse(Litter.objects.filter(owner=self.user, bred_on__gt=today).exists())
+        self.assertFalse(Litter.objects.filter(owner=self.user, kindled_on__gt=today).exists())
+        for model in (CullNote, LitterNote, LitterCheck):
+            field = "rabbit__owner" if model is CullNote else "litter__owner"
+            self.assertFalse(model.objects.filter(**{field: self.user, "date__gt": today}).exists(), model.__name__)
+
+    def test_no_pairing_is_a_parent_with_its_offspring(self):
+        from .models import Pairing, Relative
+
+        for pairing in Pairing.objects.filter(owner=self.user):
+            self.assertFalse(Relative.objects.filter(rabbit=pairing.doe, relationship="sire", herd_rabbit=pairing.buck).exists(), str(pairing))
+            self.assertFalse(Relative.objects.filter(rabbit=pairing.buck, relationship="dam", herd_rabbit=pairing.doe).exists(), str(pairing))
+
+    def test_culled_cards_are_a_realistic_share(self):
+        rabbits = Rabbit.all_objects.filter(owner=self.user)
+        culled = rabbits.filter(status="culled").count()
+        self.assertLessEqual(culled, 60)
+        self.assertLess(culled, rabbits.count() / 3)
+
+    def test_no_two_rabbits_share_a_photo(self):
+        from django.db.models import Count
+
+        from .models import RabbitPhoto
+
+        shared = (RabbitPhoto.objects.filter(rabbit__owner=self.user).values("image")
+                  .annotate(n=Count("id")).filter(n__gt=1))
+        self.assertEqual(list(shared), [])
