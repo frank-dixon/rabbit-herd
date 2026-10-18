@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
 
 from . import color_odds, genetics, schedules
-from .models import Pairing, PedigreeEntry, Rabbit, Relative, prefs
+from .models import Pairing, Rabbit, prefs
 
 MAX_GENERATIONS = 4
 PARENT_STEPS = {"dam": 1, "sire": 1, "granddam": 2, "grandsire": 2}
@@ -25,21 +25,24 @@ class AncestorIndex:
     ancestor walks and sibling checks for many pairings cost nothing more."""
 
     def __init__(self, owner_id):
+        from .pedigree import herd_links
+
+        relatives, entries = herd_links(owner_id)
         self.up = {}  # rabbit_id -> [(generations, herd rabbit or None, outside or None)]
-        for row in (Relative.objects.filter(rabbit__owner_id=owner_id, relationship__in=PARENT_STEPS)
-                    .select_related("herd_rabbit", "outside").order_by("rabbit_id", "relationship", "pk")):
-            self.up.setdefault(row.rabbit_id, []).append((PARENT_STEPS[row.relationship], row.herd_rabbit, row.outside))
-        for entry in (PedigreeEntry.objects.filter(rabbit__owner_id=owner_id)
-                      .select_related("herd_rabbit", "outside").order_by("rabbit_id", "position", "pk")):
+        self.siblings = {}
+        offspring = []
+        for row in relatives:
+            if row.relationship in PARENT_STEPS:
+                self.up.setdefault(row.rabbit_id, []).append((PARENT_STEPS[row.relationship], row.herd_rabbit, row.outside))
+            elif row.relationship == "offspring" and row.herd_rabbit_id:
+                offspring.append(row)
+            elif row.relationship in ("sibling", "half_sibling") and row.herd_rabbit_id:
+                self.siblings.setdefault(frozenset((row.rabbit_id, row.herd_rabbit_id)), row)
+        for entry in entries:
             self.up.setdefault(entry.rabbit_id, []).append((len(entry.position), entry.herd_rabbit, entry.outside))
         # A herd rabbit that lists this one as its offspring is a parent.
-        for row in (Relative.objects.filter(herd_rabbit__owner_id=owner_id, relationship="offspring")
-                    .select_related("rabbit").order_by("relationship", "pk")):
+        for row in offspring:
             self.up.setdefault(row.herd_rabbit_id, []).append((1, row.rabbit, None))
-        self.siblings = {}
-        for row in (Relative.objects.filter(rabbit__owner_id=owner_id, herd_rabbit__isnull=False,
-                                            relationship__in=["sibling", "half_sibling"]).order_by("relationship", "pk")):
-            self.siblings.setdefault(frozenset((row.rabbit_id, row.herd_rabbit_id)), row)
 
     def sibling_row(self, a, b):
         return self.siblings.get(frozenset((a.pk, b.pk)))
@@ -120,8 +123,17 @@ def age_warnings(doe, buck):
 
 
 def herd_choices(user, sex):
-    rabbits = Rabbit.objects.filter(owner=user, sex=sex, archived_at__isnull=True).for_view(user).exclude(status=Rabbit.Status.DECEASED)
-    return [(str(r.pk), f"{r.name}{f' · {r.tattoo}' if r.tattoo else ''} · {r.short_breed}") for r in rabbits]
+    """Picker options for one sex; both sexes come from one query per request."""
+    from . import derived
+
+    def load():
+        rabbits = Rabbit.objects.filter(owner=user, archived_at__isnull=True).for_view(user).exclude(status=Rabbit.Status.DECEASED)
+        out = {}
+        for r in rabbits:
+            out.setdefault(r.sex, []).append((str(r.pk), f"{r.name}{f' · {r.tattoo}' if r.tattoo else ''} · {r.short_breed}"))
+        return out
+
+    return list(derived.memo(("herd_choices", user.pk), load).get(sex, []))
 
 
 def pick(user, raw, sex):

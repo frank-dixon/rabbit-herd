@@ -19,21 +19,35 @@ def known_parents(rabbit_id):
     return dict(derived.memo(("parents", rabbit_id), lambda: _known_parents(rabbit_id)))
 
 
-def all_parents(owner_id):
-    """{rabbit_id: known_parents(rabbit_id)} for every rabbit the owner has
-    (deleted ones too), from two queries. Same rules as _known_parents: stored
-    pedigree positions first, then dam and sire relatives fill what's missing."""
+def herd_links(owner_id):
+    """All of one keeper's relative rows and pedigree entries, two queries per
+    request, shared by the parents map, ancestor walks and sibling checks."""
     from . import derived
 
     def load():
-        ids = list(Rabbit.all_objects.filter(owner_id=owner_id).values_list("pk", flat=True))
-        found = {pk: {} for pk in ids}
-        for entry in (PedigreeEntry.objects.filter(rabbit__owner_id=owner_id)
-                      .select_related("herd_rabbit", "outside").order_by("rabbit_id", "position", "pk")):
+        relatives = list(Relative.objects.filter(rabbit__owner_id=owner_id)
+                         .select_related("herd_rabbit", "outside", "rabbit").order_by("rabbit_id", "relationship", "pk"))
+        entries = list(PedigreeEntry.objects.filter(rabbit__owner_id=owner_id)
+                       .select_related("herd_rabbit", "outside").order_by("rabbit_id", "position", "pk"))
+        return relatives, entries
+
+    return derived.memo(("herd_links", owner_id), load)
+
+
+def all_parents(owner_id):
+    """{rabbit_id: known_parents(rabbit_id)} for every rabbit with a parent on
+    record, from herd_links. Same rules as _known_parents: stored pedigree
+    positions first, then dam and sire relatives fill what's missing."""
+    from . import derived
+
+    def load():
+        relatives, entries = herd_links(owner_id)
+        found = {}
+        for entry in entries:
             found.setdefault(entry.rabbit_id, {})[entry.position] = (entry.ancestor, None)
-        for row in (Relative.objects.filter(rabbit__owner_id=owner_id, relationship__in=["dam", "sire"])
-                    .select_related("herd_rabbit", "outside").order_by("rabbit_id", "relationship", "pk")):
-            found.setdefault(row.rabbit_id, {}).setdefault("d" if row.relationship == "dam" else "s", (row.other, row))
+        for row in relatives:
+            if row.relationship in ("dam", "sire"):
+                found.setdefault(row.rabbit_id, {}).setdefault("d" if row.relationship == "dam" else "s", (row.other, row))
         return found
 
     result = derived.memo(("all_parents", owner_id), load)

@@ -306,11 +306,12 @@ def children_of(owner_id):
     from . import derived
 
     def load():
+        from .pedigree import herd_links
+
         out = {}
-        for rel, parent, child in (Relative.objects.filter(rabbit__owner_id=owner_id, relationship__in=["dam", "sire"],
-                                                           herd_rabbit__isnull=False)
-                                   .values_list("relationship", "herd_rabbit_id", "rabbit_id")):
-            out.setdefault((rel, parent), set()).add(child)
+        for row in herd_links(owner_id)[0]:
+            if row.relationship in ("dam", "sire") and row.herd_rabbit_id:
+                out.setdefault((row.relationship, row.herd_rabbit_id), set()).add(row.rabbit_id)
         return out
 
     return derived.memo(("children_of", owner_id), load)
