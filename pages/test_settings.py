@@ -10,7 +10,7 @@ class SettingsTests(TestCase):
 
     def test_defaults_to_light_roomy_on_html(self):
         page = self.client.get(reverse("index"))
-        self.assertContains(page, '<html lang="en" data-theme="light" data-density="roomy" data-layout="v2">')
+        self.assertContains(page, '<html lang="en" data-theme="light" data-density="roomy">')
 
     def test_settings_lists_all_themes_with_swatches(self):
         page = self.client.get(reverse("account"))
