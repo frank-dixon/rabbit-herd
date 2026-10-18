@@ -20,7 +20,7 @@
       <span role="cell" class="hidden text-sm text-muted lg:block">—</span>
       {% if feature_locations %}<span role="cell" class="hidden text-sm text-muted xl:block">—</span>{% endif %}
       <span role="cell" class="hidden text-sm text-muted xl:block">—</span>
-      <span role="cell" class="justify-self-end lg:justify-self-start"><span class="pill" data-status-chip data-status="{{ first.status }}">{{ first.status_tag }}</span></span>
+      <span role="cell" class="justify-self-end lg:justify-self-start"><span class="pill pill-{{ first.status_tone|default:'o' }}" data-status-chip data-status="{{ first.status }}">{{ first.status_tag }}</span></span>
     </div>
   </li>
   {% for rabbit in stack.kits %}{% include "rabbits/_list_row.html" with rabbit=rabbit litter_key=key %}{% endfor %}

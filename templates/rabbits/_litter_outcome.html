@@ -1,4 +1,4 @@
-{% load photos %}{# The litter's Outcome (kits kept, sold, processed, lost; live and dressed weights) and dated Notes. #}
+{% load photos status %}{# The litter's Outcome (kits kept, sold, processed, lost; live and dressed weights) and dated Notes. #}
 {% if outcome %}
 <section class="mt-8 scroll-mt-20" id="outcome" aria-labelledby="outcome-heading" data-litter-outcome>
   <div class="oc-head"><h2 class="text-base font-semibold" id="outcome-heading">Outcome</h2>{% include "rabbits/_outcome_legend.html" %}</div>
@@ -16,7 +16,7 @@
         <thead><tr><th>Kit</th><th>Outcome</th><th class="r">Live wt</th><th class="r oc-hm">Dressed</th><th class="r oc-hm">Dress-out</th><th class="r oc-hm">Days</th></tr></thead>
         <tbody>{% for row in outcome.rows %}{% with main=row.kit.main_photo %}
           <tr><td><a class="oc-row-link" href="{% url 'rabbit_detail' row.kit.pk %}">{% if main %}<img class="oc-kit" {% photo_src main "32px" 96 %} alt="" loading="lazy">{% else %}{% coat_swatch row.kit "oc-kit" %}{% endif %}{{ row.kit.name }}</a></td>
-            <td><span class="pill {% if row.kind == 'kept' %}pill-g{% elif row.kind == 'sold' %}pill-b{% elif row.kind == 'processed' %}pill-y{% endif %}">{{ row.label }}</span></td>
+            <td><span class="pill pill-{{ row.kind|status_tone|default:'o' }}">{{ row.label }}</span></td>
             <td class="r num">{{ row.live|default:"—" }}</td><td class="r num oc-hm">{{ row.dressed|default:"—" }}</td><td class="r num oc-hm">{{ row.pct|default:"—" }}</td><td class="r num oc-hm">{{ row.days|default_if_none:"—" }}</td></tr>
         {% endwith %}{% endfor %}</tbody>
       </table>

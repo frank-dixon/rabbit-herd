@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load photos %}
+{% load photos status %}
 
 {% block title %}Today · {{ app_name }}{% endblock %}
 
@@ -35,7 +35,7 @@
                   {% with main=card.rabbit.main_photo %}{% if main %}<img class="block aspect-square w-full object-cover" {% photo_src main "(min-width: 1024px) 240px, (min-width: 640px) 30vw, 150px" 640 %} alt="" loading="lazy" decoding="async">{% endif %}
                   <span class="flex items-start gap-2.5 px-3 pt-2.5 pb-2.5">{% if not main %}{% coat_swatch card.rabbit "mt-0.5 h-10 w-10 rounded-full" %}{% endif %}{% endwith %}
                   <span class="block min-w-0 flex-1">
-                    <span class="flex flex-wrap items-center gap-x-2 gap-y-1"><span class="min-w-0 font-semibold">{{ card.rabbit.name }}</span><span class="shrink-0 pill sm:ml-auto" data-status-chip>{{ card.chip }}</span></span>
+                    <span class="flex flex-wrap items-center gap-x-2 gap-y-1"><span class="min-w-0 font-semibold">{{ card.rabbit.name }}</span><span class="shrink-0 pill pill-{{ card.chip|status_tone|default:'o' }} sm:ml-auto" data-status-chip>{{ card.chip }}</span></span>
                     <span class="block text-[13px] text-muted">{{ card.rabbit.get_sex_display }} · {{ card.rabbit.breed_line }}</span>
                     {% if card.next %}<span class="mt-1.5 block text-xs font-medium {% if card.overdue %}text-danger{% else %}text-accent{% endif %}" data-next>{{ card.next }}</span>{% endif %}
                   </span>

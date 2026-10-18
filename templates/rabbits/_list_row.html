@@ -15,7 +15,7 @@
       <span role="cell" class="num hidden text-sm leading-tight lg:block">{% if rabbit.last_weight %}{{ rabbit.last_weight.text }}<span class="block text-xs text-muted" title="{{ rabbit.last_weight.date|date:'M j, Y' }}">{{ rabbit.weight_ago }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</span>
       {% if feature_locations %}<span role="cell" class="hidden min-w-0 break-words text-sm xl:block">{% if rabbit.location %}{{ rabbit.location.name }}{% else %}<span class="text-muted">—</span>{% endif %}</span>{% endif %}
       <span role="cell" class="hidden min-w-0 break-words text-sm leading-tight xl:block">{% if rabbit.next_item %}{{ rabbit.next_item.label }}<span class="block text-xs {% if rabbit.next_item.overdue %}text-danger{% else %}text-muted{% endif %}">{% if rabbit.next_item.overdue %}Overdue · {% endif %}{{ rabbit.next_item.date|date:"M j" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</span>
-      <span role="cell" class="justify-self-end lg:justify-self-start"><span class="pill" data-status-chip data-status="{{ rabbit.status }}">{{ rabbit.status_tag }}</span></span>
+      <span role="cell" class="justify-self-end lg:justify-self-start"><span class="pill pill-{{ rabbit.status_tone|default:'o' }}" data-status-chip data-status="{{ rabbit.status }}">{{ rabbit.status_tag }}</span></span>
     </div>
   </li>
 {% endwith %}

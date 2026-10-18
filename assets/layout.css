@@ -105,11 +105,8 @@ main h1 { letter-spacing: -0.02em; }
   :is(a, button, label).mo-press:active, button[type="submit"]:active { transform: none !important; }
 }
 
-/* Status pills (rabbit list): Breeding gray, Growing out amber, Sold gray outline, Culled/Deceased red. */
-[data-status-chip][data-status] { border-radius: 4px !important; border-width: 0 !important; padding: 1px 6px !important; font-size: 0.75rem; font-weight: 500; background: var(--pill); color: var(--ink-2); backdrop-filter: none; }
-[data-status-chip][data-status="growing"] { background: var(--y-soft); color: var(--y-ink); }
-[data-status-chip][data-status="sold"] { background: transparent; box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
-[data-status-chip]:is([data-status="culled"], [data-status="deceased"]) { background: var(--r-soft); color: var(--r-ink); }
+/* Status pills: the color comes from the pill-g/b/y/r/o class (rabbits/status_pills.py), never from data-status. */
+[data-status-chip] { backdrop-filter: none; }
 
 /* Key numbers (Today): a gray label, a large tabular value, a small note; columns split by hairlines, no boxes. */
 .key-numbers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
@@ -134,7 +131,7 @@ main h1 { letter-spacing: -0.02em; }
 .pill-b { background: var(--b-soft); color: var(--b-ink); }
 .pill-y { background: var(--y-soft); color: var(--y-ink); }
 .pill-r { background: var(--r-soft); color: var(--r-ink); }
-.pill-o { background: var(--pill); color: var(--muted); }
+.pill-o { background: var(--pill); color: var(--ink-2); }
 a.pill { cursor: pointer; transition: filter 120ms ease-out; } a.pill:hover { filter: brightness(0.97); }
 a.pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 

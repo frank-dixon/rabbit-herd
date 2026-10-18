@@ -301,6 +301,13 @@ class Rabbit(models.Model):
         return self.get_status_display()
 
     @property
+    def status_tone(self):
+        """The pill color for this status from the one map (rabbits/status_pills.py)."""
+        from .status_pills import status_tone
+
+        return status_tone(self.status)
+
+    @property
     def died_text(self):
         """ "Died Mon, May 18" (the year too when it isn't this year), or "" when no date."""
         if not (self.is_deceased and self.death_date):

@@ -178,7 +178,9 @@ def relatedness(user, doe, buck, params=None, sort=""):
     rows.sort(key=lambda r: (r["sort"][key], r["sort"]["closest"]), reverse=desc)
     heads = sorting.headers(columns, key, desc, {k: v for k, v in (params or {}).items() if k != "asort"}, param="asort")
     related = bool(closest or rows)
-    tone = "r" if coi >= 25 else "y" if related else ""
+    from .status_pills import coi_tone
+
+    tone = coi_tone(coi) if related else "g"
     return {"related": related, "tone": tone, "label": "Closely related" if tone == "r" else "Related" if related else "Not related",
             "closest": closest, "coi": f"{coi:.1f}".rstrip("0").rstrip("."), "count": len(rows), "rows": rows,
             "heads": heads, "sorted": bool(sort)}
@@ -289,7 +291,7 @@ def pairing_items(user, pairings):
     from django.utils import timezone
 
     from . import program_plan
-    from .status_pills import tone as status_tone
+    from .status_pills import coi_tone, tone as status_tone
     from .swatches import swatch
 
     today = timezone.localdate()
@@ -315,7 +317,7 @@ def pairing_items(user, pairings):
             raised = litter.survivors if getattr(litter, "survivors", None) is not None else litter.born_alive
             when = f"{'Last litter' if done else 'Kindled'} {litter.kindled_on:%b} {litter.kindled_on.day}"
             result = f"{litter.born_alive or 0} born, {raised or 0} {'raised' if done else 'alive'}"
-        tone = "r" if coi >= 25 else "y" if coi > 0 else ""
+        tone = coi_tone(coi)
         coi_pill = {"label": f"COI {coi:.1f}%".replace(".0%", "%"), "tone": tone}
         relation = warnings[0] if warnings else "No shared ancestors on record"
         items.append({

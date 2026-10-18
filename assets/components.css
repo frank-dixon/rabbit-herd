@@ -87,11 +87,12 @@
 .coat-swatch svg { width: 45%; height: 45%; opacity: .55; }
 
 /* Status pills: each tone carries an icon (dot, ring, clock, alert) so meaning isn't color alone. */
-.pill-r::before, .pill-y::before, .pill-b::before, .pill-g::before { content: ""; width: 8px; height: 8px; flex: none; background: currentColor; -webkit-mask: var(--pill-icon) center / contain no-repeat; mask: var(--pill-icon) center / contain no-repeat; }
+.pill-r::before, .pill-y::before, .pill-b::before, .pill-g::before, .pill-o::before { content: ""; width: 8px; height: 8px; flex: none; background: currentColor; -webkit-mask: var(--pill-icon) center / contain no-repeat; mask: var(--pill-icon) center / contain no-repeat; }
 .pill-r { --pill-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M3 0h2v5H3zM3 6h2v2H3z'/%3E%3C/svg%3E"); }
 .pill-y { --pill-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M4 0 8 8H0z'/%3E%3C/svg%3E"); }
 .pill-b { --pill-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M4 0a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 1.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z'/%3E%3C/svg%3E"); }
 .pill-g { --pill-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Ccircle cx='4' cy='4' r='4'/%3E%3C/svg%3E"); }
+.pill-o { --pill-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M0 3h8v2H0z'/%3E%3C/svg%3E"); }
 .panel-row.is-flex { display: flex; }
 
 /* Litter cards: one compact row on phones (pair, pill, next step). */

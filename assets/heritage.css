@@ -59,15 +59,9 @@ html[data-theme="heritage"] :is(.pill, [data-status-chip], .sample-badge) {
   font-weight: 600;
   box-shadow: inset 0 0 0 1px var(--line);
 }
-html[data-theme="heritage"] .pill.pill-pos,
-html[data-theme="heritage"] .pill.g,
-html[data-theme="heritage"] [data-status="bred"],
-html[data-theme="heritage"] [data-status="breeding"] {
-  box-shadow: inset 0 0 0 1px var(--g-ink);
-}
-html[data-theme="heritage"] :is(.pill.pill-neg, .pill.r, [data-status="retired"], .sample-badge) {
-  box-shadow: inset 0 0 0 1px var(--line);
-}
+/* The ribbon's hairline takes the pill's own ink, so each status keeps its one color. */
+html[data-theme="heritage"] :is(.pill-g, .pill-b, .pill-y, .pill-r) { box-shadow: inset 0 0 0 1px currentColor; }
+html[data-theme="heritage"] .sample-badge { box-shadow: inset 0 0 0 1px var(--line); }
 html[data-theme="heritage"] .sample-badge {
   background: var(--well);
   color: var(--muted);
