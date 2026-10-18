@@ -9,6 +9,8 @@
 .ft-facts div:first-child { padding-left: 0; box-shadow: none; }
 .ft-facts dt { font-size: 12px; line-height: 16px; color: var(--muted); }
 .ft-facts dd { margin: 4px 0 0; font-weight: 600; font-size: 15px; line-height: 20px; white-space: nowrap; }
+/* Phones: the facts wrap to a second row rather than running off the edge (the dates carry a weekday). */
+@media (max-width: 767.98px) { .ft-facts { flex-wrap: wrap; row-gap: 12px; } .ft-facts div:nth-child(4) { padding-left: 0; box-shadow: none; } }
 .ft-facts dd small { font-weight: 400; color: var(--muted); font-size: 12px; }
 .ft-genebar { display: flex; align-items: center; gap: 16px; justify-content: space-between; margin-top: 16px; padding: 8px 0; }
 .ft-chips { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 2px; }

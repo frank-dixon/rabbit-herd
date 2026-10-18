@@ -327,8 +327,14 @@ export function bindFamilyTree(root = document) {
   function focusGen(g) {
     g = Math.max(0, Math.min(state.gens - 1, g));
     state.focusGen = g;
+    // The stage ends just below the last generation (as drawn from the first), not in an empty band (Critic v3).
+    stage.style.height = "";
     const vw = stage.clientWidth, vh = stage.clientHeight;
-    const view = phoneView(items.filter(visible), g, state.gens, vw, vh, { top: NAV_H, bottom: CONTROLS_H });
+    const shown = items.filter(visible);
+    const view = phoneView(shown, g, state.gens, vw, vh, { top: NAV_H, bottom: CONTROLS_H });
+    const first = phoneView(shown, 0, state.gens, vw, vh, { top: NAV_H, bottom: CONTROLS_H });
+    const need = Math.ceil(first.y + (worldH() - 56) * first.k + CONTROLS_H + 8);
+    if (need < vh) stage.style.height = need + "px";
     Object.assign(state, view);
     world.style.transition = reducedMotion() ? "none" : "transform .35s cubic-bezier(.2,.8,.2,1)";
     apply();
