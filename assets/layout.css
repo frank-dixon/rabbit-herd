@@ -333,22 +333,35 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
 .temp-rail-action { position: relative; color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; background: none; border: 0; padding: 0; cursor: pointer; font: inherit; font-weight: 600; }
 .temp-rail-action::after { content: ""; position: absolute; inset: -12px -8px; }
 .temp-rail-action:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
-@media (max-width: 767.98px) {
-  /* Phones: the line may wrap rather than cut the sentence off. */
-  .temp-rail { font-size: 12px; gap: 10px; padding-inline: 12px; }
-  .temp-rail-text { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; }
-  body:has([data-app-tabs]) .temp-rail { bottom: calc(var(--tabbar-h, 64px) + env(safe-area-inset-bottom)); }
-}
 @media print { .temp-rail { display: none; } }
 
-/* The page's one main action, pinned above the tab bar on phones for long lists (Add, New pairing,
-   New task, Weigh a group). It is the same element as the header button, so there is never a second
-   copy for screen readers. It stacks above the guest/demo rail when that shows. */
+/* ---- Phone bottom stack (Critic v2 N1, N2). One solid stack, top to bottom: the page's action
+   (pinned main button or a form's action bar), the guest/demo rail, the tab bar. Nothing overlaps,
+   nothing shows between them, and the page is padded by the stack's height so its last row clears it.
+   bottom-stack.mjs measures the real heights into --tabbar-h, --rail-h and --stack-h; the defaults
+   below hold without JS. ---- */
 @media (max-width: 767.98px) {
-  body:has([data-app-tabs]) .pin-main { position: fixed; z-index: 19; left: 1rem; right: 1rem; height: auto; min-height: 48px; justify-content: center;
-    bottom: calc(var(--tabbar-h, 64px) + env(safe-area-inset-bottom) + 0.75rem); box-shadow: 0 6px 18px rgb(31 36 33 / 0.18); }
-  body:has([data-app-tabs]):has(.temp-rail) .pin-main { bottom: calc(var(--tabbar-h, 64px) + env(safe-area-inset-bottom) + var(--rail-h, 44px) + 0.5rem); }
-  body:has([data-app-tabs]):has(.pin-main) main { padding-bottom: calc(160px + env(safe-area-inset-bottom)); }
+  :root { --tabbar-h: 0px; --rail-h: 0px; --action-h: 0px; }
+  body:has([data-app-tabs]) { --tabbar-h: calc(64px + env(safe-area-inset-bottom)); }
+  body:has(.temp-rail) { --rail-h: 24px; }
+  body:has(.pin-main) { --action-h: 48px; }
+  body:has([data-action-bar]) { --action-h: 76px; }
+  [data-app-tabs].tabbar { background-color: var(--color-surface) !important; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .temp-rail { position: fixed; left: 0; right: 0; bottom: var(--tabbar-h); z-index: 21; height: 24px; min-height: 24px; padding: 0 12px; gap: 10px;
+    font-size: 11px; line-height: 24px; background: var(--color-surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .temp-rail-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .temp-rail-action::after { inset: -6px -8px; }
+  /* Without a tab bar the rail is the bottom edge, so it carries the home-indicator inset. */
+  body:not(:has([data-app-tabs])) .temp-rail { height: calc(24px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); }
+  body:not(:has([data-app-tabs])):has(.temp-rail) { --rail-h: calc(24px + env(safe-area-inset-bottom)); }
+  /* Something sits below the action bar, so it doesn't need the inset itself. */
+  body:has([data-app-tabs]) [data-action-bar], body:has(.temp-rail) [data-action-bar] { padding-bottom: 0.75rem !important; }
+  body:has([data-app-tabs]) .pin-main { position: fixed; z-index: 21; left: 0; right: 0; bottom: calc(var(--tabbar-h) + var(--rail-h));
+    height: 48px !important; min-height: 48px !important; justify-content: center; border-radius: 0 !important; box-shadow: none !important; }
+  [data-action-bar] { bottom: calc(var(--tabbar-h) + var(--rail-h)) !important; z-index: 21 !important; background-color: var(--color-surface) !important;
+    -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  [data-shell] main { padding-bottom: calc(var(--stack-h, calc(var(--tabbar-h) + var(--rail-h) + var(--action-h))) + 1.5rem) !important; }
+  .toasts { bottom: calc(var(--stack-h, calc(var(--tabbar-h) + var(--rail-h) + var(--action-h))) + 0.75rem); }
 }
 
 /* Tap targets: 44px or more on phones and touch screens (Critic A1). Mouse-driven desktops keep the
@@ -368,7 +381,7 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
 /* Full-width buttons stay full width (signup and sign-in submit, the first-screen choices). */
 :is(a, button).mo-press.w-full, main button[type="submit"].w-full { width: 100%; }
 /* First-screen choices are tiles: the quiet one keeps a visible border on the canvas. */
-.choice-tile { border: 1px solid var(--field) !important; background-color: var(--surface) !important; border-radius: 10px !important; padding: 0.875rem 1rem !important; }
+.choice-tile { border: 1px solid var(--field) !important; background-color: var(--color-surface) !important; border-radius: 10px !important; padding: 0.875rem 1rem !important; }
 .choice-tile:hover { border-color: var(--ink-2) !important; }
 .choice-tile.is-primary { border-color: var(--accent) !important; background-color: var(--accent) !important; }
 .choice-tile .choice-title { font-size: 1.125rem !important; font-weight: 600 !important; }

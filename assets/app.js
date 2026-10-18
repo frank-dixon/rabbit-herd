@@ -51,6 +51,7 @@ import { bindModal } from "./modal.mjs";
 import { bindSideMenu } from "./side-menu.mjs";
 import { focusSmooth, reducedMotion } from "./motion.mjs";
 import { bindPageActions } from "./page-actions.mjs";
+import { bindBottomStack } from "./bottom-stack.mjs";
 
 /**
  * Read the CSRF token from the page.
@@ -346,6 +347,7 @@ function start() {
   bindPhotoTiles(document);
   bindDeathFields(document);
   bindOffline(document, window);
+  bindBottomStack(document, window);
   bindSettings(document, window);
   bindSettingsSave(document, window);
   bindPairingCheck(document, window);
