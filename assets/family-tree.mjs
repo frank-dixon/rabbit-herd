@@ -44,6 +44,18 @@ export function label(rec) {
   return "Unknown";
 }
 
+/** Phone view of generation g: it and the next one up, fitted to the width between the top and
+ *  bottom reserves. Returns the pan and zoom { x, y, k }. */
+export function phoneView(items, g, gens, vw, vh, { top = 48, bottom = 56 } = {}) {
+  const last = Math.min(gens - 1, g + 1);
+  const rows = items.filter((it) => it.num && it.gen >= g && it.gen <= last);
+  const minX = Math.min(...rows.map((it) => it.x - it.s / 2)) - 16;
+  const maxX = Math.max(...rows.map((it) => it.x + it.s / 2)) + 16;
+  const height = (last - g + 1) * ROWH;
+  const k = Math.max(0.3, Math.min(1.1, vw / Math.max(maxX - minX, 1), (vh - top - bottom) / height));
+  return { k, x: vw / 2 - ((minX + maxX) / 2) * k, y: top - (TOP + g * ROWH) * k };
+}
+
 /** Places every rabbit: ancestors by Ahnentafel number, relatives beside them. */
 export function layout(data, gens = 4) {
   const SPAN = spanFor(gens), W0 = SPAN + 2 * X0;
@@ -309,17 +321,15 @@ export function bindFamilyTree(root = document) {
     if (e.key === "-" && e.target === stage) zoomAt(0.8, stage.clientWidth / 2, stage.clientHeight / 2);
   });
 
+  // Phones: the chosen generation and its parents fill the width, just under the generation nav,
+  // above the zoom strip, so no photo is clipped and nothing floats over one (Critic v2 P1).
+  const NAV_H = 48, CONTROLS_H = 56;
   function focusGen(g) {
     g = Math.max(0, Math.min(state.gens - 1, g));
     state.focusGen = g;
-    const row = items.filter((it) => it.gen === g && visible(it) && it.num);
-    const minX = Math.min(...row.map((it) => it.x - it.s / 2)) - 24, maxX = Math.max(...row.map((it) => it.x + it.s / 2)) + 24;
     const vw = stage.clientWidth, vh = stage.clientHeight;
-    const want = g >= 3 ? (vw / (maxX - minX)) * 2.1 : vw / Math.max(maxX - minX, 1);
-    state.k = Math.min(1.1, Math.max(0.5, want));
-    const cx = g >= 3 ? row[0].x + spanFor(state.gens) / 4 : (minX + maxX) / 2;
-    state.x = vw / 2 - cx * state.k;
-    state.y = vh * 0.36 - (TOP + g * ROWH + ROWH / 2) * state.k;
+    const view = phoneView(items.filter(visible), g, state.gens, vw, vh, { top: NAV_H, bottom: CONTROLS_H });
+    Object.assign(state, view);
     world.style.transition = reducedMotion() ? "none" : "transform .35s cubic-bezier(.2,.8,.2,1)";
     apply();
     setTimeout(() => (world.style.transition = ""), 380);

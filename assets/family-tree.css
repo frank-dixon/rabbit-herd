@@ -147,12 +147,14 @@
   .ft-legend { gap: 12px; font-size: 11px; }
   .ft-stage { margin: 8px -16px 0; border-radius: 0; box-shadow: none; background: var(--canvas); height: calc(100dvh - 260px); min-height: 440px; }
   .ft-gennav { display: flex; gap: 4px; position: absolute; left: 0; right: 0; top: 0; padding: 8px 16px; z-index: 5; overflow-x: auto; scrollbar-width: none;
-    background: linear-gradient(var(--canvas) 70%, transparent); }
+    background: var(--canvas); }
   .ft-gennav button { height: 28px; border: 0; border-radius: 6px; padding: 0 10px; background: none; font-size: 12px; color: var(--muted); white-space: nowrap; cursor: pointer; }
   .ft-gennav button[aria-current="true"] { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: var(--ft-shadow); }
   .ft-hint { display: none; }
-  .ft-zoom { right: 12px; bottom: 12px; }
-  .ft-more { bottom: 12px; left: 12px; transform: none; }
+  .ft-zoom { right: 12px; bottom: 12px; z-index: 5; }
+  /* The zoom strip: a solid band the controls sit on, so they never cover a photo. */
+  .ft-stage::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 56px; z-index: 4; background: var(--canvas); box-shadow: 0 -1px 0 var(--line-soft); pointer-events: none; }
+  .ft-more { bottom: 12px; left: 12px; transform: none; z-index: 5; }
   .ft-thread-info { padding: 8px 12px; }
   .ft-thread-info dl { gap: 12px; }
   .ft-drawer { top: auto; left: 0; width: auto; height: 82%; border-radius: 12px 12px 0 0; transform: translateY(104%); }
