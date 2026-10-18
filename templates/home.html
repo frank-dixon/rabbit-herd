@@ -116,8 +116,8 @@
               <ul class="divide-y divide-line border-t border-line" data-watch-list>
                 {% for w in watch %}
                   <li class="flex items-center gap-3 py-2.5">
-                    {% if w.urgent %}<span class="flex h-4 w-4 shrink-0 items-center justify-center text-warn"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>{% else %}<span class="mx-1 h-2 w-2 shrink-0 rounded-full bg-field" aria-hidden="true"></span>{% endif %}
-                    <a class="min-w-0 flex-1" href="{{ w.url }}"><span class="block font-semibold">{{ w.title }}</span><span class="block text-sm {% if w.urgent %}text-warn{% else %}text-muted{% endif %}">{{ w.detail }}</span></a>
+                    {% if w.urgent %}<span class="flex h-4 w-4 shrink-0 items-center justify-center {% if w.overdue %}text-danger{% else %}text-warn{% endif %}"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>{% else %}<span class="mx-1 h-2 w-2 shrink-0 rounded-full bg-field" aria-hidden="true"></span>{% endif %}
+                    <a class="min-w-0 flex-1" href="{{ w.url }}"><span class="block font-semibold">{{ w.title }}</span><span class="block text-sm {% if w.overdue %}text-danger{% elif w.urgent %}text-warn{% else %}text-muted{% endif %}">{{ w.detail }}</span></a>
                   </li>
                 {% endfor %}
               </ul>

@@ -444,7 +444,7 @@ def watch_list(user, today, litters=None):
         when = "recheck today" if days == 0 else (f"recheck overdue {-days} day{'s' if days != -1 else ''}" if days < 0
                                                   else f"recheck {note.follow_up_on:%a}")
         items.append({"title": f"{note.rabbit.name} · {note.get_kind_display().lower()}",
-                      "detail": f"Noted {note.date:%b} {note.date.day} · {when}", "urgent": days <= 0,
+                      "detail": f"Noted {note.date:%b} {note.date.day} · {when}", "urgent": days <= 0, "overdue": days < 0,
                       "url": f"/rabbits/{note.rabbit_id}/#health", "task": note.task})
     for row in (litters if litters is not None else active_litters(user, today)):
         kits, average = kit_weights(row["litter"])

@@ -5,6 +5,7 @@
     y  amber  due soon or needs attention
     r  red    overdue, a problem, or high COI
     o  grey   sold, processed, culled, archived (no longer in the herd)
+    (none)    routine, like a checkup: the plain neutral pill
 
 COI maps low / mid / high to green / amber / red (coi_tone). The colors are the
 --{g,b,y,r}-soft / -ink tokens and --pill / --ink-2 in assets/themes.css;
@@ -12,7 +13,7 @@ pages/test_status_colors.py checks each pair reads at 4.5:1 in every theme."""
 
 TONES = {
     "g": {"active", "breeding", "growing", "in herd", "healthy", "nursing", "kits on ground", "on track", "weaned",
-          "keep", "kept", "done", "checkup", "not related", "low", "low coi", "ready", "picked", "purebred", "counts"},
+          "keep", "kept", "done", "not related", "low", "low coi", "ready", "picked", "purebred", "counts"},
     "b": {"bred", "expecting", "pregnant", "planned", "waiting", "next", "covered"},
     "y": {"due soon", "due today", "today", "watch", "behind", "behind curve", "treatment", "weigh-in overdue",
           "needs attention", "offered a rabbit", "hold", "open", "related", "mid", "moderate"},

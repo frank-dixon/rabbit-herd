@@ -1,6 +1,6 @@
 /* Past litters table, litter Outcome and Notes. A white card with the soft card shadow, hairline rows,
    4/8px spacing. Outcome colours: kept = accent, sold = blue, processed = wheat, lost = gray. */
-:root { --oc-kept: var(--accent); --oc-sold: #4C8DF0; --oc-processed: #C9A15A; --oc-lost: #C9CDC9; }
+:root { --oc-kept: var(--accent); --oc-sold: color-mix(in oklab, var(--ink-2) 45%, var(--surface)); --oc-processed: color-mix(in oklab, var(--ink-2) 75%, var(--surface)); --oc-lost: #C9CDC9; }
 .oc-card { background: var(--surface); border-radius: 12px; box-shadow: var(--card-shadow); }
 .oc-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
 .oc-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; line-height: 16px; color: var(--muted); }

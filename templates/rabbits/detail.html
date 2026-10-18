@@ -7,7 +7,7 @@
   {% url 'rabbit_edit' rabbit.pk as edit_url %}
   {% url 'rabbit_list' as list_url %}
   {% url 'rabbit_photos' rabbit.pk as photos_url %}
-  <div class="detail-head" data-refresh="header">{% with badge=rabbit.is_archived|yesno:"Archived · ,"|add:rabbit.status_tag %}{% include "components/page_header.html" with title=rabbit.name badge=badge back_label="Rabbits" back_href=list_url rabbit=rabbit actions_template="rabbits/_detail_actions.html" %}{% endwith %}</div>
+  <div class="detail-head" data-refresh="header">{% with badge=rabbit.is_archived|yesno:"Archived · ,"|add:rabbit.status_tag %}{% if rabbit.is_archived %}{% with badge_tone="o" %}{% include "components/page_header.html" with title=rabbit.name badge=badge back_label="Rabbits" back_href=list_url rabbit=rabbit actions_template="rabbits/_detail_actions.html" %}{% endwith %}{% else %}{% with badge_tone=rabbit.status_tone %}{% include "components/page_header.html" with title=rabbit.name badge=badge back_label="Rabbits" back_href=list_url rabbit=rabbit actions_template="rabbits/_detail_actions.html" %}{% endwith %}{% endif %}{% endwith %}</div>
 
   {% include "rabbits/_fact_summary.html" %}
   <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
