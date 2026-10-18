@@ -80,7 +80,7 @@
                   <li><a class="flex items-center gap-3 py-3 hover:bg-side/40" href="{% url 'litter_detail' p.litter.pk %}" data-progress-row>
                     {% include "rabbits/_today_pair.html" with doe=p.doe buck=p.buck only %}
                     <span class="min-w-0 flex-1"><span class="block font-semibold">{{ p.doe.name }} × {{ p.buck.name }}</span><span class="block text-sm text-muted">{% for step in p.steps %}{% if step.state == "next" %}{{ step.label }} {{ step.date|day }}{% endif %}{% endfor %}</span></span>
-                    <span class="num shrink-0 text-right text-sm leading-tight"><span class="block">day {{ p.day }}</span><span class="block text-muted">of {{ p.of }}</span></span>
+                    <span class="num shrink-0 text-right text-sm leading-tight"><span aria-hidden="true"><span class="block">{{ p.day }}</span><span class="block text-muted">of {{ p.of }}</span></span><span class="sr-only">{{ p.day }} of {{ p.of }} done</span></span>
                   </a></li>
                 {% endfor %}
                 {% for row in litters %}

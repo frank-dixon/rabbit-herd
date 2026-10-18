@@ -135,7 +135,7 @@ def weight_edit(request, pk):
         data = form.cleaned_data
         weight.date, weight.grams, weight.unit, weight.note = data["day"], data["grams"], data["unit"], data["note"]
         weight.save(update_fields=["date", "grams", "unit", "note"])
-        messages.success(request, f"{weight_text(weight.grams, prefs(request.user).weight_unit)} on {weight.date:%b} {weight.date.day} was saved.")
+        messages.success(request, f"{weight_text(weight.grams, prefs(request.user).weight_unit)} saved for {weight.date:%b} {weight.date.day}.")
         return redirect(f"/rabbits/{rabbit.pk}/#weights")
     first = next(iter(form.errors.values()))[0]
     request.session["weight_form"] = {

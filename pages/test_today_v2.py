@@ -30,14 +30,14 @@ class TodayListTests(TestCase):
         self.assertEqual(block.count("<ul"), 1)
         self.assertEqual(block.count("<li>"), 2)
         self.assertIn("data-progress-row", block)
-        self.assertIn("day 12", block)
-        self.assertIn("of 31", block)
+        self.assertIn('<span class="block">12</span><span class="block text-muted">of 31</span>', block)
+        self.assertIn('<span class="sr-only">12 of 31 done</span>', block)
         self.assertIn("day 19", block)
         self.assertEqual(block.count('class="flex shrink-0"'), 2)  # both rows show the pair
 
     def test_tasks_badge_says_what_it_counts(self):
         badge = self.body[self.body.index("data-badge"):]
         badge = badge[:badge.index("</span></span>")]
-        self.assertIn('title="Overdue plus due today"', badge)
+        self.assertIn('title="Overdue or due today"', badge)
         self.assertRegex(badge, r">[0-9]+<")
         self.assertIn('<span class="sr-only"> overdue or due today', badge)

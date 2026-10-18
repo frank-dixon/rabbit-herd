@@ -24,7 +24,7 @@ export function bindSettingsSave(doc, win = window) {
         });
         if (tabs) {
           const data = await response.json().catch(() => ({}));
-          if (!response.ok || !data.ok) { say("Pick 3 to 5 different tabs."); return; }
+          if (!response.ok || !data.ok) { say("Choose 3 to 5 different tabs."); return; }
           await refreshTabs(doc, win, submitter ? form : null);
         } else if (!response.ok || new URL(response.url, win.location.href).pathname !== win.location.pathname) {
           form.submit();

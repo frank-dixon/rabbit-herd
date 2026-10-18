@@ -14,7 +14,7 @@
         <a href="{{ item.url }}" class="group flex min-h-[58px] flex-col items-center justify-center gap-0.5 px-1 pt-1.5 pb-1 text-[11px] font-medium focus:outline-none {% if item.active %}text-accent{% else %}text-muted{% endif %}"{% if item.active %} aria-current="page"{% endif %}>
           <span class="relative grid h-7 w-14 place-items-center rounded-full transition-colors duration-[var(--dur-1)] group-focus-visible:ring-2 group-focus-visible:ring-accent {% if item.active %}bg-accent-soft{% endif %}">
             {% include "components/icon.html" with d=item.icon only %}
-            {% if item.badge %}<span class="num absolute -top-1 right-2 min-w-[1.1rem] rounded-full bg-second-ink px-1 text-center text-[10px] leading-[1.1rem] font-medium text-on-accent ring-2 ring-surface" data-badge title="Overdue plus due today">{{ item.badge }}<span class="sr-only"> overdue or due today</span></span>{% endif %}
+            {% if item.badge %}<span class="num absolute -top-1 right-2 min-w-[1.1rem] rounded-full bg-second-ink px-1 text-center text-[10px] leading-[1.1rem] font-medium text-on-accent ring-2 ring-surface" data-badge title="Overdue or due today">{{ item.badge }}<span class="sr-only"> overdue or due today</span></span>{% endif %}
           </span>
           <span class="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{{ item.short }}</span>
         </a>

@@ -64,4 +64,4 @@ class FoldTests(TestCase):
         self.assertIn("None yet", body)
         # Add forms sit behind an Add button even when the section is open.
         self.assertIn('data-add-fold>', body)
-        self.assertIn(">Add a health note</summary>", body.replace("</svg>", ">").replace(">>", ">"))
+        self.assertIn(">Add health note</summary>", body.replace("</svg>", ">").replace(">>", ">"))

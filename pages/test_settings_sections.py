@@ -24,7 +24,7 @@ class SettingsSectionTests(TestCase):
         self.assertIn('href="#settings-sections"', self.body)  # All settings, back to the list on a phone
 
     def test_every_settings_form_autosaves_with_a_status(self):
-        self.assertIn("Changes save as you make them.", self.body)
+        self.assertIn("Changes save automatically.", self.body)
         for section in ("rabbitry", "units", "schedule", "reminders"):
             form = self.body[self.body.index(f'id="{section}" method="post"'):]
             form = form[:form.index("</form>")]
@@ -39,3 +39,8 @@ class SettingsSectionTests(TestCase):
         js = (ROOT / "assets" / "settings-save.mjs").read_text()
         self.assertNotIn("save-bar", js)
         self.assertIn('export const SAVED = "Saved";', js)
+
+    def test_a_repeated_tab_is_refused_with_the_final_wording(self):
+        response = self.client.post(reverse("tab_bar"), {"tab": ["today", "today", "rabbits"]}, follow=True)
+        self.assertIn("Choose 3 to 5 different tabs.", [str(m) for m in response.context["messages"]])
+        self.assertIn('"Choose 3 to 5 different tabs."', (ROOT / "assets" / "settings-save.mjs").read_text())

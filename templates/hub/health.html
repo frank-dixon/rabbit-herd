@@ -2,13 +2,13 @@
 {% block title %}Health · {{ app_name }}{% endblock %}
 {% block content %}<span data-refreshable hidden></span>
   <div data-swap-root data-refresh="health">
-  {% url "health_new" as new_href %}{% include "components/page_header.html" with title="Health" subtitle="Checkups, treatments and follow-ups." actions_template="components/view_toggle.html" primary_label="Add a note" primary_href=new_href primary_modal=True primary_pin=True %}
+  {% url "health_new" as new_href %}{% include "components/page_header.html" with title="Health" subtitle="Checkups, treatments and follow-ups." actions_template="components/view_toggle.html" primary_label="Add note" primary_href=new_href primary_modal=True primary_pin=True %}
   {% if notes %}
     <div data-swap="stats">{% include "components/stat_cards.html" with stats=stats label="Health" only %}</div>
     {% include "components/tabs.html" with tabs=tabs label="Open or resolved" only %}
     <div data-swap="results">{% if view == "list" %}{% include "components/item_rows.html" with stacked=True %}{% else %}{% include "components/item_grid.html" %}{% endif %}</div>
   {% else %}
-{% include "components/empty.html" with title="No health notes yet." text="Add one here or from a rabbit's page. A follow-up date puts it on Today." href=new_href action="Add a note" modal=True icon=ui_icons.health only %}
+{% include "components/empty.html" with title="No health notes yet." text="Add a note here or from a rabbit's page. Set a follow-up date to see it on Today." href=new_href action="Add note" modal=True icon=ui_icons.health only %}
   {% endif %}
   </div>
 {% endblock %}

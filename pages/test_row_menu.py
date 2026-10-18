@@ -4,6 +4,7 @@ import datetime
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.contrib.messages import get_messages
 from django.test import TestCase
 from django.urls import reverse
 
@@ -48,6 +49,9 @@ class RowMenuTests(TestCase):
         self.assertRedirects(response, f"/rabbits/{self.rabbit.pk}/#weights", fetch_redirect_response=False)
         self.weight.refresh_from_db()
         self.assertEqual((self.weight.date, round(float(self.weight.grams)), self.weight.note), (datetime.date(2026, 10, 2), 3629, "After show"))
+        toast = [str(m) for m in get_messages(response.wsgi_request)]
+        self.assertEqual(len(toast), 1)
+        self.assertRegex(toast[0], r"^\S.* saved for Oct 2\.$")
 
     def test_a_bad_edit_keeps_the_form_on_that_weight(self):
         response = self.client.post(reverse("rabbit_weight_edit", args=[self.weight.pk]), {"date": "", "lb": "8"})

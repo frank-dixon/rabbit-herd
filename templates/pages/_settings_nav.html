@@ -1,7 +1,7 @@
 {# Settings sections. One section shows at a time (the #anchor, by CSS :target, so it works without JS). Phones: this grouped list, then the chosen section with an "All settings" link back. Desktop: a sticky sub-nav beside the section. scrollspy.mjs marks the section in view with aria-current. #}
 {% with row="flex min-h-11 items-center justify-between gap-3 px-4 text-[0.95rem] text-ink hover:bg-side lg:min-h-9 lg:rounded-none lg:rounded-r-md lg:border-l-2 lg:border-transparent lg:px-3 aria-[current=location]:font-semibold aria-[current=location]:text-accent lg:aria-[current=location]:border-accent lg:aria-[current=location]:text-accent lg:text-sm lg:text-muted lg:hover:text-ink" %}
 <nav class="scroll-mt-20 lg:sticky lg:top-20 lg:self-start" id="settings-sections" aria-label="Settings sections" data-settings-nav>
-  <p class="mb-4 text-sm text-muted">Changes save as you make them.</p>
+  <p class="mb-4 text-sm text-muted">Changes save automatically.</p>
   {% for group, links in settings_nav %}
     <p class="eyebrow mt-5 mb-1.5 px-1 first:mt-0 lg:px-3">{{ group }}</p>
     <ul class="overflow-hidden rounded-lg border border-line bg-surface divide-y divide-line lg:divide-y-0 lg:rounded-none lg:border-0 lg:bg-transparent">

@@ -1,4 +1,4 @@
-"""Records (Critic v2 item 8): Health gets a pinned Add a note and stacked rows on phones; Costs
+"""Records (Critic v2 item 8): Health gets a pinned Add note and stacked rows on phones; Costs
 gets a pinned New cost."""
 import datetime
 
@@ -24,7 +24,7 @@ class RecordsTests(TestCase):
 
     def test_health_pins_add_a_note(self):
         body = self.client.get(reverse("health_list")).content.decode()
-        self.pinned(body, "Add a note")
+        self.pinned(body, "Add note")
         self.assertIn(f'href="{reverse("health_new")}" data-modal', body)
 
     def test_costs_pins_new_cost(self):
@@ -65,3 +65,21 @@ class RecordsTests(TestCase):
         theirs = Rabbit.objects.create(owner=other, name="Theirs", sex="doe", breed="Rex", birth_date=datetime.date(2024, 1, 1))
         self.client.post(reverse("health_new"), {"rabbit": theirs.pk, "health_date": timezone.localdate().isoformat(), "health_kind": "illness"})
         self.assertFalse(HealthNote.objects.exists())
+
+    def test_health_strings(self):
+        HealthNote.objects.all().delete()
+        body = self.client.get(reverse("health_list")).content.decode()
+        self.assertIn("Add a note here or from a rabbit's page. Set a follow-up date to see it on Today.", body)
+        self.assertIn(">Add note<", body.replace("</svg>", ">").replace(">>", ">"))
+        body = self.client.get(reverse("health_new")).content.decode()
+        self.assertIn("Add health note", body)
+        self.assertIn(">Choose a rabbit</option>", body)
+        self.assertNotIn("Choose a rabbit…", body)
+        Rabbit.objects.filter(owner=self.user).delete()
+        body = self.client.get(reverse("health_new")).content.decode()
+        self.assertIn("Add a rabbit first. Each health note belongs to a rabbit.", body)
+
+    def test_rabbit_page_says_add_health_note(self):
+        body = self.client.get(reverse("rabbit_detail", args=[self.rabbit.pk])).content.decode()
+        self.assertIn("Add health note", body)
+        self.assertNotIn("Add a health note", body)

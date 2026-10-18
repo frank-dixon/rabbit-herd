@@ -17,10 +17,10 @@
   {% else %}
     {% include "components/empty.html" with title="No health notes yet." text="Add one below. A follow-up date puts it on Today." compact=True icon=ui_icons.health only %}
   {% endif %}
-  {% include "components/add_fold_start.html" with label="Add a health note" open=folds.health.add_open only %}
+  {% include "components/add_fold_start.html" with label="Add health note" open=folds.health.add_open only %}
   <form class="mt-4 border-t border-neutral-200 pt-4" method="post" enctype="multipart/form-data" action="{% url 'rabbit_health_add' rabbit.pk %}" data-offline-queue="Health note">
     {% csrf_token %}
-    <h3 class="font-semibold">Add a health note</h3>
+    <h3 class="font-semibold">Add health note</h3>
     <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
       {% include "components/text_input.html" with name="health_date" label="Date" type="date" value=today_iso max=today_iso only %}
       {% include "components/select.html" with name="health_kind" label="Type" options=health_kinds placeholder="Choose a type…" only %}

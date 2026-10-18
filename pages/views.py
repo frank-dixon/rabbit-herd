@@ -156,7 +156,7 @@ def tabs(request):
         if valid:
             messages.success(request, "Bottom bar saved.")
         else:
-            messages.error(request, "Pick 3 to 5 different tabs.")
+            messages.error(request, "Choose 3 to 5 different tabs.")
     return redirect(reverse("account") + "#tabs")
 
 
