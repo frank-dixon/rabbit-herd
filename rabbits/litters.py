@@ -222,12 +222,13 @@ def litter_detail(request, pk):
 
 
 def litter_main_card(litter, slots, kits, unit):
-    """The litter card: the litter photo (or a stock placeholder), key numbers
-    and one tile per kit. Kits show their own photo, else the litter's."""
-    from .litter_photos import kit_photo_url, litter_photo_url, placeholder_url, rabbit_photo_url
+    """The litter card: the litter photo (or the app's one plain placeholder), key numbers
+    and one tile per kit. Kits show their own photo, else the litter's. img is None for
+    the placeholder (Frank, 2026-10-18: no stock newborn photos)."""
+    from .litter_photos import kit_photo_url, litter_photo_url, rabbit_photo_url
 
     own = litter_photo_url(litter)
-    litter_img = own or placeholder_url(litter)
+    litter_img = own
     by_pk = {k.pk: k for k in kits}
 
     def tile_for_rabbit(kit, slot=None):

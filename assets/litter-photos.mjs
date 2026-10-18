@@ -19,11 +19,19 @@ function showError(form, text) {
   p.textContent = text;
 }
 
-function swap(img, url) {
+export function swap(el, url) {
+  if (!el) return;
   const next = new Image();
-  next.onload = () => { img.src = url; };
+  if (el.tagName === "IMG") {
+    next.onload = () => { el.src = url; };
+  } else {
+    // The plain placeholder becomes the photo, keeping whether it follows the litter photo.
+    next.alt = "";
+    next.decoding = "async";
+    if (el.hasAttribute("data-inherits")) next.setAttribute("data-inherits", "");
+    next.onload = () => el.replaceWith(next);
+  }
   next.src = url;
-  img.closest(".lc-img")?.querySelector("[data-placeholder-tag]")?.remove();
 }
 
 async function upload(form, input) {
@@ -41,8 +49,8 @@ async function upload(form, input) {
     if (!res.ok || !data.url) throw new Error(data.error || "That photo couldn't be saved. Try again.");
     const card = form.closest("[data-litter-card]");
     if (form.dataset.photoForm === "litter") {
-      swap(card.querySelector('[data-photo-target="litter"] img'), data.url);
-      card.querySelectorAll("img[data-inherits]").forEach((img) => swap(img, data.url));
+      swap(card.querySelector('[data-photo-target="litter"] :is(img, [data-placeholder])'), data.url);
+      card.querySelectorAll("[data-inherits]").forEach((el) => swap(el, data.url));
       const title = card.querySelector("[data-litter-photo-title]");
       if (title) title.textContent = "Litter photo";
       const note = card.querySelector("[data-litter-photo-note]");
@@ -50,8 +58,8 @@ async function upload(form, input) {
       const btn = card.querySelector("[data-litter-photo-btn]");
       if (btn) { btn.classList.replace("lc-btn-pri", "lc-btn-sec"); btn.querySelector("span").textContent = "Change litter photo"; }
     } else {
-      const img = form.closest(".lc-img").querySelector("img");
-      img.removeAttribute("data-inherits");
+      const img = form.closest(".lc-img").querySelector("img, [data-placeholder]");
+      img?.removeAttribute("data-inherits");
       swap(img, data.url);
     }
   } catch (err) {

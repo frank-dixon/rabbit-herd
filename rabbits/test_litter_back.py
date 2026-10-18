@@ -55,3 +55,21 @@ class OneDateStyleTests(SimpleTestCase):
         for path in (ROOT / "templates").rglob("*.html"):
             for fmt in re.findall(r"""\|date:["']([^"']+)["']""", path.read_text()):
                 self.assertIn(fmt, ("Y-m-d", "c"), f"{path.name} formats a date as {fmt!r}; use |day")
+
+
+class LitterPlaceholderTests(TestCase):
+    setUp = LitterBackTests.setUp
+
+    def test_no_photo_uses_the_plain_placeholder(self):
+        # Frank, 2026-10-18: the litter card uses the app's one plain placeholder, not a stock newborn photo.
+        from .litters import litter_main_card
+
+        self.assertIsNone(litter_main_card(self.litter, [], [], "g")["img"])
+        self.litter.kindled_on = datetime.date(2025, 10, 20)
+        self.litter.born_alive = 2
+        self.litter.save()
+        body = self.client.get(self.url).content.decode()
+        self.assertNotIn("Stock newborn photo", body)
+        self.assertNotIn("data-placeholder-tag", body)
+        if "data-litter-card" in body:
+            self.assertIn("coat-swatch", body.split('data-photo-target="litter"', 1)[1][:600])
