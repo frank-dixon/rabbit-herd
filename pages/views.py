@@ -254,6 +254,8 @@ def home_context(user, limit=8):
         pairing = row["litter"].pairing
         row["doe"], row["buck"] = by_pk.get(pairing.doe_id, pairing.doe), by_pk.get(pairing.buck_id, pairing.buck)
     context["week_count"] = len(context["week_now"]) + len(context["week_later"])
+    # The Tasks badge's number, shown on the group it counts (Critic v3 T6): real records only, like the badge.
+    context["due_now_count"] = sum(1 for i in context["week_now"] if not i.get("sample"))
     return context
 
 

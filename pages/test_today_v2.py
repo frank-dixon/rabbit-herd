@@ -41,3 +41,10 @@ class TodayListTests(TestCase):
         self.assertIn('title="Overdue or due today"', badge)
         self.assertRegex(badge, r">[0-9]+<")
         self.assertIn('<span class="sr-only"> overdue or due today', badge)
+
+    def test_overdue_group_carries_the_badge_number(self):
+        badge = self.body[self.body.index("data-badge"):]
+        number = badge[badge.index(">") + 1:badge.index("<")]
+        group = self.body[self.body.index("data-due-now-count"):]
+        self.assertEqual(group[group.index(">") + 1:group.index("<")], number)
+        self.assertIn('title="Overdue or due today" data-due-now-count', self.body)

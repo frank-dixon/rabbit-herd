@@ -28,7 +28,7 @@
       <section class="rounded-[10px] border border-line bg-surface px-4 pt-1 pb-3 md:mt-6" aria-labelledby="due-heading" data-due-first>
         <h2 class="flex items-center gap-2 pt-3 pb-2 text-[15px] font-semibold" id="due-heading">Due in the next 7 days {% if week_now or week_later %}<span class="num pill" data-due-count>{{ week_count }}</span>{% endif %}<a class="ml-auto text-[13px] font-normal text-muted underline hover:text-ink" href="{% url 'task_list' %}">All tasks</a></h2>
         {% if week_now %}
-          <p class="pt-2 pb-1 text-xs font-semibold text-muted">Overdue and today</p>
+          <p class="flex items-center gap-2 pt-2 pb-1 text-xs font-semibold text-muted">Overdue and today{% if due_now_count %} <span class="num pill" title="Overdue or due today" data-due-now-count>{{ due_now_count }}<span class="sr-only"> overdue or due today</span></span>{% endif %}</p>
           <ul class="-mx-4 divide-y divide-line border-y border-line" data-next-up data-due-now>{% for item in week_now %}{% include "rabbits/_today_item.html" with item=item next="/" csrf_token=csrf_token only %}{% endfor %}</ul>
         {% endif %}
         {% if week_later %}
