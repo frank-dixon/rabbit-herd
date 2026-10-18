@@ -1,9 +1,7 @@
-{% load herd_settings %}{# Phones only: the six facts people look for first, straight under the title. The full list stays below. Uses the shared .fact-grid. #}
+{% load herd_settings %}{# Phones only: the facts the list below doesn't open with (Sex, Breed and Color lead it, so they aren't repeated here; Critic v3 D2). Uses the shared .fact-grid. #}
 <dl class="fact-grid mt-4" aria-label="Key facts" data-fact-summary>
-  <div><dt>Sex</dt><dd>{{ rabbit.get_sex_display }}</dd></div>
   <div><dt>Age</dt><dd>{% if rabbit.birth_date %}{{ rabbit.age_text }}{% else %}—{% endif %}</dd></div>
-  <div><dt>Breed</dt><dd>{{ rabbit.breed_line|default:"—" }}</dd></div>
   <div><dt>Status</dt><dd>{{ rabbit.get_status_display }}</dd></div>
   <div><dt>Latest weight</dt><dd>{% with w=weights.0 %}{% if w %}{{ w.grams|weigh:request.user }} <span>{{ w.date|date:"D, M j" }}</span>{% else %}—{% endif %}{% endwith %}</dd></div>
-  {% if feature_locations %}<div><dt>Location</dt><dd>{{ rabbit.location.name|default:"—" }}</dd></div>{% else %}<div><dt>Color</dt><dd>{{ rabbit.color_line|default:"—" }}</dd></div>{% endif %}
+  {% if feature_locations %}<div><dt>Location</dt><dd>{{ rabbit.location.name|default:"—" }}</dd></div>{% endif %}
 </dl>

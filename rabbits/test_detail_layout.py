@@ -36,7 +36,17 @@ class DetailLayoutTests(TestCase):
         # Shared header: a small back link above the title, the thumbnail beside it, Edit last.
         self.assertLess(body.index("data-back-link"), body.index("<h1"))
         self.assertIn("data-page-thumb", body[body.index("data-page-header"):body.index("<h1")])
-        self.assertLess(body.index(">Archive<"), body.index(">Edit<"))
+        # Archive lives in the "…" menu (Critic v3 D6), after History.
+        menu = body[body.index("data-more-menu"):body.index("</details>", body.index("data-more-menu"))]
+        self.assertIn(f'action="{reverse("rabbit_archive", args=[rabbit.pk])}"', menu)
+        self.assertRegex(menu, r'<button type="submit" role="menuitem"[^>]*>Archive</button>')
+        self.assertNotIn('label="Archive"', body)
+        self.assertEqual(body.count(">Archive</button>"), 1)
+        # The phone summary doesn't repeat Sex, Breed and Color from the list below (D2).
+        summary = body[body.index("data-fact-summary"):body.index("</dl>", body.index("data-fact-summary"))]
+        for label in ("Sex", "Breed", "Color"):
+            self.assertNotIn(f"<dt>{label}</dt>", summary)
+        self.assertIn("<dt>Latest weight</dt>", summary)
         self.assertNotIn(">Back to rabbits<", body)
         for label in ("Sex", "Breed", "Color", "Line", "Born", "Status"):
             self.assertRegex(body, rf'<dt class="[^"]*">{label}</dt>')

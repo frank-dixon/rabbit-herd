@@ -1,16 +1,15 @@
-{% comment %}Header actions on a rabbit's page: Pedigree and Archive, a "…" menu holding Delete (a <details>
+{% comment %}Header actions on a rabbit's page: Pedigree (and Restore on an archived rabbit), a "…" menu holding History, Archive and Delete (a <details>
 menu, so it works without JavaScript; Delete still opens the confirm dialog with JS), and Edit last.{% endcomment %}
 {% url 'rabbit_delete' rabbit.pk as delete_url %}
 <a href="{% url 'rabbit_pedigree' rabbit.pk %}" class="mo-press inline-flex min-h-10 items-center justify-center gap-1.5 rounded-md border border-line bg-surface px-3.5 py-2 font-medium text-ink hover:border-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas" data-pedigree-button><svg class="h-4 w-4 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h5M9 6v12M9 6h5M9 18h5M14 4h6v4h-6zM14 16h6v4h-6z"/></svg>Pedigree</a>
 {% if rabbit.is_archived %}
   <form method="post" action="{% url 'rabbit_restore' rabbit.pk %}" class="flex">{% csrf_token %}{% include "components/button.html" with label="Restore" type="submit" variant="secondary" only %}</form>
-{% else %}
-  <form method="post" action="{% url 'rabbit_archive' rabbit.pk %}" class="flex">{% csrf_token %}{% include "components/button.html" with label="Archive" type="submit" variant="secondary" only %}</form>
 {% endif %}
 <details class="relative" data-more-menu>
   <summary class="mo-press inline-flex min-h-10 min-w-10 cursor-pointer list-none items-center justify-center rounded-md border border-line bg-surface px-2.5 text-ink hover:border-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent [&::-webkit-details-marker]:hidden" aria-label="More actions for {{ rabbit.name }}"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></summary>
   <div class="mo-enter absolute right-0 z-20 mt-1 min-w-44 rounded-lg border border-line bg-surface p-1 shadow-lg" role="menu">
     <a href="{% url 'rabbit_history' rabbit.pk %}" role="menuitem" class="flex min-h-10 items-center rounded-md px-3 text-sm font-medium text-ink hover:bg-side focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">History</a>
+    {% if not rabbit.is_archived %}<form method="post" action="{% url 'rabbit_archive' rabbit.pk %}">{% csrf_token %}<button type="submit" role="menuitem" class="flex min-h-10 w-full items-center rounded-md px-3 text-left text-sm font-medium text-ink hover:bg-side focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">Archive</button></form>{% endif %}
     {% include "components/delete_link.html" with href=delete_url label="Delete "|add:rabbit.name title="Delete "|add:rabbit.name|add:"?" text=delete_text role="menuitem" cls="flex min-h-10 items-center rounded-md px-3 text-sm font-medium text-danger hover:bg-danger-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" csrf_token=csrf_token only %}
   </div>
 </details>
