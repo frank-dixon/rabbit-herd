@@ -28,24 +28,17 @@
   .v2-or::before, .v2-or::after { content: ""; flex: 1; border-top: 1px solid var(--v2-hairline); }
 }
 
-/* Fields: label over a single hairline. Applies to form pages under v2. */
-main form:not([data-swap-root] form, [data-filters] form) :is(input:is([type="text"], [type="email"], [type="password"], [type="number"], [type="date"], [type="tel"], [type="url"], :not([type])), select, textarea) {
-  border-width: 0 0 1px; border-style: solid; border-color: var(--v2-hairline); border-radius: 0;
-  background-color: transparent; padding-inline: 0; color: var(--v2-field-ink); box-shadow: none;
-  transition: border-color var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out);
+/* Fields: a label over a bordered 48px box (Critic, 2026-10-18), the same in every form and theme. */
+main form:not([data-swap-root] form, [data-filters] form) :is(input:is([type="text"], [type="email"], [type="password"], [type="number"], [type="date"], [type="tel"], [type="url"], [type="search"], :not([type])), select) {
+  min-height: 48px;
 }
-main form:not([data-swap-root] form, [data-filters] form) select { padding-right: 1.5rem; }
-main form :is(input, select, textarea):focus { outline: none; border-color: var(--accent); box-shadow: 0 1px 0 0 var(--accent) !important; }
-main form :is(input, select, textarea)[aria-invalid="true"] { border-color: var(--danger); box-shadow: 0 1px 0 0 var(--danger) !important; }
 main form :is(input[type="email"], input[required]):not([type="password"], [type="checkbox"], [type="radio"], [aria-invalid="true"]):user-valid {
-  padding-right: 1.75rem;
-  background: var(--v2-check) no-repeat right 0.125rem center / 1rem;
+  padding-right: 2.25rem !important;
+  background-image: var(--v2-check) !important; background-repeat: no-repeat !important; background-position: right 0.75rem center !important; background-size: 1rem !important;
 }
 :root { --v2-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232E7D4F' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5 10 17 19 7'/%3E%3C/svg%3E"); }
 @media (prefers-reduced-motion: reduce) { main form :is(input, select, textarea) { transition: none; } }
 [data-action-bar] { border-top-color: transparent; background: var(--v2-sheet); }
-/* Multi-line notes keep a light frame: one hairline under a tall box reads as broken. */
-main form:not([data-swap-root] form, [data-filters] form) textarea:not([hidden]) { border-width: 0; border-radius: 6px; background: var(--well); padding: 0.625rem 0.75rem; }
 /* Form pages without the sheet still speak in the brand green. */
 main form { accent-color: var(--v2-brand); }
 main form button[type="submit"].bg-accent { background-color: var(--v2-brand); color: var(--v2-on-brand); border-radius: 6px; }
@@ -172,16 +165,18 @@ main .empty:not(.empty-compact) { border-color: transparent; background: transpa
 /* Alerts and messages: tint only. */
 [role="alert"], [role="status"].border, .toast { border-color: transparent !important; }
 
-/* ---- Inputs: always a label over one underline, never a box. ---- */
-:is(main, dialog, .app-modal-panel) :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"], .sr-only), select) {
-  border-width: 0 0 1px !important; border-style: solid !important; border-color: var(--field) !important; border-radius: 0 !important;
-  background-color: transparent !important; box-shadow: none !important; padding-left: 0.125rem; padding-right: 0.25rem;
+/* ---- Inputs: one bordered box everywhere (text, number, date, select, notes). ---- */
+:is(main, dialog, .app-modal-panel) :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"], .sr-only), select, textarea) {
+  border: 1px solid var(--field) !important; border-radius: 8px !important;
+  background-color: var(--surface) !important; color: var(--ink); box-shadow: none !important; padding-left: 0.75rem; padding-right: 0.75rem;
+  transition: border-color var(--dur-1) var(--ease-out), box-shadow var(--dur-1) var(--ease-out);
 }
-:is(main, dialog, .app-modal-panel) :is(input, select):focus { border-color: var(--accent) !important; box-shadow: 0 1px 0 0 var(--accent) !important; outline: none; }
-:is(main, dialog, .app-modal-panel) :is(input, select)[aria-invalid="true"] { border-color: var(--danger) !important; box-shadow: 0 1px 0 0 var(--danger) !important; }
+:is(main, dialog, .app-modal-panel) select { padding-right: 2rem; }
+:is(main, dialog, .app-modal-panel) textarea { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+:is(main, dialog, .app-modal-panel) :is(input, select, textarea):focus { border-color: var(--accent) !important; box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 22%, transparent) !important; outline: none; }
+:is(main, dialog, .app-modal-panel) :is(input, select, textarea)[aria-invalid="true"] { border-color: var(--danger) !important; box-shadow: 0 0 0 3px color-mix(in oklab, var(--danger) 18%, transparent) !important; }
 :is(main, dialog, .app-modal-panel) :is(input, select)[class*="pl-"] { padding-left: revert-layer; }
-:is(main, dialog, .app-modal-panel) textarea { border: 0 !important; border-radius: 6px !important; background-color: var(--well) !important; box-shadow: none !important; }
-:is(main, dialog, .app-modal-panel) textarea:focus { box-shadow: inset 0 -2px 0 0 var(--accent) !important; outline: none; }
+@media (prefers-reduced-motion: reduce) { :is(main, dialog, .app-modal-panel) :is(input, select, textarea) { transition: none; } }
 
 /* ---- Buttons: compact, Stripe-like. 34px tall, 6px radius, 14px medium, ~13px sides.
    Primary is the one solid accent; secondary and danger are quiet ghost buttons. ---- */
