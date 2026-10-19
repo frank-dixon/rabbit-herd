@@ -1,4 +1,4 @@
-{# Pairings as the shared grid card: the pair's photos, names, one meta line and the status pill. items: rabbits/pairings.pairing_items(). #}
+{# Pairings as the shared grid card: the pair's photos, names, one meta line and the status pill, plus the red High COI pill when inbreeding is high (Critic v5). items: rabbits/pairings.pairing_items(). #}
 <ul class="gcard-grid mo-stagger mt-4" data-view="grid">
-  {% for it in items %}<li class="min-w-0">{% include "components/grid_card.html" with rabbits=it.thumbs href=it.href title=it.title sample=it.is_sample meta=it.meta pill_label=it.pill.label pill_tone=it.pill.tone only %}</li>{% endfor %}
+  {% for it in items %}<li class="min-w-0">{% include "components/grid_card.html" with rabbits=it.thumbs href=it.href title=it.title sample=it.is_sample meta=it.meta pill_label=it.pill.label pill_tone=it.pill.tone flag_label=it.high_coi|yesno:"High COI," flag_tone="r" only %}</li>{% endfor %}
 </ul>

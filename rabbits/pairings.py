@@ -330,7 +330,7 @@ def pairing_items(user, pairings):
         items.append({
             "href": reverse("pairing_detail", args=[p.pk]), "is_sample": p.is_sample, "title": f"{p.doe.name} × {p.buck.name}",
             "sub": f"{p.doe.color or 'Color not set'} × {p.buck.color or 'Color not set'}", "thumbs": [p.doe, p.buck],
-            "pill": pill, "meta": meta, "coi": coi, "chips_label": "Predicted colors", "chips": chips,
+            "pill": pill, "meta": meta, "coi": coi, "high_coi": tone == "r", "chips_label": "Predicted colors", "chips": chips,
             "kv": [{"label": when, "value": result}, {"label": "Litters", "value": len(p.litters.all())}],
             "foot": {"pill": coi_pill, "text": relation},
             "mobile": f"{result} · COI {coi:.1f}%",

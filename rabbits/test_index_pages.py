@@ -106,3 +106,22 @@ class OneGridCardTests(TestCase):
         self.assertIn(">Expecting<", card)
         self.assertIn("Due ", card)
         self.assertNotIn("Next:", card)  # the truncated "Next: Kindli…" line is gone (L2)
+
+
+class HighCoiGridFlagTests(TestCase):
+    """Critic v5: a high-COI pairing shows the red High COI pill on its grid card; others don't."""
+
+    def test_flag_only_when_high(self):
+        from unittest import mock
+
+        from .models import Pairing
+
+        owner = user("coi@example.com")
+        self.client.force_login(owner)
+        mk = lambda n, s: Rabbit.objects.create(owner=owner, name=n, sex=s, breed="Rex", birth_date=datetime.date(2024, 1, 1))
+        Pairing.objects.create(owner=owner, doe=mk("Hazel", "doe"), buck=mk("Moss", "buck"))
+        url = reverse("pairing_list") + "?view=grid"
+        self.assertNotContains(self.client.get(url), "data-grid-flag")
+        with mock.patch("rabbits.status_pills.coi_tone", return_value="r"):  # pairing_items reads the tone from the one map
+            body = self.client.get(url).content.decode()
+        self.assertIn('<span class="pill pill-r" data-grid-flag>High COI</span>', body)
