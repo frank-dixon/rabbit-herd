@@ -73,3 +73,20 @@ class LitterPlaceholderTests(TestCase):
         self.assertNotIn("data-placeholder-tag", body)
         if "data-litter-card" in body:
             self.assertIn("coat-swatch", body.split('data-photo-target="litter"', 1)[1][:600])
+
+
+class NextTodayTests(TestCase):
+    """Critic v6 W3: the Litters "Next" date due today is the amber Today pill used on Tasks."""
+
+    def test_next_due_today_is_the_amber_pill(self):
+        from django.utils import timezone
+
+        user = get_user_model().objects.create_user("next@example.com", "pw-12345678")
+        self.client.force_login(user)
+        doe = Rabbit.objects.create(owner=user, name="Willow", sex="doe", breed="Rex", birth_date=datetime.date(2024, 1, 1))
+        buck = Rabbit.objects.create(owner=user, name="Jet", sex="buck", breed="Rex", birth_date=datetime.date(2024, 1, 1))
+        litter = Litter.objects.create(owner=user, pairing=Pairing.objects.create(owner=user, doe=doe, buck=buck),
+                                       bred_on=timezone.localdate() - datetime.timedelta(days=12))
+        self.assertEqual(litter.tasks()[0]["date"], timezone.localdate())
+        body = self.client.get(reverse("litter_list")).content.decode()
+        self.assertIn('<span class="pill pill-y shrink-0" data-next-today>Today</span>', body)

@@ -14,7 +14,7 @@
     {% if c.task and not litter.converted_at %}
       <span class="lc-next mt-2.5 flex items-center justify-between gap-2 border-t border-line pt-2.5 text-sm sm:mt-0 sm:w-64 sm:shrink-0 sm:border-0 sm:pt-0">
         <span class="min-w-0 truncate"><span class="text-muted">Next:</span> {{ c.task.label }}</span>
-        <span class="num shrink-0 {% if c.task_days < 0 %}text-danger{% elif c.task_days == 0 %}font-medium{% else %}text-muted{% endif %}">{% if c.task_days < 0 %}overdue{% elif c.task_days == 0 %}today{% else %}{{ c.task.date|day }}{% endif %}</span>
+        {% if c.task_days == 0 %}<span class="pill pill-y shrink-0" data-next-today>Today</span>{% else %}<span class="num shrink-0 {% if c.task_days < 0 %}text-danger{% else %}text-muted{% endif %}">{% if c.task_days < 0 %}overdue{% else %}{{ c.task.date|day }}{% endif %}</span>{% endif %}
       </span>
     {% endif %}
   </a>
