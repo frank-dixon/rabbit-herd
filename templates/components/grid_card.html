@@ -1,0 +1,12 @@
+{% comment %} The one grid card (Frank, 2026-10-18; Critic v4 G1), shared by Rabbits, Pairings and Litters: a square
+   thumb (one rabbit, or a pair side by side) using the one plain placeholder when there is no photo, the title,
+   one meta line and one pill. Pass href for a link, or toggle (+ controls, expanded) for the litter-stack button.
+   Args: rabbits (list), title, tag, sample, meta, pill_label, pill_tone, pill_status, href | toggle. {% endcomment %}
+{% if toggle %}<button type="button" class="gcard" aria-expanded="{% if expanded %}true{% else %}false{% endif %}" aria-controls="{{ controls }}" data-litter-toggle="{{ toggle }}" data-grid-card>{% else %}<a href="{{ href }}" class="gcard" data-grid-card>{% endif %}
+  <span class="gcard-thumb{% if rabbits|length > 1 %} is-pair{% endif %}" aria-hidden="true">{% for r in rabbits %}{% include "rabbits/_rabbit_thumb.html" with rabbit=r main=r.main_photo size_class="gcard-img" sizes="(min-width: 1024px) 200px, (min-width: 640px) 33vw, 50vw" only %}{% endfor %}</span>
+  <span class="gcard-body">
+    <span class="gcard-title">{% if toggle %}<span class="sr-only">Litter </span>{% endif %}{{ title }}{% if sample %}{% include "components/sample_badge.html" with sample=True only %}{% endif %}{% if tag %} <span class="num gcard-tag">{{ tag }}</span>{% endif %}</span>
+    {% if meta %}<span class="num gcard-meta">{{ meta }}</span>{% endif %}
+    <span class="gcard-foot">{% if pill_label %}<span class="pill{% if pill_tone %} pill-{{ pill_tone }}{% endif %}"{% if pill_status %} data-status-chip data-status="{{ pill_status }}"{% endif %}>{{ pill_label }}</span>{% endif %}{% if toggle %}<svg class="litter-chev ml-auto size-4 shrink-0 text-muted" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z"/></svg>{% endif %}</span>
+  </span>
+{% if toggle %}</button>{% else %}</a>{% endif %}

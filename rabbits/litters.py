@@ -69,16 +69,14 @@ def litter_create(request, pk):
 
 def litter_card(litter, today):
     """What a litter card shows: the stage pill, key dates, kit counts with the
-    sex split when known, the next step and a strip of kit photos."""
+    sex split when known, the next step, and the grid card's pair and one meta line."""
     doe, buck = litter.pairing.doe, litter.pairing.buck
     kits = list(litter.kits.all())
     task = litter.next_task()
     if task and task.get("key") == "due":
         task = {**task, "label": "Kindling"}
-    card = {"litter": litter, "doe": doe, "buck": buck, "title": f"{doe.name} × {buck.name}", "task": task,
-            "task_days": (task["date"] - today).days if task else None,
-            "photos": [m for m in (k.main_photo for k in kits) if m][:4]}
-    card["cover"] = card["photos"][0] if card["photos"] else doe.main_photo  # grid card photo: a kit, else the doe
+    card = {"litter": litter, "doe": doe, "buck": buck, "pair": [doe, buck], "title": f"{doe.name} × {buck.name}", "task": task,
+            "task_days": (task["date"] - today).days if task else None}
     if litter.kindled_on is None:
         days = (litter.due_on - today).days
         card.update(stage="expecting", pill=("Overdue" if days < 0 else "Due today" if days == 0 else "Expecting"),
@@ -92,7 +90,20 @@ def litter_card(litter, today):
                     does=sum(k.sex == "doe" for k in kits), bucks=sum(k.sex == "buck" for k in kits),
                     recorded=len(kits))  # kits on record: the count to show when kindling numbers were never entered
         card["tone"] = tone(card["pill"]) or "o"
+    card["meta"] = litter_meta(card)
     return card
+
+
+def litter_meta(card):
+    """The grid card's one line: "Due Tue, Oct 20" while expecting, "Day 12 · 6 alive" once kindled."""
+    from .templatetags.dates import short_date
+
+    litter = card["litter"]
+    if card["stage"] == "expecting":
+        return f"Due {short_date(litter.due_on)}"
+    count = card["alive"] if card["alive"] is not None else (card["recorded"] or None)
+    word = "alive" if card["alive"] is not None else ("kit" if count == 1 else "kits")
+    return f"Day {card['age']}" + (f" · {count} {word}" if count is not None else "")
 
 
 @login_required

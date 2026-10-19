@@ -229,3 +229,24 @@ main .divide-y > li.list-row[data-task-item] { padding-inline: 12px; }
 .row-menu-item.is-danger, .row-menu-item.is-danger svg { color: var(--danger); }
 .row-menu-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 [data-row-tap] { cursor: pointer; }
+
+/* ---- The one grid card (components/grid_card.html): Rabbits, Pairings and Litters (Frank, 2026-10-18; Critic v4 G1).
+   Square thumb (a pair sits side by side), title, one meta line, one pill. No button padding, no tile tint. ---- */
+.gcard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 0; list-style: none; }
+@media (min-width: 640px) { .gcard-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 768px) { .gcard-grid { gap: 12px; } }
+@media (min-width: 1024px) { .gcard-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.gcard-grid.is-dense { grid-auto-flow: row dense; }
+.gcard { position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden; border: 0; border-radius: 8px;
+  background: var(--surface); color: inherit; text-align: left; font: inherit; box-shadow: var(--card-shadow); cursor: pointer; transition: box-shadow 120ms ease-out; }
+.gcard:hover { box-shadow: var(--card-shadow-hover); }
+.gcard:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gcard-thumb { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; aspect-ratio: 1 / 1; background: var(--well); }
+:is(main, dialog) .gcard-thumb > .gcard-img { display: grid; width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; border-radius: 0; box-shadow: none; }
+.gcard-thumb.is-pair .coat-swatch svg { width: 60%; height: 60%; }
+.gcard-body { display: flex; flex: 1; flex-direction: column; min-width: 0; padding: 10px; }
+.gcard-title { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; font-weight: 600; line-height: 1.3; }
+.gcard-tag { font-size: 12px; font-weight: 400; color: var(--muted); }
+.gcard-meta { display: block; overflow: hidden; margin-top: 2px; font-size: 14px; line-height: 20px; color: var(--muted); white-space: nowrap; text-overflow: ellipsis; }
+.gcard-foot { display: flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 6px; }
+@media (prefers-reduced-motion: reduce) { .gcard { transition: none; } }

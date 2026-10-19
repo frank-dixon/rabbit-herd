@@ -1,4 +1,4 @@
-{# One litter as a card (grid) or a row (list). c: litters.litter_card(). view: grid or list. #}
+{# One litter as the shared grid card (grid) or a row (list). c: litters.litter_card(). view: grid or list. #}
 {% load photos %}
 {% with litter=c.litter %}
 <li class="min-w-0">
@@ -19,14 +19,7 @@
     {% endif %}
   </a>
 {% else %}
-  <a href="{% url 'litter_detail' litter.pk %}" class="litter-card lt-card group focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" data-litter-card data-stage="{{ c.stage }}">
-    <span class="lt-cover" aria-hidden="true">{% if c.cover %}<img {% photo_src c.cover "(max-width: 639px) 50vw, 320px" 640 %} alt="" loading="lazy" decoding="async">{% else %}{% coat_swatch c.doe "lt-swatch" %}{% endif %}<span class="lt-pill pill pill-{{ c.tone }}">{{ c.pill }}</span></span>
-    <span class="lt-body">
-      <span class="lt-title">{{ c.title }}{% if c.litter.is_sample %}{% include "components/sample_badge.html" with sample=True only %}{% endif %}</span>
-      {% include "rabbits/_litter_card_lines.html" %}
-      {% if c.task and not litter.converted_at %}<span class="lt-next"><span class="min-w-0 truncate text-ink"><span class="text-muted">Next:</span> {{ c.task.label }}</span><span class="num shrink-0 {% if c.task_days < 0 %}text-danger{% elif c.task_days == 0 %}font-medium text-ink{% endif %}">{% if c.task_days < 0 %}overdue{% elif c.task_days == 0 %}today{% else %}{{ c.task.date|day }}{% endif %}</span></span>{% endif %}
-    </span>
-  </a>
+  {% url 'litter_detail' litter.pk as href %}{% include "components/grid_card.html" with rabbits=c.pair href=href title=c.title sample=litter.is_sample meta=c.meta pill_label=c.pill pill_tone=c.tone only %}
 {% endif %}
 </li>
 {% endwith %}

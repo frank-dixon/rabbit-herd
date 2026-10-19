@@ -1,13 +1,2 @@
-{# Rabbits grid (Frank, 2026-10-18): the list row's anatomy as one card style. Square thumb with the one plain placeholder, name and tattoo, sex · age · latest weight, one status pill. #}
-{% with main=rabbit.main_photo %}
-  <li class="min-w-0">
-    <a href="{% url 'rabbit_detail' rabbit.pk %}" class="rcard mo-press block h-full overflow-hidden rounded-lg border border-line bg-surface hover:border-field focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" data-grid-card>
-      {% include "rabbits/_rabbit_thumb.html" with rabbit=rabbit main=main size_class="block aspect-square w-full" sizes="(min-width: 1024px) 200px, (min-width: 640px) 33vw, 50vw" only %}
-      <span class="block p-2.5">
-        <span class="block truncate font-semibold">{{ rabbit.name }}{% if rabbit.is_sample %}{% include "components/sample_badge.html" with sample=True only %}{% endif %}{% if rabbit.tattoo %} <span class="num text-xs font-normal text-muted">{{ rabbit.tattoo }}</span>{% endif %}</span>
-        <span class="num block truncate text-sm text-muted">{{ rabbit.get_sex_display }}{% if rabbit.died_text %} · {{ rabbit.died_text }}{% elif rabbit.birth_date and not rabbit.age_until %} · {{ rabbit.age_text }}{% endif %}{% if rabbit.last_weight %} · {{ rabbit.last_weight.text }}{% endif %}</span>
-        <span class="mt-1.5 block"><span class="pill pill-{{ rabbit.status_tone|default:'o' }}" data-status-chip data-status="{{ rabbit.status }}">{{ rabbit.status_tag }}</span></span>
-      </span>
-    </a>
-  </li>
-{% endwith %}
+{% load photos %}{# A rabbit in the grid: the shared grid card with name and tattoo, sex · age · latest weight, and the status pill. #}
+{% url 'rabbit_detail' rabbit.pk as href %}<li class="min-w-0">{% include "components/grid_card.html" with rabbits=rabbit|listify href=href title=rabbit.name tag=rabbit.tattoo sample=rabbit.is_sample meta=rabbit|card_meta pill_label=rabbit.status_tag pill_tone=rabbit.status_tone|default:"o" pill_status=rabbit.status only %}</li>

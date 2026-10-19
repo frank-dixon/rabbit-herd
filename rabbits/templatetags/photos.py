@@ -46,3 +46,24 @@ def coat_swatch(rabbit, box=""):
     placeholder style, no coat stripes). The coat color stays in the text beside it."""
     color = (getattr(rabbit, "color", "") or "").strip()
     return {"box": box, "background": "", "color": color}
+
+
+@register.filter
+def card_meta(rabbit):
+    """The grid card's one meta line, as in the list row: "Doe · 20 mo · 10 lb 8 oz" (died date instead of age
+    for a deceased rabbit)."""
+    parts = [rabbit.get_sex_display()]
+    if rabbit.died_text:
+        parts.append(rabbit.died_text)
+    elif rabbit.birth_date and not getattr(rabbit, "age_until", None):
+        parts.append(rabbit.age_text())
+    weight = getattr(rabbit, "last_weight", None)
+    if weight:
+        parts.append(weight.text)
+    return " · ".join(p for p in parts if p)
+
+
+@register.filter
+def listify(value):
+    """One value as a one-item list (for components/grid_card.html's rabbits)."""
+    return [value]

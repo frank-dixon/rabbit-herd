@@ -296,6 +296,7 @@ def pairing_items(user, pairings):
     from . import program_plan
     from .status_pills import coi_tone, tone as status_tone
     from .swatches import swatch
+    from .templatetags.dates import short_date
 
     today = timezone.localdate()
     ped = program_plan.pedigree(user)
@@ -310,23 +311,26 @@ def pairing_items(user, pairings):
         litter = max(p.litters.all(), key=lambda l: l.bred_on, default=None)
         if litter is None:
             pill, when, result = {"label": "Planned", "tone": status_tone("planned")}, "Not bred yet", f"Saved {p.created_at:%b} {p.created_at.day}"
+            meta = when
         elif not litter.kindled_on:
             days = (litter.due_on - today).days
             pill = {"label": "Bred", "tone": status_tone("bred")}
             when, result = f"Bred {litter.bred_on:%b} {litter.bred_on.day}", f"Due {litter.due_on:%b} {litter.due_on.day}" + (f" · {days} days" if days >= 0 else f" · {-days} days late")
+            meta = f"Due {short_date(litter.due_on)}"
         else:
             done = bool(litter.converted_at)
             pill = {"label": "Done" if done else "Kits on ground", "tone": "" if done else status_tone("nursing")}
             raised = litter.survivors if getattr(litter, "survivors", None) is not None else litter.born_alive
             when = f"{'Last litter' if done else 'Kindled'} {litter.kindled_on:%b} {litter.kindled_on.day}"
             result = f"{litter.born_alive or 0} born, {raised or 0} {'raised' if done else 'alive'}"
+            meta = result
         tone = coi_tone(coi)
         coi_pill = {"label": f"COI {coi:.1f}%".replace(".0%", "%"), "tone": tone}
         relation = warnings[0] if warnings else "No shared ancestors on record"
         items.append({
             "href": reverse("pairing_detail", args=[p.pk]), "is_sample": p.is_sample, "title": f"{p.doe.name} × {p.buck.name}",
             "sub": f"{p.doe.color or 'Color not set'} × {p.buck.color or 'Color not set'}", "thumbs": [p.doe, p.buck],
-            "pill": pill, "coi": coi, "chips_label": "Predicted colors", "chips": chips,
+            "pill": pill, "meta": meta, "coi": coi, "chips_label": "Predicted colors", "chips": chips,
             "kv": [{"label": when, "value": result}, {"label": "Litters", "value": len(p.litters.all())}],
             "foot": {"pill": coi_pill, "text": relation},
             "mobile": f"{result} · COI {coi:.1f}%",

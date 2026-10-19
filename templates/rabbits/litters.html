@@ -14,7 +14,7 @@
   <section class="mt-2" aria-labelledby="open-heading">
     <h2 class="text-base font-semibold" id="open-heading">Expecting <span class="num font-normal text-muted">{{ open|length }}</span></h2>
     {% if open %}
-      <ul class="mt-3 {% if view == 'list' %}grid grid-cols-1 gap-3{% else %}lt-grid{% endif %}" data-open-litters data-view="{{ view }}">
+      <ul class="mt-3 {% if view == 'list' %}grid grid-cols-1 gap-3{% else %}gcard-grid{% endif %}" data-open-litters data-view="{{ view }}">
         {% for c in open %}{% include "rabbits/_litter_card.html" %}{% endfor %}
       </ul>
     {% else %}
@@ -24,7 +24,7 @@
   {% if kindled %}
     <section class="mt-8" aria-labelledby="kindled-heading">
       <h2 class="text-base font-semibold" id="kindled-heading">Kindled <span class="num font-normal text-muted">{{ kindled|length }}</span></h2>
-      <ul class="mt-3 {% if view == 'list' %}grid grid-cols-1 gap-3{% else %}lt-grid{% endif %}" data-kindled-litters data-view="{{ view }}">
+      <ul class="mt-3 {% if view == 'list' %}grid grid-cols-1 gap-3{% else %}gcard-grid{% endif %}" data-kindled-litters data-view="{{ view }}">
         {% for c in kindled %}{% include "rabbits/_litter_card.html" %}{% endfor %}
       </ul>
     </section>

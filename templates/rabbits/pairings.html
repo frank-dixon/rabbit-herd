@@ -31,10 +31,10 @@
   {% if pairings %}
     {% include "components/stat_cards.html" with stats=stats label="Pairings" only %}
     <div data-swap="results" data-pairings>
-      {% if items %}{% if view == "list" %}{% include "components/item_rows.html" %}{% else %}{% include "components/item_grid.html" %}{% endif %}{% endif %}
+      {% if items %}{% if view == "list" %}{% include "components/item_rows.html" %}{% else %}{% include "rabbits/_pairing_grid.html" %}{% endif %}{% endif %}
       {% if past %}
         {% with n=past|length|stringformat:"s" %}{% with title="Past pairings ("|add:n|add:")" %}{% include "components/fold_start.html" with fold_id="past-pairings" heading_id="past-pairings-heading" title=title only %}{% endwith %}{% endwith %}
-        <div data-past-pairings>{% if view == "list" %}{% include "components/item_rows.html" with items=past %}{% else %}{% include "components/item_grid.html" with items=past %}{% endif %}</div>
+        <div data-past-pairings>{% if view == "list" %}{% include "components/item_rows.html" with items=past %}{% else %}{% include "rabbits/_pairing_grid.html" with items=past %}{% endif %}</div>
         {% include "components/fold_end.html" %}
       {% endif %}
     </div>

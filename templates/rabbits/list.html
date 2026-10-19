@@ -94,7 +94,7 @@
 
     {% if view == "grid" %}
     {# Grid (Frank, 2026-10-18): one card style with the list row's anatomy; a litter is a stacked card that opens a kit band. #}
-    <ul class="mo-stagger mt-4 grid grid-flow-row-dense grid-cols-2 gap-2.5 sm:grid-cols-3 md:gap-3 lg:grid-cols-5" data-view="grid">
+    <ul class="gcard-grid is-dense mo-stagger mt-4" data-view="grid">
       {% for entry in entries %}
         {% if entry.kind == "stack" %}{% include "rabbits/_litter_stack.html" with stack=entry mode="grid" %}{% else %}{% include "rabbits/_grid_card.html" with rabbit=entry %}{% endif %}
       {% endfor %}

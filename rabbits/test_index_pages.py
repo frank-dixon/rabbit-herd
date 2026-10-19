@@ -69,3 +69,40 @@ class IndexPageTests(TestCase):
         page = self.client.get(reverse("show_list") + "?sort=place")
         self.assertEqual([it["sort"]["place"] for it in page.context["items"]], [1, 2, 3])
         self.assertContains(page, 'aria-sort="ascending"')
+
+
+class OneGridCardTests(TestCase):
+    """Critic v4 G1: Pairings and Litters use the Rabbits grid card (components/grid_card.html):
+    the pair's thumbs, the title, one meta line and one pill; no old detail or photo cards."""
+
+    def setUp(self):
+        from .models import Litter, Pairing
+
+        self.owner = user("grid@example.com")
+        self.client.force_login(self.owner)
+        doe = Rabbit.objects.create(owner=self.owner, name="Hazel", sex="doe", breed="Rex", birth_date=datetime.date(2024, 1, 1))
+        buck = Rabbit.objects.create(owner=self.owner, name="Moss", sex="buck", breed="Rex", birth_date=datetime.date(2024, 1, 1))
+        pairing = Pairing.objects.create(owner=self.owner, doe=doe, buck=buck)
+        self.litter = Litter.objects.create(owner=self.owner, pairing=pairing, bred_on=timezone.localdate() - datetime.timedelta(days=10))
+
+    def card(self, name):
+        body = self.client.get(reverse(name), {"view": "grid"}).content.decode()
+        self.assertIn('data-view="grid"', body)
+        return body.split('class="gcard"', 1)[1].split("</a>", 1)[0]
+
+    def test_pairings_grid_card(self):
+        card = self.card("pairing_list")
+        self.assertIn("Hazel × Moss", card)
+        self.assertIn("gcard-thumb is-pair", card)
+        self.assertEqual(card.count('class="pill'), 1)
+        from .templatetags.dates import short_date
+        self.assertIn(f"Due {short_date(self.litter.due_on)}", card)
+        self.assertNotIn("Predicted colors", card)
+
+    def test_litters_grid_card(self):
+        card = self.card("litter_list")
+        self.assertIn("Hazel × Moss", card)
+        self.assertIn("gcard-thumb is-pair", card)
+        self.assertIn(">Expecting<", card)
+        self.assertIn("Due ", card)
+        self.assertNotIn("Next:", card)  # the truncated "Next: Kindli…" line is gone (L2)
