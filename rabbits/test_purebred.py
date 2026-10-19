@@ -58,6 +58,10 @@ class PurebredTests(TestCase):
         self.rabbit("Mutt", breed="Barn mix")
         page = self.client.get(reverse("rabbit_detail", args=[kit.pk]))
         self.assertContains(page, 'data-purebred="parents"')
+        # Breed type isn't a status, so it is the plain grey pill (Critic v6 M6).
+        self.assertContains(page, '<span class="ml-1 pill align-middle" data-purebred="parents">Purebred')
+        from .status_pills import tone
+        self.assertEqual(tone("Purebred"), "")
         self.assertContains(page, "Both parents are Mini Rex.")
         names = lambda q: [r.name for r in self.client.get(reverse("rabbit_list") + q).context["rabbits"]]
         self.assertEqual(names("?pure=yes"), ["Dam", "Kit"])

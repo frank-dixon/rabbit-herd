@@ -14,7 +14,7 @@ pages/test_status_colors.py checks each pair reads at 4.5:1 in every theme."""
 
 TONES = {
     "g": {"active", "breeding", "growing", "in herd", "healthy", "nursing", "kits on ground", "on track", "weaned",
-          "keep", "kept", "done", "not related", "low", "low coi", "ready", "picked", "purebred", "counts"},
+          "keep", "kept", "done", "not related", "low", "low coi", "ready", "picked", "counts"},
     "b": {"bred", "expecting", "pregnant", "planned", "waiting", "next", "covered"},
     "y": {"due soon", "due today", "today", "watch", "behind", "behind curve", "treatment", "weigh-in overdue",
           "needs attention", "offered a rabbit", "hold", "open", "related"},
