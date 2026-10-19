@@ -339,6 +339,13 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
 .temp-rail-text { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .temp-rail-action { flex-shrink: 0; color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 @media print { .temp-rail { display: none; } }
+/* Without JS on wide screens (Critic v7 O3): the page keeps the rail's height free at the bottom, and a control
+   scrolled or tabbed into view (the add-rabbit Next) stops above the rail, not under it. Phones already pad
+   by the whole bottom stack. */
+@media (scripting: none) and (min-width: 768px) {
+  body:has(.temp-rail) main { padding-bottom: 44px; }
+  html:has(.temp-rail) { scroll-padding-bottom: 44px; }
+}
 
 /* ---- Phone bottom stack (Critic v2 N1, N2). One solid stack, top to bottom: the page's action
    (pinned main button or a form's action bar), the guest/demo rail, the tab bar. Nothing overlaps,

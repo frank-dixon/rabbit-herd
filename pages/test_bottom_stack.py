@@ -54,3 +54,15 @@ class StepScrollPaddingTests(SimpleTestCase):
         js = (ROOT / "assets" / "bottom-stack.mjs").read_text()
         self.assertIn('doc.documentElement?.style.setProperty("--stack-h"', js)
         self.assertIn("data-action-bar", (ROOT / "templates" / "rabbits" / "flow" / "step.html").read_text())
+
+
+class NoJsRailTests(SimpleTestCase):
+    """Critic v7 O3: without JS on wide screens the page keeps the guest rail's height free, so Next clears it."""
+
+    def test_no_js_pads_by_the_rail(self):
+        css = (ROOT / "assets" / "layout.css").read_text()
+        block = css[css.index("@media (scripting: none) and (min-width: 768px) {"):]
+        block = block[:block.index("\n}")]
+        self.assertIn("body:has(.temp-rail) main { padding-bottom: 44px; }", block)
+        self.assertIn("html:has(.temp-rail) { scroll-padding-bottom: 44px; }", block)
+        self.assertIn("min-height: 44px", css[css.index(".temp-rail {"):])
