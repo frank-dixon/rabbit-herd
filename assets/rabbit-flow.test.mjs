@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { autoText, breedSection, crossTotal, needsColorText, parseAuto, refillGenes, relationshipChoices, totalText, totalTone } from "./rabbit-flow.mjs";
+import { autoText, breedSection, crossTotal, needsColorText, parseAuto, refillGenes, relationshipChoices, revealInvalid, totalText, totalTone } from "./rabbit-flow.mjs";
 
 const ALL = [
   ["dam", "Dam (mother)"],
@@ -65,4 +65,20 @@ test("breed type picks the breed section shown on the same card", () => {
   assert.equal(breedSection("crossbred"), "crossbred");
   assert.equal(breedSection(""), "");
   assert.equal(breedSection("Unknown"), "");
+});
+
+test("a failed submit focuses the first visible invalid field and brings its message into view (Critic v7 O2)", () => {
+  const calls = [];
+  const el = (name, shown, attrs = {}) => ({
+    name, getClientRects: () => (shown ? [{}] : []), getAttribute: (k) => attrs[k] ?? null,
+    focus: (o) => calls.push([name, "focus", o.preventScroll]), scrollIntoView: (o) => calls.push([name, "scroll", o.block]),
+  });
+  const hidden = el("hidden-select", false);
+  const field = el("purebred", true, { "aria-describedby": "id_purebred_help id_purebred_error" });
+  const message = el("message", true);
+  const form = { querySelectorAll: () => [hidden, field] };
+  const doc = { getElementById: (id) => (id === "id_purebred_error" ? message : null) };
+  assert.equal(revealInvalid(form, doc), field);
+  assert.deepEqual(calls, [["purebred", "focus", true], ["purebred", "scroll", "nearest"], ["message", "scroll", "nearest"]]);
+  assert.equal(revealInvalid({ querySelectorAll: () => [] }, doc), null);
 });

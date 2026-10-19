@@ -362,12 +362,29 @@ function bindGeneFill(form) {
   });
 }
 
-/** Errors first, then a row that was just added, then the question. */
+/**
+ * After a failed submit (Critic v7 O2): focus the first visible invalid field and scroll it and its message
+ * into view. layout.css gives <html> scroll-padding the height of the pinned Back/Next bar and the field room
+ * for its message, so "nearest" lands both above the bar. The summary stays a role="alert" above the form.
+ * Returns the field, or null when none is marked invalid.
+ */
+export function revealInvalid(form, doc = globalThis.document) {
+  const field = [...form.querySelectorAll('[aria-invalid="true"]')].find((el) => el.getClientRects().length > 0);
+  if (!field) return null;
+  field.focus({ preventScroll: true });
+  const ids = (field.getAttribute("aria-describedby") || "").split(/\s+/).filter((id) => id.endsWith("_error"));
+  const message = ids.length ? doc.getElementById(ids[ids.length - 1]) : null;
+  field.scrollIntoView({ block: "nearest" });
+  if (message && message.getClientRects().length) message.scrollIntoView({ block: "nearest" });
+  return field;
+}
+
+/** Errors first (the first invalid field, else the summary), then a row that was just added, then the question. */
 function placeFocus(form) {
   const focus = (el) => { if (typeof el.scrollIntoView === "function") focusSmooth(el); else el.focus(); };
   const summary = document.getElementById("error-summary");
   if (summary) {
-    focus(summary);
+    if (!revealInvalid(form)) focus(summary);
     return;
   }
   const hash = window.location.hash.slice(1);
