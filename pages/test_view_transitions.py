@@ -13,6 +13,8 @@ class ViewTransitionOptInTests(SimpleTestCase):
             css = path.read_text()
             self.assertIn("@view-transition { navigation: auto; }", css, path.name)
             self.assertIn("@view-transition { navigation: none; }", css, path.name)  # reduced motion
+            # Without JS nothing can quiet an aborted transition, so there are none (v10 shoot).
+            self.assertIn("@media (scripting: none) { @view-transition { navigation: none; } }", css, path.name)
 
     def test_aborted_transitions_are_handled(self):
         js = (ROOT / "assets" / "app.js").read_text()

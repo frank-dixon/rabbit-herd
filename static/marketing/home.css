@@ -2,6 +2,7 @@
    completes its transition instead of aborting it (a console page error, Critic v3). */
 @view-transition { navigation: auto; }
 @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
+@media (scripting: none) { @view-transition { navigation: none; } } /* nothing can quiet an aborted one without JS */
 /* Bramble Burrow marketing home. Plain CSS, light d2v2 palette, no build step. */
 @font-face{font-family:"Instrument Sans";src:url("../fonts/instrument-sans-latin-var.woff2") format("woff2");font-weight:400 700;font-display:swap}
 *{box-sizing:border-box}

@@ -29,6 +29,9 @@ html[data-menu-open] .app-panel { view-transition-name: app-menu; }
 ::view-transition-group(app-menu) { z-index: 10; }
 ::view-transition-old(app-menu) { animation: var(--dur-page) var(--ease-in-out) both mo-menu-out; }
 @keyframes mo-menu-out { to { transform: translateX(-100%); } }
+/* Without JS nothing can mark an aborted page transition handled, so Chrome reports it as a page error:
+   no page transitions then (static/boot/transitions.js does the job when JS runs). */
+@media (scripting: none) { @view-transition { navigation: none; } }
 @media (prefers-reduced-motion: reduce) {
   @view-transition { navigation: none; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
