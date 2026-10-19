@@ -18,3 +18,14 @@ def short_date(day, today=None):
 
 
 register.filter("day", short_date)
+
+
+def month_label(day, today=None):
+    """A month heading in the same style: "October", with the year only when it isn't this year ("December 2025")."""
+    if not day:
+        return ""
+    today = today or timezone.localdate()
+    return f"{day:%B}" if day.year == today.year else f"{day:%B} {day.year}"
+
+
+register.filter("month", month_label)

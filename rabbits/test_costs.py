@@ -88,3 +88,25 @@ class CostTests(TestCase):
         self.assertContains(self.client.get(reverse("cost_new")), "Add cost")
         self.assertEqual(self.client.post(reverse("cost_new"), self.data()).status_code, 302)
         self.assertContains(self.client.post(reverse("cost_edit_form", args=[expense.pk]), self.data(amount="x")), "Enter the amount", status_code=400)
+
+
+class CostMonthTests(TestCase):
+    """Critic N5: the Costs list has a heading per month, in the app's date style (year only when not this year)."""
+
+    def test_month_headings(self):
+        from .templatetags.dates import month_label
+
+        owner = user("months@example.com")
+        self.client.force_login(owner)
+        today = timezone.localdate()
+        this_month = today.replace(day=1)
+        last_year = this_month.replace(year=today.year - 1)
+        for day, text in ((this_month, "Bale A"), (this_month, "Bale B"), (last_year, "Old bale")):
+            Expense.objects.create(owner=owner, date=day, description=text, amount=8, category="hay")
+        body = self.client.get(reverse("cost_list")).content.decode()
+        self.assertEqual(body.count("data-cost-month"), 2)
+        self.assertIn(f"<h3>{today:%B}</h3>", body)
+        self.assertIn(f"<h3>{last_year:%B} {last_year.year}</h3>", body)
+        self.assertLess(body.index(f"<h3>{today:%B}</h3>"), body.index("Bale A"))
+        self.assertLess(body.index("Bale B"), body.index(f"<h3>{last_year:%B} {last_year.year}</h3>"))
+        self.assertEqual(month_label(last_year, today), f"{last_year:%B} {last_year.year}")
