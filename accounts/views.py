@@ -260,8 +260,12 @@ def confirm_email(request, uidb64, token):
 
 
 def start(request):
-    """The first screen: See a demo herd, or Start my own herd."""
+    """The first screen: See a demo herd, or Start my own herd. Signed out, that is Welcome, so /start/
+    redirects there: one way in (Critic v6 M7). It still renders itself to show a message (the demo herd
+    not being available) and for a demo herd, which has the app at "/"."""
     if request.user.is_authenticated and not request.user.is_demo:
+        return redirect("index")
+    if not request.user.is_authenticated and not len(messages.get_messages(request)):
         return redirect("index")
     from .demo import baseline
 
