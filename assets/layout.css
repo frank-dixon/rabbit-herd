@@ -177,7 +177,7 @@ main .empty:not(.empty-compact) { border-color: transparent; background: transpa
 
 /* ---- Buttons: compact, Stripe-like. 34px tall, 6px radius, 14px medium, ~13px sides.
    Primary is the one solid accent; secondary and danger are quiet ghost buttons. ---- */
-:is(a, button).mo-press, main button[type="submit"]:not(.sr-only, .underline, [class*="underline"]), dialog button[type="submit"] {
+:is(a, button).mo-press, main button[type="submit"]:not(.sr-only, .underline, [class*="underline"], .switch), dialog button[type="submit"] {
   min-height: 34px !important; height: auto; padding: 0.375rem 0.8125rem !important; font-size: 0.875rem !important; line-height: 1.25rem; font-weight: 500 !important;
   border-radius: 6px !important; width: auto; flex-grow: 0;
 }
@@ -392,7 +392,7 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
 .choice-tile .choice-title { font-size: 1.125rem !important; font-weight: 600 !important; }
 /* Phones and touch: the compact 34px button rule above gives way to 44px targets. */
 @media (max-width: 767.98px), (pointer: coarse) {
-  :is(a, button).mo-press, main button[type="submit"]:not(.sr-only, .underline, [class*="underline"]), dialog button[type="submit"] { min-height: 44px !important; }
+  :is(a, button).mo-press, main button[type="submit"]:not(.sr-only, .underline, [class*="underline"], .switch), dialog button[type="submit"] { min-height: 44px !important; }
   :is(a, button).mo-press:is(.min-h-14, .text-lg) { min-height: 48px !important; }
 }
 

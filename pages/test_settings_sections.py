@@ -44,3 +44,21 @@ class SettingsSectionTests(TestCase):
         response = self.client.post(reverse("tab_bar"), {"tab": ["today", "today", "rabbits"]}, follow=True)
         self.assertIn("Choose 3 to 5 different tabs.", [str(m) for m in response.context["messages"]])
         self.assertIn('"Choose 3 to 5 different tabs."', (ROOT / "assets" / "settings-save.mjs").read_text())
+
+
+class SamplesSwitchTests(TestCase):
+    """Critic v6 W1: Show samples is a horizontal 44x24 switch with a 44px hit area."""
+
+    def test_switch_is_horizontal_and_skips_the_submit_button_sizing(self):
+        user = get_user_model().objects.create_user("switch@example.com", "pw-12345678")
+        self.client.force_login(user)
+        body = self.client.get(reverse("account")).content.decode()
+        self.assertIn('role="switch" aria-checked="', body)
+        css = (ROOT / "assets" / "components.css").read_text()
+        rule = css[css.index(".switch {"):]
+        rule = rule[:rule.index("}")]
+        self.assertIn("width: 44px; height: 24px;", rule)
+        self.assertIn("flex-shrink: 0", rule)
+        self.assertIn('.switch::after { content: ""; position: absolute; inset: -10px 0; }', css)
+        layout = (ROOT / "assets" / "layout.css").read_text()
+        self.assertEqual(layout.count('main button[type="submit"]:not('), layout.count('[class*="underline"], .switch)'))
