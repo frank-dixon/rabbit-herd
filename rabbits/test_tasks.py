@@ -66,6 +66,29 @@ class TaskTests(TestCase):
         self.assertNotContains(self.client.get(reverse("task_list")), "Zebra brush")
 
 
+class TaskRowEndTests(TestCase):
+    """Critic TK2: every Tasks row ends the same way: Edit (wide screens) then the check circle."""
+
+    setUp = TaskTests.setUp
+
+    def test_every_row_ends_with_edit_and_the_check_circle(self):
+        import re
+
+        Task.objects.create(owner=self.owner, title="Order hay", due_on=self.today)
+        litter = Litter.objects.create(owner=self.owner, pairing=Pairing.objects.create(owner=self.owner, doe=self.doe, buck=self.buck),
+                                       bred_on=self.today - datetime.timedelta(days=31))
+        body = self.client.get(reverse("task_list")).content.decode()
+        rows = re.findall(r"<li class=\"list-row[^>]*data-task-item.*?</li>", body, flags=re.S)
+        self.assertGreaterEqual(len(rows), 2)
+        for row in rows:
+            ends = row[row.index("data-task-actions"):]
+            self.assertIn("data-task-edit", ends)
+            self.assertIn('class="check-btn mo-press"', ends)
+            self.assertLess(ends.index("data-task-edit"), ends.index("check-btn"))
+        due = next(r for r in rows if "Due to kindle" in r or "data-task-record" in r)
+        self.assertIn(f'href="{reverse("litter_detail", args=[litter.pk])}#kindling" data-task-record>Record', due)
+
+
 class TaskRepeatTests(TestCase):
     def setUp(self):
         self.owner = user("repeat@example.com")

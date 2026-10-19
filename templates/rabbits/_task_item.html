@@ -9,10 +9,13 @@
       {% if item.kind == "task" and item.rabbit %}<span>· {{ item.rabbit.name }}</span>{% endif %}
       {% if item.repeat %}<span class="pill" data-repeat-badge><span aria-hidden="true">↻</span> {{ item.repeat }}</span>{% endif %}
     </span>
+    {% if item.kind != "task" and item.key == "due" %}<a class="mt-1 inline-block text-sm font-medium text-accent underline underline-offset-2" href="{{ item.url }}#kindling" data-task-record>Record<span class="sr-only"> kindling: {{ item.title }}</span></a>{% endif %}
   </span>
-  <span class="flex shrink-0 items-center gap-1">
+  {% comment %} Every row ends the same way (Critic TK2): Edit (wide screens), then the 44px check circle. Litter dates edit on the
+     litter's Dates; the kindling date can't just be ticked, so its circle opens the kindling form and Record sits under the title. {% endcomment %}
+  <span class="flex shrink-0 items-center gap-1" data-task-actions>
+    <a class="hidden rounded-md px-2 py-1.5 text-sm text-muted hover:bg-side hover:text-ink sm:inline-block" href="{% if item.kind == "task" %}{% url 'task_edit' item.pk %}{% else %}{{ item.url }}#dates{% endif %}" data-task-edit>Edit<span class="sr-only"> {{ item.title }}</span></a>
   {% if item.kind == "task" %}
-    <a class="hidden rounded-md px-2 py-1.5 text-sm text-muted hover:bg-side hover:text-ink sm:inline-block" href="{% url 'task_edit' item.pk %}">Edit<span class="sr-only"> {{ item.title }}</span></a>
     <form method="post" action="{% url 'task_done' item.pk %}" data-offline-queue="Task">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
       {% include "components/check_button.html" with label=item.title only %}
     </form>
@@ -21,7 +24,7 @@
       {% include "components/check_button.html" with label=item.title only %}
     </form>
   {% else %}
-    {% include "components/button.html" with label="Record" sr_suffix="kindling: "|add:item.title href=item.url|add:"#kindling" variant="secondary" size="small" only %}
+    <a class="check-btn mo-press" href="{{ item.url }}#kindling" title="Record"><span class="check-btn-ring" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12.5 10 16.5 18 8"/></svg></span><span class="sr-only">Record kindling: {{ item.title }}</span></a>
   {% endif %}
   </span>
 </li>
