@@ -56,19 +56,25 @@ class StepScrollPaddingTests(SimpleTestCase):
         self.assertIn("data-action-bar", (ROOT / "templates" / "rabbits" / "flow" / "step.html").read_text())
 
 
-class WideRailInFlowTests(SimpleTestCase):
-    """Critic v8 O3: on wide screens the guest rail is the content column's last row in the flow, not an overlay,
-    so on first load it never lies over Next, with or without JS. The column is at least the screen's height."""
+class WideRailTests(SimpleTestCase):
+    """Critic v8 O3 and Frank's decision that the demo marker stays on screen: on wide screens the rail is the
+    content column's last row and sticks to the bottom edge (visible on long pages, in its own row at the end),
+    and a form's Back/Next bar pins just above it so Next is never under it on first load, with or without JS."""
 
-    def test_wide_rail_takes_its_own_row(self):
+    def test_rail_sticks_as_the_columns_last_row(self):
         css = (ROOT / "assets" / "layout.css").read_text()
         base = css[css.index(".temp-rail {"):]
         base = base[:base.index("}")]
-        self.assertIn("position: relative;", base)
-        self.assertNotIn("sticky", base)
+        self.assertIn("position: sticky; bottom: 0;", base)
         self.assertIn("min-height: 44px", base)
-        self.assertNotIn("(scripting: none) and (min-width: 768px)", css)  # the v7 padding stopgap is gone
         page = (ROOT / "templates" / "components" / "page.html").read_text()
-        column = page.index('<div class="flex min-h-screen min-w-0 flex-1 flex-col">')
-        self.assertLess(column, page.index('{% include "components/temp_rail.html" %}'))
         self.assertLess(page.index("</main>"), page.index('{% include "components/temp_rail.html" %}'))
+        self.assertLess(page.index("{% block page_footer %}"), page.index('{% include "components/temp_rail.html" %}'))
+
+    def test_wide_action_bar_pins_above_the_rail_but_not_in_dialogs(self):
+        css = (ROOT / "assets" / "layout.css").read_text()
+        block = css[css.index("@media (min-width: 768px) {\n  body:has(.temp-rail) main [data-action-bar]"):]
+        block = block[:block.index("\n}")]
+        self.assertIn(":not(dialog [data-action-bar])", block)
+        self.assertIn("position: sticky; bottom: 45px;", block)  # the rail's 44px row and its 1px top border
+        self.assertNotIn("(scripting: none) and (min-width: 768px)", css)

@@ -325,12 +325,13 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
 
 /* Guest and demo sessions: one quiet line at the bottom, never in the way (components/temp_rail.html).
    It sits in the content column, so on wide screens it spans the content beside the side menu. There it is the
-   column's last row in the flow (Critic v8 O3): the column is at least the screen's height, so the rail rests on
-   the bottom edge of a short page and follows the footer on a long one, and it never lies over a control such as
-   the add-rabbit Next on first load, with or without JS. On phones it rides just above the bottom tabs.
+   column's last row in the flow and sticks to the bottom edge (Frank: the demo marker stays on screen), so it is
+   always visible on a long page and at the end it rests in its own row after the footer, covering nothing.
+   A form's Back/Next bar pins just above it (below), so Next never lies under it. On phones it rides just
+   above the bottom tabs.
    The whole row is one 44px tap target (Critic v4): the text and the link sit inside it, so nothing reaches
    into the pinned button or the tab bar. */
-.temp-rail { position: relative; z-index: 15; display: flex; align-items: stretch;
+.temp-rail { position: sticky; bottom: 0; z-index: 15; display: flex; align-items: stretch;
   min-height: 44px; padding: 0; font-size: 13px; line-height: 1.3; color: var(--muted);
   background: color-mix(in oklab, var(--surface) 94%, transparent); border-top: 1px solid var(--line);
   -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
@@ -342,6 +343,12 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
 .temp-rail-text { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .temp-rail-action { flex-shrink: 0; color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 @media print { .temp-rail { display: none; } }
+/* Wide screens with the rail (Critic v8 O3): a form's Back/Next bar is pinned like the phone one, just above the
+   rail (its 44px row and 1px top border), so on a long step such as add-rabbit status without JS, Next is never
+   under the rail on first load. Where the step is short, the bar simply stays in place. Dialogs keep theirs. */
+@media (min-width: 768px) {
+  body:has(.temp-rail) main [data-action-bar]:not(dialog [data-action-bar]) { position: sticky; bottom: 45px; z-index: 14; border-top-width: 1px; padding-top: 0.75rem; padding-bottom: 0.75rem; }
+}
 
 /* ---- Phone bottom stack (Critic v2 N1, N2). One solid stack, top to bottom: the page's action
    (pinned main button or a form's action bar), the guest/demo rail, the tab bar. Nothing overlaps,
