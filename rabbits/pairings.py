@@ -180,7 +180,7 @@ def relatedness(user, doe, buck, params=None, sort=""):
     related = bool(closest or rows)
     from .status_pills import coi_tone
 
-    tone = coi_tone(coi) if related else "g"
+    tone = coi_tone(coi) if related else ""  # "Not related" is the plain grey pill too (G6)
     return {"related": related, "tone": tone, "label": "Closely related" if tone == "r" else "Related" if related else "Not related",
             "closest": closest, "coi": f"{coi:.1f}".rstrip("0").rstrip("."), "count": len(rows), "rows": rows,
             "heads": heads, "sorted": bool(sort)}

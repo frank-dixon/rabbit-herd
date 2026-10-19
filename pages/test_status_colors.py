@@ -37,7 +37,7 @@ class StatusColorTests(SimpleTestCase):
             self.assertEqual(tone(word), expected, word)
         self.assertEqual(status_tone("growing"), "g")
         self.assertEqual(status_tone("sold"), "o")
-        self.assertEqual([coi_tone(0), coi_tone(3), coi_tone(12.5), coi_tone(25)], ["g", "g", "", "r"])  # medium is grey with its % label
+        self.assertEqual([coi_tone(0), coi_tone(3), coi_tone(12.5), coi_tone(25)], ["", "", "", "r"])  # grey with its % label; only high red (G6)
 
     def test_every_word_has_one_color(self):
         seen = {}
@@ -60,3 +60,14 @@ class StatusColorTests(SimpleTestCase):
                     self.assertGreaterEqual(ratio, 4.5, f"{name} pill-{letter}: {ratio:.2f}")
                     checked.add(name)
         self.assertTrue({"light", "heritage"} <= checked)
+
+    def test_the_grey_coi_pill_reads_at_4_5_to_1_in_light_and_dark(self):
+        # G6: COI 0%, low and medium use the plain .pill (--ink-2 on --pill); check it in every light and dark theme.
+        css = (Path(__file__).resolve().parents[1] / "assets" / "layout.css").read_text()
+        self.assertIn("background: var(--pill); color: var(--ink-2);", css)
+        names = set()
+        for name, colors in themes():
+            ratio = contrast(colors["ink-2"], colors["pill"])
+            self.assertGreaterEqual(ratio, 4.5, f"{name} grey COI pill: {ratio:.2f}")
+            names.add(name)
+        self.assertTrue({"light", "dark-a"} <= names)

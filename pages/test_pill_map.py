@@ -36,10 +36,11 @@ class PillMapTemplateTests(TestCase):
         self.assertEqual(tone("overdue"), "r")
 
 
-    def test_coi_is_green_low_grey_medium_red_high(self):
+    def test_coi_is_grey_except_high_red(self):
+        # G6: COI 0% and low turn grey like medium; only high stays red.
         from rabbits.status_pills import coi_tone, tone
 
-        self.assertEqual([coi_tone(2), coi_tone(6.25), coi_tone(12.5), coi_tone(25)], ["g", "", "", "r"])
+        self.assertEqual([coi_tone(0), coi_tone(2), coi_tone(6.25), coi_tone(12.5), coi_tone(24.9), coi_tone(25)], ["", "", "", "", "", "r"])
         self.assertEqual([tone("mid"), tone("moderate")], ["", ""])
 
 

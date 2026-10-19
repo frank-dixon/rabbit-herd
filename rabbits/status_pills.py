@@ -43,6 +43,7 @@ def status_tone(status):
 
 
 def coi_tone(coi):
-    """Low, mid and high inbreeding: green, the plain grey pill, red."""
+    """Inbreeding: only high is red; low (0% included) and medium are the plain grey pill with their % label.
+    COI isn't a status, and green means active (Critic G6, decided 2026-10-18)."""
     coi = float(coi or 0)
-    return "r" if coi >= COI_HIGH else "" if coi >= COI_MID else "g"
+    return "r" if coi >= COI_HIGH else ""
