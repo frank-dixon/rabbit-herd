@@ -148,6 +148,9 @@ class LandingPageTests(TestCase):
         from django.urls import reverse
         self.assertContains(response, f'action="{reverse("guest")}"')
         self.assertContains(response, "Start my own herd")
+        # G7: one way in for returning users, the header "Sign in"; no inline "I have an account".
+        self.assertContains(response, 'class="si" href="/login/">Sign in</a>')
+        self.assertNotContains(response, "I have an account")
 
     def test_signed_in_user_gets_the_app_at_root(self):
         from django.contrib.auth import get_user_model
