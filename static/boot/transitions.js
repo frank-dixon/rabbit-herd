@@ -11,4 +11,10 @@
   }
   window.addEventListener("pageswap", function (e) { quiet(e.viewTransition); });
   window.addEventListener("pagereveal", function (e) { quiet(e.viewTransition); });
+  // A transition the browser aborts before either event hands it over (seen intermittently after a form
+  // post, Critic v7 shoot) still rejects its promises: drop only that rejection, nothing else.
+  window.addEventListener("unhandledrejection", function (e) {
+    var r = e.reason;
+    if (r && (r.name === "InvalidStateError" || r.name === "AbortError") && /^Transition was aborted/.test(r.message || "")) e.preventDefault();
+  });
 })();

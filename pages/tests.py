@@ -181,6 +181,8 @@ class LandingPageTests(TestCase):
         js = (ROOT / "static" / "boot" / "transitions.js").read_text()
         self.assertIn('addEventListener("pageswap"', js)
         self.assertIn('addEventListener("pagereveal"', js)
+        self.assertIn('addEventListener("unhandledrejection"', js)  # only "Transition was aborted" ones
+        self.assertIn("/^Transition was aborted/", js)
 
     def test_signed_in_user_gets_the_app_at_root(self):
         from django.contrib.auth import get_user_model
