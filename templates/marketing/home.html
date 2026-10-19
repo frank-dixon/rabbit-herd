@@ -31,7 +31,9 @@
       </div>
       <figure class="shot">
         <picture>
+          <source media="(max-width: 760px) and (prefers-color-scheme: dark)" srcset="{% static 'marketing/hero-390-dark-1x.webp' %} 390w, {% static 'marketing/hero-390-dark.webp' %} 780w" sizes="100vw" width="390" height="844">
           <source media="(max-width: 760px)" srcset="{% static 'marketing/hero-390-1x.webp' %} 390w, {% static 'marketing/hero-390.webp' %} 780w" sizes="100vw" width="390" height="844">
+          <source media="(prefers-color-scheme: dark)" srcset="{% static 'marketing/hero-1280-dark-1x.webp' %} 1280w, {% static 'marketing/hero-1280-dark.webp' %} 2560w" sizes="(max-width: 1120px) 100vw, 1056px" width="1280" height="1136">
           <img src="{% static 'marketing/hero-1280-1x.webp' %}" srcset="{% static 'marketing/hero-1280-1x.webp' %} 1280w, {% static 'marketing/hero-1280.webp' %} 2560w" sizes="(max-width: 1120px) 100vw, 1056px" width="1280" height="1136" alt="The {{ app_name }} Today page: the herd, and stat cards with ten months of history." fetchpriority="high" decoding="async">
         </picture>
       </figure>
@@ -44,23 +46,23 @@
   <p class="t">Every picture on this page is a screenshot of {{ app_name }} with its demo herd.</p>
   <div class="row">
     <div class="copy"><p class="kick">Family tree</p><h3>Trace a gene through five generations.</h3><p>Pick a gene and the tree marks every rabbit that carries it or shows it. Solid links are proven by kits; dashed ones are probable.</p></div>
-    <figure class="cut"><img src="{% static 'marketing/tree-1x.webp' %}" srcset="{% static 'marketing/tree-1x.webp' %} 1x, {% static 'marketing/tree.webp' %} 2x" width="993" height="690" alt="Juniper's family tree with the ruby-eyed white gene traced from her great-grandparents." loading="lazy" decoding="async"></figure>
+    <figure class="cut"><picture><source media="(prefers-color-scheme: dark)" srcset="{% static 'marketing/tree-dark-1x.webp' %} 1x, {% static 'marketing/tree-dark.webp' %} 2x" width="993" height="690"><img src="{% static 'marketing/tree-1x.webp' %}" srcset="{% static 'marketing/tree-1x.webp' %} 1x, {% static 'marketing/tree.webp' %} 2x" width="993" height="690" alt="Juniper's family tree with the ruby-eyed white gene traced from her great-grandparents." loading="lazy" decoding="async"></picture></figure>
   </div>
   <div class="row">
     <div class="copy"><p class="kick">Weights</p><h3>Every weight, with a trend and a growth check.</h3><p>Each rabbit shows its latest weight, the 30-day change and a small trend line. Juniors are checked against a New Zealand growth curve.</p></div>
-    <figure class="cut"><img src="{% static 'marketing/weights-1x.webp' %}" srcset="{% static 'marketing/weights-1x.webp' %} 1x, {% static 'marketing/weights.webp' %} 2x" width="945" height="469" alt="The Weights table: juniors with trend lines and on-track status." loading="lazy" decoding="async"></figure>
+    <figure class="cut"><picture><source media="(prefers-color-scheme: dark)" srcset="{% static 'marketing/weights-dark-1x.webp' %} 1x, {% static 'marketing/weights-dark.webp' %} 2x" width="945" height="469"><img src="{% static 'marketing/weights-1x.webp' %}" srcset="{% static 'marketing/weights-1x.webp' %} 1x, {% static 'marketing/weights.webp' %} 2x" width="945" height="469" alt="The Weights table: juniors with trend lines and on-track status." loading="lazy" decoding="async"></picture></figure>
   </div>
   <div class="row">
     <div class="copy"><p class="kick">Litters</p><h3>Litters on schedule.</h3><p>Each litter shows when it was bred, when it is due and the next job, with dates from your breeding schedule.</p></div>
-    <figure class="cut"><img src="{% static 'marketing/litters-1x.webp' %}" srcset="{% static 'marketing/litters-1x.webp' %} 1x, {% static 'marketing/litters.webp' %} 2x" width="993" height="426" alt="Litter cards for six expecting does, each with its due date and next job." loading="lazy" decoding="async"></figure>
+    <figure class="cut"><picture><source media="(prefers-color-scheme: dark)" srcset="{% static 'marketing/litters-dark-1x.webp' %} 1x, {% static 'marketing/litters-dark.webp' %} 2x" width="993" height="688"><img src="{% static 'marketing/litters-1x.webp' %}" srcset="{% static 'marketing/litters-1x.webp' %} 1x, {% static 'marketing/litters.webp' %} 2x" width="993" height="426" alt="Litter cards for six expecting does, each with its due date and next job." loading="lazy" decoding="async"></picture></figure>
   </div>
   <div class="row">
     <div class="copy"><p class="kick">Pairings</p><h3>Know how related a pair is before you breed.</h3><p>Both pedigrees are read for you. You get the inbreeding coefficient and every shared ancestor, on each side.</p></div>
-    <figure class="cut"><img src="{% static 'marketing/pairing-1x.webp' %}" srcset="{% static 'marketing/pairing-1x.webp' %} 1x, {% static 'marketing/pairing.webp' %} 2x" width="496" height="430" alt="A pairing marked Related: COI 12.5%, with its shared ancestors listed by side." loading="lazy" decoding="async"></figure>
+    <figure class="cut"><picture><source media="(prefers-color-scheme: dark)" srcset="{% static 'marketing/pairing-dark-1x.webp' %} 1x, {% static 'marketing/pairing-dark.webp' %} 2x" width="496" height="429"><img src="{% static 'marketing/pairing-1x.webp' %}" srcset="{% static 'marketing/pairing-1x.webp' %} 1x, {% static 'marketing/pairing.webp' %} 2x" width="496" height="430" alt="A pairing marked Related: COI 12.5%, with its shared ancestors listed by side." loading="lazy" decoding="async"></picture></figure>
   </div>
   <div class="row">
     <div class="copy"><p class="kick">Rabbit records</p><h3>One page for each rabbit.</h3><p>Photos, breed, color, line and the whole weight history, with the main photo up front.</p></div>
-    <figure class="cut"><img src="{% static 'marketing/rabbit-1x.webp' %}" srcset="{% static 'marketing/rabbit-1x.webp' %} 1x, {% static 'marketing/rabbit.webp' %} 2x" width="1041" height="760" alt="Snow's rabbit page with her photo, details and weight chart." loading="lazy" decoding="async"></figure>
+    <figure class="cut"><picture><source media="(prefers-color-scheme: dark)" srcset="{% static 'marketing/rabbit-dark-1x.webp' %} 1x, {% static 'marketing/rabbit-dark.webp' %} 2x" width="1041" height="760"><img src="{% static 'marketing/rabbit-1x.webp' %}" srcset="{% static 'marketing/rabbit-1x.webp' %} 1x, {% static 'marketing/rabbit.webp' %} 2x" width="1041" height="760" alt="Snow's rabbit page with her photo, details and weight chart." loading="lazy" decoding="async"></picture></figure>
   </div>
   <div class="row">
     <div class="copy"><p class="kick">Offline</p><h3>Keeps working without signal.</h3><p>Log a weight in the barn with no connection. It is kept on the phone and added once when you are back online.</p></div>

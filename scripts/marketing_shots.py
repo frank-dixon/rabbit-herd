@@ -4,6 +4,7 @@ shows the real app.
 
     python scripts/marketing_shots.py            # writes static/marketing/*.webp
     python scripts/marketing_shots.py --out DIR  # somewhere else
+    python scripts/marketing_shots.py --theme dark-a  # NAME-dark.webp, for Welcome in dark mode
 
 It builds a throwaway SQLite database and media folder, runs migrate and
 seed_demo, signs in as the demo account with a server-side session (no
@@ -20,7 +21,7 @@ PY = sys.executable
 
 # name: (path, viewport width, how to frame it). Frames are run in the page by shoot().
 SHOTS = [
-    ("hero-1280", "/", 1280, {"from": "top", "to": "[data-tiles]", "pad": 32}),
+    ("hero-1280", "/", 1280, {"from": "top", "height": 1136}),
     ("hero-390", "/", 390, {"phone_at": "[data-tiles]", "height": 844}),
     ("tree", "/rabbits/{juniper}/pedigree/?view=family", 1280,
      {"click": ".ft-chip:has-text('ruby-eyed white')", "el": "main", "skip_to": ".ft-genebar", "to": ".ft-stage", "pad": 8}),
@@ -40,6 +41,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(ROOT / "static" / "marketing"))
     ap.add_argument("--only", nargs="*", help="shot names to (re)take")
+    ap.add_argument("--theme", default="light", help="app theme; any other than light adds a -dark suffix")
     args = ap.parse_args()
     out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
     tmp = Path(tempfile.mkdtemp(prefix="bb-shots-"))
@@ -52,14 +54,14 @@ def main():
     try:
         manage("migrate", "-v0")
         manage("seed_demo", "--no-password", stdout=subprocess.DEVNULL)
-        info = json.loads(manage("shell", "-c", SESSION_CODE, capture_output=True, text=True).stdout.strip().splitlines()[-1])
+        info = json.loads(manage("shell", "-c", SESSION_CODE.replace("THEME", repr(args.theme)), capture_output=True, text=True).stdout.strip().splitlines()[-1])
         server = subprocess.Popen([PY, "manage.py", "runserver", f"127.0.0.1:{port}", "--insecure", "--noreload"],
                                   cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         base = f"http://localhost:{port}"
         for _ in range(60):
             try: urllib.request.urlopen(base + "/login/"); break
             except Exception: time.sleep(0.5)
-        shoot(base, info, out, args.only)
+        shoot(base, info, out, args.only, "" if args.theme == "light" else "-dark")
     finally:
         if server: server.terminate()
         shutil.rmtree(tmp, ignore_errors=True)
@@ -71,6 +73,7 @@ from django.contrib.auth import get_user_model, SESSION_KEY, BACKEND_SESSION_KEY
 from django.contrib.sessions.backends.db import SessionStore
 from rabbits.models import Pairing, Rabbit
 u = get_user_model().objects.get(email="demo@bramble-burrow.app")
+u.ui_theme = THEME; u.save(update_fields=["ui_theme"])
 s = SessionStore(); s[SESSION_KEY] = str(u.pk); s[BACKEND_SESSION_KEY] = "django.contrib.auth.backends.ModelBackend"
 s[HASH_SESSION_KEY] = u.get_session_auth_hash(); s.create()
 r = Rabbit.objects.filter(owner=u)
@@ -86,7 +89,7 @@ def box(page, sel):
     return b
 
 
-def shoot(base, info, out, only):
+def shoot(base, info, out, only, suffix=""):
     from playwright.sync_api import sync_playwright
     from PIL import Image
     with sync_playwright() as p:
@@ -95,7 +98,7 @@ def shoot(base, info, out, only):
         for name, path, width, how in SHOTS:
             if only and name not in only: continue
             ctx = browser.new_context(viewport={"width": width, "height": 900 if width > 600 else 844}, device_scale_factor=2,
-                                      reduced_motion="reduce")
+                                      reduced_motion="reduce", color_scheme="dark" if suffix else "light")
             ctx.add_cookies([{"name": "sessionid", "value": info["sid"], "url": base}])
             page = ctx.new_page()
             page.goto(base + path.format(**info)); page.wait_for_load_state("networkidle")
@@ -110,6 +113,7 @@ def shoot(base, info, out, only):
                 page.locator("[data-offline-note]").first.wait_for(state="visible")
             page.evaluate("() => scrollTo(0, 0)"); page.wait_for_timeout(100)
             clip = frame(page, how, width)
+            name = name + suffix
             png = out / f"{name}.png"
             in_view = clip.pop("viewport", False)
             page.screenshot(path=str(png), clip=clip, full_page=not in_view)

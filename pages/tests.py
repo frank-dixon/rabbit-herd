@@ -165,6 +165,14 @@ class LandingPageTests(TestCase):
             value = tokens.split(name + ":", 1)[1].split(";", 1)[0].strip()
             self.assertIn(value, dark, name)
 
+    def test_welcome_previews_have_dark_screenshots(self):
+        # Critic v6 W2: the app preview and feature screenshots switch to the dark app too (scripts/marketing_shots.py --theme dark-a).
+        body = self.client.get("/").content.decode()
+        for name in ("hero-390", "hero-1280", "tree", "weights", "litters", "pairing", "rabbit"):
+            self.assertIn(f"marketing/{name}-dark-1x.webp", body)
+            self.assertTrue((ROOT / "static" / "marketing" / f"{name}-dark.webp").exists(), name)
+        self.assertEqual(body.count('<source media="(prefers-color-scheme: dark)"') + body.count('and (prefers-color-scheme: dark)"'), 7)
+
     def test_signed_in_user_gets_the_app_at_root(self):
         from django.contrib.auth import get_user_model
 
