@@ -173,6 +173,13 @@ class LandingPageTests(TestCase):
             self.assertTrue((ROOT / "static" / "marketing" / f"{name}-dark.webp").exists(), name)
         self.assertEqual(body.count('<source media="(prefers-color-scheme: dark)"') + body.count('and (prefers-color-scheme: dark)"'), 7)
 
+    def test_welcome_quiets_its_page_transitions(self):
+        # /start/ now lands here (Critic v6 M7), so Welcome handles an aborted page transition itself.
+        self.assertContains(self.client.get("/"), '<script src="/static/marketing/home.js"></script>')
+        js = (ROOT / "static" / "marketing" / "home.js").read_text()
+        self.assertIn('addEventListener("pageswap"', js)
+        self.assertIn('addEventListener("pagereveal"', js)
+
     def test_signed_in_user_gets_the_app_at_root(self):
         from django.contrib.auth import get_user_model
 
