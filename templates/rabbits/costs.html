@@ -22,7 +22,7 @@
 
     {% include "components/list_panel_start.html" with title="Recent costs" count=expenses|length id="costs-heading" hook="costs" empty="No costs yet." only %}
       {% for expense in expenses %}
-        {% ifchanged expense.date|date:"Y-m" %}<li class="panel-month" data-cost-month><h3>{{ expense.date|month }}</h3></li>{% endifchanged %}
+        {% ifchanged expense.date|month %}<li class="panel-month" data-cost-month><h3>{{ expense.date|month }}</h3></li>{% endifchanged %}
         {% url 'cost_edit_form' expense.pk as edit_href %}
         <li class="panel-row" data-row data-row-tap>
           <div class="min-w-0 row-span-2">
