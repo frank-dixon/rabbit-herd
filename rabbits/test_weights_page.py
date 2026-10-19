@@ -42,6 +42,11 @@ class WeighNoteTests(TestCase):
 
 
 class WeightsPageTests(TestCase):
+    def test_phone_row_keeps_the_date_on_one_line(self):
+        """Critic v7 M2: "Tue, Oct / 6" no longer breaks at 390."""
+        day = timezone.localdate()
+        self.assertContains(self.client.get(reverse("weights_hub")), f'<span class="whitespace-nowrap">{day:%a}, {day:%b} {day.day}</span>', html=False)
+
     def test_overdue_card_shows_the_weigh_note(self):
         self.assertContains(self.client.get(reverse("weights_hub")), "Weigh adults every 30 days and juniors every 7 days.")
 
