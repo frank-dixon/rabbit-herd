@@ -228,7 +228,11 @@ class CardFlowTests(TestCase):
     def test_the_cards_explain_that_same_breed_parents_make_a_purebred(self):
         page = self.walk_to_breed("crossbred")
         self.assertContains(self.client.get(step("breed-type")), "Parents of the same breed in different colors still make a purebred.")
-        self.assertContains(self.client.get(step("breed")), "Color goes on the next card, not here.")
+        breed = self.client.get(step("breed"))
+        # Copyrighter, 2026-10-18 (Critic v7 M3): the crossbred help is two short sentences; the same-breed
+        # note lives on the breed-type card above.
+        self.assertContains(breed, '<p class="mt-1 text-sm text-neutral-600" id="id_cross_help">Breed shares must add up to 100%. Example: two breeds at 50% each. ')
+        self.assertNotContains(breed, "Color goes on the next card")
 
     def test_relatives_hide_a_taken_dam_and_reject_a_second_one(self):
         self.walk_to_breed("purebred")

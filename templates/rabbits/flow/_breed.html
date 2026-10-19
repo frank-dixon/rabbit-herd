@@ -1,7 +1,7 @@
 {% if crossbred %}
   <fieldset id="id_cross" data-cross aria-describedby="id_cross_help{% if cross_error %} id_cross_error{% endif %}">
     <legend class="block text-lg font-semibold text-neutral-900">Breeds in the mix</legend>
-    <p class="mt-1 text-sm text-neutral-600" id="id_cross_help">List each breed and its share. The shares need to add up to 100%. For example, a rabbit with a Rex sire and a Dutch dam is 50% Rex and 50% Dutch. Color goes on the next card, not here. If both parents are the same breed, the rabbit is a purebred of that breed, even when their colors differ. {% include "rabbits/flow/_breed_sources.html" %}</p>
+    <p class="mt-1 text-sm text-neutral-600" id="id_cross_help">Breed shares must add up to 100%. Example: two breeds at 50% each. {% include "rabbits/flow/_breed_sources.html" %}</p>
     <ul class="mt-3 space-y-3">
       {% for row in cross_rows %}
         <li class="grid grid-cols-[1fr_6rem] items-end gap-2 sm:grid-cols-[1fr_7rem_auto]">
