@@ -66,3 +66,25 @@ footer .legal{display:flex;gap:16px}
 .choice.pri span{color:rgba(255,255,255,.9)}
 .choices+.cta{margin-top:12px}
 .end .choices{margin:0 auto}
+
+/* Dark mode (Critic v6 W2): Welcome follows the visitor's system setting with the app's dark theme,
+   Evergreen night (dark-a in assets/themes.css). Same tokens, written out because this file has no build. */
+@media (prefers-color-scheme: dark){
+  :root{color-scheme:dark}
+  body{color:#E8EEEA;background:#0F1512}
+  a:focus-visible,.choice:focus-visible{outline-color:#5CC48A}
+  .skip{background:#18201C}
+  .brand .app-mark{color:#E8EEEA}
+  .top nav{background:rgb(15 21 18/.88)}
+  .top nav a:hover,.top .si,.kick,.row .kick,.sec{color:#5CC48A}
+  .lede,.f p.t,.row p{color:#B7BDB9}
+  footer{color:#8E9A93}footer a:hover{color:#E8EEEA}
+  .pri,.choice.pri{background:#5CC48A;border-color:#5CC48A;color:#08140D}
+  .pri:hover,.choice.pri:hover{background:#73CB98;border-color:#73CB98}
+  .choice.pri span{color:#08140D}
+  .choice{border-color:#474D4A;background:#18201C;color:#E8EEEA}
+  .choice:hover{border-color:#B7BDB9}
+  .choice span{color:#8E9A93}
+  .cut{background:#18201C;box-shadow:0 0 0 1px #242A27,0 8px 24px -8px rgb(0 0 0/.5)}
+  .shot{box-shadow:0 0 0 1px #242A27,0 30px 60px -20px rgb(0 0 0/.6)}
+}

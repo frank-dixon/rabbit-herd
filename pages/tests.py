@@ -152,6 +152,19 @@ class LandingPageTests(TestCase):
         self.assertContains(response, 'class="si" href="/login/">Sign in</a>')
         self.assertNotContains(response, "I have an account")
 
+    def test_welcome_follows_dark_mode_with_the_app_dark_tokens(self):
+        # Critic v6 W2: Welcome uses Evergreen night (dark-a) when the system is dark.
+        response = self.client.get("/")
+        self.assertContains(response, '<meta name="theme-color" content="#0F1512" media="(prefers-color-scheme: dark)">')
+        css = (ROOT / "static" / "marketing" / "home.css").read_text()
+        dark = css[css.index("@media (prefers-color-scheme: dark)"):]
+        themes = (ROOT / "assets" / "themes.css").read_text()
+        tokens = themes[themes.index('html[data-theme="dark-a"]'):]
+        tokens = tokens[:tokens.index("}")]
+        for name in ("--canvas", "--surface", "--ink", "--ink-2", "--accent", "--on-accent", "--field"):
+            value = tokens.split(name + ":", 1)[1].split(";", 1)[0].strip()
+            self.assertIn(value, dark, name)
+
     def test_signed_in_user_gets_the_app_at_root(self):
         from django.contrib.auth import get_user_model
 
