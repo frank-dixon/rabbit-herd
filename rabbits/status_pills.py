@@ -7,8 +7,8 @@
     o  grey   sold, processed, culled, archived (no longer in the herd)
     (none)    routine, like a checkup: the plain neutral pill
 
-COI maps low / mid / high to green / neutral grey / red (coi_tone; Frank, 2026-10-18): the
-% label carries a medium value, and only high gets a color warning. The colors are the
+COI is the neutral grey pill with its % label, and only high is red (coi_tone; Critic G6, 2026-10-18).
+coi_text is its one number format. The colors are the
 --{g,b,y,r}-soft / -ink tokens and --pill / --ink-2 in assets/themes.css;
 pages/test_status_colors.py checks each pair reads at 4.5:1 in every theme."""
 
@@ -47,3 +47,8 @@ def coi_tone(coi):
     COI isn't a status, and green means active (Critic G6, decided 2026-10-18)."""
     coi = float(coi or 0)
     return "r" if coi >= COI_HIGH else ""
+
+
+def coi_text(coi):
+    """The one COI format, app-wide (Critic v6 M3): one decimal at most, no trailing zero. 0%, 6.2%, 12.5%, 25%."""
+    return f"{float(coi or 0):.1f}".rstrip("0").rstrip(".") + "%"

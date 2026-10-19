@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
@@ -89,3 +89,17 @@ class PillMapPageTests(TestCase):
         for key in ("sold", "processed"):
             value = re.search(rf"--oc-{key}:\s*([^;]+);", css).group(1)
             self.assertIn("var(--ink-2)", value, key)
+
+
+class CoiTextTests(SimpleTestCase):
+    """Critic v6 M3: one COI format, the desktop's: 0%, 6.2%, 12.5%, 25%, on every width and in Programs."""
+
+    def test_one_format(self):
+        from rabbits.planner import percent_text
+        from rabbits.status_pills import coi_text
+
+        for coi, text in ((0, "0%"), (0.0, "0%"), (3.125, "3.1%"), (6.25, "6.2%"), (12.5, "12.5%"), (25.0, "25%"), (37.5, "37.5%")):
+            self.assertEqual(coi_text(coi), text)
+            self.assertEqual(percent_text(coi / 100), text)
+        src = (Path(__file__).resolve().parents[1] / "rabbits" / "pairings.py").read_text()
+        self.assertNotIn(":.1f}%", src)

@@ -178,11 +178,11 @@ def relatedness(user, doe, buck, params=None, sort=""):
     rows.sort(key=lambda r: (r["sort"][key], r["sort"]["closest"]), reverse=desc)
     heads = sorting.headers(columns, key, desc, {k: v for k, v in (params or {}).items() if k != "asort"}, param="asort")
     related = bool(closest or rows)
-    from .status_pills import coi_tone
+    from .status_pills import coi_text, coi_tone
 
     tone = coi_tone(coi) if related else ""  # "Not related" is the plain grey pill too (G6)
     return {"related": related, "tone": tone, "label": "Closely related" if tone == "r" else "Related" if related else "Not related",
-            "closest": closest, "coi": f"{coi:.1f}".rstrip("0").rstrip("."), "count": len(rows), "rows": rows,
+            "closest": closest, "coi": coi_text(coi)[:-1], "count": len(rows), "rows": rows,
             "heads": heads, "sorted": bool(sort)}
 
 
@@ -294,7 +294,7 @@ def pairing_items(user, pairings):
     from django.utils import timezone
 
     from . import program_plan
-    from .status_pills import coi_tone, tone as status_tone
+    from .status_pills import coi_text, coi_tone, tone as status_tone
     from .swatches import swatch
     from .templatetags.dates import short_date
 
@@ -325,7 +325,7 @@ def pairing_items(user, pairings):
             result = f"{litter.born_alive or 0} born, {raised or 0} {'raised' if done else 'alive'}"
             meta = result
         tone = coi_tone(coi)
-        coi_pill = {"label": f"COI {coi:.1f}%".replace(".0%", "%"), "tone": tone}
+        coi_pill = {"label": f"COI {coi_text(coi)}", "tone": tone}
         relation = warnings[0] if warnings else "No shared ancestors on record"
         items.append({
             "href": reverse("pairing_detail", args=[p.pk]), "is_sample": p.is_sample, "title": f"{p.doe.name} × {p.buck.name}",
@@ -333,7 +333,7 @@ def pairing_items(user, pairings):
             "pill": pill, "meta": meta, "coi": coi, "high_coi": tone == "r", "chips_label": "Predicted colors", "chips": chips,
             "kv": [{"label": when, "value": result}, {"label": "Litters", "value": len(p.litters.all())}],
             "foot": {"pill": coi_pill, "text": relation},
-            "mobile": f"{result} · COI {coi:.1f}%",
+            "mobile": f"{result} · COI {coi_text(coi)}",
             "cells": [{"kind": "lead"}, {"kind": "pill", "wide_only": True, **coi_pill}, {"kind": "chips", "chips": chips, "wide_only": True},
                       {"kind": "text", "main": when, "sub": result, "wide_only": True}, {"kind": "pill", "align": "r", **pill}],
             "sort": {"pair": f"{p.doe.name} {p.buck.name}".lower(), "coi": coi, "bred": litter.bred_on if litter else None, "status": STATUS_ORDER[pill["label"]]},
