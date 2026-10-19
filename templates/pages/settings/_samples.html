@@ -31,7 +31,7 @@
         <p class="mt-0.5 text-sm text-muted">{% if sample_count %}{{ sample_count }} sample record{{ sample_count|pluralize }}. Your own records are not touched.{% else %}No sample records.{% endif %}</p>
       </div>
       <form method="post" action="{% url 'samples_clear' %}" class="inline">{% csrf_token %}
-        <button type="submit" class="mo-press inline-flex min-h-8 items-center rounded-md border border-line bg-surface px-3 text-sm font-medium text-danger hover:bg-hover disabled:opacity-50" {% if not sample_count %}disabled{% endif %} data-confirm-delete data-title="Clear samples and start fresh?" data-text="This removes {{ sample_count }} sample record{{ sample_count|pluralize }}. Your own rabbits and records stay as they are. Show samples will turn off; turn it back on in Settings to add them again." data-label="Clear samples">Clear samples</button>
+        <button type="submit" class="mo-press inline-flex min-h-8 items-center rounded-md border border-line bg-surface px-3 text-sm font-medium {% if sample_count %}text-danger hover:bg-hover{% else %}text-muted{% endif %}" {% if not sample_count %}disabled aria-disabled="true"{% endif %} data-confirm-delete data-title="Clear samples and start fresh?" data-text="This removes {{ sample_count }} sample record{{ sample_count|pluralize }}. Your own rabbits and records stay as they are. Show samples will turn off; turn it back on in Settings to add them again." data-label="Clear samples">Clear samples</button>
       </form>
     </div>
   </div>

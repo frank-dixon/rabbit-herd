@@ -62,3 +62,19 @@ class SamplesSwitchTests(TestCase):
         self.assertIn('.switch::after { content: ""; position: absolute; inset: -10px 0; }', css)
         layout = (ROOT / "assets" / "layout.css").read_text()
         self.assertEqual(layout.count('main button[type="submit"]:not('), layout.count('[class*="underline"], .switch)'))
+
+
+class ClearSamplesContrastTests(TestCase):
+    """Critic v6 M4: with nothing to clear, Clear samples is the grey disabled button (muted text, 4.5:1), not faded red."""
+
+    def test_disabled_clear_samples_is_grey(self):
+        import re
+
+        user = get_user_model().objects.create_user("clear@example.com", "pw-12345678")
+        self.client.force_login(user)
+        body = self.client.get(reverse("account")).content.decode()
+        button = re.search(r'<button type="submit" class="[^"]*"[^>]*data-label="Clear samples">', body).group(0)
+        self.assertIn("text-muted", button)
+        self.assertIn('disabled aria-disabled="true"', button)
+        self.assertNotIn("text-danger", button)
+        self.assertNotIn("opacity-50", button)
