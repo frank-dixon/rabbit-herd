@@ -56,13 +56,19 @@ class StepScrollPaddingTests(SimpleTestCase):
         self.assertIn("data-action-bar", (ROOT / "templates" / "rabbits" / "flow" / "step.html").read_text())
 
 
-class NoJsRailTests(SimpleTestCase):
-    """Critic v7 O3: without JS on wide screens the page keeps the guest rail's height free, so Next clears it."""
+class WideRailInFlowTests(SimpleTestCase):
+    """Critic v8 O3: on wide screens the guest rail is the content column's last row in the flow, not an overlay,
+    so on first load it never lies over Next, with or without JS. The column is at least the screen's height."""
 
-    def test_no_js_pads_by_the_rail(self):
+    def test_wide_rail_takes_its_own_row(self):
         css = (ROOT / "assets" / "layout.css").read_text()
-        block = css[css.index("@media (scripting: none) and (min-width: 768px) {"):]
-        block = block[:block.index("\n}")]
-        self.assertIn("body:has(.temp-rail) main { padding-bottom: 44px; }", block)
-        self.assertIn("html:has(.temp-rail) { scroll-padding-bottom: 44px; }", block)
-        self.assertIn("min-height: 44px", css[css.index(".temp-rail {"):])
+        base = css[css.index(".temp-rail {"):]
+        base = base[:base.index("}")]
+        self.assertIn("position: relative;", base)
+        self.assertNotIn("sticky", base)
+        self.assertIn("min-height: 44px", base)
+        self.assertNotIn("(scripting: none) and (min-width: 768px)", css)  # the v7 padding stopgap is gone
+        page = (ROOT / "templates" / "components" / "page.html").read_text()
+        column = page.index('<div class="flex min-h-screen min-w-0 flex-1 flex-col">')
+        self.assertLess(column, page.index('{% include "components/temp_rail.html" %}'))
+        self.assertLess(page.index("</main>"), page.index('{% include "components/temp_rail.html" %}'))
