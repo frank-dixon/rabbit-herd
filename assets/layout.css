@@ -366,6 +366,11 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
   [data-action-bar] { bottom: calc(var(--tabbar-h) + var(--rail-h)) !important; z-index: 21 !important; background-color: var(--color-surface) !important;
     -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
   [data-shell] main { padding-bottom: calc(var(--stack-h, calc(var(--tabbar-h) + var(--rail-h) + var(--action-h))) + 1.5rem) !important; }
+  /* Add-rabbit steps and other forms with the pinned Back/Next bar: a field scrolled or focused into view (the
+     breed error on first load) stops above the bar, not under it (Critic v6 M5). 120px is the bar and rail without JS;
+     an invalid field keeps room for its error line below it. */
+  html:has([data-action-bar]) { scroll-padding-bottom: calc(var(--stack-h, 120px) + 1rem); }
+  html:has([data-action-bar]) [aria-invalid="true"] { scroll-margin-bottom: 3.5rem; }
   .toasts { bottom: calc(var(--stack-h, calc(var(--tabbar-h) + var(--rail-h) + var(--action-h))) + 0.75rem); }
 }
 

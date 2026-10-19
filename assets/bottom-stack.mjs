@@ -23,6 +23,8 @@ export function measureStack(doc, win = window) {
   body.style.setProperty("--rail-h", px(rail));
   body.style.setProperty("--action-h", px(action));
   body.style.setProperty("--stack-h", px(tabs + rail + action));
+  // On <html> too: it is the scroller, so its scroll-padding keeps a focused field above the stack (Critic v6 M5).
+  doc.documentElement?.style.setProperty("--stack-h", px(tabs + rail + action));
   return { tabs, rail, action, total: tabs + rail + action };
 }
 
@@ -33,6 +35,7 @@ export function bindBottomStack(doc, win = window) {
     frame = win.requestAnimationFrame(() => {
       // Measure with the CSS defaults, so a stale value never feeds back into the result.
       ["--tabbar-h", "--rail-h", "--action-h", "--stack-h"].forEach((name) => doc.body.style.removeProperty(name));
+      doc.documentElement?.style.removeProperty("--stack-h");
       measureStack(doc, win);
     });
   };

@@ -42,3 +42,15 @@ class BottomStackTests(SimpleTestCase):
         js = (ROOT / "assets" / "app.js").read_text()
         self.assertIn('import { bindBottomStack } from "./bottom-stack.mjs";', js)
         self.assertIn("bindBottomStack(document, window);", js)
+
+
+class StepScrollPaddingTests(SimpleTestCase):
+    """Critic v6 M5: on the add-rabbit steps a field and its error scroll into view above the pinned Back/Next bar."""
+
+    def test_scroll_padding_is_the_stack_height(self):
+        css = (ROOT / "assets" / "layout.css").read_text()
+        self.assertIn("html:has([data-action-bar]) { scroll-padding-bottom: calc(var(--stack-h, 120px) + 1rem); }", css)
+        self.assertIn('html:has([data-action-bar]) [aria-invalid="true"] { scroll-margin-bottom: 3.5rem; }', css)
+        js = (ROOT / "assets" / "bottom-stack.mjs").read_text()
+        self.assertIn('doc.documentElement?.style.setProperty("--stack-h"', js)
+        self.assertIn("data-action-bar", (ROOT / "templates" / "rabbits" / "flow" / "step.html").read_text())

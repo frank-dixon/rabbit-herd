@@ -29,3 +29,11 @@ test("a form action bar counts, and a hidden or static one doesn't", () => {
   assert.equal(measureStack(fakeDoc({ rail: [24], bar: [76] }).doc, fakeDoc({}).win).total, 100);
   assert.equal(measureStack(fakeDoc({ tabs: [64, "fixed", "none"], bar: [76, "static"] }).doc, fakeDoc({}).win).total, 0);
 });
+
+test("the stack height also goes on <html>, for its scroll-padding (Critic v6 M5)", () => {
+  const { doc, win } = fakeDoc({ rail: [44], bar: [76] });
+  const root = {};
+  doc.documentElement = { style: { setProperty: (k, v) => { root[k] = v; } } };
+  measureStack(doc, win);
+  assert.equal(root["--stack-h"], "120px");
+});
