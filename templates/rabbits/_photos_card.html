@@ -27,12 +27,12 @@
       {% with number=forloop.counter|stringformat:"s" %}
       <li class="photo-tile relative" id="photo-{{ photo.pk }}">
         <a href="#photo-{{ photo.pk }}-options" data-photo-open="photo-{{ photo.pk }}-options" class="block rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-          <img draggable="false" class="photo-tile-media w-full object-cover" {% photo_src photo "(min-width: 768px) 200px, 33vw" 640 %} alt="Photo {{ number }} of {{ rabbit.name }}{% if photo.notes %}: {{ photo.notes|truncatechars:80 }}{% endif %}" loading="lazy" decoding="async">
+          <img draggable="false" class="photo-tile-media w-full object-cover" {% photo_src photo "(min-width: 768px) 200px, 33vw" 640 %} alt="Photo {{ number }} of {{ rabbit.name }}{% if photo.credit %}: {{ photo.credit.text|truncatechars:80 }}{% elif photo.notes %}: {{ photo.notes|truncatechars:80 }}{% endif %}" loading="lazy" decoding="async">
           <span class="sr-only">, options</span>
         </a>
         {% if photo.is_main %}<span class="pointer-events-none absolute left-2.5 top-2.5 rounded bg-accent px-1.5 py-0.5 text-xs font-semibold text-on-accent">Main</span>{% endif %}
         <span class="photo-tile-cap block truncate text-muted" data-date-badge title="{{ photo.date_badge }}"><span class="hidden sm:inline">{{ photo.badge_parts.0 }} </span><span class="sr-only sm:hidden">{{ photo.badge_parts.0 }} </span>{{ photo.badge_parts.1 }}</span>
-        {% if photo.notes %}<p class="photo-tile-cap -mt-1 truncate text-muted" title="{{ photo.notes }}">{{ photo.notes }}</p>{% endif %}
+        {% if photo.credit %}<p class="photo-tile-cap -mt-1 truncate text-muted" title="{{ photo.credit.text }}">{% include "rabbits/_photo_credit.html" with c=photo.credit only %}</p>{% elif photo.notes %}<p class="photo-tile-cap -mt-1 truncate text-muted" title="{{ photo.notes }}">{{ photo.notes }}</p>{% endif %}
 
         <dialog id="photo-{{ photo.pk }}-options" class="fixed inset-0 z-30 m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded border border-neutral-300 bg-white p-4 text-neutral-800 shadow-lg backdrop:bg-neutral-900/50 target:block" aria-labelledby="photo-{{ photo.pk }}-title">
           <div class="flex items-center justify-between gap-3">

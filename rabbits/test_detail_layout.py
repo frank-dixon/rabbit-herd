@@ -92,4 +92,25 @@ class PhotoCreditTests(TestCase):
                                    notes="Demo photo: A. Person, CC0, via Wikimedia Commons (a doe).", is_main=True)
         body = self.client.get(reverse("rabbit_detail", args=[rabbit.pk])).content.decode()
         self.assertNotIn(">Credit<", body)
-        self.assertIn("Demo photo: A. Person, CC0, via Wikimedia Commons (a doe).", body)
+        self.assertIn("Demo photo: A. Person · CC0 · Wikimedia Commons", body)
+
+    def test_credit_is_short_with_the_author_linked(self):
+        # Critic v4 G3: author · licence · source name, the author linked; never the raw encoded URL as text.
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from .models import RabbitPhoto
+
+        user = get_user_model().objects.create_user("credit2@example.com", "pw-12345678")
+        self.client.force_login(user)
+        rabbit = Rabbit.objects.create(owner=user, name="Azure", sex="doe", breed="Rex", birth_date=date(2025, 1, 1))
+        url = "https://commons.wikimedia.org/wiki/File%3AAlsleben_%28Saale%29.jpg"
+        RabbitPhoto.objects.create(rabbit=rabbit, image=SimpleUploadedFile("c.gif", b"GIF89a\x01\x00\x01\x00\x00\x00\x00;", content_type="image/gif"),
+                                   notes=f"Demo photo: Dguendel, CC BY 4.0, via Wikimedia Commons ({url}).", is_main=True)
+        body = self.client.get(reverse("rabbit_detail", args=[rabbit.pk])).content.decode()
+        caption = body.split('class="photo-credit', 1)[1].split("</figcaption>", 1)[0]
+        self.assertIn(f'href="{url}"', caption)
+        self.assertIn(">Dguendel</a> · CC BY 4.0 · Wikimedia Commons", caption)
+        import re
+        shown = re.sub(r"<textarea.*?</textarea>", "", body, flags=re.S)  # the notes editor keeps the full text
+        self.assertNotIn(f">{url}", shown)
+        self.assertNotIn(f"({url})", shown)

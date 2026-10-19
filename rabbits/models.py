@@ -812,6 +812,23 @@ class RabbitPhoto(models.Model):
         return n.startswith("demo photo:") or "wikimedia commons" in n
 
     @property
+    def credit(self):
+        """A demo credit as short parts for display (Critic v4 G3): author, licence, the source's name and
+        its link, instead of the raw percent-encoded URL. None when the notes aren't a credit."""
+        if not self.is_credit:
+            return None
+        import re
+
+        m = re.match(r"^Demo photo: (?P<author>.+?), (?P<license>[^,]+), via (?P<site>[^(]+?)(?: \((?P<src>.*)\))?\.?$", (self.notes or "").strip())
+        if not m:
+            return {"author": "", "license": "", "site": "", "url": "", "text": self.notes}
+        src = (m["src"] or "").strip()
+        url = src if src.startswith(("https://", "http://")) else ""
+        parts = {"author": m["author"].strip(), "license": m["license"].strip(), "site": m["site"].strip(), "url": url}
+        parts["text"] = f"Demo photo: {parts['author']} · {parts['license']} · {parts['site']}"
+        return parts
+
+    @property
     def keeper_notes(self):
         """Notes the keeper wrote; empty when notes are only a demo credit."""
         return "" if self.is_credit else (self.notes or "")

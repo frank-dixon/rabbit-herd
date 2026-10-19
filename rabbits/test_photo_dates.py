@@ -134,6 +134,8 @@ class UploadDateTests(PhotoTestCase):
         photo.save()
         self.assertTrue(photo.is_credit)
         self.assertEqual(photo.keeper_notes, "")
+        self.assertEqual(photo.credit["text"], "Demo photo: Mia Kesterson · CC BY-SA 4.0 · Wikimedia Commons")
+        self.assertEqual(photo.credit["url"], "https://commons.wikimedia.org/wiki/File:x.jpg")
         photo.notes = "At the show"
         photo.save()
         self.assertFalse(photo.is_credit)

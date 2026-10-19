@@ -1,0 +1,2 @@
+{# A demo photo credit, short (Critic v4 G3): "Demo photo: Author · licence · Wikimedia Commons", the author linked to the source page. c: RabbitPhoto.credit. #}
+{% if c.author %}Demo photo: {% if c.url %}<a class="underline underline-offset-2 hover:text-ink" href="{{ c.url }}" target="_blank" rel="noopener noreferrer">{{ c.author }}</a>{% else %}{{ c.author }}{% endif %} · {{ c.license }} · {{ c.site }}{% else %}{{ c.text }}{% endif %}
