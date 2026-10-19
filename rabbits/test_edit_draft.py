@@ -49,6 +49,14 @@ class DraftFromRabbitTests(FlowTestMixin, TestCase):
         self.assertEqual((draft["name"], draft["line"], draft["birth_date"]), ("Juniper", "Ridgeview", "2023-04-12"))
         self.assertIsNone(flow.first_invalid_step(draft, self.user, steps=flow.EDIT_STEPS))
 
+    def test_the_edit_summary_shows_the_birth_date_in_the_app_style(self):
+        # Critic v4 G5: "Wed, Apr 12, 2023", not the stored "2023-04-12".
+        from .edit_views import overview_rows
+
+        draft = flow.draft_from_rabbit(self.juniper)
+        row = next(r for r in overview_rows(draft, self.user, self.juniper) if r["slug"] == "birth-date")
+        self.assertEqual(row["answer"], "Wed, Apr 12, 2023")
+
     def test_unreadable_breed_is_kept_and_asked_again(self):
         self.juniper.breed = "barn mix"
         self.juniper.save()

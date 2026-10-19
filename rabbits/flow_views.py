@@ -179,11 +179,24 @@ def color_context(draft, errors):
     return context
 
 
+def draft_day(value):
+    """A draft's stored ISO date in the app's one date style ("Sat, Feb 15, 2025"; Critic v4 G5)."""
+    import datetime
+
+    from .templatetags.dates import short_date
+
+    value = (value or "").strip()
+    try:
+        return short_date(datetime.date.fromisoformat(value))
+    except ValueError:
+        return value
+
+
 def status_text(draft, statuses):
     """The status for the review and edit summary, with the death details."""
     text = statuses.get(draft["status"], "")
     if draft["status"] == Rabbit.Status.DECEASED:
-        details = [part for part in (draft["death_date"].strip(), draft["death_cause"].strip()) if part]
+        details = [part for part in (draft_day(draft["death_date"]), draft["death_cause"].strip()) if part]
         if details:
             text += " · " + ", ".join(details)
     return text
@@ -195,7 +208,7 @@ def review_rows(draft, user):
     rows = [
         ("Name", draft["name"].strip() + (f" · ear tattoo {draft['tattoo'].strip()}" if draft["tattoo"].strip() else "")),
         ("Sex", sexes.get(draft["sex"], "")),
-        ("Birth date", draft["birth_date"]),
+        ("Birth date", draft_day(draft["birth_date"])),
         ("Color", flow.draft_color(draft)),
         ("Status", status_text(draft, statuses)),
         ("Breed", flow.draft_breed_line(draft)),
