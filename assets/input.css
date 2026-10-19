@@ -188,7 +188,7 @@ html[data-menu-open] .app-scrim { opacity: 1; pointer-events: auto; }
 
 /* Today: a checked row shows the tick before it leaves. */
 [data-today-item].is-done [data-quick-done] button { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-[data-today-item].is-done p { opacity: 0.55; transition: opacity var(--dur-1) var(--ease-out); }
+[data-today-item].is-done :is(p, [data-task-title], [data-task-title] + span) { opacity: 0.55; transition: opacity var(--dur-1) var(--ease-out); }
 
 /* Bottom bar edit mode. */
 /* Editing the bar: a soft scrim dims the page (tapping it is "Done"), and the bar rises as a sheet. */

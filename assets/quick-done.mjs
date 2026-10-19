@@ -15,7 +15,7 @@ export function bindQuickDone(doc, win = window) {
     if (!form) return;
     event.preventDefault();
     const row = form.closest("li");
-    const title = row?.querySelector("p")?.textContent.trim() || "Task";
+    const title = row?.querySelector("[data-task-title], p")?.textContent.trim() || "Task";
     const button = form.querySelector("button");
     if (button) button.disabled = true;
     row?.classList.add("is-done");

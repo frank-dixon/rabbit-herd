@@ -88,6 +88,21 @@ class TaskRowEndTests(TestCase):
         due = next(r for r in rows if "Due to kindle" in r or "data-task-record" in r)
         self.assertIn(f'href="{reverse("litter_detail", args=[litter.pk])}#kindling" data-task-record>Record', due)
 
+    def test_today_uses_the_same_task_row(self):
+        # Critic v6 M1: one task row on Today and Tasks, circle at the end, a thumb or icon before every title.
+        import re
+
+        Task.objects.create(owner=self.owner, title="Order hay", due_on=self.today)
+        Task.objects.create(owner=self.owner, title="Check Clover", due_on=self.today, rabbit=self.doe)
+        body = self.client.get("/").content.decode()
+        rows = re.findall(r"<li class=\"list-row[^>]*data-task-item data-today-item.*?</li>", body, flags=re.S)
+        self.assertEqual(len(rows), 2)
+        for row in rows:
+            self.assertLess(row.index("list-thumb"), row.index("data-task-title"))
+            self.assertLess(row.index("data-task-title"), row.index("data-task-actions"))
+            self.assertIn("data-quick-done", row[row.index("data-task-actions"):])
+            self.assertIn('<span class="pill pill-y">Today</span>', row)
+
 
 class TaskRepeatTests(TestCase):
     def setUp(self):
