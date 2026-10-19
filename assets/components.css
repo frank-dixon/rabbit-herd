@@ -50,6 +50,10 @@
   .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
   /* An odd last tile spans the row instead of sitting alone in half of it (Critic PA3). */
   .stat-grid > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  /* Exactly three tiles: one row of three, so none sits alone on its own row (Critic PA3, v4). */
+  .stat-grid:has(> :nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stat-grid:has(> :nth-child(3):last-child) > :last-child { grid-column: auto; }
+  .stat-grid:has(> :nth-child(3):last-child) .stat-card { padding: 10px; }
   .stat-card { padding: 12px; }
   .chip-strip { flex-direction: column; align-items: flex-start; gap: 8px; }
   .chip { padding: 4px 8px; font-size: 12px; }
