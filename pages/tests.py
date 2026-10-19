@@ -168,10 +168,10 @@ class LandingPageTests(TestCase):
     def test_welcome_previews_have_dark_screenshots(self):
         # Critic v6 W2: the app preview and feature screenshots switch to the dark app too (scripts/marketing_shots.py --theme dark-a).
         body = self.client.get("/").content.decode()
-        for name in ("hero-390", "hero-1280", "tree", "weights", "litters", "pairing", "rabbit"):
+        for name in ("hero-390", "hero-1280", "tree", "weights", "litters", "pairing", "rabbit", "offline"):
             self.assertIn(f"marketing/{name}-dark-1x.webp", body)
             self.assertTrue((ROOT / "static" / "marketing" / f"{name}-dark.webp").exists(), name)
-        self.assertEqual(body.count('<source media="(prefers-color-scheme: dark)"') + body.count('and (prefers-color-scheme: dark)"'), 7)
+        self.assertEqual(body.count('<source media="(prefers-color-scheme: dark)"') + body.count('and (prefers-color-scheme: dark)"'), 8)
 
     def test_welcome_quiets_its_page_transitions(self):
         # /start/ now lands here (Critic v6 M7). Welcome and every app page handle an aborted page

@@ -4,7 +4,9 @@ shows the real app.
 
     python scripts/marketing_shots.py            # writes static/marketing/*.webp
     python scripts/marketing_shots.py --out DIR  # somewhere else
-    python scripts/marketing_shots.py --theme dark-a  # NAME-dark.webp, for Welcome in dark mode
+    python scripts/marketing_shots.py --themes light dark-a  # also NAME-dark.webp, Welcome in dark mode
+
+With several themes, every one is shot from the same seeded demo herd in one run, so their dates match.
 
 It builds a throwaway SQLite database and media folder, runs migrate and
 seed_demo, signs in as the demo account with a server-side session (no
@@ -29,7 +31,7 @@ SHOTS = [
     ("litters", "/litters/", 1280, {"el": "[data-group='expecting'], main section", "first": True}),
     ("pairing", "/pairings/{pairing}/", 1280, {"open": "[data-inbreeding] details", "top_of": "h2:has-text('The pair')", "to": "[data-inbreeding]", "pad": 8}),
     ("rabbit", "/rabbits/{photo_rabbit}/", 1280, {"from_el": "main h1", "height": 760}),
-    ("offline", "/rabbits/{photo_rabbit}/", 1280, {"offline": True, "el": "[data-offline-queue='Weight']", "form": "[data-offline-queue='Weight']"}),
+    ("offline", "/rabbits/{photo_rabbit}/", 1280, {"open": "[data-add-fold]", "offline": True, "el": "[data-offline-queue='Weight']", "form": "[data-offline-queue='Weight']"}),
 ]
 
 
@@ -41,7 +43,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(ROOT / "static" / "marketing"))
     ap.add_argument("--only", nargs="*", help="shot names to (re)take")
-    ap.add_argument("--theme", default="light", help="app theme; any other than light adds a -dark suffix")
+    ap.add_argument("--themes", nargs="+", default=["light"], help="app themes; any but light adds a -dark suffix")
     args = ap.parse_args()
     out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
     tmp = Path(tempfile.mkdtemp(prefix="bb-shots-"))
@@ -54,14 +56,16 @@ def main():
     try:
         manage("migrate", "-v0")
         manage("seed_demo", "--no-password", stdout=subprocess.DEVNULL)
-        info = json.loads(manage("shell", "-c", SESSION_CODE.replace("THEME", repr(args.theme)), capture_output=True, text=True).stdout.strip().splitlines()[-1])
+        info = json.loads(manage("shell", "-c", SESSION_CODE, capture_output=True, text=True).stdout.strip().splitlines()[-1])
         server = subprocess.Popen([PY, "manage.py", "runserver", f"127.0.0.1:{port}", "--insecure", "--noreload"],
                                   cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         base = f"http://localhost:{port}"
         for _ in range(60):
             try: urllib.request.urlopen(base + "/login/"); break
             except Exception: time.sleep(0.5)
-        shoot(base, info, out, args.only, "" if args.theme == "light" else "-dark")
+        for theme in args.themes:
+            manage("shell", "-c", THEME_CODE.replace("THEME", repr(theme)), stdout=subprocess.DEVNULL)
+            shoot(base, info, out, args.only, "" if theme == "light" else "-dark")
     finally:
         if server: server.terminate()
         shutil.rmtree(tmp, ignore_errors=True)
@@ -73,13 +77,18 @@ from django.contrib.auth import get_user_model, SESSION_KEY, BACKEND_SESSION_KEY
 from django.contrib.sessions.backends.db import SessionStore
 from rabbits.models import Pairing, Rabbit
 u = get_user_model().objects.get(email="demo@bramble-burrow.app")
-u.ui_theme = THEME; u.save(update_fields=["ui_theme"])
 s = SessionStore(); s[SESSION_KEY] = str(u.pk); s[BACKEND_SESSION_KEY] = "django.contrib.auth.backends.ModelBackend"
 s[HASH_SESSION_KEY] = u.get_session_auth_hash(); s.create()
 r = Rabbit.objects.filter(owner=u)
 pair = Pairing.objects.filter(owner=u, doe__name="Nimbus", buck__name="Basalt").first() or Pairing.objects.filter(owner=u).first()
 print(json.dumps({"sid": s.session_key, "juniper": r.get(name="Juniper").pk, "pairing": pair.pk,
                   "photo_rabbit": r.get(name="Snow").pk}))
+"""
+
+
+THEME_CODE = """
+from django.contrib.auth import get_user_model
+get_user_model().objects.filter(email="demo@bramble-burrow.app").update(ui_theme=THEME)
 """
 
 
