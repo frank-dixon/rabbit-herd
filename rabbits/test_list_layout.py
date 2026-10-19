@@ -162,7 +162,8 @@ class DeceasedTests(TestCase):
 
     def test_detail_tag_and_died_row(self):
         page = self.client.get(reverse("rabbit_detail", args=[self.pepper.pk]))
-        self.assertContains(page, 'data-header-badge>Deceased<span class="sr-only">, change status</span></a>')  # the one status (v4 G4)
+        self.assertContains(page, 'data-header-badge>Deceased<svg class="badge-chev"')  # the one status (v4 G4)
+        self.assertContains(page, '<span class="sr-only">, change status</span></a>')
         self.assertContains(page, "Mon, May 18 · Died kindling")
 
 

@@ -14,7 +14,7 @@
       <div class="min-w-0">
         <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
           <h1 class="break-words text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]{% if focus_heading %} focus:outline-none{% endif %}"{% if heading_id %} id="{{ heading_id }}"{% endif %}{% if focus_heading %} tabindex="-1"{% endif %}>{{ title }}</h1>
-          {% if badge and badge_href %}<a class="pill{% if badge_tone %} pill-{{ badge_tone }}{% endif %} hover:brightness-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" href="{{ badge_href }}" data-modal data-header-badge>{{ badge }}<span class="sr-only">, change status</span></a>{% elif badge %}<span class="pill{% if badge_tone %} pill-{{ badge_tone }}{% endif %}" data-header-badge>{{ badge }}</span>{% endif %}
+          {% if badge and badge_href %}<a class="pill{% if badge_tone %} pill-{{ badge_tone }}{% endif %} hover:brightness-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" href="{{ badge_href }}" data-modal data-header-badge>{{ badge }}<svg class="badge-chev" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z"/></svg><span class="sr-only">, change status</span></a>{% elif badge %}<span class="pill{% if badge_tone %} pill-{{ badge_tone }}{% endif %}" data-header-badge>{{ badge }}</span>{% endif %}
         </div>
         {% if subtitle %}<p class="mt-1 text-muted">{{ subtitle }}</p>{% endif %}
       </div>

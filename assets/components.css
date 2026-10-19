@@ -257,3 +257,6 @@ main .divide-y > li.list-row[data-task-item] { padding-inline: 12px; }
 .gcard-meta { display: block; overflow: hidden; margin-top: 2px; font-size: 14px; line-height: 20px; color: var(--muted); white-space: nowrap; text-overflow: ellipsis; }
 .gcard-foot { display: flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 6px; }
 @media (prefers-reduced-motion: reduce) { .gcard { transition: none; } }
+
+/* The tappable status pill (page_header badge_href): a small decorative chevron says it opens something (Critic v5). */
+.pill .badge-chev { width: 12px; height: 12px; margin-right: -2px; flex-shrink: 0; opacity: .8; }
