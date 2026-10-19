@@ -56,6 +56,14 @@ class DetailLayoutTests(TestCase):
         # It looks tappable: a small decorative chevron (Critic v5), hidden from screen readers.
         badge = body[body.index("data-header-badge>"):body.index("</a>", body.index("data-header-badge>"))]
         self.assertIn('<svg class="badge-chev" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">', badge)
+        # The pill, the "…" menu and Edit each get a 44px tap area without growing (Critic v6 W4).
+        self.assertRegex(body, r'<a class="pill pill-\w+ tap-44 [^"]*"[^>]*data-header-badge>')
+        self.assertIn('<summary class="mo-press tap-44 ', menu)
+        actions = body[body.index("data-header-actions"):]
+        self.assertRegex(actions[actions.index("</details>"):], r'<a[^>]*class="[^"]*\btap-44\b[^"]*"[^>]*>Edit')
+        from pathlib import Path
+        css = (Path(__file__).resolve().parents[1] / "assets" / "components.css").read_text()
+        self.assertIn(".tap-44::after { content: \"\"; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px);", css)
         self.assertContains(page, 'Jan 15, 2025<span class="block text-sm text-muted"')
         self.assertContains(page, "No photos yet.")
         self.assertContains(page, "No parents recorded.")

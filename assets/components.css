@@ -213,6 +213,11 @@ main .divide-y > li.list-row[data-task-item] { padding-inline: 12px; }
 .guide-pop .btn-ghost { background: none; color: var(--muted); padding: 0 8px; }
 .guide-glow { position: relative; z-index: 30; border-radius: 8px; box-shadow: 0 0 0 3px var(--canvas), 0 0 0 5px var(--accent) !important; }
 
+/* A 44px tap area around a control that looks smaller (Critic v6 W4): the status pill, Edit and the "…" menu.
+   The look is unchanged; an invisible ::after grows the hit box to at least 44x44 around the centre. */
+.tap-44 { position: relative; }
+.tap-44::after { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%); }
+
 /* On/off switch: a horizontal 44x24 track and thumb, with a 44px hit area (Critic S4, v6 W1). The global
    submit-button sizing skips .switch (layout.css). */
 .switch { position: relative; display: inline-block; flex-shrink: 0; width: 44px; height: 24px; min-height: 0; padding: 0; border: 0; border-radius: 999px;
