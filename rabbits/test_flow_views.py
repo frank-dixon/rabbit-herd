@@ -199,7 +199,7 @@ class CardFlowTests(TestCase):
         button = page[page.rindex("<button", 0, start):page.index("</button>", start)]
         self.assertIn("add-row", button)
         self.assertIn("border-line bg-surface", button)  # the secondary variant
-        self.assertIn('<span class="mr-1.5" aria-hidden="true">+</span>Add another breed', button)
+        self.assertIn('<span class="mr-1.5" aria-hidden="true">+</span>Add breed', button)
 
     def test_a_repeated_breed_in_the_mix_is_added_together(self):
         self.walk_to_breed("crossbred")
