@@ -152,6 +152,16 @@ class DemoTests(MediaMixin, TestCase):
         self.assertIn("Start my own herd", body)
         self.assertNotIn(user.email, body)
 
+    def test_a_demo_herds_start_is_welcome(self):
+        """Critic v7 O4: a demo herd's /start/ is Welcome, with both choices, not the old first screen."""
+        self.start()
+        response = self.client.get(reverse("start"))
+        self.assertTemplateUsed(response, "marketing/home.html")
+        self.assertTemplateNotUsed(response, "accounts/start.html")
+        body = response.content.decode()
+        self.assertIn(f'action="{reverse("start_demo")}"', body)
+        self.assertIn(f'action="{reverse("guest")}"', body)
+
     def test_demo_cannot_be_merged(self):
         user = self.start()
         real = User.objects.create_user(email="keeper@example.com", password=PASSWORD, email_confirmed=True)
