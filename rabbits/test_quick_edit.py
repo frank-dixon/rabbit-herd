@@ -23,7 +23,8 @@ class QuickEditTests(FlowTestMixin, TestCase):
         facts = page[page.index("data-facts"):page.index("</dl>", page.index("data-facts"))]
         for slug in ("sex", "breed", "color", "line", "birth-date"):
             self.assertIn(f'href="{self.url(slug)}"', facts, slug)
-        self.assertIn(f'href="{reverse("rabbit_status", args=[self.rabbit.pk])}"', facts)  # the status flow
+        # The status flow opens from the header pill, the one place Status shows (Critic v4 G4).
+        self.assertIn(f'href="{reverse("rabbit_status", args=[self.rabbit.pk])}" data-modal data-header-badge', page)
         for name in ("line", "birth_date", "tattoo"):
             self.assertIn(f'data-inline-name="{name}"', facts)
         for slug in ("sex", "breed", "color"):
