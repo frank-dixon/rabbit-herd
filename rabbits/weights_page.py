@@ -24,6 +24,12 @@ SORTS = {"name": "Rabbit", "sex": "Sex", "age": "Age", "weight": "Current", "las
 DESC_FIRST = {"weight", "change", "curve", "age"}
 KIT_DAYS, JUNIOR_DAYS = 56, 183
 OVERDUE_ADULT, OVERDUE_JUNIOR = 30, 7
+
+
+def weigh_note(adult_days=OVERDUE_ADULT, junior_days=OVERDUE_JUNIOR):
+    """The Overdue weigh-ins note, from the same intervals that decide overdue (Copyrighter, 2026-10-18)."""
+    every = lambda n: "every day" if n == 1 else f"every {n} days"
+    return f"Weigh adults {every(adult_days)} and juniors {every(junior_days)}."
 IN_HERD = (Rabbit.Status.BREEDING, Rabbit.Status.GROWING)
 
 
@@ -312,6 +318,7 @@ def weights_hub(request):
         "avg_change": signed(sum(adult_changes) // len(adult_changes), unit) if adult_changes else "",
         "behind": sum(1 for r in juniors if r["vs"] < -G.ON_TRACK), "juniors": len(juniors),
         "overdue": sum(1 for r in all_rows if r["overdue"]),
+        "overdue_note": weigh_note(),
         "week": sum(1 for r in all_rows if r["since"] is not None and r["since"] <= 7), "herd": len(all_rows),
     }
     from pages import minibars as MB

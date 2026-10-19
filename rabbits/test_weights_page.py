@@ -7,7 +7,7 @@ from django.utils import timezone
 from . import growth_curve as G
 from .models import Rabbit, Weight
 from .test_contacts import user
-from .weights_page import change_30
+from .weights_page import change_30, weigh_note
 
 
 class CurveTests(TestCase):
@@ -34,7 +34,17 @@ class ChangeTests(TestCase):
         self.assertIsNone(change_30(ws[:1]))
 
 
+class WeighNoteTests(TestCase):
+    def test_note_uses_the_overdue_intervals_and_says_every_day_for_one(self):
+        self.assertEqual(weigh_note(), "Weigh adults every 30 days and juniors every 7 days.")
+        self.assertEqual(weigh_note(1, 7), "Weigh adults every day and juniors every 7 days.")
+        self.assertEqual(weigh_note(14, 1), "Weigh adults every 14 days and juniors every day.")
+
+
 class WeightsPageTests(TestCase):
+    def test_overdue_card_shows_the_weigh_note(self):
+        self.assertContains(self.client.get(reverse("weights_hub")), "Weigh adults every 30 days and juniors every 7 days.")
+
     def setUp(self):
         self.owner = user("wp@example.com")
         self.client.force_login(self.owner)

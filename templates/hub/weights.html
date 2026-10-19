@@ -8,7 +8,7 @@
   <div data-swap="stats"><dl class="stat-grid" data-weight-stats>
     {% with avg_sub=stats.avg_change|default:"" %}{% if avg_sub %}{% with s=avg_sub|add:" over 30 days" %}{% include "components/stat_card.html" with label="Herd avg, adults" value=stats.avg sub=s bars=stats.avg_bars only %}{% endwith %}{% else %}{% include "components/stat_card.html" with label="Herd avg, adults" value=stats.avg bars=stats.avg_bars only %}{% endif %}{% endwith %}
     {% with j=stats.juniors|stringformat:"s" %}{% with u="of "|add:j %}{% include "components/stat_card.html" with label="Juniors behind curve" value=stats.behind unit=u sub="vs NZ growth curve" only %}{% endwith %}{% endwith %}
-    {% include "components/stat_card.html" with label="Overdue weigh-ins" value=stats.overdue sub="adults 30 days · juniors 7" only %}
+    {% include "components/stat_card.html" with label="Overdue weigh-ins" value=stats.overdue sub=stats.overdue_note only %}
     {% with h=stats.herd|stringformat:"s" %}{% with s="of "|add:h|add:" in the herd" %}{% include "components/stat_card.html" with label="Weighed this week" value=stats.week sub=s bars=stats.week_bars only %}{% endwith %}{% endwith %}
   </dl></div>
 
