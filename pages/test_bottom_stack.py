@@ -18,7 +18,7 @@ class BottomStackTests(SimpleTestCase):
     def test_stack_rules(self):
         css = (ROOT / "assets" / "layout.css").read_text()
         block = css[css.index("Phone bottom stack"):]
-        for rule in (".temp-rail { position: fixed;", "bottom: var(--tabbar-h)", "height: 24px",
+        for rule in (".temp-rail { position: fixed;", "bottom: var(--tabbar-h)", "height: 44px",
                      "body:has([data-app-tabs]) .pin-main { position: fixed;", "bottom: calc(var(--tabbar-h) + var(--rail-h))",
                      "[data-action-bar] { bottom: calc(var(--tabbar-h) + var(--rail-h)) !important",
                      "[data-shell] main { padding-bottom: calc(var(--stack-h"):
@@ -27,11 +27,16 @@ class BottomStackTests(SimpleTestCase):
         self.assertNotIn("var(--surface)", block)  # not a token; the stack must be opaque
         self.assertGreaterEqual(block.count("background: var(--color-surface)") + block.count("background-color: var(--color-surface)"), 3)
 
-    def test_rail_link_has_a_44px_hit_area(self):
+    def test_the_whole_rail_is_one_44px_target(self):
+        # Critic v4: one 44px row that is itself the link, with no hit area reaching past it.
         css = (ROOT / "assets" / "layout.css").read_text()
         block = css[css.index("Phone bottom stack"):css.index("Tap targets: 44px")]
-        self.assertIn(".temp-rail-action::after { inset: -10px -8px; }", block)  # 24 + 2 x 10
-        self.assertIn("height: 24px; min-height: 24px", block)
+        self.assertIn("height: 44px; min-height: 44px", block)
+        self.assertNotIn("::after", css[css.index(".temp-rail {"):css.index("Tap targets: 44px")])
+        self.assertIn(".temp-rail-hit { display: flex; flex: 1; min-width: 0; min-height: 44px;", css)
+        rail = (ROOT / "templates" / "components" / "temp_rail.html").read_text()
+        self.assertEqual(rail.count('class="temp-rail-hit"'), 2)  # guest link, demo button
+        self.assertIn('<span class="temp-rail-text">{{ temp_rail.text }}</span> <span class="temp-rail-action">', rail)
 
     def test_the_measurer_is_bound(self):
         js = (ROOT / "assets" / "app.js").read_text()

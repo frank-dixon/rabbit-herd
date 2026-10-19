@@ -1,9 +1,8 @@
-{# One quiet line for guest and demo sessions: never blocks anything. Above the tab bar on phones, along the bottom of the content on wider screens. Wording: pages/copy.py RAIL. #}
+{# One quiet line for guest and demo sessions: never blocks anything. Above the tab bar on phones, along the bottom of the content on wider screens. The whole 44px row is the one tap target (Critic v4), so nothing reaches past it. Wording: pages/copy.py RAIL. #}
 <div data-print-hide class="temp-rail" data-temp-rail="{{ temp_rail.kind }}" role="note">
-  <span class="temp-rail-text min-w-0 truncate">{{ temp_rail.text }}</span>
   {% if temp_rail.kind == "demo" %}
-    <form method="post" action="{% url 'guest' %}" class="shrink-0">{% csrf_token %}<button type="submit" class="temp-rail-action">{{ temp_rail.action }}</button></form>
+    <form method="post" action="{% url 'guest' %}" class="temp-rail-form">{% csrf_token %}<button type="submit" class="temp-rail-hit"><span class="temp-rail-text">{{ temp_rail.text }}</span> <span class="temp-rail-action">{{ temp_rail.action }}</span></button></form>
   {% else %}
-    <a class="temp-rail-action shrink-0" href="{% url 'signup' %}">{{ temp_rail.action }}</a>
+    <a class="temp-rail-hit" href="{% url 'signup' %}"><span class="temp-rail-text">{{ temp_rail.text }}</span> <span class="temp-rail-action">{{ temp_rail.action }}</span></a>
   {% endif %}
 </div>

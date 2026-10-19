@@ -12,10 +12,10 @@ function fakeDoc(parts) {
 }
 
 test("stacks the tab bar, rail and pinned button", () => {
-  const { doc, win, vars } = fakeDoc({ tabs: [64], rail: [24], pin: [48] });
-  assert.deepEqual(measureStack(doc, win), { tabs: 64, rail: 24, action: 48, total: 136 });
-  assert.equal(vars["--stack-h"], "136px");
-  assert.equal(vars["--rail-h"], "24px");
+  const { doc, win, vars } = fakeDoc({ tabs: [64], rail: [44], pin: [48] });
+  assert.deepEqual(measureStack(doc, win), { tabs: 64, rail: 44, action: 48, total: 156 });
+  assert.equal(vars["--stack-h"], "156px");
+  assert.equal(vars["--rail-h"], "44px");
 });
 
 test("sub-pixel heights are kept, so the layers meet with no strip between them", () => {
