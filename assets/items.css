@@ -59,3 +59,7 @@ td .it-chips { margin-top: 0; max-width: 280px; }
 .it-stack-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; font-size: 13px; }
 .it-stack-act { flex: none; }
 .it-stack-act .wt-btn { min-height: 44px; }
+
+/* Colour swatches keep a visible 1px edge in the dark themes (Critic v6 M2), so Black still shows on a dark card.
+   The dark themes are the ones with dark=True in pages/theme_data.py. */
+html:is([data-theme^="dark-"], [data-theme^="med-"]) :is(.it-chips i, .it-swatch, .coat-swatch:not(.is-empty)) { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2); }

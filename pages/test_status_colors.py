@@ -71,3 +71,18 @@ class StatusColorTests(SimpleTestCase):
             self.assertGreaterEqual(ratio, 4.5, f"{name} grey COI pill: {ratio:.2f}")
             names.add(name)
         self.assertTrue({"light", "dark-a"} <= names)
+
+
+class DarkSwatchEdgeTests(SimpleTestCase):
+    """Critic v6 M2: colour swatches get a 1px light edge in every dark theme."""
+
+    def test_every_dark_theme_gives_swatches_an_edge(self):
+        from pathlib import Path
+
+        from .theme_data import THEMES
+
+        css = (Path(__file__).resolve().parents[1] / "assets" / "items.css").read_text()
+        rule = 'html:is([data-theme^="dark-"], [data-theme^="med-"]) :is(.it-chips i, .it-swatch, .coat-swatch:not(.is-empty)) { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2); }'
+        self.assertIn(rule, css)
+        for key, _label, _group, dark, *_ in THEMES:
+            self.assertEqual(dark, key.startswith(("dark-", "med-")), key)
