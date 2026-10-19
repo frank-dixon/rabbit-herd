@@ -396,8 +396,8 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
 }
 
 /* An add-row button (Critic v7 M4) is secondary but keeps its border so it reads as a control, 44px everywhere. */
-:is(a, button).mo-press.add-row { border-color: var(--field) !important; min-height: 44px !important; }
-:is(a, button).mo-press.add-row:hover { border-color: var(--ink-2) !important; }
+:is(a, button).mo-press.add-row:is(.border) { border-color: var(--field) !important; min-height: 44px !important; }
+:is(a, button).mo-press.add-row:is(.border):hover { border-color: var(--ink-2) !important; }
 
 /* Full-width buttons stay full width (signup and sign-in submit, the first-screen choices). */
 :is(a, button).mo-press.w-full, main button[type="submit"].w-full { width: 100%; }
