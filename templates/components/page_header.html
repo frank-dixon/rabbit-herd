@@ -1,6 +1,6 @@
 {% comment %} The one page header, app-wide. Title and subtitle on the left; actions on the right that never wrap their text and drop below the title when space is tight.
    Pass title. Optional: subtitle, back_label and back_href (a small "← Label" link above the title), rabbit and rabbit2 (photo thumbnails, or a styled initial, beside the title; shows in print too),
-   badge (a small pill after the title; badge_tone colors it from rabbits/status_pills.py), primary_label/primary_href (primary_pin pins it above the tab bar on phones), secondary_label/secondary_href, print_label (a Print button), actions_template (custom action markup, rendered with the page context),
+   badge (a small pill after the title; badge_tone colors it from rabbits/status_pills.py; badge_href makes it open the status card), primary_label/primary_href (primary_pin pins it above the tab bar on phones), secondary_label/secondary_href, print_label (a Print button), actions_template (custom action markup, rendered with the page context),
    compact_actions (keep the actions beside the title on phones), heading_id and focus_heading (for flows that move focus to the heading), print_hide. {% endcomment %}
 <header class="page-header{% if print_hide %} print:hidden{% endif %}" data-page-header data-guide="page-header"{% if print_hide %} data-print-hide{% endif %}>
   {% if back_href %}
@@ -14,7 +14,7 @@
       <div class="min-w-0">
         <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
           <h1 class="break-words text-[1.75rem] leading-tight font-semibold md:text-[2.25rem]{% if focus_heading %} focus:outline-none{% endif %}"{% if heading_id %} id="{{ heading_id }}"{% endif %}{% if focus_heading %} tabindex="-1"{% endif %}>{{ title }}</h1>
-          {% if badge %}<span class="pill{% if badge_tone %} pill-{{ badge_tone }}{% endif %}" data-header-badge>{{ badge }}</span>{% endif %}
+          {% if badge and badge_href %}<a class="pill{% if badge_tone %} pill-{{ badge_tone }}{% endif %} hover:brightness-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent" href="{{ badge_href }}" data-modal data-header-badge>{{ badge }}<span class="sr-only">, change status</span></a>{% elif badge %}<span class="pill{% if badge_tone %} pill-{{ badge_tone }}{% endif %}" data-header-badge>{{ badge }}</span>{% endif %}
         </div>
         {% if subtitle %}<p class="mt-1 text-muted">{{ subtitle }}</p>{% endif %}
       </div>

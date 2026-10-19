@@ -73,7 +73,7 @@ class PillMapPageTests(TestCase):
 
     def test_breeding_badge_on_rabbit_detail_is_green(self):
         body = self.client.get(reverse("rabbit_detail", args=[self.doe.pk])).content.decode()
-        self.assertRegex(body, r'class="pill pill-g" data-header-badge>Breeding<')
+        self.assertRegex(body, r'class="pill pill-g[^"]*" href="[^"]+" data-modal data-header-badge>Breeding<')
 
     def test_checkup_is_neutral_on_health(self):
         body = self.client.get(reverse("health_list")).content.decode()

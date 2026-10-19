@@ -48,8 +48,11 @@ class DetailLayoutTests(TestCase):
             self.assertNotIn(f"<dt>{label}</dt>", summary)
         self.assertIn("<dt>Latest weight</dt>", summary)
         self.assertNotIn(">Back to rabbits<", body)
-        for label in ("Sex", "Breed", "Color", "Line", "Born", "Status"):
+        for label in ("Sex", "Breed", "Color", "Line", "Born"):
             self.assertRegex(body, rf'<dt class="[^"]*">{label}</dt>')
+        # Status shows once: the header pill, which opens the status card (Critic v4 G4).
+        self.assertNotRegex(body, r'<dt[^>]*>Status</dt>')
+        self.assertRegex(body, rf'<a class="pill pill-\w+[^"]*" href="{reverse("rabbit_status", args=[rabbit.pk])}" data-modal data-header-badge>')
         self.assertContains(page, 'Jan 15, 2025<span class="block text-sm text-muted"')
         self.assertContains(page, "No photos yet.")
         self.assertContains(page, "No parents recorded.")
