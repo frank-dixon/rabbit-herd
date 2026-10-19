@@ -174,9 +174,11 @@ class LandingPageTests(TestCase):
         self.assertEqual(body.count('<source media="(prefers-color-scheme: dark)"') + body.count('and (prefers-color-scheme: dark)"'), 7)
 
     def test_welcome_quiets_its_page_transitions(self):
-        # /start/ now lands here (Critic v6 M7), so Welcome handles an aborted page transition itself.
-        self.assertContains(self.client.get("/"), '<script src="/static/marketing/home.js"></script>')
-        js = (ROOT / "static" / "marketing" / "home.js").read_text()
+        # /start/ now lands here (Critic v6 M7). Welcome and every app page handle an aborted page
+        # transition in <head>, before pagereveal (the app bundle is deferred).
+        self.assertContains(self.client.get("/"), '<script src="/static/boot/transitions.js"></script>')
+        self.assertContains(self.client.get("/login/"), '<script src="/static/boot/transitions.js"></script>')
+        js = (ROOT / "static" / "boot" / "transitions.js").read_text()
         self.assertIn('addEventListener("pageswap"', js)
         self.assertIn('addEventListener("pagereveal"', js)
 
