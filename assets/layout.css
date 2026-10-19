@@ -395,6 +395,10 @@ main .rel-meta { display: block; margin-top: 2px; font-size: 13px; line-height: 
   .seg a, .seg button, [data-tab-list] a, [data-tab-list] button { min-height: 44px; }
 }
 
+/* An add-row button (Critic v7 M4) is secondary but keeps its border so it reads as a control, 44px everywhere. */
+:is(a, button).mo-press.add-row { border-color: var(--field) !important; min-height: 44px !important; }
+:is(a, button).mo-press.add-row:hover { border-color: var(--ink-2) !important; }
+
 /* Full-width buttons stay full width (signup and sign-in submit, the first-screen choices). */
 :is(a, button).mo-press.w-full, main button[type="submit"].w-full { width: 100%; }
 /* First-screen choices are tiles: the quiet one keeps a visible border on the canvas. */

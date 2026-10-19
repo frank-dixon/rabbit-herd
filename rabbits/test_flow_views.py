@@ -191,6 +191,16 @@ class CardFlowTests(TestCase):
         )
         self.assertRedirects(response, step("photos"))
 
+    def test_add_a_breed_is_a_44px_secondary_button_with_a_plus(self):
+        """Critic v7 M4: the add-row control reads as a button, not plain text."""
+        self.walk_to_breed("crossbred")
+        page = self.client.get(step("breed")).content.decode()
+        start = page.index('value="add-cross"')
+        button = page[page.rindex("<button", 0, start):page.index("</button>", start)]
+        self.assertIn("add-row", button)
+        self.assertIn("border-line bg-surface", button)  # the secondary variant
+        self.assertIn('<span class="mr-1.5" aria-hidden="true">+</span>Add another breed', button)
+
     def test_a_repeated_breed_in_the_mix_is_added_together(self):
         self.walk_to_breed("crossbred")
         rex, dutch = breed_id("Rex"), breed_id("Dutch")

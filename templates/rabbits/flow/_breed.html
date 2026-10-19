@@ -17,7 +17,7 @@
     </ul>
     <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
       {% if can_add_cross %}
-        {% include "components/button.html" with label="Add another breed" type="submit" name="action" value="add-cross" variant="secondary" only %}
+        {% include "components/button.html" with label="Add another breed" type="submit" name="action" value="add-cross" variant="secondary" plus=True extra="add-row" only %}
       {% endif %}
       <p class="rounded px-3 py-2 text-sm font-semibold {% if total_tone == 'good' %}bg-green-100 text-green-900{% elif total_tone == 'over' %}bg-red-100 text-red-900{% else %}bg-neutral-100 text-neutral-800{% endif %}" role="status" aria-live="polite" data-cross-total>{{ total_text }}</p>
     </div>
