@@ -342,8 +342,6 @@ if not DEBUG:
 
 
 # Django admin theme (django-unfold).
-from django.urls import reverse_lazy  # noqa: E402
-
 UNFOLD = {
     "SITE_TITLE": "Bramble Burrow",
     "SITE_HEADER": "Bramble Burrow",
@@ -373,7 +371,7 @@ UNFOLD = {
                 "title": group,
                 "separator": True,
                 "items": [
-                    {"title": title, "icon": icon, "link": reverse_lazy(f"admin:{model}_changelist")}
+                    {"title": title, "icon": icon, "link": "/admin/%s/" % model.replace("_", "/", 1)}
                     for title, icon, model in items
                 ],
             }
